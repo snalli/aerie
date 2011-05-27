@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,7 +14,7 @@
 
 
 
-NameService::NameService(rpcc *c, unsigned int principal_id): 
+NameService::NameService(rpcc* c, unsigned int principal_id): 
 	client_(c), 
 	principal_id_(principal_id)
 {
@@ -50,10 +51,13 @@ NameService::Link(const char *name, inode_t *inode)
 	name_str = std::string(name);
 	ino = (unsigned long long) inode;
 
+	printf("NameService::Link DO\n");
+	printf("NameService::Link client=%p\n", client_);
 	intret = client_->call(26, principal_id_, name_str, ino, r);
 	if (intret) {
 		return -intret;
 	}
+	printf("NameService::Link DONE\n");
 
 	return 0;
 }

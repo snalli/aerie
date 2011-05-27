@@ -22,6 +22,7 @@ class PHeap {
 		PHeap();
 		int Open(char* filename, size_t maxsize, size_t root_size,
                  size_t align, PHeap* allocatorp);
+		int Map(char* filename, size_t maxsize, int prot_flags);
 		inline int Alloc(size_t size, void **pp);
 		inline void Free(void *p, size_t size);
 		inline vistaheap *get_vistaheap();

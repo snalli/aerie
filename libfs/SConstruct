@@ -1,6 +1,6 @@
 mainEnv = Environment()
 
-#mainEnv.Append(CCFLAGS=' -g ')
+mainEnv.Append(CCFLAGS=' -g ')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
 
 Export('mainEnv')

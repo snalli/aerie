@@ -83,6 +83,52 @@ PHeap::Open(char* filename, size_t maxsize, size_t root_size,
 }
 
 int
+PHeap::Map(char* filename, size_t maxsize, int prot_flags)
+{
+	int          vistaheap_fd;
+	int          mmap_flags;
+	size_t       rounded_size;
+	void*        base_addr;
+	void*        mmap_addr;
+	PHeapHeader  pheapheader;
+
+	if (!filename) {
+		return -1;
+	}	
+	rounded_size = num_pages(maxsize) * kPageSize;
+	mmap_flags = MAP_SHARED;
+	if ((vistaheap_fd = open(filename, O_RDWR)) < 0) {
+		return -1;
+	} else {
+		pread(vistaheap_fd, &pheapheader, sizeof(pheapheader), 0); 
+		if (pheapheader.magic == PHEAP_INITIALIZED) {
+			mmap_flags |= MAP_FIXED; //FIXME: For some reason, if set set MAP_FIXED then RPC library seg faults
+			mmap_addr = (void *) pheapheader.mmap_base;
+		} else {
+			return -1;
+		}
+	}
+
+	printf("mmap_addr=%p\n", mmap_addr);
+	//mmap_addr = (void *) ((unsigned long long) mmap_addr + 1024);
+	if ((base_addr = mmap(mmap_addr, maxsize, prot_flags, mmap_flags, vistaheap_fd, 0)) == (void *) -1) {
+		assert(0);
+		close(vistaheap_fd);
+		return NULL;
+	}
+	printf("base_addr=%p\n", base_addr);
+
+	//FIXME: We can't use MAP_FIXED because RPC library seg faults
+	assert(base_addr == mmap_addr);
+
+	return 0;
+}
+
+
+
+
+
+int
 PHeap::Close()
 {
 	return 0;

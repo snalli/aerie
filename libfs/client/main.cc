@@ -20,9 +20,14 @@ NameService* name_service;
 
 void simple_tests()
 {
+	void* a, *b, *c, *d;
+
 	ChunkDescriptor* chunkdsc;
-	chunk_store->CreateChunk(1024, &chunkdsc);
-	chunk_store->CreateChunk(1024, &chunkdsc);
+	chunk_store->CreateChunk(16384, &chunkdsc);
+	a = chunkdsc->_chunk;
+	chunk_store->CreateChunk(8192, &chunkdsc);
+	b = chunkdsc->_chunk;
+	chunk_store->AccessAddr((void*) ((unsigned long long) a + 1024));
 }
 
 void simple_names()
@@ -79,10 +84,6 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	chunk_store = new ChunkStore(principal_id);
-	chunk_store->Init();
-	//simple_tests();
-
 	// server's address.
 	memset(&dst, 0, sizeof(dst));
 	dst.sin_family = AF_INET;
@@ -98,6 +99,12 @@ main(int argc, char *argv[])
 	assert (client->bind() == 0);
 
 	name_service = new NameService(client, principal_id);
-
 	simple_names();
+
+	chunk_store = new ChunkStore(client, principal_id);
+	chunk_store->Init();
+	simple_tests();
+
+
+	//simple_names();
 }

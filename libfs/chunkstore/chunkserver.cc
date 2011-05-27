@@ -12,7 +12,7 @@
 #include "chunkdsc.h"
 
 
-const uint64_t kChunkStoreSize = 1024*1024*1024;
+const uint64_t kChunkStoreSize = 1024*1024*64;
 const char*    kChunkStoreName = "chunkstore.vistaheap";
 
 ChunkServer::ChunkServer():
@@ -28,17 +28,13 @@ ChunkServer::Init()
 	int        ret;
 	PHeap*     pheap;
 
-	_lockspace = new LockSpace();
-	ret = _lockspace->Init("chunkstore.locks", LS_VOLATILE, 1);
-
-	_lockspace->Lock(0);
+	pthread_mutex_init(&_mutex, NULL);
 	
 	_pheap = new PHeap();
 	_pagepheap = new PHeap();
 	_pheap->Open("chunkstore.pheap", 1024*1024, 0, 0, 0);
 	_pagepheap->Open("chunkstore.pagepheap", kChunkStoreSize, 0, kPageSize, _pheap);
 
-	_lockspace->Unlock(0);
 }
 
 
@@ -49,29 +45,36 @@ ChunkServer::CreateChunk(int principal_id, size_t size, ChunkDescriptor **chunkd
 	ChunkDescriptor*   chunkdsc;
 	void*              chunk;
 	int                ret;
+	std::pair<std::map<unsigned long long, ChunkDescriptor*>::iterator, bool> pairret;
 
 	round_size = num_pages(size) * kPageSize;
 	
-	_lockspace->Lock(0);
+	pthread_mutex_lock(&_mutex);	
 	/* 
 	 * FIXME: These two allocations have to be atomic. 
 	 * We should follow the Ganger rules for allocating storage. 
 	 */ 
 	if ((ret = _pagepheap->Alloc(round_size, &chunk)) != 0) {
+		pthread_mutex_unlock(&_mutex);	
 		return -1;
 	}
 	assert((uintptr_t) chunk % kPageSize == 0);
 	if ((ret = _pheap->Alloc(sizeof(*chunkdsc), (void**)&chunkdsc)) != 0) {
 		_pagepheap->Free(chunk, round_size);
-		_lockspace->Unlock(0);
+		pthread_mutex_unlock(&_mutex);	
 		return -1;
 	}	
 	chunkdsc->_owner_id = _principal_id;
 	chunkdsc->_chunk = chunk;
 	chunkdsc->_size = round_size;
-	*chunkdscp = chunkdsc;
-	_lockspace->Unlock(0);
 
+	/* Keeping the chunk intervals in a map is okay as they don't overlap */
+	pairret = _addr2chunkdsc_map.insert(std::pair<unsigned long long, ChunkDescriptor*>((unsigned long long) chunk, chunkdsc));
+	assert(pairret.second == true);
+	*chunkdscp = chunkdsc;
+	pthread_mutex_unlock(&_mutex);	
+
+	printf("ChunkServer::CreateChunk: chunkdsc=%p (%llx, %llx)\n", chunkdsc, (unsigned long long) ((chunkdsc)->_chunk), (unsigned long long) ((chunkdsc)->_chunk) + size);
 	return 0;
 }
 
@@ -87,7 +90,7 @@ ChunkServer::DeleteChunk(int principal_id, ChunkDescriptor* chunkdsc)
 		return -1;
 	}
 
-	_lockspace->Lock(0);
+	pthread_mutex_lock(&_mutex);	
 
 	round_size = chunkdsc->_size;
 	chunk = chunkdsc->_chunk;
@@ -97,7 +100,9 @@ ChunkServer::DeleteChunk(int principal_id, ChunkDescriptor* chunkdsc)
 	 */
 	_pheap->Free(chunkdsc, sizeof(*chunkdsc));
 	_pagepheap->Free(chunk, round_size);
-	_lockspace->Unlock(0);
+	ret = _addr2chunkdsc_map.erase((unsigned long long) chunk);
+	assert(ret > 0);
+	pthread_mutex_unlock(&_mutex);	
 }
 
 
@@ -118,4 +123,28 @@ ChunkServer::AccessChunk(int principal_id, ChunkDescriptor* chunkdsc)
 
 	return 0;
 */
+}
+
+
+int 
+ChunkServer::AccessAddr(int principal_id, void* addr)
+{
+	unsigned long long                                       uaddr;
+	std::map<unsigned long long, ChunkDescriptor*>::iterator it;
+	std::map<unsigned long long, ChunkDescriptor*>::iterator itlow;
+	ChunkDescriptor*                                         chunkdsc;
+
+	uaddr = (unsigned long long) addr;
+
+	itlow = _addr2chunkdsc_map.lower_bound(uaddr);
+	for (it = --itlow; it != _addr2chunkdsc_map.end(); it++) 	{
+		chunkdsc = it->second;
+		if (uaddr >= (unsigned long long) chunkdsc->_chunk &&
+		    uaddr < (unsigned long long) chunkdsc->_chunk + chunkdsc->_size)
+		{
+			return 0;
+		}
+	}
+	
+	return -1;
 }

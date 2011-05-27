@@ -24,8 +24,8 @@ ChunkServer*   chunk_server;
 class srv {
 	public:
 		int chunk_create(const unsigned int principal_id, const unsigned long long size, unsigned long long & r);
-		int chunk_delete(const unsigned int principal_id, unsigned long long chunkdsc, const unsigned long long size, int & r);
-		int chunk_access(const unsigned int principal_id, const unsigned long long chunkdsc, int & r);
+		int chunk_delete(const unsigned int principal_id, unsigned long long chunkdsc, int & r);
+		int chunk_access(const unsigned int principal_id, const unsigned long long uaddr, int & r);
         int lookup(const unsigned int principal_id, const std::string name, unsigned long long &r);
         int link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r);
 		int remove(const unsigned int principal_id, const std::string name, int &r);
@@ -37,6 +37,8 @@ srv::chunk_create(const unsigned int principal_id, const unsigned long long size
 	ChunkDescriptor*   chunkdsc;
 	unsigned long long chunkdsc_id;
 	int                ret;
+
+	printf("srv::chunk_create\n");
 
 	ret = chunk_server->CreateChunk(principal_id, size, &chunkdsc);
 	if (ret == 0) {
@@ -50,7 +52,7 @@ srv::chunk_create(const unsigned int principal_id, const unsigned long long size
 
 
 int
-srv::chunk_delete(const unsigned int principal_id, const unsigned long long chunkdsc_id, const unsigned long long size, int &r)
+srv::chunk_delete(const unsigned int principal_id, const unsigned long long chunkdsc_id, int &r)
 {
 	ChunkDescriptor* chunkdsc = (ChunkDescriptor*) chunkdsc_id;
 	r = chunk_server->DeleteChunk(principal_id, chunkdsc);
@@ -59,10 +61,10 @@ srv::chunk_delete(const unsigned int principal_id, const unsigned long long chun
 
 
 int
-srv::chunk_access(const unsigned int principal_id, const unsigned long long chunkdsc_id, int &r)
+srv::chunk_access(const unsigned int principal_id, const unsigned long long uaddr, int &r)
 {
-	ChunkDescriptor* chunkdsc = (ChunkDescriptor*) chunkdsc_id;
-	r = chunk_server->AccessChunk(principal_id, chunkdsc);
+	//ChunkDescriptor* chunkdsc = (ChunkDescriptor*) chunkdsc_id;
+	r = chunk_server->AccessAddr(principal_id, (void*) uaddr);
 	return 0;
 }
 
