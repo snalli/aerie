@@ -1,0 +1,135 @@
+
+Vista library, version 0.6.1, September 2000
+--------------------------------------------
+
+	This is the fourth major public release of the Vista library,
+and second minor release. It will compile on Dec Alpha machines running
+Digital Unix version 3.0 (it will probably compile on other versions).
+It will also compile on FreeBSD version 2.2.7. To build the library,
+make sure you're in the vista.0_6_1 subdirectory and type 'make'.
+The vista library file will be left in the 'lib' subdirectory. A
+program to test vista and make sure all is working well will be left
+in the 'bin' subdirectory. You should run this program after building
+vista. It takes a single parameter:  the pathname of a directory in
+which it can safely store about 30MB of temp files.  This directory
+should be a local (non NFS) directory when running on FreeBSD.
+	
+	Vista is designed to utilize the Rio file cache. Running Vista
+on non-Rio systems will work as long as the systems don't crash, and
+the power doesn't go out (process crashes are okay however). 
+
+	Vista provides a heap interface on persistent VM provided by
+the Rio file cache. The user can perform atomic and durable
+transactions on the storage he or she allocates with vista. Vista is
+designed to be easy to use, and extremely fast. On our (somewhat out
+of date) testbed, Vista can perform almost 50,000 transactions per
+second on a benchmark based on TPC-B. On our system a Vista transaction
+can have as little as 5 microseconds of overhead. On faster systems we
+have observed 1 microsecond transactions, and 150,000 transactions per
+second!
+
+	There are a few new features in this release. Users can now
+commit transactions tentatively using vista_commit_tentative(). A
+tentatively committed transaction is permanent, but it's 'tid'
+stays valid, and can later be used to abort the transaction using 
+vista_abort_transaction(). A tentatively committed transaction can be
+permanently committed using vista_commit_transaction().
+
+	Vista has also been made more general. Applications can safely
+invoke Vista routines in signal handlers, and can change page
+protections using mprotect().
+
+	Vista now has its own hash tables, and does not use libTcl's
+hash tables. All hash operations are fully atomic, fixing a lingering
+problem in the original Vista.
+
+	We have yet to write any real documentation for Vista. Anyone
+who has used CMU's RVM library will find Vista's interface familiar.
+The code is fairly well commented, so hopefully that will be helpful to
+those attempting to use Vista. The code for the vista testing program
+'vistatest' is in the vista.0_6_1 directory and can serve as a sample
+vista application. It uses almost all of vista's functionality. Down
+the road we may decide to do a proper release of Vista, along with
+documentation and any of the new stuff we're working on.
+
+	For information on the design, implementation, and performance
+of Vista see the paper "Free Transactions with Rio Vista" in the SOSP
+1997 proceedings, or on the Rio web page. For information on the concept 
+and use of Vistagrams, see the paper "Persistent Messages in Local 
+Transactions" on the Rio web page.
+
+	Most likely, we will not release any more updates of Vista 
+beyond release 0.6.1. Vista's implementors have moved on to other 
+projects and we don't work on this code much any more.
+
+	Hopefully you will find Vista to be useful, or its code to be
+enlightening. Let me know if you do anything cool with it!
+
+	-Dave Lowell
+	dlowell@eecs.umich.edu
+	http://www.eecs.umich.edu/Rio
+
+
+Additions in Release 0.6.1
+--------------------------
+
+	- Allows allocating heap data in one segment, while logging the
+	  heap operation (vista_malloc, vista_free) in another segment's
+	  active transaction. The segment in which to log the operation 
+	  is specified with vista_set_log.
+
+Additions in Release 0.6
+------------------------
+
+	- Supports more general applications
+	- Applications can invoke vista routines in signal handlers
+	- Applications can use mprotect() to change page protections
+	- More general internal locking mechanism
+	- New homebrewed hash tables
+	- Fixed hash operation atomicity
+	- No longer use anything from libTcl
+	- Can now commit transactions "tentatively" using 
+	  vista_commit_tentative()
+	- vista_map() fails when vista file in NFS under FreeBSD
+	- Small improvements to vistagrams generality
+	- Couple small bug fixes
+	- Supports FreeBSD 2.2.7
+
+
+Vista versions 0.4 and 0.5 were internal and were not released
+
+
+Additions in Release 0.3
+------------------------
+
+	- Full version of Vistagrams
+	- Improved generality of some Vista internals
+	- Encapsulation of Vista globals
+	- Lazy unprotect of memory after IMPLICIT transaction
+	- General internal data synchronization added (currently just used 
+	  with signals, but can be made to work with threads easily by 
+	  modifying lock.c)
+	- Cleaner signal handlers
+	- Few small bug fixes
+	- Addition of log segment specification for IMPLICIT transactions
+	- Cleaned up build slightly
+
+	There is a known problem with the atomicity of routines in the 
+	hash.c module. This problem will be fixed in the next release.
+
+Additions in Release 0.21
+-------------------------
+
+	- Hash module uses modified version of libTcl that wont conflict
+	  with true libTcl if latter happens to be linked to a vista app.
+
+Additions in Release 0.2
+-------------------------
+
+	- Vistagrams for idempotent server
+	- Ported to FreeBSD 2.2
+	- Vista testing program 'vistatest'
+
+Initial Release: 0.1 July 1997.
+
+

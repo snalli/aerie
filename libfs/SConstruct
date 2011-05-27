@@ -1,0 +1,17 @@
+mainEnv = Environment()
+
+#mainEnv.Append(CCFLAGS=' -g ')
+#mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
+
+Export('mainEnv')
+rpcLibrary = SConscript('rpc/SConscript')
+Export('rpcLibrary')
+commonLibrary = SConscript('common/SConscript')
+Export('commonLibrary')
+chunkstoreLibrary = SConscript('chunkstore/SConscript')
+Export('chunkstoreLibrary')
+lockservLibrary = SConscript('lockserv/SConscript')
+Export('lockservLibrary')
+
+SConscript('client/SConscript')
+SConscript('server/SConscript')

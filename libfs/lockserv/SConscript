@@ -1,0 +1,11 @@
+Import('mainEnv')
+buildEnv = mainEnv.Clone()
+
+
+lib_target = 'lserv'
+lib_sources = ['lockspace.cc']
+
+buildEnv.Append(CPPPATH = ['#', '#lockserv'])
+
+lockservLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+Return('lockservLibrary')
