@@ -6,10 +6,12 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <iostream>
+#include <vector>
 #include "rpc/rpc.h"
 #include "rpc/jsl_log.h"
 #include "chunkstore/chunkserver.h"
 #include "nameservice.h"
+#include "api.h"
 
 rpcs*          server;  // server rpc object
 int            port;
@@ -25,10 +27,11 @@ class srv {
 	public:
 		int chunk_create(const unsigned int principal_id, const unsigned long long size, unsigned long long & r);
 		int chunk_delete(const unsigned int principal_id, unsigned long long chunkdsc, int & r);
-		int chunk_access(const unsigned int principal_id, const unsigned long long uaddr, int & r);
-        int lookup(const unsigned int principal_id, const std::string name, unsigned long long &r);
-        int link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r);
-		int remove(const unsigned int principal_id, const std::string name, int &r);
+		int chunk_access(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, unsigned int, int & r);
+		int chunk_release(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, int & r);
+        int name_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r);
+        int name_link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r);
+		int name_remove(const unsigned int principal_id, const std::string name, int &r);
 };
 
 int
@@ -37,8 +40,6 @@ srv::chunk_create(const unsigned int principal_id, const unsigned long long size
 	ChunkDescriptor*   chunkdsc;
 	unsigned long long chunkdsc_id;
 	int                ret;
-
-	printf("srv::chunk_create\n");
 
 	ret = chunk_server->CreateChunk(principal_id, size, &chunkdsc);
 	if (ret == 0) {
@@ -61,15 +62,39 @@ srv::chunk_delete(const unsigned int principal_id, const unsigned long long chun
 
 
 int
-srv::chunk_access(const unsigned int principal_id, const unsigned long long uaddr, int &r)
+srv::chunk_access(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, unsigned int prot_flags, int &r)
 {
-	//ChunkDescriptor* chunkdsc = (ChunkDescriptor*) chunkdsc_id;
-	r = chunk_server->AccessAddr(principal_id, (void*) uaddr);
+	std::vector<unsigned long long>::iterator it;
+	std::vector<ChunkDescriptor*>             vchunkdsc;
+	unsigned long long                        uchunkdsc;
+
+	for (it = vuchunkdsc.begin(); it != vuchunkdsc.end(); it++) {
+		uchunkdsc = *it;
+		vchunkdsc.push_back((ChunkDescriptor*) uchunkdsc);
+	}
+	r = chunk_server->AccessChunk(principal_id, vchunkdsc, prot_flags);
 	return 0;
 }
 
+
 int
-srv::lookup(const unsigned int principal_id, const std::string name, unsigned long long &r)
+srv::chunk_release(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, int &r)
+{
+	std::vector<unsigned long long>::iterator it;
+	std::vector<ChunkDescriptor*>             vchunkdsc;
+	unsigned long long                        uchunkdsc;
+
+	for (it = vuchunkdsc.begin(); it != vuchunkdsc.end(); it++) {
+		uchunkdsc = *it;
+		vchunkdsc.push_back((ChunkDescriptor*) uchunkdsc);
+	}
+	r = chunk_server->ReleaseChunk(principal_id, vchunkdsc);
+	return 0;
+}
+
+
+int
+srv::name_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r)
 {
 	int      ret;
 	inode_t* inode;
@@ -81,8 +106,9 @@ srv::lookup(const unsigned int principal_id, const std::string name, unsigned lo
 	return 0;
 }
 
+
 int
-srv::link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r)
+srv::name_link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r)
 {
 	int ret;
 
@@ -95,7 +121,7 @@ srv::link(const unsigned int principal_id, const std::string name, unsigned long
 
 
 int
-srv::remove(const unsigned int principal_id, const std::string name, int &r)
+srv::name_remove(const unsigned int principal_id, const std::string name, int &r)
 {
 	int ret;
 
@@ -112,12 +138,13 @@ srv service;
 void startserver()
 {
 	server = new rpcs(port);
-	server->reg(22, &service, &srv::chunk_create);
-	server->reg(23, &service, &srv::chunk_delete);
-	server->reg(24, &service, &srv::chunk_access);
-	server->reg(25, &service, &srv::lookup);
-	server->reg(26, &service, &srv::link);
-	server->reg(27, &service, &srv::remove);
+	server->reg(RPC_CHUNK_CREATE, &service, &srv::chunk_create);
+	server->reg(RPC_CHUNK_DELETE, &service, &srv::chunk_delete);
+	server->reg(RPC_CHUNK_ACCESS, &service, &srv::chunk_access);
+	server->reg(RPC_CHUNK_RELEASE, &service, &srv::chunk_release);
+	server->reg(RPC_NAME_LOOKUP, &service, &srv::name_lookup);
+	server->reg(RPC_NAME_LINK, &service, &srv::name_link);
+	server->reg(RPC_NAME_REMOVE, &service, &srv::name_remove);
 }
 
 int

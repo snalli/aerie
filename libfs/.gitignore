@@ -1,0 +1,7 @@
+.sconsign.dblite
+*.o
+*.a
+server/fsserver
+client/fsclient
+chunkstore.pagepheap
+chunkstore.pheap

@@ -7,8 +7,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <vector>
 #include "rpc/rpc.h"
-//#include "common/pheap.h"
+#include "server/api.h"
 #include "common/util.h"
 #include "common/vistaheap.h"
 #include "chunkdsc.h"
@@ -47,7 +48,7 @@ ChunkStore::CreateChunk(size_t size, ChunkDescriptor** chunkdscp)
 	unsigned long long r;
 	unsigned long long usize = (unsigned long long) size;
 
-	intret = _client->call(22, _principal_id, usize, r);
+	intret = _client->call(RPC_CHUNK_CREATE, _principal_id, usize, r);
 
 	if (r == 0) {
 		return -1;
@@ -71,47 +72,74 @@ ChunkStore::DeleteChunk(ChunkDescriptor* chunkdsc)
 		return -1;
 	}
 
-	intret = _client->call(23, _principal_id, chunkdsc_id, r);
+	intret = _client->call(RPC_CHUNK_DELETE, _principal_id, chunkdsc_id, r);
 
 	return 0;
 }
 
 
 int 
-ChunkStore::AccessChunk(ChunkDescriptor* chunkdsc)
+ChunkStore::AccessChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int prot_flags)
 {
-	int                prot_flags;
-	int                intret;
-	int                r;
-	unsigned long long chunkdsc_id;
-	unsigned long long uaddr;
+	int                             intret;
+	int                             r;
+	unsigned long long              chunkdsc_id;
+	unsigned long long              uaddr;
+	std::vector<unsigned long long> vuchunkdsc;
+	int                             i;
 
-	chunkdsc_id = (unsigned long long) chunkdsc;
-	uaddr = (unsigned long long) chunkdsc->_chunk;
+	for (i=0; i<nchunkdsc; i++) {
+		vuchunkdsc.push_back((unsigned long long) chunkdsc[i]);
+	}
 
-	printf("ChunkStore::AccessChunk: dsc=%p\n", chunkdsc);
-
-	intret = _client->call(24, _principal_id, uaddr, r);
+	intret = _client->call(RPC_CHUNK_ACCESS, _principal_id, vuchunkdsc, prot_flags, r);
 
 	if (r != 0) {
 		return r;
 	}
 
-	return 0;
-
-	// TODO
 	/* do mprotect */
 
-	prot_flags = PROT_READ;
-
-	printf("ChunkStore::AccessChunk: dsc->chunk=%p\n", chunkdsc->_chunk);
-	intret = mprotect(chunkdsc->_chunk, chunkdsc->_size, prot_flags);
-	if (intret != 0) {
-		return -1;
+	for (i=0; i<nchunkdsc; i++) {
+		intret = mprotect(chunkdsc[i]->_chunk, chunkdsc[i]->_size, prot_flags);
+		assert(intret == 0);
 	}
 
 	return 0;
 }
+
+
+int 
+ChunkStore::ReleaseChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc)
+{
+	int                             intret;
+	int                             r;
+	unsigned long long              chunkdsc_id;
+	unsigned long long              uaddr;
+	std::vector<unsigned long long> vuchunkdsc;
+	int                             i;
+
+	for (i=0; i<nchunkdsc; i++) {
+		vuchunkdsc.push_back((unsigned long long) chunkdsc[i]);
+	}
+
+	intret = _client->call(RPC_CHUNK_RELEASE, _principal_id, vuchunkdsc, r);
+
+	if (r != 0) {
+		return r;
+	}
+
+	/* do mprotect */
+
+	for (i=0; i<nchunkdsc; i++) {
+		printf("release_chunk: %p\n", chunkdsc[i]->_chunk);
+		intret = mprotect(chunkdsc[i]->_chunk, chunkdsc[i]->_size, PROT_NONE);
+		assert(intret == 0);
+	}
+
+	return 0;
+}
+
 
 
 int 
@@ -121,16 +149,19 @@ ChunkStore::AccessAddr(void* addr)
 	int                intret;
 	int                r;
 	unsigned long long uaddr;
+	std::vector<unsigned long long> vaddr;
 
-	uaddr = (unsigned long long) addr;
+	assert(0 && "ChunkStore::AccessAddr not implemented");
 
-	printf("ChunkStore::AccessAddr: addr=%p\n", addr);
 
-	intret = _client->call(24, _principal_id, uaddr, r);
+	//vaddr.push_back((unsigned long long) addr);
 
-	if (r != 0) {
-		return r;
-	}
+	//intret = _client->call(24, _principal_id, vaddr, r);
+
+	//if (r != 0) {
+	//	return r;
+	//}
+
 
 	// TODO
 	/* do mprotect */

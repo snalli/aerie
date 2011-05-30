@@ -8,6 +8,7 @@
 #include "rpc/rpc.h"
 #include "rpc/jsl_log.h"
 #include "chunkstore/chunkstore.h"
+#include "server/api.h"
 #include "nameservice.h"
 
 
@@ -20,14 +21,17 @@ NameService* name_service;
 
 void simple_tests()
 {
+	ChunkDescriptor* achunkdsc[16];
 	void* a, *b, *c, *d;
+	int tmp;
 
 	ChunkDescriptor* chunkdsc;
 	chunk_store->CreateChunk(16384, &chunkdsc);
-	a = chunkdsc->_chunk;
+	achunkdsc[0] = chunkdsc;
 	chunk_store->CreateChunk(8192, &chunkdsc);
-	b = chunkdsc->_chunk;
-	chunk_store->AccessAddr((void*) ((unsigned long long) a + 1024));
+	achunkdsc[1] = chunkdsc;
+	chunk_store->AccessChunk(achunkdsc, 2, PROT_READ|PROT_WRITE);
+	chunk_store->ReleaseChunk(achunkdsc, 1);
 }
 
 void simple_names()

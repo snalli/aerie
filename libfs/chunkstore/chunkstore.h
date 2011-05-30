@@ -14,7 +14,8 @@ public:
 	void Init();
 	int CreateChunk(size_t size, ChunkDescriptor **chunkdscp);
 	int DeleteChunk(ChunkDescriptor *chunkdsc);
-	int AccessChunk(ChunkDescriptor *chunkdsc);
+	int AccessChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int prot_flags);
+	int ReleaseChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc);
 	int AccessAddr(void* addr);
 
 	ChunkStore(rpcc*, id_t);

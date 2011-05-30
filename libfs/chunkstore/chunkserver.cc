@@ -37,15 +37,29 @@ ChunkServer::Init()
 
 }
 
+int 
+ChunkServer::CreateChunkVolatile(ChunkDescriptor *chunkdsc)
+{
+	ChunkDescriptorVolatile*                                                          chunkdsc_vol;
+	std::pair<std::map<unsigned long long, ChunkDescriptorVolatile*>::iterator, bool> pairret;
+
+	chunkdsc_vol = new ChunkDescriptorVolatile;
+	chunkdsc_vol->_locked = 0;
+	chunkdsc_vol->_proc_id = 0;
+	pairret = _chunkdsc2chunkdscvol_map.insert(std::pair<unsigned long long, ChunkDescriptorVolatile*>((unsigned long long) chunkdsc, chunkdsc_vol));
+	assert(pairret.second == true);
+
+	return 0;
+}
 
 int
 ChunkServer::CreateChunk(int principal_id, size_t size, ChunkDescriptor **chunkdscp)
 {
-	int                round_size; 
-	ChunkDescriptor*   chunkdsc;
-	void*              chunk;
-	int                ret;
-	std::pair<std::map<unsigned long long, ChunkDescriptor*>::iterator, bool> pairret;
+	int                       round_size; 
+	ChunkDescriptor*          chunkdsc;
+	void*                     chunk;
+	int                       ret;
+	std::pair<std::map<unsigned long long, ChunkDescriptor*>::iterator, bool>         pairret;
 
 	round_size = num_pages(size) * kPageSize;
 	
@@ -71,6 +85,7 @@ ChunkServer::CreateChunk(int principal_id, size_t size, ChunkDescriptor **chunkd
 	/* Keeping the chunk intervals in a map is okay as they don't overlap */
 	pairret = _addr2chunkdsc_map.insert(std::pair<unsigned long long, ChunkDescriptor*>((unsigned long long) chunk, chunkdsc));
 	assert(pairret.second == true);
+	CreateChunkVolatile(chunkdsc);
 	*chunkdscp = chunkdsc;
 	pthread_mutex_unlock(&_mutex);	
 
@@ -102,28 +117,132 @@ ChunkServer::DeleteChunk(int principal_id, ChunkDescriptor* chunkdsc)
 	_pagepheap->Free(chunk, round_size);
 	ret = _addr2chunkdsc_map.erase((unsigned long long) chunk);
 	assert(ret > 0);
+	ret = _chunkdsc2chunkdscvol_map.erase((unsigned long long) chunkdsc);
+	assert(ret > 0);
 	pthread_mutex_unlock(&_mutex);	
 }
 
 
 int 
-ChunkServer::AccessChunk(int principal_id, ChunkDescriptor* chunkdsc)
+ChunkServer::AccessChunk(int principal_id, std::vector<ChunkDescriptor*> vchunkdsc, unsigned int prot_flags)
 {
-/*
-	std::map<unsigned long long, ChunkMetadata*>::iterator it;
-	ChunkMetadata*                                         chunk_metadata;
-	unsigned int                                            owner_id;
+	ChunkDescriptor*                                                 chunkdsc;
+	ChunkDescriptorVolatile*                                         chunkdsc_vol;
+	std::map<unsigned long long, ChunkDescriptorVolatile*>::iterator it;
+	std::vector<ChunkDescriptor*>::iterator                          vit;
+	bool                                                             access_pages;
+	unsigned int                                                     nreaders;
 
-	it = chunk_metadata_map_.find(chunk_id);
-	if (it == chunk_metadata_map_.end()) {
+	// We want to atomically access all chunks or none so we first check we can
+	pthread_mutex_lock(&_mutex);	
+	access_pages = true;
+	for (vit = vchunkdsc.begin(); vit != vchunkdsc.end(); vit++) {
+		chunkdsc = *vit;
+		it = _chunkdsc2chunkdscvol_map.find((unsigned long long) chunkdsc);
+		if (it == _chunkdsc2chunkdscvol_map.end()) {
+			access_pages = false;
+			break;
+		}
+		chunkdsc_vol = it->second;
+		if (prot_flags & PROT_WRITE) {
+			if ((chunkdsc_vol->_locked == CHUNK_LOCK_WRITE) ||
+			    (chunkdsc_vol->_locked & CHUNK_LOCK_NREADERS_MASK > 0)) 
+			{
+				access_pages = false;
+				break;
+			}
+		} else if ((prot_flags & PROT_READ)) {
+			if (chunkdsc_vol->_locked == CHUNK_LOCK_WRITE) {
+				access_pages = false;
+				break;
+			}
+		}	
+		// TODO: check ACL
+	}
+
+	if (access_pages) {
+		for (vit = vchunkdsc.begin(); vit != vchunkdsc.end(); vit++) {
+			chunkdsc = *vit;
+			it = _chunkdsc2chunkdscvol_map.find((unsigned long long) chunkdsc);
+			assert(it != _chunkdsc2chunkdscvol_map.end());
+			chunkdsc_vol = it->second;
+			if (prot_flags & PROT_WRITE) {
+				chunkdsc_vol->_locked = CHUNK_LOCK_WRITE;
+				chunkdsc_vol->_principal_id = principal_id;
+			} else if ((prot_flags & PROT_READ)) {
+				nreaders = chunkdsc_vol->_locked >> 1;
+				nreaders = (nreaders + 1) << 1;
+				chunkdsc_vol->_locked = nreaders;
+			}
+		}
+	} else {
+		pthread_mutex_unlock(&_mutex);	
 		return -1;
-	}	
-	chunk_metadata = it->second;
-	owner_id = chunk_metadata->get_owner_id();
+	}
 
+	pthread_mutex_unlock(&_mutex);	
 	return 0;
-*/
 }
+
+
+int 
+ChunkServer::ReleaseChunk(int principal_id, std::vector<ChunkDescriptor*> vchunkdsc)
+{
+	ChunkDescriptor*                                                 chunkdsc;
+	ChunkDescriptorVolatile*                                         chunkdsc_vol;
+	std::map<unsigned long long, ChunkDescriptorVolatile*>::iterator it;
+	std::vector<ChunkDescriptor*>::iterator                          vit;
+	bool                                                             release_pages;
+	unsigned int                                                     nreaders;
+
+	// We want to atomically release all chunks or none so we first check we can
+	pthread_mutex_lock(&_mutex);	
+	release_pages = true;
+	for (vit = vchunkdsc.begin(); vit != vchunkdsc.end(); vit++) {
+		chunkdsc = *vit;
+		it = _chunkdsc2chunkdscvol_map.find((unsigned long long)chunkdsc);
+		if (it == _chunkdsc2chunkdscvol_map.end()) {
+			release_pages = false;
+			break;
+		}
+		chunkdsc_vol = it->second;
+		if (chunkdsc_vol->_locked == CHUNK_LOCK_WRITE) {
+			if (chunkdsc_vol->_principal_id != principal_id) {
+				release_pages = false;
+				break;
+			}
+		} else if (chunkdsc_vol->_locked > 1) {
+			// FIXME: Must check that we are really a reader of the page. 
+			// OS should be able to check this by looking the process' 
+			// address space structure. 
+		} else if (chunkdsc_vol->_locked == 0) {
+			release_pages = false;
+			break;
+		}
+	}
+
+	if (release_pages) {
+		for (vit = vchunkdsc.begin(); vit != vchunkdsc.end(); vit++) {
+			chunkdsc = *vit;
+			it = _chunkdsc2chunkdscvol_map.find((unsigned long long)chunkdsc);
+			assert(it != _chunkdsc2chunkdscvol_map.end());
+			chunkdsc_vol = it->second;
+			if (chunkdsc_vol->_locked == CHUNK_LOCK_WRITE) {
+				chunkdsc_vol->_locked = 0;
+			} else if (chunkdsc_vol->_locked > 1) {
+				nreaders = chunkdsc_vol->_locked >> 1;
+				nreaders = (nreaders - 1) << 1;
+				chunkdsc_vol->_locked = nreaders;
+			} 
+		}
+	} else {
+		pthread_mutex_unlock(&_mutex);	
+		return -1;
+	}
+	pthread_mutex_unlock(&_mutex);	
+	return 0;
+}
+
 
 
 int 
