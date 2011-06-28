@@ -3,9 +3,12 @@ buildEnv = mainEnv.Clone()
 
 
 lib_target = 'common'
-lib_sources = ['pheap.cc', 'vistaheap.c']
+lib_sources = ['pheap.cc', 'vistaheap.c', 'debug.c', 'stack.c', 'rbt.c', 'interval_tree.cc']
 
 buildEnv.Append(CPPPATH = ['#', '#common'])
 
 commonLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+
+buildEnv.Program('test', ['test.cc', commonLibrary], CCFLAGS='-g')
+
 Return('commonLibrary')

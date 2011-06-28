@@ -9,13 +9,20 @@
 #include "lockserv/lockserv.h"
 #include "common/pheap.h"
 #include "common/vistaheap.h"
+#include "common/list.h"
 #include "chunkdsc.h"
+
+
+struct ChunkStoreRoot {
+	int              _init;
+	struct list_head chunk_dsc_list_;
+};
 
 
 class ChunkServer {
 public:
 	void Init();
-	int CreateChunk(int principal_id, size_t size, ChunkDescriptor** chunkdscp);
+	int CreateChunk(int principal_id, size_t size, int type, ChunkDescriptor** chunkdscp);
 	int DeleteChunk(int principal_id, ChunkDescriptor* chunkdsc);
 	int AccessChunk(int principal_id, std::vector<ChunkDescriptor*> vchunkdsc, unsigned int prot_flags);
 	int ReleaseChunk(int principal_id, std::vector<ChunkDescriptor*> vchunkdsc);
@@ -28,6 +35,7 @@ private:
 	id_t                                     _principal_id;
 	PHeap*                                   _pheap; 
 	PHeap*                                   _pagepheap; 
+	ChunkStoreRoot*                          _pheap_root;
 	pthread_mutex_t                          _mutex;
 	std::map<unsigned long long, 
 	         ChunkDescriptor*>               _addr2chunkdsc_map; 

@@ -8,7 +8,7 @@ buildEnv = mainEnv.Clone()
 
 
 lib_target = 'fss'
-lib_sources = ['nameservice.cc']
+lib_sources = ['nameservice.cc', 'registry.cc']
 
 fssLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
 

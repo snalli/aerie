@@ -11,6 +11,7 @@
 #include "rpc/jsl_log.h"
 #include "chunkstore/chunkserver.h"
 #include "nameservice.h"
+#include "registry.h"
 #include "api.h"
 
 rpcs*          server;  // server rpc object
@@ -18,6 +19,7 @@ int            port;
 pthread_attr_t attr;
 NameService*   name_service;
 ChunkServer*   chunk_server;
+Registry*      registry;
 
 
 // server-side handlers. they must be methods of some class
@@ -25,23 +27,26 @@ ChunkServer*   chunk_server;
 // from multiple classes.
 class srv {
 	public:
-		int chunk_create(const unsigned int principal_id, const unsigned long long size, unsigned long long & r);
+		int chunk_create(const unsigned int principal_id, const unsigned long long size, const int type, unsigned long long & r);
 		int chunk_delete(const unsigned int principal_id, unsigned long long chunkdsc, int & r);
 		int chunk_access(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, unsigned int, int & r);
 		int chunk_release(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, int & r);
         int name_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r);
         int name_link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r);
-		int name_remove(const unsigned int principal_id, const std::string name, int &r);
+		int name_unlink(const unsigned int principal_id, const std::string name, int &r);
+        int registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long &obj);
+        int registry_add(const unsigned int principal_id, const std::string name, unsigned long long obj, int &r);
+		int registry_remove(const unsigned int principal_id, const std::string name, int &r);
 };
 
 int
-srv::chunk_create(const unsigned int principal_id, const unsigned long long size, unsigned long long &r)
+srv::chunk_create(const unsigned int principal_id, const unsigned long long size, const int type, unsigned long long &r)
 {
 	ChunkDescriptor*   chunkdsc;
 	unsigned long long chunkdsc_id;
 	int                ret;
 
-	ret = chunk_server->CreateChunk(principal_id, size, &chunkdsc);
+	ret = chunk_server->CreateChunk(principal_id, size, type, &chunkdsc);
 	if (ret == 0) {
 		chunkdsc_id = (unsigned long long) chunkdsc;
 		r = chunkdsc_id;
@@ -97,12 +102,12 @@ int
 srv::name_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r)
 {
 	int      ret;
-	inode_t* inode;
-	ret = name_service->Lookup(name.c_str(), &inode);
+	void*    obj;
+	ret = name_service->Lookup(name.c_str(), &obj);
 	if (ret<0) {
 		return -ret;
 	}
-	r = (unsigned long long) inode;
+	r = (unsigned long long) obj;
 	return 0;
 }
 
@@ -121,16 +126,57 @@ srv::name_link(const unsigned int principal_id, const std::string name, unsigned
 
 
 int
-srv::name_remove(const unsigned int principal_id, const std::string name, int &r)
+srv::name_unlink(const unsigned int principal_id, const std::string name, int &r)
 {
 	int ret;
 
-	ret = name_service->Remove(name.c_str());
+	ret = name_service->Unlink(name.c_str());
 	if (ret<0) {
 		return -ret;
 	}
 	return 0;
 }
+
+
+int
+srv::registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r)
+{
+	int    ret;
+	void*  obj;
+	ret = registry->Lookup(name.c_str(), &obj);
+	if (ret<0) {
+		return -ret;
+	}
+	r = (unsigned long long) obj;
+	return 0;
+}
+
+
+int
+srv::registry_add(const unsigned int principal_id, const std::string name, unsigned long long obj, int &r)
+{
+	int ret;
+
+	ret = registry->Add(name.c_str(), (void*) obj);
+	if (ret<0) {
+		return -ret;
+	}
+	return 0;
+}
+
+
+int
+srv::registry_remove(const unsigned int principal_id, const std::string name, int &r)
+{
+	int ret;
+
+	ret = registry->Remove(name.c_str());
+	if (ret<0) {
+		return -ret;
+	}
+	return 0;
+}
+
 
 
 srv service;
@@ -144,7 +190,10 @@ void startserver()
 	server->reg(RPC_CHUNK_RELEASE, &service, &srv::chunk_release);
 	server->reg(RPC_NAME_LOOKUP, &service, &srv::name_lookup);
 	server->reg(RPC_NAME_LINK, &service, &srv::name_link);
-	server->reg(RPC_NAME_REMOVE, &service, &srv::name_remove);
+	server->reg(RPC_NAME_UNLINK, &service, &srv::name_unlink);
+	server->reg(RPC_REGISTRY_LOOKUP, &service, &srv::registry_lookup);
+	server->reg(RPC_REGISTRY_ADD, &service, &srv::registry_add);
+	server->reg(RPC_REGISTRY_REMOVE, &service, &srv::registry_remove);
 }
 
 int
@@ -185,6 +234,7 @@ main(int argc, char *argv[])
 	printf("starting server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
 
 	name_service = new NameService();
+	name_service->Init();
 	chunk_server = new ChunkServer();
 	chunk_server->Init();
 

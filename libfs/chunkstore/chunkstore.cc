@@ -34,21 +34,22 @@ ChunkStore::Init()
 	_pheap = new PHeap();
 	_pagepheap = new PHeap();
 
-	while(_pagepheap->Map("chunkstore.pagepheap", kChunkStoreSize, 0) != 0);
+	while(_pagepheap->Map("chunkstore.page.pheap", kChunkStoreSize, 0) != 0);
 	_pheap->Map("chunkstore.pheap", 1024*1024, PROT_READ);
 
+	_pheap_root = (ChunkStoreRoot*) _pheap->get_root();
 }
 
 
 int
-ChunkStore::CreateChunk(size_t size, ChunkDescriptor** chunkdscp)
+ChunkStore::CreateChunk(size_t size, int type, ChunkDescriptor** chunkdscp)
 {
 	int                intret; 
 	unsigned long long chunkdsc_id;
 	unsigned long long r;
 	unsigned long long usize = (unsigned long long) size;
 
-	intret = _client->call(RPC_CHUNK_CREATE, _principal_id, usize, r);
+	intret = _client->call(RPC_CHUNK_CREATE, _principal_id, usize, type, r);
 
 	if (r == 0) {
 		return -1;
@@ -79,7 +80,7 @@ ChunkStore::DeleteChunk(ChunkDescriptor* chunkdsc)
 
 
 int 
-ChunkStore::AccessChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int prot_flags)
+ChunkStore::AccessChunkList(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int prot_flags)
 {
 	int                             intret;
 	int                             r;
@@ -101,7 +102,7 @@ ChunkStore::AccessChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int prot_
 	/* do mprotect */
 
 	for (i=0; i<nchunkdsc; i++) {
-		intret = mprotect(chunkdsc[i]->_chunk, chunkdsc[i]->_size, prot_flags);
+		intret = mprotect(chunkdsc[i]->chunk_, chunkdsc[i]->_size, prot_flags);
 		assert(intret == 0);
 	}
 
@@ -110,7 +111,18 @@ ChunkStore::AccessChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int prot_
 
 
 int 
-ChunkStore::ReleaseChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc)
+ChunkStore::AccessChunk(ChunkDescriptor* chunkdsc, int prot_flags)
+{
+	ChunkDescriptor* chunkdsc_array[1];
+
+	chunkdsc_array[0] = chunkdsc;
+
+	return AccessChunkList(chunkdsc_array, 1, prot_flags);
+}
+
+
+int 
+ChunkStore::ReleaseChunkList(ChunkDescriptor* chunkdsc[], size_t nchunkdsc)
 {
 	int                             intret;
 	int                             r;
@@ -132,12 +144,22 @@ ChunkStore::ReleaseChunk(ChunkDescriptor* chunkdsc[], size_t nchunkdsc)
 	/* do mprotect */
 
 	for (i=0; i<nchunkdsc; i++) {
-		printf("release_chunk: %p\n", chunkdsc[i]->_chunk);
-		intret = mprotect(chunkdsc[i]->_chunk, chunkdsc[i]->_size, PROT_NONE);
+		intret = mprotect(chunkdsc[i]->chunk_, chunkdsc[i]->_size, PROT_NONE);
 		assert(intret == 0);
 	}
 
 	return 0;
+}
+
+
+int 
+ChunkStore::ReleaseChunk(ChunkDescriptor* chunkdsc)
+{
+	ChunkDescriptor* chunkdsc_array[1];
+
+	chunkdsc_array[0] = chunkdsc;
+
+	return ReleaseChunkList(chunkdsc_array, 1);
 }
 
 

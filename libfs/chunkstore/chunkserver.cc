@@ -7,10 +7,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "common/list.h"
 #include "common/util.h"
 #include "common/vistaheap.h"
+#include "common/debug.h"
 #include "chunkdsc.h"
-
 
 const uint64_t kChunkStoreSize = 1024*1024*64;
 const char*    kChunkStoreName = "chunkstore.vistaheap";
@@ -21,21 +22,6 @@ ChunkServer::ChunkServer():
 	
 }
 
-
-void 
-ChunkServer::Init()
-{
-	int        ret;
-	PHeap*     pheap;
-
-	pthread_mutex_init(&_mutex, NULL);
-	
-	_pheap = new PHeap();
-	_pagepheap = new PHeap();
-	_pheap->Open("chunkstore.pheap", 1024*1024, 0, 0, 0);
-	_pagepheap->Open("chunkstore.pagepheap", kChunkStoreSize, 0, kPageSize, _pheap);
-
-}
 
 int 
 ChunkServer::CreateChunkVolatile(ChunkDescriptor *chunkdsc)
@@ -52,8 +38,49 @@ ChunkServer::CreateChunkVolatile(ChunkDescriptor *chunkdsc)
 	return 0;
 }
 
+
+void 
+ChunkServer::Init()
+{
+	int                       ret;
+	PHeap*                    pheap;
+	struct stat               stat_buf;
+	int                       pheap_exists = 1;
+	ChunkDescriptor*          chunkdsc;
+	void*                     chunk;
+	std::pair<std::map<unsigned long long, ChunkDescriptor*>::iterator, bool>         pairret;
+
+	pthread_mutex_init(&_mutex, NULL);
+	
+	_pheap = new PHeap();
+	_pagepheap = new PHeap();
+
+	_pheap->Open("chunkstore.pheap", 1024*1024, sizeof(ChunkStoreRoot), 0, 0);
+	_pagepheap->Open("chunkstore.page.pheap", kChunkStoreSize, 0, kPageSize, _pheap);
+
+	_pheap_root = (ChunkStoreRoot*) _pheap->get_root();
+
+	if (!_pheap_root->_init) {
+		INIT_LIST_HEAD(&(_pheap_root->chunk_dsc_list_));
+		_pheap_root->_init = 1;
+	}
+
+	// Populate the volatile maps with previously created chunk descriptors
+	list_for_each_entry(chunkdsc, &(_pheap_root->chunk_dsc_list_), _list) 
+	{
+		chunk = chunkdsc->chunk_;
+		pairret = _addr2chunkdsc_map.insert(std::pair<unsigned long long, ChunkDescriptor*>((unsigned long long) chunk, chunkdsc));
+		assert(pairret.second == true);
+		CreateChunkVolatile(chunkdsc);
+	}	
+	
+}
+
+
+
+
 int
-ChunkServer::CreateChunk(int principal_id, size_t size, ChunkDescriptor **chunkdscp)
+ChunkServer::CreateChunk(int principal_id, size_t size, int type, ChunkDescriptor **chunkdscp)
 {
 	int                       round_size; 
 	ChunkDescriptor*          chunkdsc;
@@ -79,8 +106,11 @@ ChunkServer::CreateChunk(int principal_id, size_t size, ChunkDescriptor **chunkd
 		return -1;
 	}	
 	chunkdsc->_owner_id = _principal_id;
-	chunkdsc->_chunk = chunk;
+	chunkdsc->chunk_ = chunk;
 	chunkdsc->_size = round_size;
+	chunkdsc->_type = type;
+
+	list_add_tail(&(chunkdsc->_list), &(_pheap_root->chunk_dsc_list_));
 
 	/* Keeping the chunk intervals in a map is okay as they don't overlap */
 	pairret = _addr2chunkdsc_map.insert(std::pair<unsigned long long, ChunkDescriptor*>((unsigned long long) chunk, chunkdsc));
@@ -89,7 +119,9 @@ ChunkServer::CreateChunk(int principal_id, size_t size, ChunkDescriptor **chunkd
 	*chunkdscp = chunkdsc;
 	pthread_mutex_unlock(&_mutex);	
 
-	printf("ChunkServer::CreateChunk: chunkdsc=%p (%llx, %llx)\n", chunkdsc, (unsigned long long) ((chunkdsc)->_chunk), (unsigned long long) ((chunkdsc)->_chunk) + size);
+	dbg_log (DBG_DEBUG, "chunkdsc=%p, range=[%llx, %llx)\n", 
+	         chunkdsc, (unsigned long long) ((chunkdsc)->chunk_), 
+	         (unsigned long long) ((chunkdsc)->chunk_) + size);
 	return 0;
 }
 
@@ -108,7 +140,9 @@ ChunkServer::DeleteChunk(int principal_id, ChunkDescriptor* chunkdsc)
 	pthread_mutex_lock(&_mutex);	
 
 	round_size = chunkdsc->_size;
-	chunk = chunkdsc->_chunk;
+	chunk = chunkdsc->chunk_;
+
+	list_del_init(&(chunkdsc->_list));
 
 	/* FIXME: access right whether you can free the chunk...
 	 * Nevermind, this layer is gonna be implemented in the OS anyways
@@ -258,8 +292,8 @@ ChunkServer::AccessAddr(int principal_id, void* addr)
 	itlow = _addr2chunkdsc_map.lower_bound(uaddr);
 	for (it = --itlow; it != _addr2chunkdsc_map.end(); it++) 	{
 		chunkdsc = it->second;
-		if (uaddr >= (unsigned long long) chunkdsc->_chunk &&
-		    uaddr < (unsigned long long) chunkdsc->_chunk + chunkdsc->_size)
+		if (uaddr >= (unsigned long long) chunkdsc->chunk_ &&
+		    uaddr < (unsigned long long) chunkdsc->chunk_ + chunkdsc->_size)
 		{
 			return 0;
 		}

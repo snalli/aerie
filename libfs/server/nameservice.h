@@ -2,27 +2,35 @@
 #define _NAMESERVICE_H_IKL111
 
 #include <pthread.h>
+#include "common/pheap.h"
+#include "common/vistaheap.h"
 #include "common/uthash.h"
 
-typedef void inode_t;
-typedef struct DEntry DEntry;
+typedef struct NEntry NEntry;
 
-struct DEntry {
-	char           name[128];
-	inode_t*       inode;
+struct NEntry {
+	char           name_[128];
+	void*          ptr_;
+	unsigned int   refcount_;
 	UT_hash_handle hh;
+};
+
+struct NameServiceRoot {
+		NEntry*         entry_array_;
 };
 
 class NameService {
 	public:
 		NameService();
 		int fsck();
-		int Lookup(const char *, inode_t **inode);
-		int Link(const char *, inode_t *inode);
-		int Remove(const char *);
+		int Init();
+		int Lookup(const char*, void**);
+		int Link(const char*, void*);
+		int Unlink(const char*);
 	private:
-		DEntry*         dentry_array_;
-		pthread_mutex_t mutex_;
+		pthread_mutex_t   mutex_;
+		PHeap*            pheap_;
+		NameServiceRoot*  proot_;
 };
 
 

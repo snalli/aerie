@@ -10,19 +10,19 @@
 #include <cstring>
 #include "common/util.h"
 #include "common/hrtime.h"
+#include "server/api.h"
 
 
-
-
-NameService::NameService(rpcc* c, unsigned int principal_id): 
+NameService::NameService(rpcc* c, unsigned int principal_id, const char* namespace_name): 
 	client_(c), 
 	principal_id_(principal_id)
 {
+	strcpy(namespace_name_, namespace_name);
 }
 
 
 int
-NameService::Lookup(const char *name, inode_t **inode)
+NameService::Lookup(const char *name, void **obj)
 {
 	std::string        name_str;
 	unsigned long long r;
@@ -30,41 +30,38 @@ NameService::Lookup(const char *name, inode_t **inode)
 
 	name_str = std::string(name);
 
-	intret = client_->call(25, principal_id_, name_str, r);
+	intret = client_->call(RPC_NAME_LOOKUP, principal_id_, name_str, r);
 	if (intret) {
 		return -intret;
 	}
-	*inode = (void*) r;
+	*obj = (void*) r;
 	
 	return 0;
 }
 
 
 int
-NameService::Link(const char *name, inode_t *inode)
+NameService::Link(const char *name, void *obj)
 {
 	std::string        name_str;
-	unsigned long long ino;
+	unsigned long long val;
 	int                r;
 	int                intret;
 
 	name_str = std::string(name);
-	ino = (unsigned long long) inode;
+	val = (unsigned long long) obj;
 
-	printf("NameService::Link DO\n");
-	printf("NameService::Link client=%p\n", client_);
-	intret = client_->call(26, principal_id_, name_str, ino, r);
+	intret = client_->call(RPC_NAME_LINK, principal_id_, name_str, val, r);
 	if (intret) {
 		return -intret;
 	}
-	printf("NameService::Link DONE\n");
 
 	return 0;
 }
 
 
 int
-NameService::Remove(const char *name)
+NameService::Unlink(const char *name)
 {
 	std::string        name_str;
 	int                r;
@@ -72,7 +69,7 @@ NameService::Remove(const char *name)
 
 	name_str = std::string(name);
 
-	intret = client_->call(27, principal_id_, name_str, r);
+	intret = client_->call(RPC_NAME_UNLINK, principal_id_, name_str, r);
 	if (intret) {
 		return -intret;
 	}

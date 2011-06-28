@@ -9,6 +9,7 @@
 #include "rpc/jsl_log.h"
 #include "chunkstore/chunkstore.h"
 #include "server/api.h"
+#include "v6fs/v6fs.h"
 #include "nameservice.h"
 
 
@@ -17,7 +18,7 @@ ChunkStore* chunk_store;
 struct sockaddr_in dst; //server's ip address
 pthread_attr_t attr;
 unsigned int principal_id;
-NameService* name_service;
+NameService* global_nameservice;
 
 void simple_tests()
 {
@@ -26,22 +27,21 @@ void simple_tests()
 	int tmp;
 
 	ChunkDescriptor* chunkdsc;
-	chunk_store->CreateChunk(16384, &chunkdsc);
+	chunk_store->CreateChunk(16384, CHUNK_TYPE_EXTENT, &chunkdsc);
 	achunkdsc[0] = chunkdsc;
-	chunk_store->CreateChunk(8192, &chunkdsc);
+	chunk_store->CreateChunk(8192, CHUNK_TYPE_INODE, &chunkdsc);
 	achunkdsc[1] = chunkdsc;
-	chunk_store->AccessChunk(achunkdsc, 2, PROT_READ|PROT_WRITE);
-	chunk_store->ReleaseChunk(achunkdsc, 1);
+	chunk_store->AccessChunkList(achunkdsc, 2, PROT_READ|PROT_WRITE);
+	chunk_store->ReleaseChunkList(achunkdsc, 1);
 }
 
-void simple_names()
+void demo_name()
 {
 	int      ret;
-	inode_t* inode;
 
-	name_service->Link("/test/A", (inode_t*) 0xA);
-	ret = name_service->Link("/test/B", (inode_t*) 0xB);
-	printf("delete: %d\n", name_service->Remove("/test/B"));
+	global_nameservice->Link("/test/A", (void*) 0xA);
+	ret = global_nameservice->Link("/test/B", (void*) 0xB);
+	printf("delete: %d\n", global_nameservice->Unlink("/test/B"));
 
 }
 
@@ -51,16 +51,17 @@ main(int argc, char *argv[])
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-    int port;
-	int debug_level = 0;
+    int   port;
+	int   debug_level = 0;
 	uid_t principal_id;
+	char  operation[16];
+	char ch = 0;
 
 	principal_id = getuid();
 	srandom(getpid());
 	port = 20000 + (getpid() % 10000);
 
-	char ch = 0;
-	while ((ch = getopt(argc, argv, "csd:p:li:"))!=-1) {
+	while ((ch = getopt(argc, argv, "d:p:li:o:"))!=-1) {
 		switch (ch) {
 			case 'd':
 				debug_level = atoi(optarg);
@@ -74,6 +75,8 @@ main(int argc, char *argv[])
 			case 'i':
 				principal_id = atoi(optarg);
 				break;
+			case 'o':
+				strcpy(operation, optarg); 
 		default:
 				break;
 		}
@@ -101,14 +104,18 @@ main(int argc, char *argv[])
 	// rpcc per server.
 	client = new rpcc(dst);
 	assert (client->bind() == 0);
-
-	name_service = new NameService(client, principal_id);
-	simple_names();
+	global_nameservice = new NameService(client, principal_id, "GLOBAL");
 
 	chunk_store = new ChunkStore(client, principal_id);
 	chunk_store->Init();
-	simple_tests();
 
+	if (strcmp(operation, "mkfs") == 0) {
+		mkfs();
+	} else if (strcmp(operation, "demo") == 0) {
+		demo_name();	
+	} else {
+		// unknown
+	}
 
-	//simple_names();
+	return 0;
 }

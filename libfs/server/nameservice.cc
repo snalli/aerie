@@ -1,21 +1,30 @@
+#include "nameservice.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <pthread.h>
 #include <cstring>
 #include "common/uthash.h"
-#include "nameservice.h"
 
-//FIXME: Use file handles (ala NFS) instead of inodes: <fsid, ino, gen>
-//FIXME: Do we need to keep inode generation numbers? NFS does 
 
 NameService::NameService():
-	dentry_array_(NULL)
+	proot_(NULL)
 {
 	int ret; 
 	ret = pthread_mutex_init(&mutex_, NULL);
 	assert(ret == 0);
 }
+
+
+int NameService::Init()
+{
+	pheap_ = new PHeap();
+
+	pheap_->Open("nameservice.pheap", 1024*1024, sizeof(*proot_), 0, 0);
+
+	proot_ = (NameServiceRoot*) pheap_->get_root();
+}
+
 
 int NameService::fsck()
 {
@@ -42,84 +51,73 @@ err:
 #endif	
 }
 
-/*
-int NameService::FindInode(inode_t *inode)
-{
-	DEntry* dentry;
-	DEntry* tmp;
 
-	HASH_ITER(hh, dentry_array_, dentry, tmp) {
-		if (dentry->inode == inode) {
-			return 0;
-		}
-	}
-	return -1;
-}
-*/
-
-int NameService::Lookup(const char *name, inode_t **inode)
+int NameService::Lookup(const char *name, void **ptr)
 {
-	DEntry* dentry;
+	NEntry* nentry;
 	int     i;
-
+	
 	pthread_mutex_lock(&mutex_);
-	HASH_FIND_STR(dentry_array_, name, dentry);
-	if (!dentry) {
+	HASH_FIND_STR(proot_->entry_array_, name, nentry);
+	if (!nentry) {
 		pthread_mutex_unlock(&mutex_);
 		return -1;
 	}
 
-	if (inode) {
-		*inode = dentry->inode;
+	if (ptr) {
+		*ptr = nentry->ptr_;
 	}
 	pthread_mutex_unlock(&mutex_);
 	return 0;
 }
 
-int NameService::Link(const char *name, inode_t *inode)
+
+int NameService::Link(const char *name, void *ptr)
 {
-	DEntry* dentry;
+	NEntry* nentry;
 	int     i;
 	
 	assert(strlen(name)<128);
 
-	if (!inode) {
+	if (!ptr) {
 		return -1;
 	}
 
 	pthread_mutex_lock(&mutex_);
-	HASH_FIND_STR(dentry_array_, name, dentry);
-	if (dentry) {
-		pthread_mutex_unlock(&mutex_);
-		return -1;
+	HASH_FIND_STR(proot_->entry_array_, name, nentry);
+	if (!nentry) {
+		pheap_->Alloc(sizeof(*nentry), (void**) &nentry);
+		if (!nentry) {
+			pthread_mutex_unlock(&mutex_);
+			return -1;
+		}
+		strcpy(nentry->name_, name);
+		nentry->ptr_ = ptr;
+		HASH_ADD_STR(proot_->entry_array_, name_, nentry);
+		nentry->refcount_ = 1;
+	} else {
+		nentry->refcount_++;
 	}
-
-	dentry = new DEntry;
-	if (!dentry) {
-		pthread_mutex_unlock(&mutex_);
-		return -1;
-	}
-	strcpy(dentry->name, name);
-	dentry->inode = inode;
-	HASH_ADD_STR(dentry_array_, name, dentry);
-	//HASH_ADD_KEYPTR( hh, dentry_array_, dentry->path, strlen(dentry->path), dentry);
 	pthread_mutex_unlock(&mutex_);
 	return 0;
 }
 
-int NameService::Remove(const char *name)
+
+int NameService::Unlink(const char *name)
 {
-	DEntry* dentry;
+	NEntry* nentry;
 	int     i;
 
 	pthread_mutex_lock(&mutex_);
-	HASH_FIND_STR(dentry_array_, name, dentry);
-	if (!dentry) {
+	HASH_FIND_STR(proot_->entry_array_, name, nentry);
+	if (!nentry) {
 		pthread_mutex_unlock(&mutex_);
 		return -1;
 	}
-	HASH_DEL(dentry_array_, dentry);
-	delete dentry;
+	if (--nentry->refcount_<1) {
+		HASH_DEL(proot_->entry_array_, nentry);
+		pheap_->Free((void*) nentry, sizeof(*nentry));
+	}	
 	pthread_mutex_unlock(&mutex_);
 
 	return 0;

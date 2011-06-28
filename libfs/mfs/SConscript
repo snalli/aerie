@@ -1,0 +1,32 @@
+Import('mainEnv')
+Import('commonLibrary')
+
+buildEnv = mainEnv.Clone()
+
+buildEnv.Append(CPPPATH = ['#'])
+
+lib_target = 'mfs'
+#lib_sources = ['mkfs.cc', 'itree.cc', 'inode.cc', 'pinode.cc']
+lib_sources = ['radixtree.cc', 'inode.cc', 'pinode.cc']
+mfsLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+
+buildEnv.Program('main', ['main.cc', mfsLibrary, commonLibrary])
+
+Return('mfsLibrary')
+
+
+#C_SRC = Split("""
+#              bio.c
+#              file.c
+#              fs.c
+#              scm.c
+#              spinlock.c
+#	      sysfile.c
+#              util.c
+#              """)
+
+#scmalloc_obj = Object('scmalloc.c')
+#vistaheap_obj = Object('vistaheap.c')
+
+#StaticLibrary('fs', C_SRC+[scmalloc_obj+vistaheap_obj], CCFLAGS='-g -fno-omit-frame-pointer')
+#Program('main', ['main.c', 'libfs.a'], CCFLAGS='-g')

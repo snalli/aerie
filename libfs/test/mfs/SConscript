@@ -1,0 +1,19 @@
+import os
+import sys
+import string
+from unit_test import runUnitTests
+sys.path.append('%s/library' % (Dir('#').abspath))
+
+Import('mainEnv', 'testEnv')
+configEnv = mainEnv.Clone()
+myTestEnv = testEnv.Clone()
+
+Import('mfsLibrary')
+depLibs = [mfsLibrary]
+
+
+test = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), 'main.cxx'], LIBS=['UnitTest++']+depLibs)
+runtests = myTestEnv.Command("test.passed", ['test', mfsLibrary], runUnitTests)
+
+myTestEnv.addUnitTestSuite(test[0].path, 'SuiteRadixTree')
+myTestEnv.addUnitTestSuite(test[0].path, 'SuitePInode')

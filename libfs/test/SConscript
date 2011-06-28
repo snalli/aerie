@@ -1,0 +1,28 @@
+from unit_test import addUnitTest
+from unit_test import addUnitTestSuite
+from unit_test import addUnitTestList
+import re, os, sys, string
+sys.path.append('%s/library' % (Dir('#').abspath))
+
+
+Import('mainEnv')
+testEnv = mainEnv.Clone()
+testEnv.Append(CPPPATH = ['#'])
+
+# For correct and complete compilation.
+testEnv.AddMethod(addUnitTest, "addUnitTest")
+testEnv.AddMethod(addUnitTestSuite, "addUnitTestSuite")
+testEnv.AddMethod(addUnitTestList, "addUnitTestList")
+testEnv['UNIT_TEST_CMDS'] = []
+
+Export('testEnv')
+
+thedir = os.path.join(Dir('#').abspath, 'test')
+dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
+
+for d in dirs:
+	if re.match(testEnv['TEST_FILTER'], d) and os.path.isfile(os.path.join(thedir, d, 'SConscript')):
+		SConscript(os.path.join(d, 'SConscript'))
+
+
+mainEnv['TEST_FILTER'] = GetOption('test_filter')

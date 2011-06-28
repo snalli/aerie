@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "common/util.h"
+#include "common/debug.h"
 
 PHeap::PHeap()
 {
@@ -102,30 +103,32 @@ PHeap::Map(char* filename, size_t maxsize, int prot_flags)
 	} else {
 		pread(vistaheap_fd, &pheapheader, sizeof(pheapheader), 0); 
 		if (pheapheader.magic == PHEAP_INITIALIZED) {
-			mmap_flags |= MAP_FIXED; //FIXME: For some reason, if set set MAP_FIXED then RPC library seg faults
+			mmap_flags |= MAP_FIXED;
 			mmap_addr = (void *) pheapheader.mmap_base;
 		} else {
 			return -1;
 		}
 	}
 
-	printf("mmap_addr=%p\n", mmap_addr);
-	//mmap_addr = (void *) ((unsigned long long) mmap_addr + 1024);
+	// FIXME: When using MAP_FIXED, the RPC library seg faults because the memory 
+	// region specified by addr and len overlaps pages of existing mapping(s),
+	// including RPC library mappings, which are discarded. The current workaround
+	// is to use a small region to avoid overlapping. Since this functionality
+	// will be implemented by the OS, we don't worry for now. 
 	if ((base_addr = mmap(mmap_addr, maxsize, prot_flags, mmap_flags, vistaheap_fd, 0)) == (void *) -1) {
-		assert(0);
+		dbg_log (DBG_WARNING, "mmap failed\n");
 		close(vistaheap_fd);
 		return NULL;
 	}
-	printf("base_addr=%p\n", base_addr);
 
-	//FIXME: We can't use MAP_FIXED because RPC library seg faults
-	assert(base_addr == mmap_addr);
+	if (base_addr != mmap_addr) {
+		dbg_log (DBG_ERROR, "mmap didn't map the persistent heap at the address requested\n");
+	}
+
+	_root = (void*) ((uintptr_t) base_addr + sizeof(pheapheader));
 
 	return 0;
 }
-
-
-
 
 
 int

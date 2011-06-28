@@ -4,18 +4,17 @@
 #include <sys/types.h>
 #include "rpc/rpc.h"
 
-typedef void inode_t;
-
 class NameService {
 public:
-	NameService(rpcc *c, unsigned int);
-	int Lookup(const char *name, inode_t **inode);
-	int Link(const char *name, inode_t *inode);
-	int Remove(const char *name);
+	NameService(rpcc *c, unsigned int, const char*);
+	int Lookup(const char *name, void**);
+	int Link(const char *name, void*);
+	int Unlink(const char *name);
 
 private:
 	rpcc*        client_;
 	unsigned int principal_id_;
+	char         namespace_name_[128];
 
 };
 
