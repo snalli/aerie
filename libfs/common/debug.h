@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 enum dbg_code {
 	DBG_OFF = 0,

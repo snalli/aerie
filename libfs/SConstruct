@@ -1,17 +1,50 @@
+import os
 mainEnv = Environment()
 
-mainEnv.Append(CCFLAGS=' -g ')
+
+AddOption("--test",
+	action="store_true", dest="run_tests",
+	default = False,
+	help="run tests")
+
+AddOption('--test-filter',
+	action="store", dest='test_filter',
+	type='string',
+	metavar='NAME',
+	help='a regular expression used to match tests to run')
+
+mainEnv['TEST_FILTER'] = GetOption('test_filter')
+
+#mainEnv.Append(LIBS = ['tcmalloc'])
+mainEnv.Append(LIBS = ['hoard'])
+mainEnv.Append(CCFLAGS=' -g -O2')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
 
 Export('mainEnv')
-rpcLibrary = SConscript('rpc/SConscript')
+rpcLibrary = SConscript('rpc/SConscript', variant_dir = os.path.join('build', 'rpc'))
 Export('rpcLibrary')
-commonLibrary = SConscript('common/SConscript')
+commonLibrary = SConscript('common/SConscript', variant_dir = os.path.join('build', 'common'))
 Export('commonLibrary')
-chunkstoreLibrary = SConscript('chunkstore/SConscript')
+chunkstoreLibrary = SConscript('chunkstore/SConscript', variant_dir = os.path.join('build', 'chunkstore'))
 Export('chunkstoreLibrary')
-lockservLibrary = SConscript('lockserv/SConscript')
+lockservLibrary = SConscript('lockserv/SConscript', variant_dir = os.path.join('build', 'lockserv'))
 Export('lockservLibrary')
+v6fsLibrary = SConscript('v6fs/SConscript', variant_dir = os.path.join('build', 'v6fs'))
+Export('v6fsLibrary')
+mfsLibrary = SConscript('mfs/SConscript', variant_dir = os.path.join('build', 'mfs'))
+Export('mfsLibrary')
+
+
+
 
 SConscript('client/SConscript')
 SConscript('server/SConscript')
+
+
+
+if GetOption('run_tests') == True:
+	if mainEnv['TEST_FILTER'] is None:
+		mainEnv['TEST_FILTER'] = ".*"
+	SConscript('test/SConscript', variant_dir = os.path.join('build', 'test'))
+
+

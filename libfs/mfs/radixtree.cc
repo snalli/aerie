@@ -167,7 +167,14 @@ out:
 	return 0;
 }
 
-
+//
+// Returns -1 if:
+// 1) Root node is null (has not been allocated yet), or
+// 2) INDEX is larger than the maximum index that can mapped by the current tree
+//
+// We could allow INDEX 0 be mapped on the root node even if the root is NULL
+// but we don't for simplifying the boundary conditions
+//
 int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, int* result_offset, int* result_height)
 {
 	RadixTreeNode* node = NULL;
@@ -180,6 +187,7 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 	BUG_ON(radix_tree_is_indirect_ptr(item));
 
 	// Make sure the tree is high enough.
+	//printf("Mapslot::index=%llu, MaxIndex(%d)=%llu\n", index, height_, MaxIndex(height_));
 	if (index > MaxIndex(height_)) {
 		if (alloc) {
 			error = Extend(index);
@@ -192,7 +200,6 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 	}
 
 	slot = reinterpret_cast<RadixTreeNode*>(radix_tree_indirect_to_ptr(reinterpret_cast<void*>(rnode_)));
-
 	h = height_;
 	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
 
@@ -215,9 +222,10 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 					*result_offset = offset;
 					*result_height = h+1;
 				} else {
-					*result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
-					*result_offset = 0;
-					*result_height = h;
+					return -1;
+					//*result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
+					//*result_offset = 0;
+					//*result_height = h;
 				}
 				return 0;
 			}
@@ -236,9 +244,10 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 		*result_offset = offset;
 		*result_height = h+1;
 	} else {
-		*result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
-		*result_offset = 0;
-		*result_height = 0;
+		return -1;
+		//*result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
+		//*result_offset = 0;
+		//*result_height = 0;
 	}
 
 	return 0;
@@ -435,7 +444,6 @@ void* RadixTree::LookupElement(uint64_t index, int is_slot)
 	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
 
 	do {
-		printf("Lookup: %p %d\n", node, (index>>shift) & RADIX_TREE_MAP_MASK);
 		slot = reinterpret_cast<RadixTreeNode**>
 		         ((node->slots + ((index>>shift) & RADIX_TREE_MAP_MASK)));
 		node = *slot;

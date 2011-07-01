@@ -86,7 +86,6 @@ public:
 	IntervalTreeNode * Insert(Interval *);
 	IntervalTreeNode * GetPredecessorOf(IntervalTreeNode *) const;
 	IntervalTreeNode * GetSuccessorOf(IntervalTreeNode *) const;
-	TemplateStack<void *> * Enumerate(int low, int high) ;
 	void CheckAssumptions() const;
 	Interval* LeftmostOverlap(int low, int high);
 

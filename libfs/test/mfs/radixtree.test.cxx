@@ -7,6 +7,19 @@ extern void radix_tree_init_maxindex(void);
 
 SUITE(SuiteRadixTree)
 {
+	TEST(TestInsert0)
+	{
+		RadixTree* tree1;
+		radix_tree_init_maxindex();
+
+		tree1 = new RadixTree;
+
+       	CHECK(tree1->Lookup(0) == (void*) 0);
+
+		delete tree1;
+	}
+
+
 	TEST(TestInsert1)
 	{
 		RadixTree* tree1;

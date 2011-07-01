@@ -10,12 +10,11 @@ public:
 		:low_(low), high_(high)
 	{ }
 	  
-	int GetLowPoint() const { return low_;}
-	int GetHighPoint() const { return high_;}
+	inline int GetLowPoint() const { return low_;}
+	inline int GetHighPoint() const { return high_;}
 protected:
 	int low_;
 	int high_;
-	IntervalTreeNode* node_;
 };
 
 
@@ -55,8 +54,34 @@ int Inode::Read(char* dst, uint64_t off, uint64_t n)
 
 int Inode::Write(char* src, uint64_t off, uint64_t n)
 {
-	uint64_t tot;
-	uint64_t m;
+	uint64_t         tot;
+	uint64_t         m;
+	uint64_t         fbn; // first block number
+	uint64_t         lbn; // last block number
+	uint64_t         bn;
+	PInode::Iterator start;
+	PInode::Iterator iter;
+	InodeInterval*   result_interval;
+
+	
+	fb = off/BLOCK_SIZE;
+	lb = (off+n)/BLOCK_SIZE;
+	
+	bn = fbn;
+	while (bn <= lbn) {
+		//start.Init(pinode_, bn);
+		result_interval = intervaltree_->LeftmostOverlap(bn, lbn);
+		if (result_interval) {
+			if ( result_interval->GetLowPoint() > bn ) {
+				// create new interval
+			} else {
+				// write existing extents 
+				//for 
+			}
+		}
+	}
+
+
 /*
 	for(tot=0; tot<n; tot+=m, off+=m, src+=m) {
 		pinode_->LookupBlock(off/BLOCK_SIZE);

@@ -19,7 +19,7 @@ block_valid_data(int bn, uint64_t file_size)
 PInode::PInode()
 {
 	for (int i=0; i<N_DIRECT; i++) {
-		daddrs_[i] = 0;
+		daddrs_[i] = (void*)0;
 	}
 	radixtree_.Extend(RADIX_TREE_MAP_SIZE-1); // Make sure the radixtree has at least height 1
 }
@@ -52,16 +52,6 @@ PInode::LookupBlock(uint64_t bn)
 }
 
 
-uint64_t 
-PInode::LookupBlockRange(uint64_t bn, uint64_t n)
-{
-	void* block;
-	
-	radixtree_.MapSlot
-
-}
-
-
 int 
 PInode::InsertBlock(void* block, uint64_t bn, int n)
 {
@@ -69,14 +59,14 @@ PInode::InsertBlock(void* block, uint64_t bn, int n)
 	void** slot;
 
 	if (bn < N_DIRECT) {
-		slot = reinterpret_cast<void**>(&daddrs_[bn]);
+		slot = &daddrs_[bn];
 	} else {
 		//FIXME: check size first: if file_size/BLOCK_SIZE smaller than block number
 		//then you don't need to lookup the radixtree. But this requires keeping
 		//track the file size correctly. need to fix this. 
 		bn = bn - N_DIRECT; 
 		if (slot = radixtree_.LookupSlot(bn)) {
-			slot = reinterpret_cast<void**>(&daddrs_[bn]);
+			slot = &daddrs_[bn];
 		} else {
 			
 			printf("Insert\n");
@@ -97,7 +87,7 @@ PInode::ReadBlock(uint64_t bn, char* dst, int n)
 	int            s;
 
 	if (bn < N_DIRECT) {
-		item = reinterpret_cast<void*>(daddrs_[bn]);
+		item = daddrs_[bn];
 	} else {
 		rbn = bn - N_DIRECT; 
 		if (radixtree_.MapSlot(rbn, 0, &node, &offset, &height) == 0) {
@@ -121,6 +111,21 @@ PInode::ReadBlock(uint64_t bn, char* dst, int n)
 }
 
 
+// Physically link an extent to an inode slot.
+int 
+PInode::PhysicalLink(void** slot, Extent* extent)
+{
+	RadixTree* radixtree;
+
+	if (extent->bcount_ == 1) {
+		*slot = extent->ptr_;
+	} else {
+		radixtree = reinterpret_cast<RadixTree*>(extent->ptr_);
+		*slot = radixtree->rnode_->slots
+	}
+	return 0;
+}
+
 int 
 PInode::WriteBlock(uint64_t bn, char* src, int n)
 {
@@ -132,7 +137,7 @@ PInode::WriteBlock(uint64_t bn, char* src, int n)
 	int            ret;
 
 	if (bn < N_DIRECT) {
-		slot = reinterpret_cast<void**>(&daddrs_[bn]);
+		slot = &daddrs_[bn];
 	} else {
 		rbn = bn - N_DIRECT; 
 		ret = radixtree_.MapSlot(rbn, 1, &node, &offset, &height);
@@ -142,8 +147,8 @@ PInode::WriteBlock(uint64_t bn, char* src, int n)
 	if (*slot == (void*)0) {
 		//FIXME: we should allocate a chunk instead of using malloc
 		*slot = malloc(BLOCK_SIZE);
-		memset(*slot+n, 0, BLOCK_SIZE-n); // zero the part of the block that 
-		                                  // won't be written
+		memset(((char*)*slot)+n, 0, BLOCK_SIZE-n); // zero the part of the block 
+		                                           // that won't be written
 	}
 	memmove(*slot, src, n);
 
@@ -152,6 +157,3 @@ PInode::WriteBlock(uint64_t bn, char* src, int n)
 	}
 	return n;
 }
-
-
-
