@@ -26,8 +26,7 @@ SUITE(SuiteRadixTree)
 		radix_tree_init_maxindex();
 
 		tree1 = new RadixTree;
-
-		tree1->Insert(0, (void*)0xA);
+		CHECK(tree1->Insert(0, (void*)0xA) == 0);
        	CHECK(tree1->Lookup(0) == (void*) 0xA);
 
 		delete tree1;

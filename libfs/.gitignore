@@ -1,7 +1,9 @@
 .sconsign.dblite
 *.o
 *.a
+*.pyc
 server/fsserver
 client/fsclient
+build/
 chunkstore.pagepheap
 chunkstore.pheap

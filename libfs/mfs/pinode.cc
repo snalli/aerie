@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "common/errno.h"
 
 #define min(a,b) ((a) < (b)? (a) : (b))
 
@@ -21,34 +22,13 @@ PInode::PInode()
 	for (int i=0; i<N_DIRECT; i++) {
 		daddrs_[i] = (void*)0;
 	}
-	radixtree_.Extend(RADIX_TREE_MAP_SIZE-1); // Make sure the radixtree has at least height 1
 }
 
 
-uint64_t 
-PInode::LookupBlock(uint64_t bn)
+int PInode::Write(char* src, uint64_t off, uint64_t n)
 {
-	void* block;
 
-/*
-	if (bn < N_DIRECT) {
-		*dst = reinterpret_cast<char*>(daddrs_[bn]); 
-		if (daddrs_[bn]) {
-			printf("%d\n", bn);
-			return block_valid_data(bn, size_);
-		} else {
-			return 0;
-		}
-	} else {
-		bn = bn - N_DIRECT; 
-		if (block = radixtree_.Lookup(bn)) {
-			*dst = reinterpret_cast<char*>(block); 
-			return block_valid_data(bn, size_);
-		} else {
-			return 0;
-		}
-	}
-*/	
+
 }
 
 
@@ -92,6 +72,8 @@ PInode::ReadBlock(uint64_t bn, char* dst, int n)
 		rbn = bn - N_DIRECT; 
 		if (radixtree_.MapSlot(rbn, 0, &node, &offset, &height) == 0) {
 			item = node->slots[offset];
+			printf("Readblock: node->slots=%p\n", node->slots);
+			printf("Readblock: node->slots[%d]=%p\n", offset, node->slots[offset]);
 		} else {
 			item = NULL;
 		}
@@ -113,18 +95,23 @@ PInode::ReadBlock(uint64_t bn, char* dst, int n)
 
 // Physically link an extent to an inode slot.
 int 
-PInode::PhysicalLink(void** slot, Extent* extent)
+PInode::PatchLink(PInode::Link& link)
 {
-	RadixTree* radixtree;
+	//sint64_t size = 1 << ((link.slot_height-1)*RADIX_TREE_MAP_SHIFT);
 
+	//printf("link.slot_height=%d\n", link.slot_height);
+/*
+	if (link.region_.bsize_ != size)
 	if (extent->bcount_ == 1) {
 		*slot = extent->ptr_;
 	} else {
 		radixtree = reinterpret_cast<RadixTree*>(extent->ptr_);
 		*slot = radixtree->rnode_->slots
 	}
+*/	
 	return 0;
 }
+
 
 int 
 PInode::WriteBlock(uint64_t bn, char* src, int n)
@@ -154,6 +141,152 @@ PInode::WriteBlock(uint64_t bn, char* src, int n)
 
 	if ( (bn*BLOCK_SIZE + n) > size_ ) {
 		size_ = bn*BLOCK_SIZE + n;
+	}
+	return n;
+}
+
+
+int 
+PInode::LookupBlock(uint64_t bn, Link* link, Region* region)
+{
+	uint64_t       rbn;
+	RadixTreeNode* node;
+	int            slot_offset;
+	int            slot_height;
+	int            ret;
+	uint64_t       size;
+	int            i;
+
+	if (bn < N_DIRECT) {
+		if (link) {
+			link->Init(this, daddrs_, bn, 0);
+		}	
+		if (region) {
+			region->Init(daddrs_[bn], bn, 1);
+		}	
+	} else {
+		rbn = bn - N_DIRECT; 
+		if ( (ret = radixtree_.MapSlot(rbn, 0, &node, 
+		                               &slot_offset, &slot_height)) != 0) 
+		{
+			return ret;
+		}
+		size = 1 << ((slot_height-1)*RADIX_TREE_MAP_SHIFT);
+		if (link) {
+			link->Init(this, node->slots, slot_offset, slot_height);
+		}
+		if (region) {
+			region->Init(node->slots[slot_offset], 
+			             N_DIRECT + (rbn & ~(size-1)), size);
+		}	
+	}	
+
+	return 0;
+}
+
+
+int 
+PInode::InsertRegion(uint64_t bn, Region* region)
+{
+	uint64_t       rbn;
+	RadixTreeNode* node;
+	int            slot_offset;
+	int            slot_height;
+	int            ret;
+	uint64_t       size;
+	int            i;
+
+	if (bn < N_DIRECT) {
+		assert(region->bsize_ == 1);
+		daddrs_[bn] = region->dblock_;
+	} else {
+		rbn = bn - N_DIRECT; 
+		if ( (ret = radixtree_.MapSlot(rbn, 0, &node, 
+		                               &slot_offset, &slot_height)) != 0) 
+		{
+			return ret;
+		}
+		// FIXME: if slot found then we might need to swap the current radixtree with the new radixtree, and put the old radixtree under the new one. 
+		// How large the region needs to be? What is the location (block number)?
+
+		size = 1 << ((slot_height-1)*RADIX_TREE_MAP_SHIFT);
+		assert(region->bsize_ == size); 	// compatible region
+		if (size == 1) {
+			node->slots[slot_offset] = region->dblock_;
+			printf("InsertRegion: node->slots=%p\n", node->slots);
+			printf("InsertRegion: node->slots[%d]=%p\n", slot_offset, node->slots[slot_offset]);
+		} else {
+			assert(region->radixtree_.rnode_ != NULL);
+			assert(region->radixtree_.height_ == slot_height); // do we need this? bsize should cover us
+			node->slots[slot_height] = region->radixtree_.rnode_;
+		}	
+	}	
+
+	return 0;
+}
+
+
+int 
+PInode::Region::WriteBlock(uint64_t rbn, char* src, int n)
+{
+	void**         slot;
+	RadixTreeNode* node;
+	int            offset;
+	int            height;
+	int            ret;
+
+	if (rbn > bsize_ - 1) {
+		// block number out of range
+		return -EINVAL;
+	}
+
+	if (bsize_ == 1) {
+		slot = &dblock_;
+	} else {
+		ret = radixtree_.MapSlot(rbn, 1, &node, &offset, &height);
+		printf("Writeblock: %d, %d\n", rbn, offset);
+		assert(ret == 0);
+		slot = &node->slots[offset];
+	}
+	if (*slot == (void*)0) {
+		//FIXME: we should allocate a chunk instead of using malloc
+		*slot = malloc(BLOCK_SIZE);
+		memset(((char*)*slot)+n, 0, BLOCK_SIZE-n); // zero the part of the block 
+		                                           // that won't be written
+	}
+	memmove(*slot, src, n);
+
+	return n;
+}
+
+
+int 
+PInode::Region::ReadBlock(uint64_t rbn, char* src, int n)
+{
+	void**         slot;
+	RadixTreeNode* node;
+	int            offset;
+	int            height;
+	int            ret;
+
+	if (rbn > bsize_ - 1) {
+		// block number out of range
+		return -EINVAL;
+	}
+
+	if (bsize_ == 1) {
+		slot = &dblock_;
+	} else {
+		if (radixtree_.MapSlot(rbn, 0, &node, &offset, &height) == 0) {
+			slot = &node->slots[offset];
+		} else {
+			*slot = NULL;
+		}
+	}
+	if (*slot == (void*)0) {
+		memset(src, 0, n); 
+	} else {
+		memmove(src, *slot, n);
 	}
 	return n;
 }

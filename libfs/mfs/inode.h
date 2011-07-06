@@ -18,13 +18,17 @@ public:
 	int Read(char*, uint64_t, uint64_t);
 	int Write(char*, uint64_t, uint64_t);
 	
-
 private:
 	pthread_mutex_t* mutex_;
-	PInode*          pinode_;
+	PInode*          immpinode_;     // immutable pinode
+	PInode*          mpinode_;       // mutable pinode
 	IntervalTree*    intervaltree_;
 	IntervalTree*    preconstructed_intervaltree_;
 
+	int ReadImmutable(char*, uint64_t, uint64_t);
+	int ReadMutable(char*, uint64_t, uint64_t);
+	int WriteImmutable(char*, uint64_t, uint64_t);
+	int WriteMutable(char*, uint64_t, uint64_t);
 };
 
 #endif /* __INODE_H_AKE111 */

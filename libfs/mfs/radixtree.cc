@@ -24,10 +24,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "common/errno.h"
+
 
 #define BUG_ON(x) 
-#define ENOMEM 1
-#define EEXIST 1
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
@@ -122,11 +122,12 @@ radix_tree_node_alloc(RadixTree* root)
 }
 
 
+// Always construct a radix tree of at least height 1 to prevent
+// using rnode as a slot. This simplifies the pinode, which 
+// is the primary client of this radix tree.
 RadixTree::RadixTree(): 
-	height_(0), rnode_(NULL)
-{
-	
-}
+	height_(1), rnode_(NULL)
+{ }
 
 
 /*
@@ -187,7 +188,6 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 	BUG_ON(radix_tree_is_indirect_ptr(item));
 
 	// Make sure the tree is high enough.
-	//printf("Mapslot::index=%llu, MaxIndex(%d)=%llu\n", index, height_, MaxIndex(height_));
 	if (index > MaxIndex(height_)) {
 		if (alloc) {
 			error = Extend(index);
@@ -198,11 +198,10 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 			return -1;
 		}
 	}
-
+	
 	slot = reinterpret_cast<RadixTreeNode*>(radix_tree_indirect_to_ptr(reinterpret_cast<void*>(rnode_)));
 	h = height_;
 	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
-
 	offset = 0;			// uninitialised var warning
 	while (h > 0) {
 		if (slot == NULL) {
@@ -221,13 +220,9 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 					*result_node = node;
 					*result_offset = offset;
 					*result_height = h+1;
-				} else {
-					return -1;
-					//*result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
-					//*result_offset = 0;
-					//*result_height = h;
+					return 0;
 				}
-				return 0;
+				return -1;
 			}
 		}
 
@@ -281,7 +276,6 @@ int RadixTree::Insert(uint64_t index, void* item)
 		return -EEXIST;
 	}
 	
-
 	node->slots[offset] = item;
 
 	return 0;
