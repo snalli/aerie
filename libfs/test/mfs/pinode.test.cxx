@@ -51,17 +51,26 @@ SUITE(SuitePInode)
 		src[0] = 'a';
 		pinode->WriteBlock(12, src, BLOCK_SIZE);
 		pinode->WriteBlock(512, src, BLOCK_SIZE);
-		pinode->WriteBlock(512*512+90, src, BLOCK_SIZE);
-       	CHECK(pinode->get_size() == ((512*512+90+1)*BLOCK_SIZE));
-		pinode->ReadBlock(12, dst, BLOCK_SIZE);
+		pinode->WriteBlock(1024, src, BLOCK_SIZE);
+		CHECK(pinode->WriteBlock(512*512+90, src, BLOCK_SIZE) > 0);
+       	//CHECK(pinode->get_size() == ((512*512+90+1)*BLOCK_SIZE));
+
+		CHECK(pinode->ReadBlock(12, dst, BLOCK_SIZE) > 0);
        	CHECK(src[0] == 'a');
        	CHECK(src[0] == dst[0]);
-		pinode->ReadBlock(512, dst, BLOCK_SIZE);
+
+		CHECK(pinode->ReadBlock(512, dst, BLOCK_SIZE) > 0);
        	CHECK(src[0] == 'a');
        	CHECK(src[0] == dst[0]);
-		pinode->ReadBlock(512*512+81, dst, BLOCK_SIZE);
+
+		CHECK(pinode->ReadBlock(1024, dst, BLOCK_SIZE) > 0);
        	CHECK(src[0] == 'a');
-       	CHECK(dst[0] == 0);
+       	CHECK(src[0] == dst[0]);
+
+
+		CHECK(pinode->ReadBlock(512*512+90, dst, BLOCK_SIZE) > 0);
+       	CHECK(src[0] == 'a');
+       	CHECK(src[0] == dst[0]);
 
 		delete pinode;
 	}
@@ -83,8 +92,10 @@ SUITE(SuitePInode)
 		fillbuf(src, BLOCK_SIZE, 8);
 		pinode->WriteBlock(8, src, 512);
        	CHECK(pinode->get_size() == (8*BLOCK_SIZE + 512));
+
 		pinode->ReadBlock(5, dst, BLOCK_SIZE);
 		CHECK(memcmp(dst, zeros, BLOCK_SIZE) == 0);
+
 		ret=pinode->ReadBlock(8, dst, BLOCK_SIZE);
 		CHECK(ret == 512);
 		CHECK(memcmp(src, dst, 512) == 0);
@@ -127,17 +138,17 @@ SUITE(SuitePInode)
 		fillbuf(src, BLOCK_SIZE, 8);
 		pinode->WriteBlock(0, src, BLOCK_SIZE);
 		pinode->WriteBlock(512+8, src, BLOCK_SIZE);
-		for (iter = start, i=0; i< 11; iter++, i++) {
+		//for (iter = start, i=0; i< 11; iter++, i++) {
+		for (iter = start, i=0; !iter.terminate(); iter++, i++) {
 			if (i < 8) {
-				CHECK((*iter).region_.base_bn_ == i);
-				CHECK((*iter).region_.bsize_ == 1);
+				CHECK((*iter).get_base_bn() == i);
 			} else if (i==8) {
-				CHECK((*iter).region_.base_bn_ == 8);
-				CHECK((*iter).region_.bsize_ == 512);
-			} else if (i==9 || i== 10) {
-				CHECK((*iter).region_.base_bn_ == i+512);
-				CHECK((*iter).region_.bsize_ == 1);
-			}	
+				CHECK((*iter).get_base_bn() == 8);
+			} else if (i>=9 && i<= 521) {
+				CHECK((*iter).get_base_bn() == i+511);
+			} else if (i>521) {
+				CHECK((*iter).get_base_bn() == 1032+512*(i-521));
+			}
 		}
 
 
@@ -155,7 +166,8 @@ SUITE(SuitePInode)
 
 		radix_tree_init_maxindex();
 
-		region = new PInode::Region(0, RADIX_TREE_MAP_SIZE);
+		//region = new PInode::Region(0, RADIX_TREE_MAP_SIZE);
+		region = new PInode::Region((uint64_t) 0, (uint64_t) 512);
 		memset(zeros, 0, BLOCK_SIZE);
 
 		fillbuf(src, BLOCK_SIZE, 0);
@@ -179,12 +191,11 @@ SUITE(SuitePInode)
 	}
 
 
-	TEST(TestInsertRegion)
+	TEST(TestInsertRegion1)
 	{
 		PInode*         pinode;
 		PInode::Region* new_region;
 		PInode::Region  region;
-		PInode::Link    link;
 		char            src[BLOCK_SIZE];
 		char            dst[BLOCK_SIZE];
 		char            zeros[BLOCK_SIZE];
@@ -194,51 +205,17 @@ SUITE(SuitePInode)
 
 		pinode = new PInode();
 		
-		printf("=========================\n");
 		fillbuf(src, BLOCK_SIZE, 300);
 		CHECK(pinode->WriteBlock(300, src, BLOCK_SIZE) >= 0);
 
-
-		new_region = new PInode::Region(400, 1);
+		new_region = new PInode::Region(pinode, 400);
 		fillbuf(src, BLOCK_SIZE, 400);
-		CHECK(new_region->WriteBlock(0, src, BLOCK_SIZE) >= 0);
+		CHECK(new_region->WriteBlock(400, src, BLOCK_SIZE) >= 0);
 		
-		CHECK(pinode->InsertRegion(400, new_region) == 0);
+		CHECK(pinode->InsertRegion(new_region) == 0);
 		CHECK(pinode->ReadBlock(400, dst, BLOCK_SIZE) >=0);
 		CHECK(memcmp(dst, src, BLOCK_SIZE) == 0);
 
 		delete pinode;
 	}
-
-	TEST(TestInserRegion2)
-	{
-		PInode*         pinode;
-		PInode::Region* new_region;
-		PInode::Region  region;
-		PInode::Link    link;
-		char            src[BLOCK_SIZE];
-		char            dst[BLOCK_SIZE];
-		char            zeros[BLOCK_SIZE];
-		int             ret;
-
-		radix_tree_init_maxindex();
-
-		pinode = new PInode();
-		
-		printf("=========================\n");
-		fillbuf(src, BLOCK_SIZE, 300);
-		CHECK(pinode->WriteBlock(300, src, BLOCK_SIZE) >= 0);
-
-
-		new_region = new PInode::Region(600, 1);
-		fillbuf(src, BLOCK_SIZE, 600);
-		CHECK(new_region->WriteBlock(0, src, BLOCK_SIZE) >= 0);
-		
-		//CHECK(pinode->InsertRegion(600, new_region) == 0);
-		//CHECK(pinode->ReadBlock(600, src, BLOCK_SIZE) >=0);
-		//CHECK(memcmp(dst, src, BLOCK_SIZE) == 0);
-
-		delete pinode;
-	}
-
 }

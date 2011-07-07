@@ -10,11 +10,8 @@ def addUnitTestList(env, path, suite, *tests):
         args = ['-s', suite]
         env.Append(UNIT_TEST_CMDS = [(osenv, path, args)])
     else:
-        for utest in tests:
-            if utest == tests[0]:  # this is the first unittest in the series
-                osenv = ({})
-            else:
-                osenv = ({})
+        for utest in tests[0]:
+            osenv = ({})
             args = ['-s', suite, '-t', utest]
             env.Append(UNIT_TEST_CMDS = [(osenv, path, args)])
 

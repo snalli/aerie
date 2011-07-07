@@ -122,11 +122,8 @@ radix_tree_node_alloc(RadixTree* root)
 }
 
 
-// Always construct a radix tree of at least height 1 to prevent
-// using rnode as a slot. This simplifies the pinode, which 
-// is the primary client of this radix tree.
 RadixTree::RadixTree(): 
-	height_(1), rnode_(NULL)
+	height_(0), rnode_(NULL)
 { }
 
 
@@ -187,8 +184,17 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 
 	BUG_ON(radix_tree_is_indirect_ptr(item));
 
+	// Special boundary case
+	// If index == 0 and height_ == 0, we have two options:
+	// 1) Use &rnode_ as the slot node. In this case:
+	//	  *result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
+	//	  OR
+	// 2) Extent the tree to height=1 to allocate the slot in an 
+	//    indirect block
+	// We prefer option (2) because it simplifies PInode
+
 	// Make sure the tree is high enough.
-	if (index > MaxIndex(height_)) {
+	if (index > MaxIndex(height_) || (index == 0 && height_== 0)) {
 		if (alloc) {
 			error = Extend(index);
 			if (error) {
@@ -229,6 +235,7 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 		// Go a level down
 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
 		node = slot;
+		printf("radixtree::mapslot: slot=%p, offset=%d\n", node, offset);
 		slot = reinterpret_cast<RadixTreeNode*> (node->slots[offset]);
 		shift -= RADIX_TREE_MAP_SHIFT;
 		h--;
@@ -238,14 +245,10 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 		*result_node = node;
 		*result_offset = offset;
 		*result_height = h+1;
-	} else {
-		return -1;
-		//*result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
-		//*result_offset = 0;
-		//*result_height = 0;
+		return 0;
 	}
 
-	return 0;
+	return -1;
 }
 
 
@@ -329,215 +332,4 @@ void* RadixTree::Lookup(uint64_t index)
 		}	
 	}
 	return (void *) 0;
-}
-
-
-
-// obsolete
-#if 0 
-
-///
-///  radix_tree_insert    -    insert into a radix tree
-///  @root:    radix tree root
-///  @index:   index key
-///  @item:    item to insert
-///
-///  Insert an item into the radix tree at position @index.
-///
-
-int RadixTree::Insert(uint64_t index, void* item)
-{
-	RadixTreeNode* node = NULL;
-	RadixTreeNode* slot;
-	unsigned int   h;
-	unsigned int   shift;
-	int            offset;
-	int            error;
-
-	BUG_ON(radix_tree_is_indirect_ptr(item));
-
-	// Make sure the tree is high enough.
-	if (index > MaxIndex(height_)) {
-		error = Extend(index);
-		if (error)
-			return error;
-	}
-
-	slot = reinterpret_cast<RadixTreeNode*>(radix_tree_indirect_to_ptr(reinterpret_cast<void*>(rnode_)));
-
-	h = height_;
-	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
-
-	offset = 0;			// uninitialised var warning
-	while (h > 0) {
-		if (slot == NULL) {
-			// Have to add a child node.
-			if (!(slot = radix_tree_node_alloc(this))) {
-				return -ENOMEM;
-			}	
-			if (node) {
-				node->slots[offset] = slot;
-			} else {
-				rnode_ = reinterpret_cast<RadixTreeNode*> (radix_tree_ptr_to_indirect(reinterpret_cast<void*>(slot)));
-			}	
-		}
-
-		// Go a level down
-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
-		node = slot;
-		slot = reinterpret_cast<RadixTreeNode*> (node->slots[offset]);
-		shift -= RADIX_TREE_MAP_SHIFT;
-		h--;
-	}
-
-
-	if (slot != NULL) {
-		return -EEXIST;
-	}
-
-	if (node) {
-		node->slots[offset] = item;
-	} else {
-		rnode_ = reinterpret_cast<RadixTreeNode*> (item);
-	}
-
-	return 0;
-}
-
-
-
-//
-// is_slot == 1 : search for the slot.
-// is_slot == 0 : search for the node.
-//
-void* RadixTree::LookupElement(uint64_t index, int is_slot)
-{
-	unsigned int    h;
-	unsigned int    shift;
-	RadixTreeNode*  node;
-	RadixTreeNode** slot;
-
-	node = rnode_;
-	if (node == NULL) {
-		return NULL;
-	}	
-
-	if (!radix_tree_is_indirect_ptr(node)) {
-		if (index > 0) {
-			return NULL;
-		}	
-		return is_slot ? (void *)&rnode_ : node;
-	}
-	node = reinterpret_cast<RadixTreeNode*>(radix_tree_indirect_to_ptr(reinterpret_cast<void*>(node)));
-
-	h = height_;
-	if (index > MaxIndex(h)) {
-		return NULL;
-	}
-
-	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
-
-	do {
-		slot = reinterpret_cast<RadixTreeNode**>
-		         ((node->slots + ((index>>shift) & RADIX_TREE_MAP_MASK)));
-		node = *slot;
-		if (node == NULL) {
-			return NULL;
-		}
-
-		shift -= RADIX_TREE_MAP_SHIFT;
-		h--;
-	} while (h > 0);
-
-	return is_slot ? (void *)slot : node;
-}
-
-///
-///  RadixTree::LookupSlot    -    lookup a slot in a radix tree
-///  @root:     radix tree root
-///  @index:    index key
-///
-///  Returns:  the slot corresponding to the position @index in the
-///  radix tree @root. This is useful for update-if-exists operations.
-///
-///  This function can be called under rcu_read_lock iff the slot is not
-///  modified by radix_tree_replace_slot, otherwise it must be called
-///  exclusive from other writers. Any dereference of the slot must be done
-///  using radix_tree_deref_slot.
-///
-void** RadixTree::LookupSlot(uint64_t index)
-{
-	return (void **)LookupElement(index, 1);
-}
-
-
-///
-///  RadixTree::Lookup    -    perform lookup operation on a radix tree
-///  @root:     radix tree root
-///  @index:    index key
-///
-///  Lookup the item at the position @index in the radix tree @root.
-///
-///  This function can be called under rcu_read_lock, however the caller
-///  must manage lifetimes of leaf nodes (eg. RCU may also be used to free
-///  them safely). No RCU barriers are required to access or modify the
-///  returned item, however.
-///
-void* RadixTree::Lookup(uint64_t index)
-{
-	return LookupElement(index, 0);
-}
-
-
-#endif
-
-int RadixTree::LookupLowestSlot(uint64_t index, 
-                                RadixTreeNode** slot_node, 
-                                int* slot_index, 
-                                int* slot_height)
-{
-	unsigned int    h;
-	unsigned int    shift;
-	RadixTreeNode*  node;
-	RadixTreeNode** slot;
-
-	node = rnode_;
-	if (node == NULL) {
-		return -1;
-	}	
-
-	if (!radix_tree_is_indirect_ptr(node)) {
-		if (index > 0) {
-			return -1;
-		}	
-		*slot_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
-		*slot_index = 0;
-		*slot_height = 0;
-		return 0;
-	}
-	node = reinterpret_cast<RadixTreeNode*>(radix_tree_indirect_to_ptr(reinterpret_cast<void*>(node)));
-
-	h = height_;
-	if (index > MaxIndex(h)) {
-		return -1;
-	}
-
-	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
-
-	do {
-		slot = reinterpret_cast<RadixTreeNode**>
-		         ((node->slots + ((index>>shift) & RADIX_TREE_MAP_MASK)));
-		if (*slot == NULL || h == 1) {
-			*slot_node = node;
-			*slot_index = (index>>shift) & RADIX_TREE_MAP_MASK;
-			*slot_height = h;
-			return 0;
-		}
-		node = *slot;
-
-		shift -= RADIX_TREE_MAP_SHIFT;
-		h--;
-	} while (h > 0);
-
-	assert(0); // should never get here
 }

@@ -17,3 +17,4 @@ runtests = myTestEnv.Command("test.passed", ['test', mfsLibrary], runUnitTests)
 
 myTestEnv.addUnitTestSuite(test[0].path, 'SuiteRadixTree')
 myTestEnv.addUnitTestSuite(test[0].path, 'SuitePInode')
+#myTestEnv.addUnitTest(test[0].path, 'SuitePInode', 'TestWriteReadBlock3')

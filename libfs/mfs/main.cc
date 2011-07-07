@@ -18,12 +18,12 @@ void foo()
 	uint64_t         bn;
 	char             src[4096];
 	
-	printf("base=%d, size=%d\n", (*start).region_.base_bn_, (*start).region_.bsize_);
+	printf("base=%d, size=%d\n", (*start).base_bn_, 0);
 	pinode->WriteBlock(0, src, 4096);
+	//pinode->WriteBlock(8, src, 4096);
 	pinode->WriteBlock(512+8, src, 4096);
 	for (iter = start, i=0; i<11;iter++, i++) {
-		printf("%p[%d]\n", (*iter).slot_base_, (*iter).slot_offset_);
-		printf("base=%d, size=%d\n", (*iter).region_.base_bn_, (*iter).region_.bsize_);
+		printf("base_bn=%llu slot=%p[%d]\n", (*iter).base_bn_, (*iter).slot_base_, (*iter).slot_offset_);
 	}
 }
 
