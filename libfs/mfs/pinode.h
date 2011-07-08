@@ -16,6 +16,20 @@ const int N_DIRECT = 8;
 // or leafs (direct blocks) of the radix tree.
 
 
+// FIXME: Currently PInode is a wrapper around the persistent inode
+// so it does not keep any volatile state. However PInode::Region
+// and PInode::Slot have volatile state. It seems that this confuses
+// as what part of the PInode class is persistent and what is not
+// Consider reformatting the PInode to be a volatile object that 
+// has a pointer to the persistent state. In this case PInode 
+// can contain volatile state which could be helpful to higher 
+// layers, such as Inode. Inode for example has to keep information
+// whether the PInode is mutable or not, or whether the PInode 
+// has been published or not. Also the Inode has to keep a journal 
+// that passed to the PInode whenever performing operations
+// It seems all this state should belong to the PInode. 
+
+
 class PInode 
 {
 public:
@@ -36,23 +50,25 @@ public:
 	int AllocateRegion(uint64_t start_bn, uint64_t end_bn);
 
 	int Write(char*, uint64_t, uint64_t);
+	int Read(char*, uint64_t, uint64_t);
 
-	// Helper functions (mostly for testing functionality)
-	int ReadBlock(uint64_t bn, char* dst, int n);
-	int WriteBlock(uint64_t bn, char* src, int n);
+	int ReadBlock(char*, uint64_t, int, int);
+	int WriteBlock(char*, uint64_t, int, int);
 
-	inline uint64_t get_maxsize() {
+	// return maximum possible size in bytes
+	inline uint64_t get_maxsize() { return get_maxbcount() * BLOCK_SIZE; }
+
+	// return maximum possible size in bytes
+	inline uint64_t get_maxbcount() {
 		uint64_t nblocks;
 
-		//nblocks = (1 << ((radixtree_.height_)*RADIX_TREE_MAP_SHIFT));
+		nblocks = (1 << ((radixtree_.height_)*RADIX_TREE_MAP_SHIFT));
 		nblocks += N_DIRECT;
 
-		return nblocks * BLOCK_SIZE;
+		return nblocks;
 	}
 
-	inline uint64_t get_size() {
-		return size_;
-	}
+	inline uint64_t get_size() { return size_; }
 
 private:
 	uint64_t  size_;
@@ -64,8 +80,20 @@ private:
 class PInode::Slot {
 public:
 
-	Slot() 
+	Slot()
+		: pinode_(NULL),
+		  slot_base_(NULL)
 	{ }
+
+	Slot(const PInode::Slot& copy)
+		: pinode_(copy.pinode_),
+		  slot_base_(copy.slot_base_),
+		  slot_offset_(copy.slot_offset_),
+		  slot_height_(copy.slot_height_),
+		  base_bn_(copy.base_bn_)
+	{ }	
+
+
 
 	Slot(PInode* pinode, uint64_t base_bn)
 	{
@@ -102,7 +130,7 @@ public:
 			base_bn_ = bn;
 			slot_base_ = pinode->daddrs_;
 			slot_offset_ = bn;
-			slot_height_ = 0;
+			slot_height_ = 1;
 		} else {
 			rbn = bn - N_DIRECT; 
 			if ( (ret = pinode->radixtree_.MapSlot(rbn, 0, &node, 
@@ -147,15 +175,21 @@ public:
 	int            slot_offset_;
 	int            slot_height_;
 	// logical information
-	uint64_t       base_bn_;
+	uint64_t       base_bn_;     // The block number of the first block indexed 
+	                             //  at this slot
 };
 
 
+// Region is logically a subregion of PInode 
+// offsets and block numbers passed as arguments are relative to 
+// the start of PInode and not to the start of the region.
+
 class PInode::Region {
 public:
-	Region():
-		maxbcount_(0),
-		base_bn_(0)
+	Region()
+		: maxbcount_(0),
+		  base_bn_(0),
+		  size_(0)
 	{ }
 
 	Region(const PInode::Region& copy)
@@ -163,13 +197,20 @@ public:
 
 	Region(PInode* pinode, uint64_t base_bn) 
 	{
-		Init(pinode, base_bn);
+		assert(Init(pinode, base_bn) == 0);
+	}
+
+	Region(Slot& slot)
+		: slot_(slot)
+	{
+		assert(InitAtSlot() == 0);
 	}
 
 	Region(uint64_t base_bn, uint64_t maxbcount)
 	{
 		maxbcount_ = maxbcount;
 		base_bn_ = base_bn;
+		size_ = 0;
 		if (maxbcount > 1) {
 			radixtree_.rnode_ = NULL;
 			radixtree_.Extend(maxbcount_-1);
@@ -178,16 +219,17 @@ public:
 		}
 	}
 
+
 	///
 	/// Initializes region to represent the region containing block BN of
 	/// persistent inode PINODE
 	///
 	int Init(PInode* pinode, uint64_t bn) 
 	{
-		uint64_t bcount;
-		int      ret;
+		slot_.Init(pinode, bn);
 
-		if (ret=slot_.Init(pinode, bn) < 0) {
+		if (slot_.slot_base_ == NULL) {
+			// No slot. Create an orphan region larger than pinode.
 			printf("Region::Init: no slot\n");
 			radixtree_.rnode_ = NULL;
 			radixtree_.Extend(bn - N_DIRECT);
@@ -196,7 +238,22 @@ public:
 			base_bn_ = N_DIRECT;
 			return 0;
 		}	
-		printf("Region::Init: slot=%p\n", &slot_);
+
+		return InitAtSlot();
+	}
+
+
+	///
+	/// Initializes region to represent the region rooted at slot_
+	///
+	int InitAtSlot() 
+	{
+		uint64_t bcount;
+		int      ret;
+
+		if (!slot_.slot_base_) {
+			return -1;
+		}
 
 		base_bn_ = slot_.base_bn_;
 		if (base_bn_ < N_DIRECT) {
@@ -204,13 +261,13 @@ public:
 			dblock_ = slot_.slot_base_[slot_.slot_offset_];
 			//printf("slot_.slot_base_[slot_.slot_offset_]=%p\n", slot_.slot_base_[slot_.slot_offset_]);
 			//printf("pinode->daddrs_[bn]=%p\n", pinode->daddrs_[bn]);
-			assert(pinode->daddrs_[bn] == dblock_);
 		} else {
 			maxbcount_ = 1 << ((slot_.slot_height_-1)*RADIX_TREE_MAP_SHIFT);
 			printf("Region::Init: slot_base=%p\n", slot_.slot_base_);
 			printf("Region::Init: slot_offset=%d\n", slot_.slot_offset_);
 			printf("Region::Init: slot_height=%d\n", slot_.slot_height_);
 			if (bcount > 1) {
+				assert(slot_.slot_base_[slot_.slot_offset_] == NULL);
 				radixtree_.rnode_ = NULL;
 				radixtree_.Extend(maxbcount_-1);
 			} else {
@@ -228,6 +285,7 @@ public:
 		slot_ = other.slot_;
 		base_bn_ = other.base_bn_;
 		maxbcount_ = other.maxbcount_;
+		size_ = other.size_;
 		if (maxbcount_ > 1) {
 			radixtree_ = other.radixtree_;
 		} else {
@@ -237,13 +295,19 @@ public:
 		return *this;
 	}
 
-	int WriteBlock(uint64_t rbn, char* src, int n);
-	int ReadBlock(uint64_t rbn, char* src, int n);
+	int WriteBlock(char*, uint64_t, int, int);
+	int ReadBlock(char*, uint64_t, int, int);
+
+	int Write(char*, uint64_t, uint64_t);
+	int Read(char*, uint64_t, uint64_t);
+
+	int Extend(uint64_t bn);
 
 //private:
 	Slot      slot_;       // Region's physical slot in the inode
 	uint64_t  base_bn_;    // Region's base block number 			
 	uint64_t  maxbcount_;  // Region's max allowed size in blocks
+	uint64_t  size_;       // Region's size in bytes (NOT YET USED)
 	void*     dblock_;     // Points to a single direct block if maxbcount_ == 1 
 	RadixTree radixtree_;  // A valid radix tree if maxbcount_ > 1
 };
@@ -269,11 +333,7 @@ public:
 		current_.Init(pinode, bn);
 	}
 
-    const PInode::Region current() const { 
-		//return current_->data(); 
-	}
-
-	inline int NextRegion() 
+	inline int NextSlot() 
 	{
 		RadixTreeNode* node;
 		int            height;
@@ -285,7 +345,7 @@ public:
 		if (current_.base_bn_ < N_DIRECT-1) {
 			current_.slot_offset_++;
 			current_.base_bn_++;
-			assert(current_.slot_height_ == 0);
+			assert(current_.slot_height_ == 1);
 		} else if (current_.base_bn_ < N_DIRECT) {
 			ret = current_.pinode_->LookupSlot(current_.base_bn_+1, &current_); 
 		} else {
@@ -313,9 +373,8 @@ public:
 		return ret;
 	}
 
-
     void succ() { 
-		NextRegion();
+		NextSlot();
 	}
 
     const int terminate() const {
@@ -336,7 +395,6 @@ public:
 	}
 
 private:
-	//PInode::Region start_;
 	PInode::Slot current_;
 };
 

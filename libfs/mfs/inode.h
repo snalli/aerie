@@ -17,13 +17,15 @@ public:
 
 	int Read(char*, uint64_t, uint64_t);
 	int Write(char*, uint64_t, uint64_t);
+	int Publish();
 	
 private:
 	pthread_mutex_t* mutex_;
-	PInode*          immpinode_;     // immutable pinode
-	PInode*          mpinode_;       // mutable pinode
+	PInode*          pinode_;        // pinode
+	bool             pinodeism_;     // pinode is mutable
+	PInode::Region*  region_;        // mutable region
 	IntervalTree*    intervaltree_;
-	IntervalTree*    preconstructed_intervaltree_;
+	uint64_t         size_;
 
 	int ReadImmutable(char*, uint64_t, uint64_t);
 	int ReadMutable(char*, uint64_t, uint64_t);

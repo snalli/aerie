@@ -35,10 +35,11 @@ extern int dbg_level;
 
 #define dbg_log(level, format, ...)                                            \
   do {                                                                         \
-    if (level && level <= dbg_level) {                                         \
-      fprintf(stderr, "%s in %s <%s,%d>: " format, dbg_code2str[level],         \
+    if (level && (level <= dbg_level ||                                        \
+                  level <= dbg_terminate_level)) {                             \
+      fprintf(stderr, "%s in %s <%s,%d>: " format, dbg_code2str[level],        \
               __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);                \
-		  if (level <= dbg_terminate_level) {                                  \
+      if (level <= dbg_terminate_level) {                                      \
         exit(-1);                                                              \
       }	                                                                       \
     }			                                                               \

@@ -4,98 +4,63 @@
 #include "radixtree.h"
 #include "common/hrtime.h"
 #include "mfs/inode.h"
+#include "common/debug.h"
 
 #define CHECK assert
 
+#define min(a,b) ((a) < (b)? (a) : (b))
 extern void radix_tree_init_maxindex();
+
+
+void range(uint64_t off, uint64_t n)
+{
+	uint64_t tot;
+	uint64_t m;
+	uint64_t bn;
+	uint64_t f;
+	int      ret;
+	int      i;
+
+	for(tot=0, i=0; tot<n; tot+=m, off+=m, i++) {
+		bn = off / BLOCK_SIZE;
+		f = off % BLOCK_SIZE;
+		m = min(n - tot, BLOCK_SIZE - f);
+		printf("range: %d, R[%llu, %llu] A[%llu, %llu]\n", i, f, f+m-1, off, off+m-1);
+	}
+}
+
+
 
 void foo()
 {
+	Inode*           inode;
 	PInode*          pinode = new PInode;
 	PInode::Iterator start(pinode, 0);
 	PInode::Iterator iter;
 	int              i;
 	uint64_t         bn;
-	char             src[4096];
+	char*            src;
+
+	dbg_set_level(DBG_DEBUG);
+
+	range(64, 60*4096);
+
+	src = new char[600*4096];
 	
 	printf("base=%d, size=%d\n", (*start).base_bn_, 0);
-	pinode->WriteBlock(0, src, 4096);
-	//pinode->WriteBlock(8, src, 4096);
-	pinode->WriteBlock(512+8, src, 4096);
-	for (iter = start, i=0; i<11;iter++, i++) {
-		printf("base_bn=%llu slot=%p[%d]\n", (*iter).base_bn_, (*iter).slot_base_, (*iter).slot_offset_);
-	}
-}
+	pinode->WriteBlock(src, 0, 0, 4096);
+	//pinode->WriteBlock(src, 15, 0, 4096);
+	pinode->WriteBlock(src, 8+4*512*512LLU+3*512+16, 0, 4096);
+	//pinode->WriteBlock(src, 512+8, 0, 4096);
+	
+	inode = new Inode(pinode);
+	//inode->Write(src, 64, 4096*60);
+	//inode->Write(src, 16*4096+64, 4096*60);
+	inode->Write(src, (8+4*512*512LLU+512+2)*4096LLU, 4096*60);
+	inode->Write(src, (8+4*512*512LLU+3*512+8)*4096LLU, 4096*60);
+	inode->Read(src, (8+4*512*512LLU+3*512+8)*4096LLU, 4096*60);
 
 
-void kino()
-{
-	RadixTree* tree1;
-	RadixTreeNode* node;
-	void** slot;
-	int offset;
-	int height;
-	int ret;
-	uint64_t index;
-
-	tree1 = new RadixTree;
-
-	//ret = tree1->Insert(512*512, (void*)0xA);
-	ret = tree1->Extend(512*512);
-	index = 2*512*512+511;
-	ret = tree1->MapSlot(index, 0, &node, &offset, &height);
-
-	if (ret == 0) {
-		printf("offset=%d\n", offset);
-		printf("height=%d\n", height);
-		printf("%p\n", node);
-		printf("slot=%p\n", &node->slots[offset]);
-		printf("*slot=%p\n", node->slots[offset]);
-	}
-
-	ret = tree1->Insert(index, (void*)0xA);
-
-	slot = tree1->LookupSlot(index);
-	printf("LookupSlot: slot=%p\n", slot);
-	printf("Lookup: item=%p\n", tree1->Lookup(index));
-}
-
-
-void kino2()
-{
-	RadixTreeNode* node;
-	int            offset;
-	int            height;
-	RadixTree*     tree1;
-	RadixTree*     tree2;
-	int            ret;
-
-	radix_tree_init_maxindex();
-
-	tree1 = new RadixTree;
-	tree1->Insert(90, (void*)0xA);
-	tree1->Insert(512*512+90, (void*)0xB);
-	CHECK(tree1->Lookup(90) == (void*) 0xA);
-	CHECK(tree1->Lookup(512*512+90) == (void*) 0xB);
-	CHECK(tree1->Lookup(2*512*512+90) == (void*) NULL);
-
-	tree2 = new RadixTree;
-	tree2->Extend(512*512-1);
-	tree2->Insert(90, (void*)0xC);
-	CHECK(tree2->Lookup(90) == (void*)0xC);
-
-	printf("%p\n", tree1->rnode_->slots);
-	ret = tree1->MapSlot(2*512*512, 0, &node, &offset, &height);
-	printf("node=%p\n", node);
-	printf("offset=%p\n", offset);
-	CHECK(ret == 0);
-	CHECK(height == 3);
-	node->slots[offset] = (void*) tree2->rnode_->slots;
-
-	CHECK(tree1->Lookup(2*512*512+90) == (void*) 0xC);
-
-	delete tree1;
-	delete tree2;
 }
 
 

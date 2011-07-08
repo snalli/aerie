@@ -28,9 +28,9 @@ static inline void *radix_tree_ptr_to_indirect(void *ptr)
 }
 
 // NOTE: A RadixTreeNode has no count field. We made this design decision
-// to pack more slots in the node instead. I don't expect count to be 
+// so as to pack more slots in the node instead. I don't expect count to be 
 // useful because we rarely delete indirect nodes when using it as 
-// a representation for a file. Therefore, the existence of an indirect
+// a representation for a file. Note that the existence of an indirect
 // block indicates the existence of at least one linked slot.
 
 class RadixTreeNode {
@@ -59,17 +59,10 @@ public:
 	void* LookupElement(uint64_t index, int is_slot);
 	void* Lookup(uint64_t index);
 	void** LookupSlot(uint64_t index);
+	int MapSlot(uint64_t, int, RadixTreeNode**, int*, int*);
+	int LookupLowestSlot(uint64_t, RadixTreeNode**, int*, int*);
 
-	int MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, int* result_offset, int* result_height);
-
-	int LookupLowestSlot(uint64_t index, 
-                                RadixTreeNode** slot_node, 
-                                int* slot_index, 
-                                int* slot_height);
-
-	inline RadixTreeNode* get_rnode() {
-		return rnode_;
-	}
+	inline RadixTreeNode* get_rnode() {	return rnode_; }
 };
 
 
