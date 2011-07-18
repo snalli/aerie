@@ -173,7 +173,9 @@ out:
 // We could allow INDEX 0 be mapped on the root node even if the root is NULL
 // but we don't for simplifying the boundary conditions
 //
-int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, int* result_offset, int* result_height)
+int RadixTree::MapSlot(uint64_t index, int min_height, int alloc, 
+                       RadixTreeNode** result_node, int* result_offset, 
+                       int* result_height)
 {
 	RadixTreeNode* node = NULL;
 	RadixTreeNode* slot;
@@ -191,17 +193,26 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 	//	  OR
 	// 2) Extent the tree to height=1 to allocate the slot in an 
 	//    indirect block
-	// We prefer option (2) because it simplifies PInode
+	//
+	// We let the callee indicate this via min_height 
+	// If min_height == 0 then option (1) is used, otherwise option (2)
 
-	// Make sure the tree is high enough.
-	if (index > MaxIndex(height_) || (index == 0 && height_== 0)) {
-		if (alloc) {
-			error = Extend(index);
-			if (error) {
-				return error;
-			}	
-		} else {
-			return -1;
+	if (min_height == 0 && index == 0 && height_ == 0) {
+		*result_node = reinterpret_cast<RadixTreeNode*>(&rnode_);
+		*result_offset = 0;
+		*result_height = 0;
+		return 0;
+	} else {
+		// Make sure the tree is high enough.
+		if (index > MaxIndex(height_) || (index == 0 && height_== 0)) {
+			if (alloc) {
+				error = Extend(index);
+				if (error) {
+					return error;
+				}	
+			} else {
+				return -1;
+			}
 		}
 	}
 	
@@ -254,13 +265,14 @@ int RadixTree::MapSlot(uint64_t index, int alloc, RadixTreeNode** result_node, i
 
 ///
 ///  radix_tree_insert    -    insert into a radix tree
-///  @root:    radix tree root
-///  @index:   index key
-///  @item:    item to insert
+///  @root:       radix tree root
+///  @index:      index key
+///  @item:       item to insert
+///  @min_height: minimum height of the tree
 ///
 ///  Insert an item into the radix tree at position @index.
 ///
-int RadixTree::Insert(uint64_t index, void* item)
+int RadixTree::Insert(uint64_t index, void* item, int min_height)
 {
 	RadixTreeNode* node;
 	RadixTreeNode* slot;
@@ -268,7 +280,7 @@ int RadixTree::Insert(uint64_t index, void* item)
 	int            height;
 	int            ret;
 	
-	if ((ret=MapSlot(index, 1, &node, &offset, &height))) {
+	if ((ret=MapSlot(index, min_height, 1, &node, &offset, &height))) {
 		return ret;
 	}
 
@@ -287,13 +299,14 @@ int RadixTree::Insert(uint64_t index, void* item)
 
 ///
 ///  RadixTree::LookupSlot    -    lookup a slot in a radix tree
-///  @root:     radix tree root
-///  @index:    index key
+///  @root:       radix tree root
+///  @index:      index key
+///  @min_height: minimum height of the tree
 ///
 ///  Returns:  the slot corresponding to the position @index in the
 ///  radix tree @root. This is useful for update-if-exists operations.
 ///
-void** RadixTree::LookupSlot(uint64_t index)
+void** RadixTree::LookupSlot(uint64_t index, int min_height)
 {
 	RadixTreeNode** slot;
 	RadixTreeNode*  node;
@@ -301,7 +314,7 @@ void** RadixTree::LookupSlot(uint64_t index)
 	int             height;
 	int             ret;
 
-	if (!(ret = MapSlot(index, 0, &node, &offset, &height))) {
+	if (!(ret = MapSlot(index, min_height, 0, &node, &offset, &height))) {
 		if (height <= 1) {
 			slot = reinterpret_cast<RadixTreeNode**>(&node->slots[offset]);
 			return (void **) slot;
@@ -313,12 +326,13 @@ void** RadixTree::LookupSlot(uint64_t index)
 
 ///
 ///  RadixTree::Lookup    -    perform lookup operation on a radix tree
-///  @root:     radix tree root
-///  @index:    index key
+///  @root:       radix tree root
+///  @index:      index key
+///  @min_height: minimum height of the tree
 ///
 ///  Lookup the item at the position @index in the radix tree @root.
 ///
-void* RadixTree::Lookup(uint64_t index)
+void* RadixTree::Lookup(uint64_t index, int min_height)
 {
 	RadixTreeNode** slot;
 	RadixTreeNode*  node;
@@ -326,7 +340,7 @@ void* RadixTree::Lookup(uint64_t index)
 	int             height;
 	int             ret;
 
-	if (!(ret = MapSlot(index, 0, &node, &offset, &height))) {
+	if (!(ret = MapSlot(index, min_height, 0, &node, &offset, &height))) {
 		if (height <= 1) {
 			return node->slots[offset];
 		}	

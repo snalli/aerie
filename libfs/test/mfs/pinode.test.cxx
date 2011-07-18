@@ -1,9 +1,9 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "test/unittest.h"
 #include "mfs/pinode.h"
 #include "common/errno.h"
 
-#include <stdio.h>
 
 extern void radix_tree_init_maxindex(void);
 

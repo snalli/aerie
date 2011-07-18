@@ -133,7 +133,7 @@ public:
 			slot_height_ = 1;
 		} else {
 			rbn = bn - N_DIRECT; 
-			if ( (ret = pinode->radixtree_.MapSlot(rbn, 0, &node, 
+			if ( (ret = pinode->radixtree_.MapSlot(rbn, 1, 0, &node, 
 			                                       &slot_offset, 
 			                                       &slot_height)) != 0) 
 			{
@@ -359,9 +359,9 @@ public:
 			assert(current_.slot_height_ > 0);
 			bcount = 1 << ((current_.slot_height_-1)*RADIX_TREE_MAP_SHIFT);
 			if ( (current_.slot_offset_+1 < RADIX_TREE_MAP_SIZE-1) /* case 1 */ &&
-			     ( (current_.slot_height_ == 1)) /* case 2i */ ||
+			     ( (current_.slot_height_ == 1) /* case 2i */ ||
 			       ((current_.slot_height_ > 1) && 
-					(current_.slot_base_[current_.slot_offset_+1] == NULL)) ) /* case 2ii */ 
+					(current_.slot_base_[current_.slot_offset_+1] == NULL))) ) /* case 2ii */ 
 			{
 				current_.base_bn_+=bcount;
 				current_.slot_offset_++;

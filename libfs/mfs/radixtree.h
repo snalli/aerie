@@ -55,11 +55,10 @@ public:
 	RadixTree();
 	inline uint64_t MaxIndex(unsigned int height);
 	int Extend(unsigned long index);
-	int Insert(uint64_t index, void *item);
-	void* LookupElement(uint64_t index, int is_slot);
-	void* Lookup(uint64_t index);
-	void** LookupSlot(uint64_t index);
-	int MapSlot(uint64_t, int, RadixTreeNode**, int*, int*);
+	int Insert(uint64_t index, void *item, int);
+	void* Lookup(uint64_t index, int);
+	void** LookupSlot(uint64_t index, int);
+	int MapSlot(uint64_t, int, int, RadixTreeNode**, int*, int*);
 	int LookupLowestSlot(uint64_t, RadixTreeNode**, int*, int*);
 
 	inline RadixTreeNode* get_rnode() {	return rnode_; }

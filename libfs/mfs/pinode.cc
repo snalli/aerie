@@ -310,7 +310,7 @@ PInode::Region::WriteBlock(char* src, uint64_t bn, int off, int n)
 	} else {
 		rbn = bn - base_bn_;
 		// TODO: any allocations and assignments done by Mapslot must be journalled
-		if ((ret = radixtree_.MapSlot(rbn, 1, &node, &offset, &height)) == 0) {
+		if ((ret = radixtree_.MapSlot(rbn, 1, 1, &node, &offset, &height)) == 0) {
 			slot = &node->slots[offset];
 		} else {
 			return ret;
@@ -374,7 +374,7 @@ PInode::Region::ReadBlock(char* dst, uint64_t bn, int off, int n)
 		slot = &dblock_;
 	} else {
 		rbn = bn - base_bn_;
-		if (radixtree_.MapSlot(rbn, 0, &node, &offset, &height) == 0) {
+		if (radixtree_.MapSlot(rbn, 1, 0, &node, &offset, &height) == 0) {
 			slot = &node->slots[offset];
 			printf("node=%p, node->slots[%d]=%p\n", node, offset, node->slots[offset]);
 		} else {

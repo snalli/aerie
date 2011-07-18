@@ -193,6 +193,7 @@ public:
 	int SplitHalf(Page* splitover_page);
 	int Split(Page* splitover_page, SplitFunction split_function, void* uargs);
 	int Merge(Page* other_page);
+	void Print();
 
 private:
 	union {
@@ -234,6 +235,7 @@ public:
 	int Delete(char* key, int key_size);
 	int Split(Bucket* new_bucket, SplitFunction split_function, void* uargs);
 	int Merge(Bucket*);
+	void Print();
 
 private:
 	Page page_;
@@ -261,6 +263,7 @@ public:
 	int Search(const char *key, int key_size, char** valp, int* val_sizep);
 	int Search(const char* key, int key_size, uint64_t* val);
 	int Delete(char* key, int key_size);
+	void Print();
 
 private:
 	inline uint32_t Index(const char* key, int key_size);

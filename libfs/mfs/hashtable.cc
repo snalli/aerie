@@ -25,11 +25,12 @@ inline uint64_t lgl2lnr (uint64_t logical_addr)
 // If no space available then -ENOMEM is returned 
 int Page::Insert(const char* key, int key_size, const char* val, int val_size)
 {
-	int    i;
-	int    step;
-	Entry* entry;
-	Entry* free_entry=NULL;
-	int    payload_size = key_size + val_size;
+	int      i;
+	int      step;
+	Entry*   entry;
+	Entry*   free_entry=NULL;
+	int      payload_size = key_size + val_size;
+	uint64_t uval;
 
 	for (i=0; i < PAGE_SIZE - (int) sizeof(next_); i+=step)
 	{
@@ -50,6 +51,8 @@ int Page::Insert(const char* key, int key_size, const char* val, int val_size)
 		if (max_payload_size - payload_size - TAG_SIZE >= 0) {
 			Entry::MakeEntry(free_entry, TAG_SIZE+payload_size);
 		}
+
+		uval = *((uint64_t*) val);
 		free_entry->set_kv(key, key_size, val, val_size);
 		return 0;
 	}
@@ -108,7 +111,6 @@ int Page::Search(const char *key, int key_size, uint64_t* val)
 }
 
 
-
 int Page::Delete(Entry* entry, Entry* prev_entry, Entry* next_entry)
 {
 	int size;
@@ -127,7 +129,6 @@ int Page::Delete(Entry* entry, Entry* prev_entry, Entry* next_entry)
 	}
 	return 0;
 }
-
 
 
 int Page::Delete(char *key, int key_size)
@@ -331,6 +332,25 @@ int Page::Merge(Page* other_page)
 }
 
 
+void Page::Print()
+{
+	int i;
+	uint64_t val;
+	int size;
+	Entry* entry;
+
+	for (i=0; i < PAGE_SIZE - sizeof(next_); i+=size)
+	{
+		entry = GetEntry(i);
+		size = entry->get_size();
+		val = *((uint64_t*) entry->get_val());
+		if (!entry->IsFree()) {
+			printf("(%s, %llu) ", entry->get_key(), val);
+		}
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Bucket
@@ -434,6 +454,17 @@ dosplit:
 }
 
 
+void Bucket::Print()
+{
+	Page* page;
+
+	for (page=&page_; page != 0x0; page=page->Next()) {
+		printf("Page: %p = {\n", page);
+		page->Print();
+		printf("}\n");
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -456,9 +487,11 @@ static inline uint32_t Hash(uint32_t fh, int size_log2_, int shift)
 	return fh & mask;
 }
 
+
 typedef struct {
 	uint32_t size_log2_;
 } split_function_args;
+
 
 static int split_function(const char* key, int key_size, void* uargs)
 {
@@ -508,9 +541,9 @@ HashTable::Insert(const char* key, int key_size, const char* val, int val_size)
 		return 0;
 	}
 	if (ret == HT_REHASH) {
-		printf("SPLIT: split_idx=%d\n", split_idx_);
 		split_function_args args;
 		args.size_log2_ = size_log2_;
+		bucket = &buckets_[split_idx_];
 		splitover_bucket = &buckets_[split_idx_+(1<<size_log2_)];
 		bucket->Split(splitover_bucket, split_function, (void*) &args);
 		split_idx_++;
@@ -536,7 +569,6 @@ HashTable::Search(const char *key, int key_size, char** valp, int* val_sizep)
 	uint32_t idx;
 	Bucket*  bucket;
 
-	printf("Search: size_=%d\n", 1 << size_log2_);
 	idx = Index(key, key_size);
 	bucket = &buckets_[idx];
 	return bucket->Search(key, key_size, valp, val_sizep);
@@ -550,3 +582,19 @@ HashTable::Search(const char* key, int key_size, uint64_t* val)
 
 	return Search(key, key_size, (char**) &val, &val_size);
 }
+
+
+void 
+HashTable::Print()
+{
+	int      i;
+	uint32_t idx;
+	Bucket*  bucket;
+
+	for (i=0; i<(1<<size_log2_)+split_idx_; i++) {
+		bucket = &buckets_[i];
+		bucket->Print();
+	}	
+}
+
+

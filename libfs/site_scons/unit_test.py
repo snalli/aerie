@@ -37,7 +37,7 @@ def runUnitTests(source, target, env):
                                  stderr=subprocess.PIPE, close_fds=True, env=osenv)
         ret = os.waitpid(utest.pid, 0)
         lines = utest.stderr.readlines()
-        if re.search("xml", lines[0]):
+        if len(lines) > 0 and re.search("xml", lines[0]):
             xmlout = string.join(lines)
             tree = xml.etree.ElementTree.XML(xmlout)
             test_list = []

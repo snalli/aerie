@@ -4,12 +4,52 @@
 #include "radixtree.h"
 #include "common/hrtime.h"
 #include "mfs/inode.h"
+#include "mfs/hashtable.h"
 #include "common/debug.h"
 
 #define CHECK assert
 
 #define min(a,b) ((a) < (b)? (a) : (b))
 extern void radix_tree_init_maxindex();
+
+
+void bar()
+{
+	int r;
+	Bucket bk;
+	uint64_t val;
+	char *key1 = "key1";
+	char *key2 = "key2";
+	char *key3 = "key3";
+
+	bk.Insert(key1, strlen(key1)+1, 0x9);
+	bk.Insert(key2, strlen(key2)+1, 0x87);
+	bk.Insert(key3, strlen(key3)+1, 0x33);
+
+	r=bk.Search(key1, strlen(key1)+1, &val);
+	printf("(r=%d), key=%s, val=%llx\n", r, key1, val);
+
+	r=bk.Search(key2, strlen(key2)+1, &val);
+	printf("(r=%d), key=%s, val=%llx\n", r, key2, val);
+
+	r=bk.Search(key3, strlen(key3)+1, &val);
+	printf("(r=%d), key=%s, val=%llx\n", r, key3, val);
+
+	bk.Delete(key2, strlen(key2)+1);
+	bk.Insert(key2, strlen(key2)+1, 0x56);
+
+	r=bk.Search(key1, strlen(key1)+1, &val);
+	printf("(r=%d), key=%s, val=%llx\n", r, key1, val);
+
+	r=bk.Search(key2, strlen(key2)+1, &val);
+	printf("(r=%d), key=%s, val=%llx\n", r, key2, val);
+
+	r=bk.Search(key3, strlen(key3)+1, &val);
+	printf("(r=%d), key=%s, val=%llx\n", r, key3, val);
+
+}
+
+
 
 
 void range(uint64_t off, uint64_t n)
@@ -67,5 +107,5 @@ void foo()
 main()
 {
 	radix_tree_init_maxindex();
-	foo();
+	bar();
 }
