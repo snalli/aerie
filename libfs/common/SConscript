@@ -9,6 +9,6 @@ buildEnv.Append(CPPPATH = ['#', '#common'])
 
 commonLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
 
-buildEnv.Program('test', ['test.cc', commonLibrary], CCFLAGS='-g')
+#buildEnv.Program('test', ['test.cc', commonLibrary], CCFLAGS='-g')
 
 Return('commonLibrary')
