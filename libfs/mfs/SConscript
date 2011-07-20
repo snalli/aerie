@@ -8,6 +8,8 @@ buildEnv.Append(CPPPATH = ['#'])
 lib_target = 'mfs'
 #lib_sources = ['mkfs.cc', 'itree.cc', 'inode.cc', 'pinode.cc']
 lib_sources = ['radixtree.cc', 'hashtable.cc', 'inode.cc', 'pinode.cc']
+lib_sources += ['dirinode.cc']
+
 mfsLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
 
 buildEnv.Program('main', ['main.cc', mfsLibrary, commonLibrary])
