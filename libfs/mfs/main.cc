@@ -73,7 +73,7 @@ void range(uint64_t off, uint64_t n)
 
 void foo()
 {
-	Inode*           inode;
+	FileInode*       inode;
 	PInode*          pinode = new PInode;
 	PInode::Iterator start(pinode, 0);
 	PInode::Iterator iter;
@@ -93,7 +93,7 @@ void foo()
 	pinode->WriteBlock(src, 8+4*512*512LLU+3*512+16, 0, 4096);
 	//pinode->WriteBlock(src, 512+8, 0, 4096);
 	
-	inode = new Inode(pinode);
+	inode = new FileInode(pinode);
 	//inode->Write(src, 64, 4096*60);
 	//inode->Write(src, 16*4096+64, 4096*60);
 	inode->Write(src, (8+4*512*512LLU+512+2)*4096LLU, 4096*60);

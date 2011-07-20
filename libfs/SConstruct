@@ -16,7 +16,7 @@ AddOption('--test-filter',
 mainEnv['TEST_FILTER'] = GetOption('test_filter')
 
 #mainEnv.Append(LIBS = ['tcmalloc'])
-mainEnv.Append(LIBS = ['hoard'])
+#mainEnv.Append(LIBS = ['hoard'])
 #mainEnv.Append(CCFLAGS=' -g -O2 -Wall')
 mainEnv.Append(CCFLAGS=' -g -O2')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')

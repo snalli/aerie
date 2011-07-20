@@ -198,12 +198,12 @@ InodeInterval::Read(char* dst, uint64_t off, uint64_t n)
 
 /////////////////////////////////////////////////////////////////////////////
 // 
-// Inode
+// FileInode
 //
 /////////////////////////////////////////////////////////////////////////////
 
 
-Inode::Inode()
+FileInode::FileInode()
 	: pinodeism_(true),
 	  intervaltree_(NULL),
 	  region_(NULL),
@@ -213,7 +213,7 @@ Inode::Inode()
 }
 
 
-Inode::Inode(PInode* pinode)
+FileInode::FileInode(PInode* pinode)
 	: pinode_(pinode),
 	  pinodeism_(false),
 	  region_(NULL)
@@ -223,7 +223,7 @@ Inode::Inode(PInode* pinode)
 }
 
 
-Inode::~Inode()
+FileInode::~FileInode()
 {
 	if (pinode_) {
 		// TODO: what to do? inode is destroyed and the pinode has not been published yet?
@@ -236,7 +236,7 @@ Inode::~Inode()
 }
 
 
-int Inode::ReadImmutable(char* dst, uint64_t off, uint64_t n)
+int FileInode::ReadImmutable(char* dst, uint64_t off, uint64_t n)
 {
 	uint64_t         tot;
 	uint64_t         m;
@@ -315,7 +315,7 @@ int Inode::ReadImmutable(char* dst, uint64_t off, uint64_t n)
 
 
 
-int Inode::ReadMutable(char* dst, uint64_t off, uint64_t n)
+int FileInode::ReadMutable(char* dst, uint64_t off, uint64_t n)
 {
 	int vn;
 
@@ -337,7 +337,7 @@ int Inode::ReadMutable(char* dst, uint64_t off, uint64_t n)
 }
 
 
-int Inode::Read(char* dst, uint64_t off, uint64_t n)
+int FileInode::Read(char* dst, uint64_t off, uint64_t n)
 {
 	uint64_t  immmaxsize; // immutable range max size
 	uint64_t  mn;
@@ -377,7 +377,7 @@ int Inode::Read(char* dst, uint64_t off, uint64_t n)
 }
 
 
-int Inode::WriteMutable(char* src, uint64_t off, uint64_t n)
+int FileInode::WriteMutable(char* src, uint64_t off, uint64_t n)
 {
 	uint64_t bn;
 
@@ -404,7 +404,7 @@ int Inode::WriteMutable(char* src, uint64_t off, uint64_t n)
 }
 
 
-int Inode::WriteImmutable(char* src, uint64_t off, uint64_t n)
+int FileInode::WriteImmutable(char* src, uint64_t off, uint64_t n)
 {
 	uint64_t         tot;
 	uint64_t         m;
@@ -492,7 +492,7 @@ int Inode::WriteImmutable(char* src, uint64_t off, uint64_t n)
 }
 
 
-int Inode::Write(char* src, uint64_t off, uint64_t n)
+int FileInode::Write(char* src, uint64_t off, uint64_t n)
 {
 	uint64_t  immmaxsize; // immutable range max size
 	uint64_t  mn;
@@ -538,7 +538,7 @@ int Inode::Write(char* src, uint64_t off, uint64_t n)
 }
 
 
-int Inode::Publish()
+int FileInode::Publish()
 {
 	dbg_log (DBG_CRITICAL, "Functionality not yet implemented!\n");
 
