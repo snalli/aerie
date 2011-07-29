@@ -3,7 +3,7 @@
 #include <assert.h>
 #include "radixtree.h"
 #include "common/hrtime.h"
-#include "mfs/inode.h"
+#include "mfs/finode.h"
 #include "mfs/hashtable.h"
 #include "common/debug.h"
 

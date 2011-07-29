@@ -1,4 +1,4 @@
-#include "mfs/inode.h"
+#include "mfs/finode.h"
 #include <pthread.h>
 #include <stdint.h>
 #include <string.h>

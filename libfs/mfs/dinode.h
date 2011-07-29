@@ -2,17 +2,51 @@
 #define _DIRECTORY_INODE_H_KAL178
 
 #include "mfs/hashtable.h"
+#include "mfs/inode.h"
+#include "mfs/snode.h"
+#include <stdint.h>
 
-
-class DirInodeImmutable {
+class DirInodeImmutable: public InodeImmutable {
 public:
 
+	DirInodeImmutable(Snode* snode)
+		: snode_(static_cast<DirSnode*>(snode))
+	{ }
 
+	int Init(uint64_t ino) {
+		snode_ = DirSnode::Load(ino);
+		return 0;
+	}
+	
+	//static DirInodeImmutable* Load(uint64_t ino);
+	//static DirInodeImmutable* Load(InodeImmutable* inode);
+
+	int Lookup(char* name);
+	int Link(); // do nothing or don't expose this call
+	int Unlink(); // do nothing or don't expose this call
+	int Read(); 
+	
 private:
-	HashTable* ht_;
+	DirSnode* snode_;
 
 };
 
+/*
+DirInodeImmutable* 
+DirInodeImmutable::Load(uint64_t ino)
+{
+	InodeImmutable* inode = InodeImmutable::ino2obj(ino);
+
+	return DirInodeImmutable::Load(inode);
+}
+
+
+DirInodeImmutable* 
+DirInodeImmutable::Load(InodeImmutable* inode)
+{
+	return reinterpret_cast<DirInodeImmutable*>(inode);
+}
+*/
 
 //FIXME: directory needs a negative directory entry as well to
 // indicate the absence of the entry
@@ -52,16 +86,24 @@ private:
 // 1. Find whether there is a volatile directory inode or whether we should
 //    query the persistent inode directly 
 
-class DirInode {
-public:
-	
 
+class DirInodeMutable: public InodeMutable {
+public:
+	DirInodeMutable(Snode* snode)
+		: snode_(static_cast<DirSnode*>(snode))
+	{ }
+
+
+	int Init(uint64_t ino) {
+		snode_ = DirSnode::Load(ino);
+		return 0;
+	}
+	
 private:
-	DirInodeImmutable* dinode_;
+	DirSnode* snode_;
 	//FIXME: pointer to new directory entries
 
 };
-
 
 
 #endif /* _DIRECTORY_INODE_H_KAL178 */
