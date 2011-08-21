@@ -5,6 +5,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include "client/backend.h"
+#include "common/debug.h"
+
 
 typedef int (*SplitFunction)(const char* key, int keysize, void* uargs); 
 
@@ -160,7 +163,19 @@ public:
 		entry=Entry::MakeEntry(&b_[0]);
 		return entry->Init(true, payload_size);
 	}	
-	
+
+	void* operator new( size_t nbytes, client::StorageManager* sm)
+	{
+		void* ptr;
+		int   ret;
+
+		if ((ret = sm->Alloc(nbytes, typeid(Page), &ptr)) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+		return ptr;
+	}
+
+
 	static inline Page* MakePage(char* b) {
 		Page* page = (Page*) b;
 		return page;
@@ -255,6 +270,18 @@ public:
 		: split_idx_(0),
 		  size_log2_(5)
 	{ }
+
+	void* operator new( size_t nbytes, client::StorageManager* sm)
+	{
+		void* ptr;
+		int   ret;
+
+		if ((ret = sm->Alloc(nbytes, typeid(HashTable), &ptr)) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+		return ptr;
+	}
+
 
 	int Init();
 

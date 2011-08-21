@@ -3,9 +3,9 @@
 
 
 enum {
-	ENOMEM = 1,
-	EEXIST,
-	EINVAL,
+	E_NOMEM = 1,
+	E_EXIST,
+	E_INVAL,
 };
 
 #endif /* __ERRNO_H_JKA671 */

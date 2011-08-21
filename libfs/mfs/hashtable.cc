@@ -1,6 +1,7 @@
 #include "mfs/hashtable.h"
 #include <stdint.h>
 #include <string.h>
+#include "client/backend.h"
 #include "common/errno.h"
 #include "common/hash.h"
 
@@ -12,6 +13,7 @@ inline uint64_t lgl2lnr (uint64_t logical_addr)
 	return logical_addr;
 }
 
+//FIXME: allocate storage via storage manager
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -22,7 +24,7 @@ inline uint64_t lgl2lnr (uint64_t logical_addr)
 
 
 
-// If no space available then -ENOMEM is returned 
+// If no space available then -E_NOMEM is returned 
 int Page::Insert(const char* key, int key_size, const char* val, int val_size)
 {
 	int      i;
@@ -57,11 +59,11 @@ int Page::Insert(const char* key, int key_size, const char* val, int val_size)
 		return 0;
 	}
 
-	return -ENOMEM;
+	return -E_NOMEM;
 }
 
 
-// If no space available then -ENOMEM is returned 
+// If no space available then -E_NOMEM is returned 
 int Page::Insert(const char* key, int key_size, uint64_t val)
 {
 	return Insert(key, key_size, (char*) &val, sizeof(val));
@@ -169,7 +171,7 @@ int Page::Delete(char *key, int key_size)
 // Callee is responsible for allocating the new bucket page
 //
 // If provided bucket page overflows, then remaining entries stay in the 
-// current bucket page and error -ENOMEM is returned 
+// current bucket page and error -E_NOMEM is returned 
 int Page::SplitHalf(Page* splitover_page)
 {
 	int      ret;
@@ -239,7 +241,7 @@ int Page::SplitHalf(Page* splitover_page)
 // Callee is responsible for allocating the new bucket page
 //
 // If provided bucket page overflows, then remaining entries stay in the 
-// current bucket page and error -ENOMEM is returned 
+// current bucket page and error -E_NOMEM is returned 
 int Page::Split(Page* splitover_page, SplitFunction split_function, void* uargs)
 {
 	int      ret;
@@ -289,7 +291,7 @@ int Page::Split(Page* splitover_page, SplitFunction split_function, void* uargs)
 // Move the entries of the provided bucket page into the current bucket page.
 //
 // If current bucket page overflows, then remaining entries stay in the 
-// provided bucket page and error -ENOMEM is returned 
+// provided bucket page and error -E_NOMEM is returned 
 int Page::Merge(Page* other_page)
 {
 	int      ret;
@@ -379,7 +381,7 @@ Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
 	// No page had space. Insert the KV pair in a new page.
 	
 	//FIXME: allocate from chunk allocator instead, not new/malloc
-	page = new Page;
+	page = new(client::global_smgr) Page;
 	page->Insert(key, key_size, val, val_size);
 	last_page->set_next(page);
 
@@ -439,11 +441,11 @@ Bucket::Split(Bucket* splitover_bucket, SplitFunction split_function, void* uarg
 		splitover_page = &splitover_bucket->page_;
 dosplit:
 		ret=page->Split(splitover_page, split_function, uargs);
-		if (ret==-ENOMEM) {
+		if (ret==-E_NOMEM) {
 			if ((new_page=splitover_page->Next()) == 0x0) {
 				//FIXME: allocate new page from chunk descriptor, not new/malloc
 				//FIXME: protect against cycle-loop 
-				new_page = new Page;
+				new_page = new(client::global_smgr) Page;
 				splitover_page->set_next(new_page);
 			}
 			splitover_page = new_page;
@@ -535,6 +537,8 @@ HashTable::Insert(const char* key, int key_size, const char* val, int val_size)
 	Bucket*  splitover_bucket;
 	int      ret;
 
+	printf("HashTable::Insert key=%s\n", key);
+
 	idx = Index(key, key_size);
 	bucket = &buckets_[idx];
 	if ((ret=bucket->Insert(key, key_size, val, val_size))==0) {
@@ -569,6 +573,8 @@ HashTable::Search(const char *key, int key_size, char** valp, int* val_sizep)
 	uint32_t idx;
 	Bucket*  bucket;
 
+	printf("HashTable::Search key=%s\n", key);
+
 	idx = Index(key, key_size);
 	bucket = &buckets_[idx];
 	return bucket->Search(key, key_size, valp, val_sizep);
@@ -596,5 +602,3 @@ HashTable::Print()
 		bucket->Print();
 	}	
 }
-
-

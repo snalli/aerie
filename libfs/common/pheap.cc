@@ -9,6 +9,9 @@
 #include "common/util.h"
 #include "common/debug.h"
 
+
+static void* last_mmap_base_addr_=(void*) 0x0000100000000000LLU;
+
 PHeap::PHeap()
 {
 
@@ -42,7 +45,7 @@ PHeap::Open(char* filename, size_t maxsize, size_t root_size,
 		vistaheap_fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
 		ftruncate(vistaheap_fd, rounded_size);
 		do_vista_init = 1;
-		mmap_addr = 0;
+		mmap_addr = (void*) last_mmap_base_addr_;
 		vistaheap_fd = open(filename, O_RDWR);
 	} else {
 		pread(vistaheap_fd, &pheapheader, sizeof(pheapheader), 0); 
@@ -53,7 +56,6 @@ PHeap::Open(char* filename, size_t maxsize, size_t root_size,
 			do_vista_init = 1;
 		}
 	}
-
 	if ((base_addr = mmap(mmap_addr, maxsize, PROT_WRITE | PROT_READ, mmap_flags, vistaheap_fd, 0)) == (void *) -1) {
 		close(vistaheap_fd);
 		if (do_vista_init) {
@@ -61,6 +63,7 @@ PHeap::Open(char* filename, size_t maxsize, size_t root_size,
 		}
 		return NULL;
 	}
+	last_mmap_base_addr_ = (void*) ( ((uint64_t) base_addr) + maxsize);
 	pheapheaderp = (PHeapHeader*) ((uintptr_t) base_addr);
 	rootp = (void*) ((uintptr_t) pheapheaderp + sizeof(*pheapheaderp));
 	vistaheapp = (vistaheap*) ((uintptr_t) rootp + root_size);

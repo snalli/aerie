@@ -3,7 +3,7 @@ buildEnv = mainEnv.Clone()
 
 
 lib_target = 'cstore'
-lib_sources = ['chunkstore.cc', 'chunkserver.cc']
+lib_sources = ['chunkstore.cc', 'chunkserver.cc', 'registry.cc', 'registryserver.cc']
 
 buildEnv.Append(CPPPATH = ['#rpc', '#'])
 

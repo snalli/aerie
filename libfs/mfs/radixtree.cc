@@ -150,7 +150,7 @@ RadixTree::Extend(uint64_t index)
 	do {
 		unsigned int newheight;
 		if (!(node = radix_tree_node_alloc(this))) {
-			return -ENOMEM;
+			return -E_NOMEM;
 		}
 
 		// Increase the height.
@@ -225,7 +225,7 @@ int RadixTree::MapSlot(uint64_t index, int min_height, int alloc,
 			if (alloc) {
 				// Have to add a child node.
 				if (!(slot = radix_tree_node_alloc(this))) {
-					return -ENOMEM;
+					return -E_NOMEM;
 				}	
 				if (node) {
 					node->slots[offset] = slot;
@@ -288,7 +288,7 @@ int RadixTree::Insert(uint64_t index, void* item, int min_height)
 	slot = reinterpret_cast<RadixTreeNode*>(node->slots[offset]);
 
 	if (slot != NULL) {
-		return -EEXIST;
+		return -E_EXIST;
 	}
 	
 	node->slots[offset] = item;

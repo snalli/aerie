@@ -7,42 +7,31 @@
 #include <iostream>
 #include "rpc/rpc.h"
 #include "rpc/jsl_log.h"
-#include "chunkstore/chunkstore.h"
 #include "server/api.h"
 #include "v6fs/v6fs.h"
-#include "nameservice.h"
+#include "client/libfs.h"
+#include "client/inode.h"
+#include "client/namespace.h"
+#include "mfs/pstruct.h"
+#include "mfs/sb.h"
 
 
-rpcc* client;  // client rpc object
-ChunkStore* chunk_store;
+rpcc* rpc_client;  // client rpc object
 struct sockaddr_in dst; //server's ip address
 pthread_attr_t attr;
 unsigned int principal_id;
-NameService* global_nameservice;
 
-void simple_tests()
-{
-	ChunkDescriptor* achunkdsc[16];
-	void* a, *b, *c, *d;
-	int tmp;
-
-	ChunkDescriptor* chunkdsc;
-	chunk_store->CreateChunk(16384, CHUNK_TYPE_EXTENT, &chunkdsc);
-	achunkdsc[0] = chunkdsc;
-	chunk_store->CreateChunk(8192, CHUNK_TYPE_INODE, &chunkdsc);
-	achunkdsc[1] = chunkdsc;
-	chunk_store->AccessChunkList(achunkdsc, 2, PROT_READ|PROT_WRITE);
-	chunk_store->ReleaseChunkList(achunkdsc, 1);
-}
-
-void demo_name()
+void demo()
 {
 	int      ret;
 
-	global_nameservice->Link("/test/A", (void*) 0xA);
-	ret = global_nameservice->Link("/test/B", (void*) 0xB);
-	printf("delete: %d\n", global_nameservice->Unlink("/test/B"));
-
+	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
+	//libfs_open("/etc/hvolos/test", 0);
+	//libfs_open("/home/hvolos/test", 0);
+	libfs_mkdir("/home/hvolos/dir", 0);
+	libfs_mkdir("/home/hvolos/dir/test", 0);
+	//libfs_open("/home/hvolos/dir/test", O_CREATE);
+	//libfs_open("/home/hvolos/file", O_CREATE);
 }
 
 
@@ -61,7 +50,7 @@ main(int argc, char *argv[])
 	srandom(getpid());
 	port = 20000 + (getpid() % 10000);
 
-	while ((ch = getopt(argc, argv, "d:p:li:o:"))!=-1) {
+	while ((ch = getopt(argc, argv, "d:p:li:o:s:"))!=-1) {
 		switch (ch) {
 			case 'd':
 				debug_level = atoi(optarg);
@@ -77,7 +66,8 @@ main(int argc, char *argv[])
 				break;
 			case 'o':
 				strcpy(operation, optarg); 
-		default:
+				break;
+			default:
 				break;
 		}
 	}
@@ -102,17 +92,17 @@ main(int argc, char *argv[])
 	// the correct waiting caller thread. there should probably
 	// be only one rpcc per process. you probably need one
 	// rpcc per server.
-	client = new rpcc(dst);
-	assert (client->bind() == 0);
-	global_nameservice = new NameService(client, principal_id, "GLOBAL");
+	rpc_client = new rpcc(dst);
+	assert (rpc_client->bind() == 0);
 
-	chunk_store = new ChunkStore(client, principal_id);
-	chunk_store->Init();
+	dbg_set_level(5);
+
+	libfs_init(rpc_client, principal_id);
 
 	if (strcmp(operation, "mkfs") == 0) {
-		mkfs();
+		libfs_mkfs("/superblock/A", "mfs", 0);
 	} else if (strcmp(operation, "demo") == 0) {
-		demo_name();	
+		demo();	
 	} else {
 		// unknown
 	}

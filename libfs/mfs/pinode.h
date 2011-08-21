@@ -8,6 +8,9 @@
 #include "mfs/radixtree.h"
 #include "common/debug.h"
 
+
+//FIXME: rename PInode to FilePnode
+
 const int N_DIRECT = 8;
 
 // A PInode is logically composed of non-overlapping regions

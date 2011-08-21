@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cstring>
+#include "server/api.h"
 #include "common/util.h"
 #include "common/hrtime.h"
 
@@ -28,7 +29,7 @@ Registry::Lookup(const char *name, void **obj)
 
 	name_str = std::string(name);
 
-	intret = client_->call(25, principal_id_, name_str, r);
+	intret = client_->call(RPC_REGISTRY_LOOKUP, principal_id_, name_str, r);
 	if (intret) {
 		return -intret;
 	}
@@ -49,7 +50,7 @@ Registry::Add(const char *name, void *obj)
 	name_str = std::string(name);
 	val = (unsigned long long) obj;
 
-	intret = client_->call(26, principal_id_, name_str, val, r);
+	intret = client_->call(RPC_REGISTRY_ADD, principal_id_, name_str, val, r);
 	if (intret) {
 		return -intret;
 	}
@@ -67,7 +68,7 @@ Registry::Remove(const char *name)
 
 	name_str = std::string(name);
 
-	intret = client_->call(27, principal_id_, name_str, r);
+	intret = client_->call(RPC_REGISTRY_REMOVE, principal_id_, name_str, r);
 	if (intret) {
 		return -intret;
 	}

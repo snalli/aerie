@@ -1,33 +1,47 @@
 #ifndef _DIRECTORY_INODE_H_KAL178
 #define _DIRECTORY_INODE_H_KAL178
 
-#include "mfs/hashtable.h"
-#include "mfs/inode.h"
-#include "mfs/snode.h"
 #include <stdint.h>
+#include "client/sb.h"
+#include "client/inode.h"
+#include "mfs/hashtable.h"
+#include "mfs/pstruct.h"
 
-class DirInodeImmutable: public InodeImmutable {
+namespace mfs {
+
+class DirInodeImmutable: public client::Inode {
 public:
 
-	DirInodeImmutable(Snode* snode)
-		: snode_(static_cast<DirSnode*>(snode))
+	DirInodeImmutable(Pnode* pnode)
+		: pnode_(static_cast<DirPnode*>(pnode))
 	{ }
 
 	int Init(uint64_t ino) {
-		snode_ = DirSnode::Load(ino);
+		pnode_ = DirPnode::Load(ino);
 		return 0;
 	}
 	
 	//static DirInodeImmutable* Load(uint64_t ino);
 	//static DirInodeImmutable* Load(InodeImmutable* inode);
 
-	int Lookup(char* name);
-	int Link(); // do nothing or don't expose this call
+	int Open(char* path, int flags) { };
+	int Lookup(char* name, client::Inode** inode);
+	int LookupFast(char* name, client::Inode* inode);
+	int Insert(char* name, client::Inode* inode) { };
+	int Link(char* name, client::Inode* ip, bool overwrite) { return 0; }
 	int Unlink(); // do nothing or don't expose this call
 	int Read(); 
+
+	client::SuperBlock* GetSuperBlock() { return sb_;}
+	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
+
+	uint64_t get_ino() {
+		return (uint64_t) pnode_;
+	}
 	
 private:
-	DirSnode* snode_;
+	DirPnode*           pnode_;
+	client::SuperBlock* sb_;            // file system superblock
 
 };
 
@@ -87,23 +101,47 @@ DirInodeImmutable::Load(InodeImmutable* inode)
 //    query the persistent inode directly 
 
 
-class DirInodeMutable: public InodeMutable {
+//class DirInodeMutable: public InodeMutable {
+class DirInodeMutable: public client::Inode {
 public:
-	DirInodeMutable(Snode* snode)
-		: snode_(static_cast<DirSnode*>(snode))
-	{ }
+	DirInodeMutable(client::SuperBlock* sb, Pnode* pnode)
+		: pnode_(static_cast<DirPnode*>(pnode)),
+		  sb_(sb)
+	{ printf("DirInodeMutable: pnode=%p\n", pnode);
+		ino_ = (uint64_t) pnode;
+		printf("DirInodeMutable: ino=%p\n", ino_);
+	}
+
+	DirInodeMutable(Pnode* pnode)
+		: pnode_(static_cast<DirPnode*>(pnode))
+	{ assert(0); }
 
 
 	int Init(uint64_t ino) {
-		snode_ = DirSnode::Load(ino);
+		ino_ = ino;
+		pnode_ = DirPnode::Load(ino);
+		printf("DirInodeMutable: ino=%p\n", ino);
+		printf("DirInodeMutable: pnode_=%p\n", pnode_);
 		return 0;
 	}
-	
-private:
-	DirSnode* snode_;
-	//FIXME: pointer to new directory entries
+	int Open(char* path, int flags) { };
+	int Insert(char* name, client::Inode* inode) { };
 
+	client::SuperBlock* GetSuperBlock() { return sb_;}
+	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
+	
+	int Lookup(char* name, client::Inode** inode);
+	int LookupFast(char* name, client::Inode* inode) { };
+
+	int Link(char* name, client::Inode* ip, bool overwrite);
+private:
+	DirPnode*           pnode_;
+	client::SuperBlock* sb_;            // file system superblock
+	//FIXME: pointer to new directory entries
 };
 
+
+
+} // namespace mfs
 
 #endif /* _DIRECTORY_INODE_H_KAL178 */

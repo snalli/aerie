@@ -34,12 +34,9 @@ v6fsLibrary = SConscript('v6fs/SConscript', variant_dir = os.path.join('build', 
 Export('v6fsLibrary')
 mfsLibrary = SConscript('mfs/SConscript', variant_dir = os.path.join('build', 'mfs'))
 Export('mfsLibrary')
-
-
-
-
-SConscript('client/SConscript')
-SConscript('server/SConscript')
+fscLibrary = SConscript('client/SConscript', variant_dir = os.path.join('build', 'client'))
+Export('fscLibrary')
+SConscript('server/SConscript', variant_dir = os.path.join('build', 'server'))
 
 
 

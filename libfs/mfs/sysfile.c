@@ -39,17 +39,6 @@ fdalloc(struct file *f)
 }
 
 int
-libfs_init()
-{
-	binit();
-	iinit();
-	fileinit();
-	scminit();
-  	proc->cwd = namei("/");
-	return 0;
-}
-
-int
 libfs_dup(int fd)
 {
   struct file *f;

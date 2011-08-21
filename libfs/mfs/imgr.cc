@@ -1,12 +1,43 @@
 #include "mfs/imgr.h"
-#include "mfs/inode.h"
+#include "client/backend.h"
 #include "mfs/dinode.h"
-#include "mfs/snode.h"
+#include "mfs/pstruct.h"
 
-InodeManager::InodeManager()
-	: timestamp_(0)
+//TODO: Lock Inodes: short term latch (intra-process synchronization) 
+//and lease lock (inter-process synchronization)
+
+namespace mfs {
+
+InodeManager::InodeManager(client::SuperBlock* sb, client::StorageManager* smgr)
+	: timestamp_(0),
+	  sb_(sb),
+	  smgr_(smgr)
 {
+	icache_ = new InodeCache();
+}
 
+
+int
+InodeManager::AllocInode(int type, client::Inode** ipp)
+{
+	client::Inode* ip;
+	DirPnode*      dpnode;
+
+	printf("mfs::InodeManager::AllocInode\n");
+	
+	switch (type) {
+		case client::type::kFileInode:
+			//ip = new 	
+			break;
+		case client::type::kDirInode:
+			dpnode = new(smgr_) DirPnode;
+			ip = new DirInodeMutable(sb_, dpnode);
+			break;
+	}
+
+	*ipp = ip;
+
+	return 0;
 }
 
 
@@ -15,7 +46,7 @@ InodeManager::InodeManager()
 // If you ask for mutable inode then I will provide you with an Inode, which I will
 // also be responsible for deallocating when its refcount drops to 0
 int
-InodeManager::GetInode(uint64_t ino, bool is_mutable, Inode** inodep)
+InodeManager::GetInode(uint64_t ino, bool is_mutable, client::Inode** inodep)
 {
 	// check ino if in cache otherwise return immutable
 	// if ino in cache then return mutable
@@ -26,10 +57,10 @@ InodeManager::GetInode(uint64_t ino, bool is_mutable, Inode** inodep)
 	// absence of contention (design point case):
 
 	int                ret;
-	Inode*             inode;
-	Snode*             snode;
-	InodeImmutable*    iminode;
-	InodeMutable*      minode;
+	client::Inode*     inode;
+	mfs::Pnode*        pnode;
+	client::Inode*     iminode;
+	client::Inode*     minode;
 
 	if (!is_mutable) {
 		if ((ret = icache_->Lookup(ino, &inode))==0) {
@@ -55,28 +86,39 @@ InodeManager::GetInode(uint64_t ino, bool is_mutable, Inode** inodep)
 	// immutable inode they hold may be invalid (because someone
 	// else created a mutable one, which may match the one they hold)
 	
-	snode = Snode::Load(ino);
-	switch(snode->magic_) {
+	pnode = mfs::Pnode::Load(ino);
+	//FIXME: persistent inode should have magic number identifying its type
+	/*
+	switch(pnode->magic_) {
 		case 1: // directory
-			minode = new DirInodeMutable(snode);
+			minode = new mfs::DirInodeMutable(pnode);
 			break;
 
 		case 2: // file
-			//TODO: file inode mutable 
-			//minode = new FileInodeMutable(ino);
+			//FIXME
+			//minode = new mfs::FileInodeMutable(pnode);
 			break;
 	}
+	*/
+	minode = new mfs::DirInodeMutable(sb_, pnode);
+	printf("InodeManager::GetInode: sb_=%p\n", sb_);
+	printf("InodeManager::GetInode: minode=%p\n", minode);
+	printf("InodeManager::GetInode: minode->GetSuperBlock()=%p\n", minode->GetSuperBlock());
 
-	//FIXME: what should be the inode's ref count???
+	//FIXME: what should be the inode's ref count??? 1?
 	icache_->Insert(minode);
 	__sync_fetch_and_add(&timestamp_, 1);
+	*inodep = minode;
 
 	return 0;
 }
 
 int
-InodeManager::PutInode(Inode* inode)
+InodeManager::PutInode(client::Inode* inode)
 {
+
+	return 0;
+}
 
 
 }

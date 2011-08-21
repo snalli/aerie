@@ -10,16 +10,15 @@
 #include "rpc/rpc.h"
 #include "rpc/jsl_log.h"
 #include "chunkstore/chunkserver.h"
-#include "nameservice.h"
-#include "registry.h"
+#include "chunkstore/registryserver.h"
+#include "common/debug.h"
 #include "api.h"
 
-rpcs*          server;  // server rpc object
-int            port;
-pthread_attr_t attr;
-NameService*   name_service;
-ChunkServer*   chunk_server;
-Registry*      registry;
+rpcs*           server;  // server rpc object
+int             port;
+pthread_attr_t  attr;
+ChunkServer*    chunk_server;
+RegistryServer* registry;
 
 
 // server-side handlers. they must be methods of some class
@@ -37,6 +36,7 @@ class srv {
         int registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long &obj);
         int registry_add(const unsigned int principal_id, const std::string name, unsigned long long obj, int &r);
 		int registry_remove(const unsigned int principal_id, const std::string name, int &r);
+        int namespace_mount(const unsigned int principal_id, const std::string name, unsigned long long superblock, int &r);
 };
 
 int
@@ -101,6 +101,8 @@ srv::chunk_release(const unsigned int principal_id, std::vector<unsigned long lo
 int
 srv::name_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r)
 {
+	dbg_log (DBG_CRITICAL, "Deprecated functionality\n");
+/*
 	int      ret;
 	void*    obj;
 	ret = name_service->Lookup(name.c_str(), &obj);
@@ -109,12 +111,15 @@ srv::name_lookup(const unsigned int principal_id, const std::string name, unsign
 	}
 	r = (unsigned long long) obj;
 	return 0;
+*/
 }
 
 
 int
 srv::name_link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r)
 {
+	dbg_log (DBG_CRITICAL, "Deprecated functionality\n");
+/*
 	int ret;
 
 	ret = name_service->Link(name.c_str(), (void*) inode);
@@ -122,12 +127,15 @@ srv::name_link(const unsigned int principal_id, const std::string name, unsigned
 		return -ret;
 	}
 	return 0;
+*/
 }
 
 
 int
 srv::name_unlink(const unsigned int principal_id, const std::string name, int &r)
 {
+	dbg_log (DBG_CRITICAL, "Deprecated functionality\n");
+/*
 	int ret;
 
 	ret = name_service->Unlink(name.c_str());
@@ -135,14 +143,15 @@ srv::name_unlink(const unsigned int principal_id, const std::string name, int &r
 		return -ret;
 	}
 	return 0;
+*/
 }
 
 
 int
 srv::registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r)
 {
-	int    ret;
-	void*  obj;
+	int       ret;
+	uint64_t  obj;
 	ret = registry->Lookup(name.c_str(), &obj);
 	if (ret<0) {
 		return -ret;
@@ -157,7 +166,7 @@ srv::registry_add(const unsigned int principal_id, const std::string name, unsig
 {
 	int ret;
 
-	ret = registry->Add(name.c_str(), (void*) obj);
+	ret = registry->Add(name, obj);
 	if (ret<0) {
 		return -ret;
 	}
@@ -170,12 +179,30 @@ srv::registry_remove(const unsigned int principal_id, const std::string name, in
 {
 	int ret;
 
-	ret = registry->Remove(name.c_str());
+	ret = registry->Remove(name);
 	if (ret<0) {
 		return -ret;
 	}
 	return 0;
 }
+
+
+int
+srv::namespace_mount(const unsigned int principal_id, const std::string name, unsigned long long superblock, int &r)
+{
+	int ret;
+
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+
+	/*
+	ret = name_space->Mount(name.c_str(), (void*) superblock);
+	if (ret<0) {
+		return -ret;
+	}
+	return 0;
+	*/
+}
+
 
 
 
@@ -194,6 +221,7 @@ void startserver()
 	server->reg(RPC_REGISTRY_LOOKUP, &service, &srv::registry_lookup);
 	server->reg(RPC_REGISTRY_ADD, &service, &srv::registry_add);
 	server->reg(RPC_REGISTRY_REMOVE, &service, &srv::registry_remove);
+	server->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
 }
 
 int
@@ -231,12 +259,12 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 
-	printf("starting server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
+	printf("Starting file system server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
 
-	name_service = new NameService();
-	name_service->Init();
 	chunk_server = new ChunkServer();
 	chunk_server->Init();
+	registry = new RegistryServer();
+	registry->Init();
 
 	startserver();
 

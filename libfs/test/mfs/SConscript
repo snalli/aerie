@@ -8,12 +8,14 @@ Import('mainEnv', 'testEnv')
 configEnv = mainEnv.Clone()
 myTestEnv = testEnv.Clone()
 
+Import('fscLibrary')
 Import('mfsLibrary')
 Import('commonLibrary')
-depLibs = [mfsLibrary, commonLibrary]
+Import('chunkstoreLibrary')
+Import('rpcLibrary')
+depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 
-
-test = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), 'main.cxx'], LIBS=['UnitTest++']+depLibs)
+test = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), 'main.cxx'], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 runtests = myTestEnv.Command("test.passed", ['test', mfsLibrary], runUnitTests)
 
 myTestEnv.addUnitTestSuite(test[0].path, 'SuiteRadixTree')

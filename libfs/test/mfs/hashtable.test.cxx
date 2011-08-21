@@ -377,7 +377,7 @@ SUITE(SuiteHashTablePage)
 		CHECK(page2.Search(key5, strlen(key5)+1, &val) == 0);
 		CHECK(val == 0xBEEF);
 
-		CHECK(page1.Merge(&page2) == -ENOMEM);
+		CHECK(page1.Merge(&page2) == -E_NOMEM);
 
 		CHECK(page1.Search(key1, strlen(key1)+1, &val) == 0);
 		CHECK(val == 0xCAFE);

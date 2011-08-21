@@ -34,8 +34,8 @@ ChunkStore::Init()
 	_pheap = new PHeap();
 	_pagepheap = new PHeap();
 
-	while(_pagepheap->Map("chunkstore.page.pheap", kChunkStoreSize, 0) != 0);
-	_pheap->Map("chunkstore.pheap", 1024*1024, PROT_READ);
+	while(_pagepheap->Map("chunkstore.page.pheap", kChunkStoreSize, PROT_READ|PROT_WRITE) != 0);
+	_pheap->Map("chunkstore.pheap", 1024*1024, PROT_READ| PROT_WRITE);
 
 	_pheap_root = (ChunkStoreRoot*) _pheap->get_root();
 }

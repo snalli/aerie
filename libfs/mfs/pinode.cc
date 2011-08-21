@@ -8,6 +8,8 @@
 #define min(a,b) ((a) < (b)? (a) : (b))
 
 
+//FIXME: rename PInode to FilePnode
+
 inline uint64_t 
 block_valid_data(int bn, uint64_t file_size)
 {
@@ -263,7 +265,7 @@ PInode::LookupSlot(uint64_t bn, Slot* slot)
 	int            i;
 
 	if (!slot) {
-		return -EINVAL;
+		return -E_INVAL;
 	}
 	//printf("PInode::LookupSlot (bn=%llu)\n", bn);
 	return slot->Init(this, bn);
@@ -297,11 +299,11 @@ PInode::Region::WriteBlock(char* src, uint64_t bn, int off, int n)
 
 	// check if block number out of range
 	if (base_bn_ > bn) {
-		return -EINVAL;
+		return -E_INVAL;
 	} else if (base_bn_+maxbcount_ <= bn) {
 		if (Extend(bn) < 0) {
 			// block out of range and cannot extend the region
-			return -EINVAL;
+			return -E_INVAL;
 		}
 	}
 
@@ -365,7 +367,7 @@ PInode::Region::ReadBlock(char* dst, uint64_t bn, int off, int n)
 
 	if (base_bn_ > bn || base_bn_+maxbcount_ <= bn) {
 		// block number out of range
-		return -EINVAL;
+		return -E_INVAL;
 	}
 
 	printf("PInode::Region::ReadBlock maxbcount_=%d\n", maxbcount_);
