@@ -1,12 +1,77 @@
-#include "client/fdmgr.h"
+#include "client/file.h"
 #include <iostream>
+#include "client/client_i.h"
+
+// FIXME Data race: 
+//       Lookup may race with a concurrent ReleaseFile and return a 
+//       File object that is concurrently released and is no longer
+//       valid. 
+
 
 namespace client {
+
+// File implementation
+
+int 
+File::Write(const char* src, uint64_t n)
+{
+	int ret;
+
+	if (writable_ == false) {
+		return -1;
+	}
+
+	pthread_mutex_lock(&mutex_);
+
+	if ((ret=ip_->Write(const_cast<char*>(src), off_, n)>0)) {
+		off_+=ret;
+	}
+
+	pthread_mutex_unlock(&mutex_);
+
+	return ret;
+}
+
+
+int
+File::Read(char* dst, uint64_t n)
+{
+	int ret;
+
+	if (readable_ == false) {
+		return -1;
+	}
+
+	pthread_mutex_lock(&mutex_);
+
+	if ((ret=ip_->Read(dst, off_, n)>0)) {
+		off_+=ret;
+	}
+
+	pthread_mutex_unlock(&mutex_);
+
+	return ret;
+}
+
+
+// called when the File object is no longer referenced by any file descriptor
+int 
+File::Release() 
+{
+	printf("Release\n"); 
+	// TODO: release inode: iput
+	return 0;
+} 
+
+
+
+// FileManager implementation
 
 int 
 FileManager::Init()
 {
 	fdset_.resize(fdmax_ - fdmin_ + 1);
+	ftable_.resize(fdmax_ - fdmin_ + 1);
 	pthread_mutex_init(&mutex_, NULL);
 }
 
@@ -38,17 +103,16 @@ find_first_zero(boost::dynamic_bitset<>& fdset,
 	return first_bit_zero;
 }
 
+
 int
 FileManager::AllocFd(int start)
 {
 	int                                fd;
 	boost::dynamic_bitset<>::size_type first_bit_zero;
 
-	pthread_mutex_lock(&mutex_);
 	first_bit_zero = find_first_zero(fdset_, start);
 
 	if (first_bit_zero == boost::dynamic_bitset<>::npos) {
-		pthread_mutex_unlock(&mutex_);
 		return -1;
 	}
 	
@@ -56,102 +120,119 @@ FileManager::AllocFd(int start)
 	assert(fdset_[fd] == 0);
 	fdset_[fd] = 1;
 
-	pthread_mutex_unlock(&mutex_);
 	return fdmin_ + fd;
 }
 
-int 
-FileManager::Get()
+
+// Allocate a file descriptor and assign File fp to it.
+int
+FileManager::AllocFd(File* fp)
 {
-	return AllocFd(0);
+	int fd;
+
+	pthread_mutex_unlock(&mutex_);
+	if ((fd = AllocFd(0)) < 0) {
+		pthread_mutex_unlock(&mutex_);
+		return -1;
+	}
+	assert(ftable_[fd-fdmin_] ==0);
+	ftable_[fd-fdmin_] = fp;
+	pthread_mutex_unlock(&mutex_);
+	return fd;
 }
 
 
 int 
-FileManager::Put(int fd)
+FileManager::AllocFile(File** fpp)
 {
-	if (fd > fdmax_ || fd < fdmin_) {
-		return -1;
-	}
-	pthread_mutex_lock(&mutex_);
-	fdset_[fd-fdmin_] = 0;
-	pthread_mutex_unlock(&mutex_);
+	*fpp = new File();
+	(*fpp)->ref_ = 1;
 	return 0;
 }
 
 
-// returns a file descriptor
 int 
-FileManager::AllocFile(File** fpp)
+FileManager::ReleaseFile(File* fp)
 {
-	
-
+	fp->Release();
+	delete fp;
+	return 0;
 }
 
 
-// returns a file descriptor
 int
-FileManager::Duplicate(int fd)
+FileManager::Lookup(int fd, File** fpp)
 {
+	File* fp;
+
+	if (fd > fdmax_ || fd < fdmin_) {
+		return -E_KVFS;
+	}
+
+	pthread_mutex_unlock(&mutex_);
+	fp = ftable_[fd-fdmin_];
+	pthread_mutex_unlock(&mutex_);
+
+	*fpp = fp;
+	return fd;
+}
 
 
+// Returns a new file descriptor referencing the File reference by fd.
+// Bumps up the reference count.
+int
+FileManager::Get(int fd, File** fpp)
+{
+	File* fp;
+	int   newfd;
+
+	if (fd > fdmax_ || fd < fdmin_) {
+		return -E_KVFS;
+	}
+
+	pthread_mutex_unlock(&mutex_);
+	fp = ftable_[fd-fdmin_];
+	if ((newfd = AllocFd(0)) < 0) {
+		pthread_mutex_unlock(&mutex_);
+		return -1;
+	}
+	assert(ftable_[newfd-fdmin_] == 0);
+	ftable_[newfd-fdmin_] = fp;
+	fp->ref_++;
+	pthread_mutex_unlock(&mutex_);
+
+	*fpp = fp;
+	return newfd;
+}
+
+
+int
+FileManager::Put(int fd)
+{
+	File* fp;
+
+	if (fd > fdmax_ || fd < fdmin_) {
+		return -E_KVFS;
+	}
+
+	pthread_mutex_lock(&mutex_);
+
+	fp = ftable_[fd-fdmin_];
+	if (fp==0) {
+		pthread_mutex_unlock(&mutex_);
+		return -1;
+	}
+	fdset_[fd-fdmin_] = 0;
+	ftable_[fd-fdmin_] = 0;
+	if (--fp->ref_ > 0) {
+		pthread_mutex_unlock(&mutex_);
+		return 0;
+	}
+	pthread_mutex_unlock(&mutex_);
+
+	// ref is 0, release the File object
+	return ReleaseFile(fp);
 }
 
 
 } // namespace client
-
-#if 0
-
-static int
-fd2file(int fd, struct file **pf)
-{
-  struct file *f;
-
-  if(fd < 0 || fd >= NOFILE || (f=proc->ofile[fd]) == 0)
-    return -1;
-  if(pf)
-    *pf = f;
-  return 0;
-}
-
-
-// Allocate a file descriptor for the given file.
-// Takes over file reference from caller on success.
-fdalloc(struct file *f)
-{
-  int fd;
-
-  for(fd = 0; fd < NOFILE; fd++){
-    if(proc->ofile[fd] == 0){
-      proc->ofile[fd] = f;
-      return fd;
-    }
-  }
-  return -1;
-}
-
-int
-libfs_init()
-{
-	binit();
-	iinit();
-	fileinit();
-	scminit();
-  	proc->cwd = namei("/");
-	return 0;
-}
-
-int
-libfs_dup(int fd)
-{
-  struct file *f;
-  
-  if (fd2file(fd, &f) < 0)
-    return -1;
-  if((fd=fdalloc(f)) < 0)
-    return -1;
-  filedup(f);
-  return fd;
-}
-
-#endif

@@ -22,7 +22,7 @@ FRONTAPI(open) (const char* pathname, int flags)
 {
 	int ret;
 
-	if ((ret = Client::Open(pathname, flags, 0)) == KERNEL_VFS) {
+	if ((ret = Client::Open(pathname, flags, 0)) == -E_KVFS) {
 		return open(pathname, flags);
 	}
 	return ret;
@@ -33,7 +33,7 @@ int FRONTAPI(close) (int fd)
 {
 	int ret;
 
-	if ((ret = Client::Close(fd)) == KERNEL_VFS) {
+	if ((ret = Client::Close(fd)) == -E_KVFS) {
 		return close(fd);
 	}
 	return ret;
@@ -44,7 +44,7 @@ int FRONTAPI(dup) (int oldfd)
 {
 	int ret;
 
-	if ((ret = Client::Duplicate(oldfd)) == KERNEL_VFS) {
+	if ((ret = Client::Duplicate(oldfd)) == -E_KVFS) {
 		return dup(oldfd);
 	}
 	return ret;
@@ -55,7 +55,7 @@ int FRONTAPI(dup2) (int oldfd, int newfd)
 {
 	int ret;
 
-	if ((ret = Client::Duplicate(oldfd, newfd)) == KERNEL_VFS) {
+	if ((ret = Client::Duplicate(oldfd, newfd)) == -E_KVFS) {
 		return dup2(oldfd, newfd);
 	}
 	return ret;
@@ -88,23 +88,51 @@ FRONTAPI(mkfs) (const char* target,
 }
 
 
-int FRONTAPI(mkdir) (const char* path, int mode)
+int 
+FRONTAPI(mkdir) (const char* path, int mode)
 {
 	int ret;
 
-	if ((ret = Client::Mkdir(path, mode)) == KERNEL_VFS) {
+	if ((ret = Client::Mkdir(path, mode)) == -E_KVFS) {
 		return mkdir(path, mode);
 	}
 	return ret;
 }
 
 
-int FRONTAPI(rmdir) (const char* path)
+int 
+FRONTAPI(rmdir) (const char* path)
 {
 	int ret;
 
-	if ((ret = Client::Rmdir(path)) == KERNEL_VFS) {
+	if ((ret = Client::Rmdir(path)) == -E_KVFS) {
 		return rmdir(path);
+	}
+	return ret;
+}
+
+
+ssize_t 
+FRONTAPI(write) (int fd, const void *buf, size_t count)
+{
+	int   ret;
+	const char* src = reinterpret_cast<const char*>(buf);
+
+	if ((ret = Client::Write(fd, src, count)) == -E_KVFS) {
+		return write(fd, buf, count);
+	}
+	return ret;
+}
+
+
+ssize_t 
+FRONTAPI(read) (int fd, void *buf, size_t count)
+{
+	int   ret;
+	char* dst = reinterpret_cast<char*>(buf);
+
+	if ((ret = Client::Read(fd, dst, count)) == -E_KVFS) {
+		return read(fd, buf, count);
 	}
 	return ret;
 }

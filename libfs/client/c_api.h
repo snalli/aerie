@@ -6,6 +6,7 @@
 #ifndef _LIBFS_C_FRONT_API_H_AGH167
 #define _LIBFS_C_FRONT_API_H_AGH167
 
+#include <sys/types.h>
 #include <stdint.h>
 #include "rpc/rpc.h"
 #include "rpc/jsl_log.h"
@@ -25,5 +26,8 @@ int FRONTAPI(mkfs) (const char* target, const char* fstype, uint32_t flags);
 
 int FRONTAPI(mkdir) (const char* path, int mode);
 int FRONTAPI(rmdir) (const char* path);
+
+ssize_t FRONTAPI(write) (int fd, const void *buf, size_t count);
+ssize_t FRONTAPI(read) (int fd, const void *buf, size_t count);
 
 #endif /* _LIBFS_C_FRONT_API_H_AGH167 */

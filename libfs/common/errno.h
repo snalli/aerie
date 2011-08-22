@@ -6,6 +6,7 @@ enum {
 	E_NOMEM = 1,
 	E_EXIST,
 	E_INVAL,
+	E_KVFS,
 };
 
 #endif /* __ERRNO_H_JKA671 */

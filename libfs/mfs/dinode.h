@@ -25,6 +25,8 @@ public:
 	//static DirInodeImmutable* Load(InodeImmutable* inode);
 
 	int Open(char* path, int flags) { };
+	int Write(char* src, uint64_t off, uint64_t n) { return 0; }
+	int Read(char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Lookup(char* name, client::Inode** inode);
 	int LookupFast(char* name, client::Inode* inode);
 	int Insert(char* name, client::Inode* inode) { };
@@ -125,6 +127,8 @@ public:
 		return 0;
 	}
 	int Open(char* path, int flags) { };
+	int Write(char* src, uint64_t off, uint64_t n) { return 0; }
+	int Read(char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Insert(char* name, client::Inode* inode) { };
 
 	client::SuperBlock* GetSuperBlock() { return sb_;}

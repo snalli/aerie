@@ -7,14 +7,14 @@
 #include "client/namespace.h"
 #include "client/smgr.h"
 #include "client/imgr.h"
-#include "client/fdmgr.h"
+#include "client/file.h"
 
 
 namespace client {
 
-extern NameSpace*             global_namespace;
-extern StorageManager*        global_smgr;
-extern FileDescriptorManager* fdmgr;
+extern NameSpace*          global_namespace;
+extern StorageManager*     global_smgr;
+extern FileManager*        fmgr;
 
 class Client {
 public:
@@ -25,6 +25,8 @@ public:
 	static int Close(int fd);
 	static int Duplicate(int oldfd);
 	static int Duplicate(int oldfd, int newfd);
+	static int Write(int fd, const char* src, uint64_t n);
+	static int Read(int fd, char* dst, uint64_t n);
 	static int Mkdir(const char* path, int mode);
 	static int Rmdir(const char* path);
 };

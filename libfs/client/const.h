@@ -1,13 +1,13 @@
 #ifndef _CONST_H_DGS189
 #define _CONST_H_DGS189
 
+#include "common/errno.h"
+
 // global constants
 const int O_CREATE = 1;
-const int O_WRONLY = 1;
-const int O_RDONLY = 1;
-const int O_RDWR = 1;
-
-const int KERNEL_VFS = 2;
+//const int O_WRONLY = 1;
+//const int O_RDONLY = 1;
+//const int O_RDWR = 1;
 
 
 // namespace scoped constants 

@@ -19,6 +19,8 @@ public:
 
 	int Init(uint64_t ino) { return 0; }
 	int Open(char* path, int flags) { return 0; }
+	int Write(char* src, uint64_t off, uint64_t n) { return 0; }
+	int Read(char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Lookup(char* name, Inode** inode);
 	int LookupFast(char* name, Inode* inode) { return 0; }
 	int Link(char* name, Inode* inode, bool overwrite) { return 0; }

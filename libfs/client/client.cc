@@ -1,6 +1,7 @@
 #include "client/client_i.h"
 #include <sys/resource.h>
 #include "rpc/rpc.h"
+#include "client/file.h"
 #include "common/debug.h"
 
 #include "chunkstore/registry.h"
@@ -9,9 +10,9 @@
 
 namespace client {
 
-FileDescriptorManager* fdmgr;
-NameSpace*             global_namespace;
-StorageManager*        global_smgr;
+FileManager*        fmgr;
+NameSpace*          global_namespace;
+StorageManager*     global_smgr;
 
 Registry*       registry;
 
@@ -35,8 +36,8 @@ Client::Init(rpcc* rpc_client, int principal_id)
 	global_smgr = new StorageManager(rpc_client, principal_id);
 
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
-	fdmgr = new FileDescriptorManager(rlim_nofile.rlim_max, 
-	                                  rlim_nofile.rlim_max+client::limits::kFileN);
+	fmgr = new FileManager(rlim_nofile.rlim_max, 
+	                       rlim_nofile.rlim_max+client::limits::kFileN);
 	registry = new Registry(rpc_client, principal_id);
 	return global_namespace->Init();
 }
@@ -155,9 +156,18 @@ Client::Open(const char* path, int flags, int mode)
 	Inode* ip;
 	int    ret;
 	int    fd;
+	File*  fp;
 
-	//struct file *f;
-	printf("do_open: path=%s\n", path);
+	if ((ret=fmgr->AllocFile(&fp)) < 0) {
+		return ret;
+	}
+	if ((fd = fmgr->AllocFd(fp)) < 0) {
+		fmgr->ReleaseFile(fp);
+		return fd;
+	}
+	
+	// TODO: Initialize file object 
+	return fd;
 
 	if (flags & O_CREATE) {
 		if((ret = create(path, &ip, mode, client::type::kFileInode)) < 0) {
@@ -204,23 +214,48 @@ Client::Open(const char* path, int flags, int mode)
 int
 Client::Close(int fd)
 {
-
-
+	return fmgr->Put(fd);
 }
+
 
 int
 Client::Duplicate(int oldfd)
 {
-
-
+	File* fp;
+	return fmgr->Get(oldfd, &fp);
 }
 
 
 int
 Client::Duplicate(int oldfd, int newfd)
 {
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+}
 
 
+int 
+Client::Write(int fd, const char* src, uint64_t n)
+{
+	File* fp;
+	int   ret;
+
+	if ((ret=fmgr->Lookup(fd, &fp)) < 0) {
+		return ret;
+	}
+	return fp->Write(src, n);
+}
+
+
+int 
+Client::Read(int fd, char* dst, uint64_t n)
+{
+	int   ret;
+	File* fp;
+
+	if ((ret=fmgr->Lookup(fd, &fp)) < 0) {
+		return ret;
+	}
+	return fp->Read(dst, n);
 }
 
 

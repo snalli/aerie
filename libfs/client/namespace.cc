@@ -204,7 +204,7 @@ retry:
 				sb = mpnode->GetSuperBlock();
 				if ((uint64_t) sb == KERNEL_SUPERBLOCK) {
 					//printf("NameSpace::Namei(%s): DONE KERNEL_SUPERBLOCK\n", cpath);
-					return KERNEL_VFS;
+					return -E_KVFS;
 				} else {
 					// follow superblock's root inode and lookup 'name' in the root inode
 					printf("NameSpace::Namex(%s): follow superblock root \n", cpath);

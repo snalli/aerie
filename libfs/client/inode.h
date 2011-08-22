@@ -13,6 +13,8 @@ class Inode {
 public:
 	virtual int Init(uint64_t ino) = 0;
 	virtual int Open(char* path, int flags) = 0;
+	virtual int Write(char* src, uint64_t off, uint64_t n) = 0;
+	virtual int Read(char* dst, uint64_t off, uint64_t n) = 0;
 	virtual int Lookup(char* name, Inode** inode) = 0;
 	virtual int LookupFast(char* name, Inode* inode) = 0;
 	virtual int Insert(char* name, Inode* inode) = 0;
