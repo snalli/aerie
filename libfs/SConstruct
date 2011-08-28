@@ -1,5 +1,8 @@
+from configure import configure
 import os
 mainEnv = Environment()
+
+configure(mainEnv)
 
 
 AddOption("--test",
@@ -20,6 +23,11 @@ mainEnv['TEST_FILTER'] = GetOption('test_filter')
 #mainEnv.Append(CCFLAGS=' -g -O2 -Wall')
 mainEnv.Append(CCFLAGS=' -g -O2')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
+
+
+if mainEnv['GOOGLE_SPARSEHASH']:
+	mainEnv.Append(CPPPATH = [mainEnv['GOOGLE_SPARSEHASH']])
+
 
 Export('mainEnv')
 rpcLibrary = SConscript('rpc/SConscript', variant_dir = os.path.join('build', 'rpc'))

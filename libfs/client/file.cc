@@ -2,7 +2,7 @@
 #include <iostream>
 #include "client/client_i.h"
 
-// FIXME Data race: 
+// FIXME BUG Data race: 
 //       Lookup may race with a concurrent ReleaseFile and return a 
 //       File object that is concurrently released and is no longer
 //       valid. 

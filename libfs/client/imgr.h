@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "client/inode.h"
-#include "client/icache.h"
+#include "client/imap.h"
 
 namespace client {
 

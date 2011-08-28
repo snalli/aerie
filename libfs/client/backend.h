@@ -9,7 +9,7 @@
 #include "client/imgr.h"
 #include "client/smgr.h"
 #include "client/inode.h"
-#include "client/icache.h"
+#include "client/imap.h"
 
 
 #endif  /* _CLIENT_BACKEND_H_EAF891 */

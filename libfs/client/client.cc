@@ -258,6 +258,12 @@ Client::Read(int fd, char* dst, uint64_t n)
 	return fp->Read(dst, n);
 }
 
+uint64_t 
+Client::Seek(int fd, uint64_t offset, int whence)
+{
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
+}
+
 
 int
 Client::Mkdir(const char* path, int mode)

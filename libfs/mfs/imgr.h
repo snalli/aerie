@@ -19,7 +19,7 @@ public:
 
 private:
 	uint64_t                timestamp_;
-	InodeCache*             icache_;
+	client::InodeMap*       imap_;
 	client::SuperBlock*     sb_;
 	client::StorageManager* smgr_;
 };

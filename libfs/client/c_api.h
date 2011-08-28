@@ -29,5 +29,6 @@ int FRONTAPI(rmdir) (const char* path);
 
 ssize_t FRONTAPI(write) (int fd, const void *buf, size_t count);
 ssize_t FRONTAPI(read) (int fd, const void *buf, size_t count);
+off_t FRONTAPI(lseek) (int fd, off_t offset, int whence);
 
 #endif /* _LIBFS_C_FRONT_API_H_AGH167 */

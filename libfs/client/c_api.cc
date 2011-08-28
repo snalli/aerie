@@ -136,3 +136,15 @@ FRONTAPI(read) (int fd, void *buf, size_t count)
 	}
 	return ret;
 }
+
+
+off_t 
+FRONTAPI(lseek) (int fd, off_t offset, int whence)
+{
+	int   ret;
+
+	if ((ret = Client::Seek(fd, offset, whence)) == -E_KVFS) {
+		return lseek(fd, offset, whence);
+	}
+	return ret;
+}
