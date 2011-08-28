@@ -12,9 +12,12 @@
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
+#include "server/lckmgr.h"
 #include "api.h"
 
-rpcs*           server;  // server rpc object
+using namespace server;
+
+rpcs*           serverp;  // server rpc object
 int             port;
 pthread_attr_t  attr;
 ChunkServer*    chunk_server;
@@ -210,18 +213,24 @@ srv service;
 
 void startserver()
 {
-	server = new rpcs(port);
-	server->reg(RPC_CHUNK_CREATE, &service, &srv::chunk_create);
-	server->reg(RPC_CHUNK_DELETE, &service, &srv::chunk_delete);
-	server->reg(RPC_CHUNK_ACCESS, &service, &srv::chunk_access);
-	server->reg(RPC_CHUNK_RELEASE, &service, &srv::chunk_release);
-	server->reg(RPC_NAME_LOOKUP, &service, &srv::name_lookup);
-	server->reg(RPC_NAME_LINK, &service, &srv::name_link);
-	server->reg(RPC_NAME_UNLINK, &service, &srv::name_unlink);
-	server->reg(RPC_REGISTRY_LOOKUP, &service, &srv::registry_lookup);
-	server->reg(RPC_REGISTRY_ADD, &service, &srv::registry_add);
-	server->reg(RPC_REGISTRY_REMOVE, &service, &srv::registry_remove);
-	server->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
+	LockManager lm;
+	serverp = new rpcs(port);
+	serverp->reg(RPC_CHUNK_CREATE, &service, &srv::chunk_create);
+	serverp->reg(RPC_CHUNK_DELETE, &service, &srv::chunk_delete);
+	serverp->reg(RPC_CHUNK_ACCESS, &service, &srv::chunk_access);
+	serverp->reg(RPC_CHUNK_RELEASE, &service, &srv::chunk_release);
+	serverp->reg(RPC_NAME_LOOKUP, &service, &srv::name_lookup);
+	serverp->reg(RPC_NAME_LINK, &service, &srv::name_link);
+	serverp->reg(RPC_NAME_UNLINK, &service, &srv::name_unlink);
+	serverp->reg(RPC_REGISTRY_LOOKUP, &service, &srv::registry_lookup);
+	serverp->reg(RPC_REGISTRY_ADD, &service, &srv::registry_add);
+	serverp->reg(RPC_REGISTRY_REMOVE, &service, &srv::registry_remove);
+	serverp->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
+
+	serverp->reg(lock_protocol::stat, &lm, &LockManager::stat);
+	serverp->reg(lock_protocol::acquire, &lm, &LockManager::acquire);
+	serverp->reg(lock_protocol::release, &lm, &LockManager::release);
+	serverp->reg(lock_protocol::subscribe, &lm, &LockManager::subscribe);
 }
 
 int

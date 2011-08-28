@@ -7,16 +7,15 @@ Import('commonLibrary')
 buildEnv = mainEnv.Clone()
 
 
-lib_target = 'fss'
-lib_sources = ['namespace.cc']
-
-fssLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+sources = [
+           'lckmgr.cc',
+           'main.cc',
+           'namespace.cc'
+          ]
 
 buildEnv.Append(CPPPATH = ['#rpc', '#'])
-buildEnv.Append(LIBS = fssLibrary)
 buildEnv.Append(LIBS = rpcLibrary)
 buildEnv.Append(LIBS = chunkstoreLibrary)
-buildEnv.Append(LIBS = lockservLibrary)
 buildEnv.Append(LIBS = commonLibrary)
 buildEnv.Append(LIBS = ['pthread', 'rt'])
-buildEnv.Program('fsserver', ['main.cc']) 
+buildEnv.Program('fsserver', sources) 
