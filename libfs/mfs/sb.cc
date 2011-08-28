@@ -1,4 +1,7 @@
 #include "mfs/sb.h"
+#include "client/backend.h"
+#include "mfs/pstruct.h"
+#include "mfs/dinode.h"
 
 namespace mfs {
 
@@ -17,10 +20,64 @@ SuperBlock::CreateImmutableInode(int t)
 }
 
 
-client::Inode*
-SuperBlock::CreateInode(int t)
+int
+SuperBlock::AllocInode(int type, client::Inode** ipp)
 {
+	client::Inode* ip;
+	DirPnode*      dpnode;
 
+	printf("mfs::SuperBlock::AllocInode\n");
+	
+	switch (type) {
+		case client::type::kFileInode:
+			//ip = new 	
+			break;
+		case client::type::kDirInode:
+			dpnode = new(client::global_smgr) DirPnode;
+			ip = new DirInodeMutable(this, dpnode);
+			break;
+	}
+
+	*ipp = ip;
+	return 0;
+}
+
+
+int
+SuperBlock::GetInode(client::InodeNumber ino, client::Inode** ipp)
+{
+	client::Inode* ip;
+	Pnode*         pnode;
+	int            ret;
+
+	if ((ret = imap_->Lookup(ino, &ip))==0) {
+		//FIXME: bump the inode's ref count???
+		*ipp = ip;
+		return 0;
+	}
+	
+
+	pnode = Pnode::Load(ino);
+	//FIXME: persistent inode should have magic number identifying its type
+	/*
+	switch(pnode->magic_) {
+		case 1: // directory
+			minode = new mfs::DirInodeMutable(pnode);
+			break;
+
+		case 2: // file
+			//FIXME
+			//minode = new mfs::FileInodeMutable(pnode);
+			break;
+	}
+	*/
+	ip = new DirInodeMutable(this, pnode);
+
+	//FIXME: what should be the inode's ref count??? 1?
+	imap_->Insert(ip);
+	*ipp = ip;
+
+	return 0;
 }
 
 

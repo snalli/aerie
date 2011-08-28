@@ -4,7 +4,6 @@
 #include "client/backend.h"
 #include "mfs/dinode.h"
 #include "mfs/pstruct.h"
-#include "mfs/imgr.h"
 
 namespace mfs {
 
@@ -15,7 +14,6 @@ public:
 		: psb_(psb),
 		  root_(this, NULL)
 	{ 
-		imgr_ = new InodeManager(this, client::global_smgr);
 		root_.Init(psb->root_);
 		root_.SetSuperBlock(this);
 		printf("Superblock: this=%p\n", this);
@@ -26,17 +24,17 @@ public:
 		return &root_;
 	}
 
-	client::InodeManager* get_imgr() { return imgr_; }
-
 	client::Inode* CreateImmutableInode(int t);
-	client::Inode* CreateInode(int t);
 	client::Inode* WrapInode();
+	int AllocInode(int type, client::Inode** ipp);
+	int GetInode(client::InodeNumber ino, client::Inode** ipp);
 
 	void* GetPSuperBlock() { return (void*) psb_; }
 
 private:
-	DirInodeMutable root_;
-	PSuperBlock*    psb_;
+	DirInodeMutable    root_;
+	PSuperBlock*       psb_;
+	client::InodeMap*  imap_;
 };
 
 

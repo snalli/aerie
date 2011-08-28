@@ -11,6 +11,11 @@
 #include <google/dense_hash_map>
 #include "common/debug.h"
 
+
+//TODO: USe a timestamp counter to signal to clients that an
+// immutable inode mapping they hold may be invalid (because someone
+// inserted a mutable one)
+	
 namespace client {
 
 class InodeMap {
@@ -53,6 +58,7 @@ InodeMap::Insert(Inode* inode)
 	pairret = ino2inode_map_.insert(std::pair<InodeNumber, Inode*>(ino, inode));
 	assert(pairret.second == true);
 
+	//__sync_fetch_and_add(&timestamp_, 1);
 	return 0;
 }
 

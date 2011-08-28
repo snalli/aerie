@@ -11,14 +11,12 @@ class SuperBlock {
 public:
 	virtual Inode* GetRootInode() = 0;
 	//virtual void SetRootInode(Inode* inode) = 0;
-	virtual Inode* CreateImmutableInode(int t) = 0;
-	virtual Inode* CreateInode(int t) = 0;
+	virtual Inode* CreateImmutableInode(int type) = 0;
+	virtual int AllocInode(int type, Inode** ipp) = 0;
+	virtual int GetInode(InodeNumber ino, Inode** ipp) = 0;
 	virtual Inode* WrapInode() = 0;
 
 	virtual void* GetPSuperBlock() = 0;
-	virtual InodeManager* get_imgr() = 0;
-protected:
-	InodeManager* imgr_;
 };
 
 

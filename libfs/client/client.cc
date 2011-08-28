@@ -10,9 +10,10 @@
 
 namespace client {
 
-FileManager*        fmgr;
+FileManager*        global_fmgr;
 NameSpace*          global_namespace;
 StorageManager*     global_smgr;
+InodeManager*       global_imgr;
 
 Registry*       registry;
 
@@ -36,8 +37,8 @@ Client::Init(rpcc* rpc_client, int principal_id)
 	global_smgr = new StorageManager(rpc_client, principal_id);
 
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
-	fmgr = new FileManager(rlim_nofile.rlim_max, 
-	                       rlim_nofile.rlim_max+client::limits::kFileN);
+	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
+	                              rlim_nofile.rlim_max+client::limits::kFileN);
 	registry = new Registry(rpc_client, principal_id);
 	return global_namespace->Init();
 }
@@ -115,7 +116,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 	char          name[128];
 	Inode*        dp;
 	Inode*        ip;
-	client::InodeManager* imgr;
+	SuperBlock*   sb;
 	int           ret;
 
 	if ((ret = global_namespace->Nameiparent(path, name, &dp))<0) {
@@ -131,10 +132,10 @@ create(const char* path, Inode** ipp, int mode, int type)
 
 	printf("dp=%p\n", dp);
 	printf("dp->GetSuperBlock()=%p\n", dp->GetSuperBlock());
-	imgr = dp->GetSuperBlock()->get_imgr();
+	sb = dp->GetSuperBlock();
 
 	//FIXME: do it by type
-	if ((ret = imgr->AllocInode(client::type::kDirInode, &ip)) < 0) {
+	if ((ret = global_imgr->AllocInode(sb, client::type::kDirInode, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 	}
 	
@@ -158,11 +159,11 @@ Client::Open(const char* path, int flags, int mode)
 	int    fd;
 	File*  fp;
 
-	if ((ret=fmgr->AllocFile(&fp)) < 0) {
+	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
 	}
-	if ((fd = fmgr->AllocFd(fp)) < 0) {
-		fmgr->ReleaseFile(fp);
+	if ((fd = global_fmgr->AllocFd(fp)) < 0) {
+		global_fmgr->ReleaseFile(fp);
 		return fd;
 	}
 	
@@ -214,7 +215,7 @@ Client::Open(const char* path, int flags, int mode)
 int
 Client::Close(int fd)
 {
-	return fmgr->Put(fd);
+	return global_fmgr->Put(fd);
 }
 
 
@@ -222,7 +223,7 @@ int
 Client::Duplicate(int oldfd)
 {
 	File* fp;
-	return fmgr->Get(oldfd, &fp);
+	return global_fmgr->Get(oldfd, &fp);
 }
 
 
@@ -239,7 +240,7 @@ Client::Write(int fd, const char* src, uint64_t n)
 	File* fp;
 	int   ret;
 
-	if ((ret=fmgr->Lookup(fd, &fp)) < 0) {
+	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
 	return fp->Write(src, n);
@@ -252,7 +253,7 @@ Client::Read(int fd, char* dst, uint64_t n)
 	int   ret;
 	File* fp;
 
-	if ((ret=fmgr->Lookup(fd, &fp)) < 0) {
+	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
 	return fp->Read(dst, n);

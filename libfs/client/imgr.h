@@ -4,17 +4,17 @@
 #include <stdint.h>
 #include "client/inode.h"
 #include "client/imap.h"
+#include "client/sb.h"
 
 namespace client {
 
 class InodeManager {
 public:
 
-	virtual int	AllocInode(int type, Inode** inodep) = 0;
-	virtual int GetInode(uint64_t ino, bool, Inode** ) = 0;
-	virtual int PutInode(Inode* inode) = 0;
-	virtual void SetSuperBlock(SuperBlock* sb) = 0;
-protected:
+	InodeManager() { }
+	int	AllocInode(SuperBlock* sb, int type, Inode** ipp);
+	int GetInode(SuperBlock* sb, InodeNumber ino, Inode** ipp);
+	int PutInode(SuperBlock* sb, Inode* ip);
 	
 };
 

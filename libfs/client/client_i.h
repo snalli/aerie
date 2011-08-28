@@ -14,7 +14,8 @@ namespace client {
 
 extern NameSpace*          global_namespace;
 extern StorageManager*     global_smgr;
-extern FileManager*        fmgr;
+extern FileManager*        global_fmgr;
+extern InodeManager*       global_imgr;
 
 class Client {
 public:

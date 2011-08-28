@@ -1,7 +1,6 @@
 #include "mfs/dinode.h"
 #include <stdint.h>
 #include "client/inode.h"
-#include "client/imgr.h"
 
 using namespace mfs;
 
@@ -29,7 +28,6 @@ DirInodeMutable::Lookup(char* name, client::Inode** ipp)
 	int                   ret;
 	uint64_t              ino;
 	client::Inode*        ip;
-	client::InodeManager* imgr;
 
 
 	printf("DirInodeMutable::Lookup (%s) pnode_=%p\n", name, pnode_);
@@ -41,8 +39,7 @@ DirInodeMutable::Lookup(char* name, client::Inode** ipp)
 	
 	printf("DirInodeMutable::Lookup (%s): pnode_=%p, ino=%p\n", name, pnode_, ino);
 
-	imgr = GetSuperBlock()->get_imgr();
-	imgr->GetInode(ino, true, &ip);
+	sb_->GetInode(ino, &ip);
 	*ipp = ip;
 
 	return 0;

@@ -15,6 +15,7 @@ libBuildEnv.Append(CPPPATH = ['#rpc', '#'])
 lib_target = 'fsc'
 lib_sources = ['client.cc', 'c_api.cc', 'extent.cc', 'namespace.cc', 'mpinode.cc']
 lib_sources += ['smgr.cc']
+lib_sources += ['imgr.cc']
 lib_sources += ['file.cc']
 fscLibrary = libBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
