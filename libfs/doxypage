@@ -1,0 +1,58 @@
+/*****************************************************************************
+ *                            STAMNOS MAIN-PAGE                              *
+ *****************************************************************************/ 
+
+/**
+
+   @mainpage Stamnos: New Operating System Storage Architecture for storage class Memory
+
+   \section section-intro Introduction 
+
+   \subsection section-intro-name_origin Name Origin
+
+   Stamnos is a type of Greek pottery used to store liquids.
+
+   \subsection section-references References
+
+   \subsection section-external_references External References
+
+ 
+*/
+
+
+
+/*****************************************************************************
+ *                            BUILDING STAMNOS                               *
+ *****************************************************************************/ 
+
+
+/** 
+
+@page page-building_stamnos Building Stamnos
+
+@section section-building_stamnos Building User-mode Stamnos (usermode)
+
+Conventions used below:
+\li $STAMNOS refers to the root directory of the Mnemosyne source tree.
+
+
+@subsection section-building_mnemosyne-prerequisites Prerequisites
+\li GNU C/C++ Compiler v.4.4 (tested v.4.4.2) 
+\li SCons: A software construction tool (tested v.1.2.0)
+\li libconfig (tested v.1.3.2)
+\li UnitTest++ (unittest-cpp.sourceforge.net) (libunittest++-dev in most RPM systems)
+
+
+*/
+
+
+
+/*****************************************************************************
+ *                           SOURCE TREE OVERVIEW                            *
+ *****************************************************************************/ 
+
+/**
+
+@page page-source_tree_overview Source Tree Overview
+
+*/
