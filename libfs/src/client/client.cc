@@ -2,6 +2,7 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <iostream>
 #include "rpc/rpc.h"
 #include "client/file.h"
 #include "common/debug.h"
@@ -17,9 +18,11 @@ FileManager*        global_fmgr;
 NameSpace*          global_namespace;
 StorageManager*     global_smgr;
 InodeManager*       global_imgr;
+LockManager*        global_lckmgr;
 
 Registry*           registry;
 rpcc*               rpc_client;
+rpcs*               rpc_server;
 
 
 // Known backend file system implementations
@@ -33,24 +36,33 @@ struct {
 
 
 int 
-Client::Init(int principal_id, int dst_port) 
+Client::Init(int principal_id, char* xdst) 
 {
 	struct rlimit      rlim_nofile;
 	struct sockaddr_in dst; //server's ip address
+	int                rport;
+	std::ostringstream host;
+	const char*        hname;
+	std::string        id;
 
-	// server's address.
-	memset(&dst, 0, sizeof(dst));
-	dst.sin_family = AF_INET;
-	dst.sin_addr.s_addr = inet_addr("127.0.0.1");
-	dst.sin_port = htons(dst_port);
-
-	// start the client.  bind it to the server.
+	// setup RPC for making calls to the server
+	make_sockaddr(xdst, &dst);
 	rpc_client = new rpcc(dst);
 	assert (rpc_client->bind() == 0);
+
+	// setup RPC for receiving callbacks from the server
+	srandom(getpid());
+	rport = 20000 + (getpid() % 10000);
+	rpc_server = new rpcs(rport);
+	hname = "127.0.0.1";
+	host << hname << ":" << rport;
+	id = host.str();
+	std::cout << "Client: id="<<id<<std::endl;
 
 	// create necessary managers
 	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
 	global_smgr = new StorageManager(rpc_client, principal_id);
+	global_lckmgr = new LockManager(rpc_client, rpc_server, id);
 
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
@@ -62,6 +74,14 @@ Client::Init(int principal_id, int dst_port)
 	return global_namespace->Init();
 }
 
+
+int 
+Client::Shutdown() 
+{
+	// TODO: properly destroy any state created
+	delete global_lckmgr;
+	return 0;
+}
 
 int 
 Client::Mount(const char* source, 

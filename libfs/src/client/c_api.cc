@@ -11,9 +11,16 @@ using namespace client;
 
 
 int
-FRONTAPI(init) (int principal_id, int dst_port)
+FRONTAPI(init) (int principal_id, char* xdst)
 {
-	return Client::Init(principal_id, dst_port);
+	return Client::Init(principal_id, xdst);
+}
+
+
+int
+FRONTAPI(shutdown) ()
+{
+	return Client::Shutdown();
 }
 
 

@@ -72,18 +72,17 @@ releasethread(void *x)
 }
 
 
-int LockManager::last_port = 0;
-
-
-LockManager::LockManager(std::string xdst, 
+LockManager::LockManager(rpcc* rpc_client, 
+                         rpcs* rpc_server, 
+						 std::string id,
                          class lock_release_user* _lu)
 	: lu(_lu), 
-	  last_seq_(0)
+	  last_seq_(0),
+	  cl2srv_(rpc_client),
+	  srv2cl_(rpc_server),
+	  id_(id)
 {
 	pthread_t          th;
-	sockaddr_in        dstsock;
-	const char*        hname;
-	std::ostringstream host;
 
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_mutex_init(&revoke_mutex_, NULL);
@@ -91,24 +90,7 @@ LockManager::LockManager(std::string xdst,
 
 	Locks_.set_empty_key(-1);
 
-	// setup RPC for making calls to the server
-	make_sockaddr(xdst.c_str(), &dstsock);
-	cl2srv_ = new rpcc(dstsock);
-	if (cl2srv_->bind() < 0) {
-		printf("lock_client: call bind\n");
-	}
-
-	srand(time(NULL)^last_port);
-	rlock_port_ = ((rand()%32000) | (0x1 << 10));
-	// assert(gethostname(hname, 100) == 0);
-	hname = "127.0.0.1";
-	host << hname << ":" << rlock_port_;
-	id_ = host.str();
-	last_port = rlock_port_;
-
-	// setup RPC for receiving callbacks from the server
-	srv2cl_ = new rpcs(rlock_port_);
-	/* register RPC handlers with srv2cl_ */
+	/* register client's lock manager RPC handlers with srv2cl_ */
 	srv2cl_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
 	srv2cl_->reg(rlock_protocol::retry, this, &LockManager::retry);
 	int r = pthread_create(&th, NULL, &releasethread, (void *) this);
@@ -134,8 +116,6 @@ LockManager::~LockManager()
 	pthread_mutex_unlock(&mutex_);
 	pthread_cond_destroy(&revoke_cv);
 	pthread_mutex_destroy(&mutex_);
-	delete srv2cl_;
-	delete cl2srv_;
 }
 
 // assumes caller has the mutex mutex_
@@ -147,6 +127,7 @@ LockManager::GetOrCreateLockInternal(lock_protocol::LockId lid)
 	lockp = Locks_[lid];
 	if (lockp == NULL) {
 		lockp = new Lock(lid);
+		Locks_[lid] = lockp;
 	}	
 	return lockp;
 }
@@ -483,6 +464,8 @@ LockManager::do_release(Lock* l)
 	int r;
 	int unused;
 
+	dbg_log(DBG_INFO, "[%d] calling release rpc for lck %llu id=%d seq=%d\n",
+	        cl2srv_->id(), l->lid_, cl2srv_->id(), l->seq_);
 	if (lu) {
 		lu->dorelease(l->lid_);
 	}

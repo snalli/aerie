@@ -75,7 +75,7 @@ LockManager::LockManager()
 LockManager::~LockManager()
 {
 	pthread_mutex_lock(&mutex_);
-	std::map<int, rpcc *>::iterator itr;
+	std::map<int, rpcc*>::iterator itr;
 	for (itr = clients_.begin(); itr != clients_.end(); ++itr) {
 		delete itr->second;
 	}

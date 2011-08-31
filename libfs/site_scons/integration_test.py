@@ -26,7 +26,11 @@ def runIntegrationTests(source, target, env):
         itest_has_failure = False
         for test_name, test in itest.tests_graph.iteritems():
             if test.p is not None:
-                lines = test.p.stderr.readlines()
+                # if stderr is set to interactive mode then we can't parse output
+                if env['TEST_STDERR'] == 'interactive':
+                    continue
+                test.stderr_file.seek(0)
+                lines = test.stderr_file.readlines()
                 if len(lines) > 0 and re.search("xml", lines[0]):
                     xmlout = string.join(lines)
                     tree = xml.etree.ElementTree.XML(xmlout)
@@ -44,7 +48,8 @@ def runIntegrationTests(source, target, env):
                     if test.status and test.status != 9:
                         print "FAILURE:"
                         failed_itests.append(itest)
-                        return 
+                        print test.p.stderr.readlines()
+                        return
         if itest_has_failure:
             failed_itests.append(itest)
 
@@ -73,21 +78,25 @@ def runIntegrationTests(source, target, env):
     if num_failed_tests > 0:
         print "FAILURE:", num_failed_tests, 'out of', num_tests, 'integration tests failed (', num_failures, 'failures, ', num_timeouts, 'timeouts).'
 
-        # print any buffered output (stdout, stderr)
-        if env['TEST_STDOUT'] == 'buffered' or env['TEST_STDERR'] == 'buffered':
-            print "\nBUFFERED STDOUT & STDERR OUTPUT:"
-            print "================================"
-            for failed_itest in failed_itests+timeout_itests:
-                for test_name, test in failed_itest.tests_graph.iteritems():
-                    if test.p:
-                        print test_name, test.cmd, string.join(test.args)
-                        if env['TEST_STDOUT'] == 'buffered':
-                            for line in test.p.stdout.readlines():
-                                print '\tSTDOUT >',line,
-                        if env['TEST_STDERR'] == 'buffered':
-                            for line in test.p.stderr.readlines():
-                                print '\tSTDERR >',line,
-
     else:
         print "Success:", num_tests, 'tests passed.'
         open(str(target[0]),'w').write("PASSED\n")
+
+    # print any buffered output (stdout, stderr)
+    if env['TEST_STDOUT'] == 'buffered' or env['TEST_STDERR'] == 'buffered':
+        print "\nBUFFERED STDOUT & STDERR OUTPUT:"
+        print "================================"
+        for itest in env['INTEGRATION_TESTS']:
+            for test_name, test in itest.tests_graph.iteritems():
+                if test.p:
+                    print test_name, test.cmd, string.join(test.args)
+                    if env['TEST_STDOUT'] == 'buffered':
+                        test.stdout_file.seek(0)
+                        for line in test.stdout_file.readlines():
+                            print '\tSTDOUT >',line,
+                    if env['TEST_STDERR'] == 'buffered':
+                        test.stderr_file.seek(0)
+                        for line in test.stderr_file.readlines():
+                            print '\tSTDERR >',line,
+
+

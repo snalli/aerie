@@ -41,7 +41,8 @@ main(int argc, char *argv[])
 	int   debug_level = 0;
 	uid_t principal_id;
 	char  operation[16];
-	char ch = 0;
+	char  ch = 0;
+	char* xdst;
 
 	principal_id = getuid();
 
@@ -50,8 +51,8 @@ main(int argc, char *argv[])
 			case 'd':
 				debug_level = atoi(optarg);
 				break;
-			case 'p':
-				port = atoi(optarg);
+			case 'h':
+				xdst = optarg;
 				break;
 			case 'l':
 				assert(setenv("RPC_LOSSY", "5", 1) == 0);
@@ -76,10 +77,9 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-
 	dbg_set_level(5);
 
-	libfs_init(principal_id, port);
+	libfs_init(principal_id, xdst);
 
 	if (strcmp(operation, "mkfs") == 0) {
 		libfs_mkfs("/superblock/A", "mfs", 0);
@@ -88,6 +88,8 @@ main(int argc, char *argv[])
 	} else {
 		// unknown
 	}
+
+	libfs_shutdown();
 
 	return 0;
 }

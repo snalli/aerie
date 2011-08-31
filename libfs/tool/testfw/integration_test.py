@@ -1,5 +1,17 @@
 import os, subprocess, string, re, sys, signal
+import tempfile
 import Queue
+
+
+class myoutput(object):
+    def __init__(self):
+        self.fd = 1
+        pass
+    def fileno(self):
+        return self.fd
+    def write(self,string):
+        print "TST", string
+
 
 class Test:
     def __init__(self, name, cmd, args, osenv, wait_for_me):
@@ -11,25 +23,23 @@ class Test:
         self.succ_list = []
         self.p = None
         self.status = 0
+        self.stdout_file = None
+        self.stderr_file = None
 
     def run(self, stdout_, stderr_):
         osenv = os.environ 
         osenv.update(self.osenv)
         if (self.cmd == ''):
             return None
-        #print self.cmd, self.args
-        stdout_type = subprocess.PIPE
-        stderr_type = subprocess.PIPE
-        if stdout_ == 'unbuffered':
-            stdout_type = None
-        if stderr_ == 'unbuffered':
-            stderr_type = None
+        if stdout_ == 'none' or stdout_ == 'buffered':
+            self.stdout_file = tempfile.TemporaryFile()
+        if stderr_ == 'none' or stderr_ == 'buffered':
+            self.stderr_file = tempfile.TemporaryFile()
         self.p = subprocess.Popen([self.cmd] + self.args, shell=False,
                                  stdin=subprocess.PIPE,
-                                 stdout=stdout_type,
-                                 stderr=stderr_type,
-                                 close_fds=True, env=osenv)
-        #print 'Run', self.name, self.p.pid
+                                 stdout=self.stdout_file,
+                                 stderr=self.stderr_file,
+                                 close_fds=False, env=osenv)
 
     def kill(self):
         try:

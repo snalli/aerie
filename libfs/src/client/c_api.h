@@ -15,7 +15,8 @@
 
 
 
-int FRONTAPI(init) (int principal_id, int dst_port);
+int FRONTAPI(init) (int principal_id, char* xdst);
+int FRONTAPI(shutdown) ();
 int FRONTAPI(open) (const char* path, int flags);
 int FRONTAPI(close) (int fd);
 int FRONTAPI(dup) (int oldfd);

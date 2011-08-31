@@ -121,9 +121,7 @@ private:
 
 class LockManager {
 public:
-	static int last_port;
-
-	LockManager(std::string xdst, class lock_release_user* l = 0);
+	LockManager(rpcc*, rpcs*, std::string, class lock_release_user* l = 0);
 	~LockManager();
 	Lock* GetOrCreateLock(lock_protocol::LockId);
 	lock_protocol::status Acquire(Lock*);
@@ -146,7 +144,6 @@ private:
 	lock_protocol::status ReleaseInternal(Lock*);
 
 	class lock_release_user*                             lu;
-	int                                                  rlock_port_;
 	std::string                                          hostname_;
 	std::string                                          id_;
 	/// the RPC object through which we receive callbacks from the server

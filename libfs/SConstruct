@@ -22,7 +22,7 @@ AddOption("--test-stdout",
 	nargs = 1,
 	action="store", 
 	default = 'none',
-	help="none, buffered, unbuffered")
+	help="Set tests' stdout: none, interactive, buffered")
 
 AddOption("--test-stderr",
 	dest="test_stderr",
@@ -30,7 +30,7 @@ AddOption("--test-stderr",
 	nargs = 1,
 	action="store", 
 	default = 'none',
-	help="none, buffered, unbuffered")
+	help="Set tests' stderr: none, interactive, buffered")
 
 AddOption('--test-filter',
 	action="store", dest='test_filter',

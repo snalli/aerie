@@ -14,12 +14,13 @@ int
 main(int argc, char *argv[])
 {
 	pthread_attr_t attr;
-    int            port;
+	int            ret;
 	int            debug_level = 0;
 	uid_t          principal_id;
 	char           ch = 0;
 	char*          suiteName;
 	char*          testName;
+	char*          xdst=NULL;
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
@@ -27,13 +28,13 @@ main(int argc, char *argv[])
 	principal_id = getuid();
 
 
-	while ((ch = getopt(argc, argv, "d:p:li:t:s:"))!=-1) {
+	while ((ch = getopt(argc, argv, "d:h:li:t:s:"))!=-1) {
 		switch (ch) {
 			case 'd':
 				debug_level = atoi(optarg);
 				break;
-			case 'p':
-				port = atoi(optarg);
+			case 'h':
+				xdst = optarg;
 				break;
 			case 'l':
 				assert(setenv("RPC_LOSSY", "5", 1) == 0);
@@ -51,6 +52,10 @@ main(int argc, char *argv[])
 		}
 	}
 
+	if (!xdst) {
+		return -1;
+	}
+
 	if (debug_level > 0) {
 		dbg_set_level(debug_level);
 		jsl_set_debug(debug_level);
@@ -62,7 +67,8 @@ main(int argc, char *argv[])
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
 	getTest(argc, argv, &suiteName, &testName);
-	libfs_init(principal_id, port);
-
-	return runTests(suiteName, testName);
+	libfs_init(principal_id, xdst);
+	ret = runTests(suiteName, testName);
+	libfs_shutdown();
+	return ret;
 }

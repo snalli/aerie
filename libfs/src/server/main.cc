@@ -22,6 +22,7 @@ int             port;
 pthread_attr_t  attr;
 ChunkServer*    chunk_server;
 RegistryServer* registry;
+LockManager*    lm;
 
 
 // server-side handlers. they must be methods of some class
@@ -224,7 +225,6 @@ srv service;
 
 void startserver()
 {
-	LockManager lm;
 	serverp = new rpcs(port);
 	serverp->reg(RPC_SERVER_IS_ALIVE, &service, &srv::alive);
 	serverp->reg(RPC_CHUNK_CREATE, &service, &srv::chunk_create);
@@ -239,10 +239,10 @@ void startserver()
 	serverp->reg(RPC_REGISTRY_REMOVE, &service, &srv::registry_remove);
 	serverp->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
 
-	serverp->reg(lock_protocol::stat, &lm, &LockManager::stat);
-	serverp->reg(lock_protocol::acquire, &lm, &LockManager::acquire);
-	serverp->reg(lock_protocol::release, &lm, &LockManager::release);
-	serverp->reg(lock_protocol::subscribe, &lm, &LockManager::subscribe);
+	serverp->reg(lock_protocol::stat, lm, &LockManager::stat);
+	serverp->reg(lock_protocol::acquire, lm, &LockManager::acquire);
+	serverp->reg(lock_protocol::release, lm, &LockManager::release);
+	serverp->reg(lock_protocol::subscribe, lm, &LockManager::subscribe);
 }
 
 int
@@ -286,6 +286,7 @@ main(int argc, char *argv[])
 	chunk_server->Init();
 	registry = new RegistryServer();
 	registry->Init();
+	lm = new LockManager();
 
 	startserver();
 
