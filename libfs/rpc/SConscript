@@ -1,9 +1,0 @@
-Import('mainEnv')
-buildEnv = mainEnv.Clone()
-
-
-lib_target = 'rpc'
-lib_sources = ['rpc.cc', 'connection.cc', 'pollmgr.cc', 'thr_pool.cc', 'jsl_log.cc']
-
-rpcLibrary = buildEnv.SharedLibrary(target = lib_target, source = lib_sources)
-Return('rpcLibrary')

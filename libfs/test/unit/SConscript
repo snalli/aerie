@@ -7,7 +7,7 @@ sys.path.append('%s/library' % (Dir('#').abspath))
 
 Import('mainEnv')
 testEnv = mainEnv.Clone()
-testEnv.Append(CPPPATH = ['#'])
+testEnv.Append(CPPPATH = ['#', '#src'])
 
 # For correct and complete compilation.
 testEnv.AddMethod(addUnitTest, "addUnitTest")

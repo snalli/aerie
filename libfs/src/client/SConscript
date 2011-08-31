@@ -1,0 +1,35 @@
+Import('buildEnv')
+Import('rpcLibrary')
+Import('chunkstoreLibrary')
+Import('lockservLibrary')
+Import('commonLibrary')
+Import('mfsLibrary')
+
+localBuildEnv = buildEnv.Clone()
+libLocalBuildEnv = buildEnv.Clone()
+
+lib_target = 'fsc'
+lib_sources = [
+               'client.cc', 
+               'c_api.cc', 
+               'extent.cc', 
+               'file.cc',
+               'imgr.cc',
+               'lckmgr.cc',
+               'mpinode.cc',
+               'namespace.cc', 
+               'smgr.cc',	       
+	      ]
+fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+# Be careful with linkage order for static libraries
+localBuildEnv.Append(LIBS = mfsLibrary)
+localBuildEnv.Append(LIBS = fscLibrary)
+localBuildEnv.Append(LIBS = rpcLibrary)
+localBuildEnv.Append(LIBS = chunkstoreLibrary)
+localBuildEnv.Append(LIBS = lockservLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program('fsclient', ['main.cc']) 
+
+Return('fscLibrary')

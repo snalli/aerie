@@ -26,6 +26,7 @@ main(int argc, char *argv[])
 
 	principal_id = getuid();
 
+
 	while ((ch = getopt(argc, argv, "d:p:li:t:s:"))!=-1) {
 		switch (ch) {
 			case 'd':
@@ -60,8 +61,8 @@ main(int argc, char *argv[])
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
+	getTest(argc, argv, &suiteName, &testName);
 	libfs_init(principal_id, port);
 
-	getTest(argc, argv, &suiteName, &testName);
 	return runTests(suiteName, testName);
 }

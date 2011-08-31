@@ -1,18 +1,16 @@
-Import('mainEnv')
+Import('buildEnv')
 Import('commonLibrary')
 
-buildEnv = mainEnv.Clone()
-
-buildEnv.Append(CPPPATH = ['#'])
+localBuildEnv = buildEnv.Clone()
 
 lib_target = 'mfs'
 lib_sources = ['radixtree.cc', 'hashtable.cc', 'finode.cc', 'mfs.cc', 'pinode.cc', 'sb.cc']
 lib_sources += ['dinode.cc']
 
-#mfsLibrary = buildEnv.StaticLibrary(target = lib_target, source = lib_sources)
-mfsLibrary = buildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+#mfsLibrary = localBuildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+mfsLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
-#buildEnv.Program('main', ['main.cc', mfsLibrary, commonLibrary])
+#localBuildEnv.Program('main', ['main.cc', mfsLibrary, commonLibrary])
 
 Return('mfsLibrary')
 

@@ -1,0 +1,22 @@
+import os, sys
+Import('mainEnv')
+
+buildEnv = mainEnv.Clone()
+buildEnv.Append(CPPPATH = ['#src'])
+
+Export('buildEnv')
+
+rpcLibrary = SConscript('rpc/SConscript')
+Export('rpcLibrary')
+commonLibrary = SConscript('common/SConscript')
+Export('commonLibrary')
+chunkstoreLibrary = SConscript('chunkstore/SConscript')
+Export('chunkstoreLibrary')
+lockservLibrary = SConscript('lockserv/SConscript')
+Export('lockservLibrary')
+mfsLibrary = SConscript('mfs/SConscript')
+Export('mfsLibrary')
+fscLibrary = SConscript('client/SConscript')
+Export('fscLibrary')
+serverProgram = SConscript('server/SConscript')
+Export('serverProgram')

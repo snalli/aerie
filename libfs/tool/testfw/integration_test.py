@@ -10,19 +10,26 @@ class Test:
         self.wait_for_me = wait_for_me
         self.succ_list = []
         self.p = None
+        self.status = 0
 
-    def run(self):
+    def run(self, stdout_, stderr_):
         osenv = os.environ 
         osenv.update(self.osenv)
         if (self.cmd == ''):
             return None
-        print self.cmd, self.args
+        #print self.cmd, self.args
+        stdout_type = subprocess.PIPE
+        stderr_type = subprocess.PIPE
+        if stdout_ == 'unbuffered':
+            stdout_type = None
+        if stderr_ == 'unbuffered':
+            stderr_type = None
         self.p = subprocess.Popen([self.cmd] + self.args, shell=False,
                                  stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
+                                 stdout=stdout_type,
+                                 stderr=stderr_type,
                                  close_fds=True, env=osenv)
-        print 'Run', self.name, self.p.pid
+        #print 'Run', self.name, self.p.pid
 
     def kill(self):
         try:
@@ -33,15 +40,16 @@ class Test:
 
 
 class IntegrationTest:
-    def __init__(self, osenv):
+    def __init__(self, timeout=60, osenv={}):
         self.pid2test = {}
-        self.osenv = {}
+        self.osenv = osenv
         pre_test = Test('__PreTest', '', [''], {}, True)
         post_test = Test('__PreTest', '', [''], {}, True)
         self.tests_graph = {}
         self.tests_graph[pre_test.name] = pre_test
         self.tests_graph[post_test.name] = post_test
-        self.timeout = 0
+        self.timeout = timeout
+        self.timed_out = False
 
     def setPreTest(self, cmd, args, osenv):
         pre_test = self.tests_graph['__PreTest']
@@ -57,6 +65,8 @@ class IntegrationTest:
             pred_list = ['__PreTest']
         if type(pred_list) == type(''):
             pred_list = [pred_list]
+        if type(args) == type(''):
+            args = args.split()
         test_node = Test(name, cmd, args, osenv, wait_for_me)
         self.tests_graph[name] = test_node
         for pred_name in pred_list:
@@ -64,7 +74,7 @@ class IntegrationTest:
                 pred_node = self.tests_graph[pred_name]
                 pred_node.succ_list.append(test_node)
 
-    def run(self):
+    def run(self, stdout_='buffered', stderr_='buffered'):
         ready_list = []
         wait_list = []
         nowait_list = []
@@ -77,7 +87,7 @@ class IntegrationTest:
                 # execure all tests in the ready queue
                 while not ready_queue.empty():
                     test = ready_queue.get()
-                    test.run()
+                    test.run(stdout_, stderr_)
                     if test.p == None:
                         for succ in test.succ_list:
                             ready_queue.put(succ)
@@ -93,36 +103,28 @@ class IntegrationTest:
                 if len(wait_list):
                     (pid, status) = os.wait()
                     finished_test = self.pid2test[pid]
+                    finished_test.status = status
+                    rv = finished_test.status >> 8
                     if finished_test in wait_list:
-                        rv = status >> 8
-                        print "Done", finished_test.name, pid, rv
-                        print finished_test.p.stdout.readlines()
                         for succ in finished_test.succ_list:
                             ready_queue.put(succ)
                         wait_list.remove(finished_test)
+                    if finished_test in nowait_list:
+                        nowait_list.remove(finished_test)
             signal.alarm(0)
         except OSError:
-            print "TIMEOUT"
+            self.timed_out = True
         except None:
             print "CRITICAL FAILURE"
             
         # now kill all the remaining processes 
         for test in wait_list + nowait_list:
             test.kill()
-            print test.p.stdout.readlines()
+            (pid, status) = os.wait()
+            test.status = status
 
 def alarmHandler(signum, frame):
     pass
 
-def main(argv):
-    integration_test = IntegrationTest({})
-    integration_test.setPreTest('ls', [''], {})
-    integration_test.addTest(None, 'S', 'ls', ['-t '], {}, False)
-    integration_test.addTest(None, 'C1', './test', [''], {})
-    integration_test.addTest(None, 'C2', 'ls', [''], {})
-    integration_test.run()
-
-
-if __name__ == "__main__":
+def setAlarmHandler():
     signal.signal(signal.SIGALRM, alarmHandler)
-    main(sys.argv[1:])

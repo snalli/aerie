@@ -1,0 +1,22 @@
+Import('buildEnv')
+Import('rpcLibrary')
+Import('chunkstoreLibrary')
+Import('lockservLibrary')
+Import('commonLibrary')
+
+localBuildEnv = buildEnv.Clone()
+
+sources = [
+           'lckmgr.cc',
+           'main.cc',
+           'namespace.cc'
+          ]
+
+localBuildEnv.Append(LIBS = rpcLibrary)
+localBuildEnv.Append(LIBS = chunkstoreLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+
+serverProgram = localBuildEnv.Program('fsserver', sources) 
+
+Return('serverProgram')

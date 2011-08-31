@@ -24,7 +24,7 @@ def addUnitTestSuite(env, path, suite):
     addUnitTestList(env, path, suite)
 
 
-def runUnitTests(source, target, env):
+def runUnitTests(source, target, env, verbose=False):
     results = []
     for test in env['UNIT_TEST_CMDS']:
         osenv = os.environ 

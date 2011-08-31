@@ -6,7 +6,6 @@ import copy
 from integration_test import runIntegrationTests
 
 Import('mainEnv', 'testEnv')
-configEnv = mainEnv.Clone()
 myTestEnv = testEnv.Clone()
 
 Import('fscLibrary')
@@ -18,15 +17,17 @@ Import('serverProgram')
 depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
-# Integration tests
-
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
+testProgramAbspath = os.path.join(os.getcwd(), str(testProgram[0]))
+serverProgramAbspath = str(serverProgram[0])
 
-test = testfw.integration_test.IntegrationTest({})
-print str(serverProgram[0])
-print str(testProgram[0])
-print os.getcwd()
-test.addTest(None, 'S', str(serverProgram[0]), '-p 10000'.split(), {}, False)
-test.addTest(None, 'C', os.path.join(os.getcwd(), str(testProgram[0])), '-t TestServerIsAlive -p 10000'.split(), {})
+
+# Integration tests
+
+test = testfw.integration_test.IntegrationTest(timeout=3)
+test.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
+test.addTest(None, 'C1', testProgramAbspath, '-t TestServerIsAlive -p 10000', {})
+test.addTest(None, 'C2', testProgramAbspath, '-t TestServerIsAlive -p 10000', {})
 myTestEnv.addIntegrationTest(test)
+

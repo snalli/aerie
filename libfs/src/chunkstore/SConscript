@@ -1,0 +1,9 @@
+Import('buildEnv')
+
+localBuildEnv = buildEnv.Clone()
+
+lib_target = 'cstore'
+lib_sources = ['chunkstore.cc', 'chunkserver.cc', 'registry.cc', 'registryserver.cc']
+
+chunkstoreLibrary = localBuildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+Return('chunkstoreLibrary')

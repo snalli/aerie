@@ -46,10 +46,14 @@ static inline int runTests(const char *suiteName, const char *testName)
 static inline int getTest(int argc, char **argv, char **suiteName, char **testName)
 {
 	extern char  *optarg;
+	extern int   optind;
+	extern int   opterr;
 	int          c;
 	char         *_suiteName = NULL;
 	char         *_testName = NULL;
 
+	optind = 1;
+	opterr = 0;
 	while (1) {
 		static struct option long_options[] = {
 			{"suite",  required_argument, 0, 's'},
@@ -64,7 +68,6 @@ static inline int getTest(int argc, char **argv, char **suiteName, char **testNa
 		/* Detect the end of the options. */
 		if (c == -1)
 			break;
-     
 		switch (c) {
 			case 's':
 				_suiteName = optarg;

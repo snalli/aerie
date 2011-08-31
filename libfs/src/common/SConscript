@@ -1,0 +1,14 @@
+Import('buildEnv')
+
+localBuildEnv = buildEnv.Clone()
+
+lib_target = 'common'
+lib_sources = ['hash.c', 'pheap.cc', 'vistaheap.c', 'debug.c', 'stack.c', 'rbt.c', 'interval_tree.cc']
+
+localBuildEnv.Append(CPPPATH = ['#src/common'])
+
+commonLibrary = localBuildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+
+#localBuildEnv.Program('test', ['test.cc', commonLibrary], CCFLAGS='-g')
+
+Return('commonLibrary')
