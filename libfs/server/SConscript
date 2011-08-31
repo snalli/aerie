@@ -18,4 +18,7 @@ buildEnv.Append(LIBS = rpcLibrary)
 buildEnv.Append(LIBS = chunkstoreLibrary)
 buildEnv.Append(LIBS = commonLibrary)
 buildEnv.Append(LIBS = ['pthread', 'rt'])
-buildEnv.Program('fsserver', sources) 
+
+serverProgram = buildEnv.Program('fsserver', sources) 
+
+Return('serverProgram')

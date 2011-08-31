@@ -15,7 +15,7 @@
 
 
 
-int FRONTAPI(init) (rpcc* client, int principal_id);
+int FRONTAPI(init) (int principal_id, int dst_port);
 int FRONTAPI(open) (const char* path, int flags);
 int FRONTAPI(close) (int fd);
 int FRONTAPI(dup) (int oldfd);

@@ -7,5 +7,7 @@
 server/fsserver
 client/fsclient
 build/
+doc/
 chunkstore.pagepheap
 chunkstore.pheap
+

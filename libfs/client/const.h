@@ -9,7 +9,8 @@ const int O_CREATE = 1;
 //const int O_WRONLY = 1;
 //const int O_RDONLY = 1;
 //const int O_RDWR = 1;
-
+//const int O_CREATE  = 0x200
+//const int O_APPEND  = 0x400
 
 // namespace scoped constants 
 namespace client {

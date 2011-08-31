@@ -5,10 +5,11 @@
 #ifndef _CLIENT_LOCK_MANAGER_H_AFG819
 #define _CLIENT_LOCK_MANAGER_H_AFG819
 
-#include "lckmgr.h"
 #include <string>
+#include <google/sparsehash/sparseconfig.h>
+#include <google/dense_hash_map>
 #include "rpc/rpc.h"
-#include "server/lock_protocol.h"
+#include "client/lock_protocol.h"
 
 namespace client {
 
@@ -16,9 +17,9 @@ namespace client {
 // that they will be called when lock_client releases a lock.
 // You will not need to do anything with this class until Lab 6.
 class lock_release_user {
- public:
-  virtual void dorelease(lock_protocol::lockid_t) = 0;
-  virtual ~lock_release_user() {};
+public:
+	virtual void dorelease(lock_protocol::LockId) = 0;
+	virtual ~lock_release_user() {};
 };
 
 
@@ -72,86 +73,99 @@ class lock_release_user {
 // has been received.
 //
 
-class cached_lock {
+class Lock {
 
 public:
-  enum lock_status {
-    NONE, FREE, LOCKED, ACQUIRING,/* RELEASING (unused) */
-  };
+	enum LockStatus {
+		NONE, FREE, LOCKED, ACQUIRING, /* RELEASING (unused) */
+	};
 
-  // we use only a single cv to monitor changes of the lock's status
-  // this may be less efficient because there would be many spurious
-  // wake-ups, but it's simple anyway
-  pthread_cond_t status_cv_;
+	//Lock();
+	Lock(lock_protocol::LockId);
+	~Lock();
 
-  // condvar that is signaled when the ``used'' field is set to true
-  pthread_cond_t used_cv_;
+	// changes the status of this lock
+	void set_status(LockStatus);
+	LockStatus status() const;
 
-  pthread_cond_t got_acq_reply_cv_;
+	lock_protocol::LockId lid_;
+
+	// we use only a single cv to monitor changes of the lock's status
+	// this may be less efficient because there would be many spurious
+	// wake-ups, but it's simple anyway
+	pthread_cond_t        status_cv_;
+
+	// condvar that is signaled when the ``used'' field is set to true
+	pthread_cond_t        used_cv_;
+
+	pthread_cond_t        got_acq_reply_cv_;
   
-  // condvar that is signaled when the server informs the client to retry
-  pthread_cond_t retry_cv_;
+	// condvar that is signaled when the server informs the client to retry
+	pthread_cond_t        retry_cv_;
 
-  // the sequence number of the latest *COMPLETED* acquire request made
-  // by the client to obtain this lock
-  // by completed, we mean the remote acquire() call returns with a value.
-  pthread_t owner_;
-  int seq_;
-  bool used_; // set to true after first use
-  int waiting_clients_; 
-  bool can_retry_; // set when a retry message from the server is received
+	pthread_t             owner_;
 
-  cached_lock();
-  ~cached_lock();
-
-  // changes the status of this lock
-  void set_status(lock_status);
-  lock_status status() const;
+	// the sequence number of the latest *COMPLETED* acquire request made
+	// by the client to obtain this lock
+	// by completed, we mean the remote acquire() call returns with a value.
+	int                   seq_;
+	bool                  used_; // set to true after first use
+	int                   waiting_clients_; 
+	bool                  can_retry_; // set when a retry message from the server is received
 
 private:
-  lock_status status_;
+	LockStatus status_;
 
 };
 
 
 class LockManager {
- private:
-  class lock_release_user *lu;
-  int rlock_port;
-  std::string hostname;
-  std::string id;
-  rpcs *rlsrpc_;
-  rpcc *cl_;
+public:
+	static int last_port;
 
-  int last_seq;
-  bool running;
+	LockManager(std::string xdst, class lock_release_user* l = 0);
+	~LockManager();
+	Lock* GetOrCreateLock(lock_protocol::LockId);
+	lock_protocol::status Acquire(Lock*);
+	lock_protocol::status Acquire(lock_protocol::LockId);
+	lock_protocol::status Release(Lock*);
+	lock_protocol::status Release(lock_protocol::LockId);
+	lock_protocol::status stat(lock_protocol::LockId);
+	void releaser();
 
-  std::map<lock_protocol::lockid_t, cached_lock> cached_locks;
+	rlock_protocol::status revoke(lock_protocol::LockId, int, int&);
+	// Tell this client to retry requesting the lock in which this client
+	// was interest when that lock just became available.
+	rlock_protocol::status retry(lock_protocol::LockId, int, int&);
 
-  // key: lock id; value: seq no. of the corresponding acquire
-  std::map<lock_protocol::lockid_t, int> revoke_map;
-  // global lock
-  pthread_mutex_t m;
-  // controls access to the revoke_map
-  pthread_mutex_t revoke_m;
-  pthread_cond_t revoke_cv;
+private:
+	int do_acquire(Lock*);
+	int do_release(Lock*);
+	Lock* GetOrCreateLockInternal(lock_protocol::LockId);
+	lock_protocol::status AcquireInternal(Lock*);
+	lock_protocol::status ReleaseInternal(Lock*);
 
-  int do_acquire(lock_protocol::lockid_t);
-  int do_release(lock_protocol::lockid_t);
+	class lock_release_user*                             lu;
+	int                                                  rlock_port_;
+	std::string                                          hostname_;
+	std::string                                          id_;
+	/// the RPC object through which we receive callbacks from the server
+	rpcs*                                                srv2cl_;
+	/// the RPC object through which we make calls to the server
+	rpcc*                                                cl2srv_;
 
- public:
-  static int last_port;
-  LockManager(std::string xdst, class lock_release_user *l = 0);
-  ~LockManager();
-  lock_protocol::status acquire(lock_protocol::lockid_t);
-  lock_protocol::status release(lock_protocol::lockid_t);
-  virtual lock_protocol::status stat(lock_protocol::lockid_t);
-  void releaser();
+	int                                                  last_seq_;
+	bool                                                 running_;
 
-  rlock_protocol::status revoke(lock_protocol::lockid_t, int, int &);
-  // tell this client to retry requesting the lock in which this client
-  // was interest when that lock just became available
-  rlock_protocol::status retry(lock_protocol::lockid_t, int, int &);
+	google::dense_hash_map<lock_protocol::LockId, Lock*> Locks_;
+
+	// key: lock id; value: seq no. of the corresponding acquire
+	std::map<lock_protocol::LockId, int>                 revoke_map_;
+	// global lock
+	pthread_mutex_t                                      mutex_;
+	// controls access to the revoke_map
+	pthread_mutex_t                                      revoke_mutex_;
+	pthread_cond_t                                       revoke_cv;
 };
 
 

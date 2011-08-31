@@ -1,8 +1,11 @@
 #include "client/client_i.h"
 #include <sys/resource.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
 #include "rpc/rpc.h"
 #include "client/file.h"
 #include "common/debug.h"
+#include "server/api.h"
 
 #include "chunkstore/registry.h"
 
@@ -15,7 +18,8 @@ NameSpace*          global_namespace;
 StorageManager*     global_smgr;
 InodeManager*       global_imgr;
 
-Registry*       registry;
+Registry*           registry;
+rpcc*               rpc_client;
 
 
 // Known backend file system implementations
@@ -29,16 +33,31 @@ struct {
 
 
 int 
-Client::Init(rpcc* rpc_client, int principal_id) 
+Client::Init(int principal_id, int dst_port) 
 {
-	struct rlimit rlim_nofile;
+	struct rlimit      rlim_nofile;
+	struct sockaddr_in dst; //server's ip address
 
+	// server's address.
+	memset(&dst, 0, sizeof(dst));
+	dst.sin_family = AF_INET;
+	dst.sin_addr.s_addr = inet_addr("127.0.0.1");
+	dst.sin_port = htons(dst_port);
+
+	// start the client.  bind it to the server.
+	rpc_client = new rpcc(dst);
+	assert (rpc_client->bind() == 0);
+
+	// create necessary managers
 	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
 	global_smgr = new StorageManager(rpc_client, principal_id);
 
+	// file manager should allocate file descriptors outside OS's range
+	// to avoid collisions
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
 	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
+								  
 	registry = new Registry(rpc_client, principal_id);
 	return global_namespace->Init();
 }
@@ -284,6 +303,17 @@ int
 Client::Rmdir(const char* path)
 {
 
+}
+
+
+/// Check whether we can communicate with the server
+int
+Client::TestServerIsAlive()
+{
+	int r;
+
+	rpc_client->call(RPC_SERVER_IS_ALIVE, 0, r);
+	return r;
 }
 
 

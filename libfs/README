@@ -1,2 +1,10 @@
-Dependencies
+DEPENDENCIES
+* google-sparsehash
+  http://code.google.com/p/google-sparsehash/
 * Boost C++ Libraries
+* UnitTest++
+
+
+STYLE GUIDE
+* We follow Google C++ Style Guide
+  http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml

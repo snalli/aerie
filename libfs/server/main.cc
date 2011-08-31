@@ -29,21 +29,32 @@ RegistryServer* registry;
 // from multiple classes.
 class srv {
 	public:
-		int chunk_create(const unsigned int principal_id, const unsigned long long size, const int type, unsigned long long & r);
+		int alive(const unsigned int principal_id, int& r);
+		int chunk_create(const unsigned int principal_id, const unsigned long long size, const int type, unsigned long long& r);
 		int chunk_delete(const unsigned int principal_id, unsigned long long chunkdsc, int & r);
-		int chunk_access(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, unsigned int, int & r);
-		int chunk_release(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, int & r);
-        int name_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r);
-        int name_link(const unsigned int principal_id, const std::string name, unsigned long long inode, int &r);
+		int chunk_access(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, unsigned int, int& r);
+		int chunk_release(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, int& r);
+        int name_lookup(const unsigned int principal_id, const std::string name, unsigned long long& r);
+        int name_link(const unsigned int principal_id, const std::string name, unsigned long long inode, int& r);
 		int name_unlink(const unsigned int principal_id, const std::string name, int &r);
-        int registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long &obj);
-        int registry_add(const unsigned int principal_id, const std::string name, unsigned long long obj, int &r);
+        int registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long& obj);
+        int registry_add(const unsigned int principal_id, const std::string name, unsigned long long obj, int& r);
 		int registry_remove(const unsigned int principal_id, const std::string name, int &r);
-        int namespace_mount(const unsigned int principal_id, const std::string name, unsigned long long superblock, int &r);
+        int namespace_mount(const unsigned int principal_id, const std::string name, unsigned long long superblock, int& r);
 };
 
+
+int 
+srv::alive(const unsigned int principal_id, int& r)
+{
+	r = 0;
+
+	return 0;
+}
+
+
 int
-srv::chunk_create(const unsigned int principal_id, const unsigned long long size, const int type, unsigned long long &r)
+srv::chunk_create(const unsigned int principal_id, const unsigned long long size, const int type, unsigned long long& r)
 {
 	ChunkDescriptor*   chunkdsc;
 	unsigned long long chunkdsc_id;
@@ -215,6 +226,7 @@ void startserver()
 {
 	LockManager lm;
 	serverp = new rpcs(port);
+	serverp->reg(RPC_SERVER_IS_ALIVE, &service, &srv::alive);
 	serverp->reg(RPC_CHUNK_CREATE, &service, &srv::chunk_create);
 	serverp->reg(RPC_CHUNK_DELETE, &service, &srv::chunk_delete);
 	serverp->reg(RPC_CHUNK_ACCESS, &service, &srv::chunk_access);

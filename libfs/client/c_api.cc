@@ -11,9 +11,9 @@ using namespace client;
 
 
 int
-FRONTAPI(init) (rpcc* rpc_client, int principal_id)
+FRONTAPI(init) (int principal_id, int dst_port)
 {
-	return Client::Init(rpc_client, principal_id);
+	return Client::Init(principal_id, dst_port);
 }
 
 

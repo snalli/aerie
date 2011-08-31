@@ -1,16 +1,18 @@
-#ifndef _INODE_H_JAK129
-#define _INODE_H_JAK129
+#ifndef _CLIENT_INODE_H_JAK129
+#define _CLIENT_INODE_H_JAK129
 
 #include <stdint.h>
 #include <stdio.h>
+#include "client/lckmgr.h"
 
 namespace client {
+
+extern LockManager* global_lckmgr;
 
 typedef uint64_t InodeNumber;
 
 class SuperBlock;
 
-//FIXME: this class should be abstract class
 class Inode {
 public:
 	virtual int Init(InodeNumber ino) = 0;
@@ -28,9 +30,28 @@ public:
 	virtual InodeNumber GetInodeNumber() { return ino_; };
 	virtual void SetInodeNumber(InodeNumber ino) { ino_ = ino; };
 
+	int Lock(); 
+	int Unlock();
+
 protected:
-	InodeNumber ino_;
+	InodeNumber    ino_;
+	client::Lock*  lock_;
 };
+
+
+inline int
+Inode::Lock()
+{
+	global_lckmgr->Acquire(lock_);
+}
+
+
+inline int
+Inode::Unlock()
+{
+	global_lckmgr->Release(lock_);
+}
+
 
 /*
 
@@ -52,4 +73,4 @@ private:
 } // namespace client
 
 
-#endif /* _INODE_H_JAK129 */
+#endif /* _CLIENT_INODE_H_JAK129 */

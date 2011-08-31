@@ -21,6 +21,7 @@ namespace client {
 class InodeMap {
 
 public:
+	InodeMap();
 	int Init();
 	int Lookup(InodeNumber ino, Inode** inode);
 	int Insert(Inode* inode);
@@ -32,6 +33,11 @@ private:
 	google::dense_hash_map<InodeNumber, Inode*> ino2inode_map_;
 };
 
+inline 
+InodeMap::InodeMap()
+{
+	ino2inode_map_.set_empty_key(-1);
+}
 
 inline int 
 InodeMap::Lookup(InodeNumber ino, Inode** inode)
