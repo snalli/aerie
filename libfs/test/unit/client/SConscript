@@ -13,10 +13,14 @@ Import('mfsLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('rpcLibrary')
+Import('serverProgram')
 depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
+
+# Unit tests
 
 test = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), 'main.cxx'], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runUnitTests)
 
 myTestEnv.addUnitTestSuite(test[0].path, 'FileDescriptor')
 myTestEnv.addUnitTestSuite(test[0].path, 'File')
+

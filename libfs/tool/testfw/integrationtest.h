@@ -1,0 +1,6 @@
+#ifndef _TESTFW_INTEGRATIONTEST_H_AFS156
+#define _TESTFW_INTEGRATIONTEST_H_AFS156
+
+#include "tool/testfw/unittest.h"
+
+#endif /* _TESTFW_INTEGRATIONTEST_H_AFS156 */

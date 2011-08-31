@@ -1,0 +1,28 @@
+import os
+import sys
+import string
+from integration_test import runIntegrationTests
+
+Import('mainEnv', 'testEnv')
+configEnv = mainEnv.Clone()
+myTestEnv = testEnv.Clone()
+
+Import('fscLibrary')
+Import('mfsLibrary')
+Import('commonLibrary')
+Import('chunkstoreLibrary')
+Import('rpcLibrary')
+Import('serverProgram')
+depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
+
+# Unit tests
+
+
+
+# Integration tests
+
+#myTestEnv.addIntegrationTest(test[0].path, 'Lock')
+#test = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), 'main.cxx'], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
+#runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runUnitTests)
+
+

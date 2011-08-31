@@ -1,0 +1,27 @@
+from integration_test import addIntegrationTest
+import re, os, sys, string
+sys.path.append('%s/library' % (Dir('#').abspath))
+
+
+Import('mainEnv')
+testEnv = mainEnv.Clone()
+testEnv.Append(CPPPATH = ['#'])
+
+# For correct and complete compilation.
+testEnv.AddMethod(addIntegrationTest, "addIntegrationTest")
+testEnv['INTEGRATION_TESTS'] = []
+
+objects = [testEnv.Object('cmain.cc')]
+testEnv['OBJECTS'] = objects
+
+Export('testEnv')
+
+thedir = os.path.join(Dir('#').abspath, 'test/integration')
+dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
+
+for d in dirs:
+	if re.match(testEnv['TEST_FILTER'], d) and os.path.isfile(os.path.join(thedir, d, 'SConscript')):
+		SConscript(os.path.join(d, 'SConscript'))
+
+
+mainEnv['TEST_FILTER'] = GetOption('test_filter')
