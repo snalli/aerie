@@ -84,6 +84,9 @@ LockManager::LockManager(rpcc* rpc_client,
 {
 	pthread_t          th;
 
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "[%d] Initialize LockManager", cl2srv_->id());
+
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_mutex_init(&revoke_mutex_, NULL);
 	pthread_cond_init(&revoke_cv, NULL);
@@ -208,6 +211,7 @@ LockManager::AcquireInternal(Lock* l)
 	lock_protocol::status r;
 	lock_protocol::LockId lid = l->lid_;
 
+	dbg_log(DBG_INFO, "Acquire\n");
 	switch (l->status()) {
 		case Lock::FREE:
 			// great! no one is using the cached lock

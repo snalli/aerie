@@ -26,16 +26,17 @@ class Test:
         self.stdout_file = None
         self.stderr_file = None
 
-    def run(self, stdout_, stderr_):
+    def run(self, stdout_, stderr_, extra_args=''):
         osenv = os.environ 
         osenv.update(self.osenv)
+        osenv['DEBUG_IDENTIFIER'] = self.name
         if (self.cmd == ''):
             return None
         if stdout_ == 'none' or stdout_ == 'buffered':
             self.stdout_file = tempfile.TemporaryFile()
         if stderr_ == 'none' or stderr_ == 'buffered':
             self.stderr_file = tempfile.TemporaryFile()
-        self.p = subprocess.Popen([self.cmd] + self.args, shell=False,
+        self.p = subprocess.Popen([self.cmd] + self.args + extra_args.split(), shell=False,
                                  stdin=subprocess.PIPE,
                                  stdout=self.stdout_file,
                                  stderr=self.stderr_file,
@@ -84,7 +85,7 @@ class IntegrationTest:
                 pred_node = self.tests_graph[pred_name]
                 pred_node.succ_list.append(test_node)
 
-    def run(self, stdout_='buffered', stderr_='buffered'):
+    def run(self, stdout_='buffered', stderr_='buffered', extra_args=''):
         ready_list = []
         wait_list = []
         nowait_list = []
@@ -97,7 +98,7 @@ class IntegrationTest:
                 # execure all tests in the ready queue
                 while not ready_queue.empty():
                     test = ready_queue.get()
-                    test.run(stdout_, stderr_)
+                    test.run(stdout_, stderr_, extra_args)
                     if test.p == None:
                         for succ in test.succ_list:
                             ready_queue.put(succ)

@@ -1,25 +1,30 @@
 #ifndef __JSL_LOG_H__
 #define __JSL_LOG_H__ 1
 
+#include "common/debug.h"
+
+// map JSL debugging levels to the generic DBG ones
 enum dbcode {
 	JSL_DBG_OFF = 0,
-	JSL_DBG_1 = 1, // Critical
-	JSL_DBG_2 = 2, // Error
-	JSL_DBG_3 = 3, // Info
-	JSL_DBG_4 = 4, // Debugging
+	JSL_DBG_1 = DBG_CRITICAL, // Critical
+	JSL_DBG_2 = DBG_INFO, // Error
+	JSL_DBG_3 = DBG_INFO, // Info
+	JSL_DBG_4 = DBG_DEBUG, // Debugging
 };
 
-extern int JSL_DEBUG_LEVEL;
+#if 0
+#define jsl_log(level, format, ...)                                            \
+  do {                                                                         \
+    if (level && (level <= dbg_level)) {                                         \
+      fprintf(stderr, "[%s] %s in %s <%s,%d>: " format,                        \
+              dbg_identifier,                                                  \
+              dbg_code2str[level],                                             \
+              __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);                \
+    }			                                                               \
+  } while(0);
+#endif
 
-#define jsl_log(level,...)                                    \
-	do {                                                        \
-		if(JSL_DEBUG_LEVEL < abs(level))			      							\
-		{;}                                                       \
-		else {                                                    \
-			{ printf(__VA_ARGS__);}														\
-		}                                                         \
-	} while(0)
-
-void jsl_set_debug(int level);
+#define jsl_log(level, format, ...)                                            \
+	DBG_LOG(level, dbg_module_rpc, format, ##__VA_ARGS__)
 
 #endif // __JSL_LOG_H__

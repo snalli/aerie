@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 
 	principal_id = getuid();
 
-	while ((ch = getopt(argc, argv, "d:p:li:o:s:"))!=-1) {
+	while ((ch = getopt(argc, argv, "d:h:li:o:s:"))!=-1) {
 		switch (ch) {
 			case 'd':
 				debug_level = atoi(optarg);
@@ -68,16 +68,11 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (debug_level > 0) {
-		jsl_set_debug(debug_level);
-		jsl_log(JSL_DBG_1, "DEBUG LEVEL: %d\n", debug_level);
-	}
-
 	pthread_attr_init(&attr);
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	dbg_set_level(5);
+	dbg_init(debug_level, NULL);
 
 	libfs_init(principal_id, xdst);
 

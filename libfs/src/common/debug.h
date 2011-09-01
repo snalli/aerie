@@ -9,6 +9,24 @@ extern "C" {
 #include <stdlib.h>
 #include <assert.h>
 
+
+#define FOREACH_DEBUG_MODULE(ACTION)                        \
+	ACTION(all) /* special name that covers all modules */  \
+	ACTION(rpc)                                             \
+	ACTION(client_lckmgr)  
+
+
+
+#define ACTION(name) \
+	dbg_module_##name,
+enum {
+	FOREACH_DEBUG_MODULE(ACTION)
+	dbg_module_count
+};
+#undef ACTION
+
+
+
 enum dbg_code {
 	DBG_OFF = 0,
 	DBG_CRITICAL = 1, // Critical
@@ -29,15 +47,36 @@ static char* dbg_code2str[] = {
 
 const int dbg_terminate_level = DBG_ERROR;
 
+extern int   dbg_modules[];
+extern int   dbg_level;
+extern char* dbg_identifier;
 
-extern int dbg_level;
-
+#define DBG_MODULE(name) dbg_module_##name
 
 #define dbg_log(level, format, ...)                                            \
   do {                                                                         \
     if (level && (level <= dbg_level ||                                        \
                   level <= dbg_terminate_level)) {                             \
-      fprintf(stderr, "%s in %s <%s,%d>: " format, dbg_code2str[level],        \
+      fprintf(stderr, "[%s] %s in %s <%s,%d>: " format,                        \
+              dbg_identifier,                                                  \
+              dbg_code2str[level],                                             \
+              __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);                \
+      if (level <= dbg_terminate_level) {                                      \
+        exit(-1);                                                              \
+      }	                                                                       \
+    }			                                                               \
+  } while(0);
+
+
+#define DBG_LOG(level, module, format, ...)                                    \
+  do {                                                                         \
+    if (level &&                                                               \
+	    (dbg_modules[module] || dbg_modules[dbg_module_all]) &&                \
+	    (level <= dbg_level || level <= dbg_terminate_level))                  \
+    {                                                                          \
+ 	  fprintf(stderr, "[%s] %s in %s <%s,%d>: " format,                        \
+              dbg_identifier,                                                  \
+              dbg_code2str[level],                                             \
               __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);                \
       if (level <= dbg_terminate_level) {                                      \
         exit(-1);                                                              \
@@ -65,8 +104,7 @@ inline void Assert(int assertion, char* error)
 }
 
 
-
-void dbg_set_level(int);
+int dbg_init(int level, char* identifier);
 
 
 #ifdef __cplusplus

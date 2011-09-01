@@ -15,8 +15,9 @@
 #include "chunkdsc.h"
 
 
-const uint64_t kChunkStoreSize = 1024*1024*64;
-const char*    kChunkStoreName = "chunkstore.vistaheap";
+static const uint64_t kChunkStoreSize = 1024*1024*64;
+static const char*    kChunkStoreName = "chunkstore.vistaheap";
+
 
 ChunkStore::ChunkStore(rpcc* c, id_t principal_id):
 	_client(c), 

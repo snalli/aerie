@@ -271,10 +271,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (debug_level > 0) {
-		jsl_set_debug(debug_level);
-		jsl_log(JSL_DBG_1, "DEBUG LEVEL: %d\n", debug_level);
-	}
+	dbg_init(debug_level, NULL);
 
 	pthread_attr_init(&attr);
 	// set stack size to 32K, so we don't run out of memory

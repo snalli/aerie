@@ -7,7 +7,6 @@ lib_target = 'mfs'
 lib_sources = ['radixtree.cc', 'hashtable.cc', 'finode.cc', 'mfs.cc', 'pinode.cc', 'sb.cc']
 lib_sources += ['dinode.cc']
 
-#mfsLibrary = localBuildEnv.StaticLibrary(target = lib_target, source = lib_sources)
 mfsLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 #localBuildEnv.Program('main', ['main.cc', mfsLibrary, commonLibrary])

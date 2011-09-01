@@ -38,9 +38,19 @@ AddOption('--test-filter',
 	metavar='NAME',
 	help='a regular expression used to match tests to run')
 
+AddOption('--test-extra-args',
+	dest='test_extra_args',
+	type='string',
+	nargs = 1,
+	action="store", 
+	default = '',
+	help='a regular expression used to match tests to run')
+
+
 mainEnv['TEST_FILTER'] = GetOption('test_filter')
 mainEnv['TEST_STDOUT'] = GetOption('test_stdout')
 mainEnv['TEST_STDERR'] = GetOption('test_stderr')
+mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')
 
 #mainEnv.Append(LIBS = ['tcmalloc'])
 #mainEnv.Append(LIBS = ['hoard'])
@@ -51,6 +61,10 @@ mainEnv.Append(CCFLAGS=' -g -O2')
 
 if mainEnv['GOOGLE_SPARSEHASH']:
 	mainEnv.Append(CPPPATH = [mainEnv['GOOGLE_SPARSEHASH']])
+if mainEnv['LIBCONFIG']:
+	mainEnv.Append(CPPPATH = [mainEnv['LIBCONFIG']])
+	mainEnv.Append(LIBPATH = [os.path.join(mainEnv['LIBCONFIG'], '.libs')])
+	mainEnv.Append(RPATH = [os.path.join(mainEnv['LIBCONFIG'], '.libs/')])
 
 
 Export('mainEnv')

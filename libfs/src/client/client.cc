@@ -7,6 +7,7 @@
 #include "client/file.h"
 #include "common/debug.h"
 #include "server/api.h"
+#include "client/config.h"
 
 #include "chunkstore/registry.h"
 
@@ -44,6 +45,8 @@ Client::Init(int principal_id, char* xdst)
 	std::ostringstream host;
 	const char*        hname;
 	std::string        id;
+
+	Config::Init();
 
 	// setup RPC for making calls to the server
 	make_sockaddr(xdst, &dst);
