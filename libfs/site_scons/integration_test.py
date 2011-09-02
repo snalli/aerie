@@ -26,7 +26,9 @@ def runIntegrationTests(source, target, env):
         itest_has_failure = False
         for test_name, test in itest.tests_graph.iteritems():
             if test.p is not None:
-                # if stderr is set to interactive mode then we can't parse output
+                # if stderr is set to interactive mode then we can't parse 
+                # stderr output as there is nothing in the buffer to parse
+                # BUG: we want to be able to parse stderr in interactive mode
                 if env['TEST_STDERR'] == 'interactive':
                     continue
                 test.stderr_file.seek(0)
@@ -43,12 +45,13 @@ def runIntegrationTests(source, target, env):
                         test_list.append((child.attrib["suite"], child.attrib["name"], child.attrib["time"], failure_list))
                     itest_results.extend(test_list)
                 else:
-                    # if the process is not a process we killed then
+                    # if the process is not a process we killed (signal 9) then
                     # something really bad happen, fail immediately 
                     if test.status and test.status != 9:
-                        print "FAILURE:"
+                        print "TEST UBNORMAL TERMINATION: status=", test.status  >> 8
                         failed_itests.append(itest)
-                        print test.p.stderr.readlines()
+                        if test.p.stderr:
+                            print test.p.stderr.readlines()
                         return
         if itest_has_failure:
             failed_itests.append(itest)

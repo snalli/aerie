@@ -32,6 +32,8 @@ class Test:
         osenv['DEBUG_IDENTIFIER'] = self.name
         if (self.cmd == ''):
             return None
+        if type(self.args) == type(''):
+            self.args = self.args.split()
         if stdout_ == 'none' or stdout_ == 'buffered':
             self.stdout_file = tempfile.TemporaryFile()
         if stderr_ == 'none' or stderr_ == 'buffered':
@@ -54,8 +56,8 @@ class IntegrationTest:
     def __init__(self, timeout=60, osenv={}):
         self.pid2test = {}
         self.osenv = osenv
-        pre_test = Test('__PreTest', '', [''], {}, True)
-        post_test = Test('__PreTest', '', [''], {}, True)
+        pre_test = Test('__PreTest', '', '', {}, True)
+        post_test = Test('__PostTest', '', '', {}, True)
         self.tests_graph = {}
         self.tests_graph[pre_test.name] = pre_test
         self.tests_graph[post_test.name] = post_test
@@ -63,6 +65,8 @@ class IntegrationTest:
         self.timed_out = False
 
     def setPreTest(self, cmd, args, osenv):
+        if type(args) == type(''):
+            args = args.split()
         pre_test = self.tests_graph['__PreTest']
         pre_test.cmd = cmd
         pre_test.args = args
