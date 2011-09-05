@@ -13,23 +13,38 @@ namespace server {
 class ClientRecord {
 public:
 	ClientRecord();
-	ClientRecord(int, int);
+	ClientRecord(int, int, int);
 
 	int clt_;
 	int seq_;
+	int req_lck_mode_;
 };
 
-
 struct Lock {
+	enum Mode {
+		NONE = -1,
+		FREE,
+		EXCLUSIVE,
+		SHARED
+	};
+
+	enum RevokeType {
+		REVOKE_RELEASE=0, 
+		REVOKE_DOWNGRADE, 
+	};
+
+
 	Lock();
 	~Lock();
 
-	ClientRecord             owner_;
-	int                      expected_clt_;
-	std::deque<ClientRecord> waiting_list_;
-	bool                     retry_responded_;
-	bool                     revoke_sent_;
-	pthread_cond_t           retry_responded_cv_;
+	Mode                         status_;
+	std::map<int, ClientRecord>  holders_;
+	int                          expected_clt_;
+	std::deque<ClientRecord>     waiting_list_;
+	bool                         retry_responded_;
+	bool                         revoke_sent_;
+	RevokeType                   revoke_type_;
+	pthread_cond_t               retry_responded_cv_;
 };
 
 
@@ -38,7 +53,8 @@ public:
 	LockManager();
 	~LockManager();
 	lock_protocol::status stat(lock_protocol::LockId, int &);
-	lock_protocol::status acquire(int, int, lock_protocol::LockId, int &);
+	lock_protocol::status acquire_exclusive(int, int, lock_protocol::LockId, int &);
+	lock_protocol::status acquire_shared(int, int, lock_protocol::LockId, int &);
 	lock_protocol::status release(int, int, lock_protocol::LockId, int &);
 	// subscribe for future notifications by telling the server the RPC addr
 	lock_protocol::status subscribe(int, std::string, int &);
@@ -47,14 +63,18 @@ public:
 	void wait_acquie(lock_protocol::LockId);
 
 private:
-	std::map<int, rpcc *>                   clients_;
+	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int &);
+
+	std::map<int, rpcc*>                    clients_;
 	std::map<lock_protocol::LockId, Lock>   locks_;
 	std::set<lock_protocol::LockId>         revoke_set_;
 
 	pthread_mutex_t                         mutex_;
-	pthread_cond_t                          release_cv_;
+	pthread_cond_t                          available_cv_;
 	pthread_cond_t                          revoke_cv_;
-	std::deque<lock_protocol::LockId>       released_locks_;
+	/// Contains any locks that become available after a release or have being
+	/// acquired in shared mode (and thus waiting clients can grab them)
+	std::deque<lock_protocol::LockId>       available_locks_; 
 };
 
 

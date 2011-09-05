@@ -240,7 +240,8 @@ void startserver()
 	serverp->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
 
 	serverp->reg(lock_protocol::stat, lm, &LockManager::stat);
-	serverp->reg(lock_protocol::acquire, lm, &LockManager::acquire);
+	serverp->reg(lock_protocol::acquire_exclusive, lm, &LockManager::acquire_exclusive);
+	serverp->reg(lock_protocol::acquire_shared, lm, &LockManager::acquire_shared);
 	serverp->reg(lock_protocol::release, lm, &LockManager::release);
 	serverp->reg(lock_protocol::subscribe, lm, &LockManager::subscribe);
 }
@@ -256,8 +257,11 @@ main(int argc, char *argv[])
 	port = 20000 + (getpid() % 10000);
 
 	char ch = 0;
-	while ((ch = getopt(argc, argv, "csd:p:l"))!=-1) {
+	while ((ch = getopt(argc, argv, "csd:p:lT:"))!=-1) {
 		switch (ch) {
+			case 'T':
+				/* test framework argument -- ignore */
+				break;
 			case 'd':
 				debug_level = atoi(optarg);
 				break;

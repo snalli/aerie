@@ -49,14 +49,13 @@ ut_barrier_init(ut_barrier_t *bp, int count, int pshared)
 	bp->sbi = 0;  
   
 	for (i = 0; i < 2; ++i) {  
-		struct ut_barrier_sb_s *sbp = (struct ut_barrier_sb_s *) &( bp->sb[i] );  
-		bp->sb[bp->sbi].runners = count;  
+		bp->sb[i].runners = count;  
   
-		if (r = pthread_mutex_init(&sbp->wait_lk, m_attr)) {  
+		if (r = pthread_mutex_init(&bp->sb[i].wait_lk, m_attr)) {  
 			return(r);  
 		}	
   
-		if (r = pthread_cond_init(&sbp->wait_cv, cv_attr)) {  
+		if (r = pthread_cond_init(&bp->sb[i].wait_cv, cv_attr)) {  
 			return(r);  
 		}	
    }  

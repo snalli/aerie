@@ -25,6 +25,8 @@ def runIntegrationTests(source, target, env):
             continue
         itest_has_failure = False
         for test_name, test in itest.tests_graph.iteritems():
+            if test_name == "__PreTest" or test_name == "__PostTest":
+                continue
             if test.p is not None:
                 # if stderr is set to interactive mode then we can't parse 
                 # stderr output as there is nothing in the buffer to parse
@@ -48,7 +50,7 @@ def runIntegrationTests(source, target, env):
                     # if the process is not a process we killed (signal 9) then
                     # something really bad happen, fail immediately 
                     if test.status and test.status != 9:
-                        print "TEST UBNORMAL TERMINATION: status=", test.status  >> 8
+                        print "TEST UBNORMAL TERMINATION: ", test_name, " status=", test.status  >> 8
                         failed_itests.append(itest)
                         if test.p.stderr:
                             print test.p.stderr.readlines()
@@ -91,6 +93,8 @@ def runIntegrationTests(source, target, env):
         print "================================"
         for itest in env['INTEGRATION_TESTS']:
             for test_name, test in itest.tests_graph.iteritems():
+                if test_name == "__PreTest" or test_name == "__PostTest":
+                    continue
                 if test.p:
                     print test_name, test.cmd, string.join(test.args)
                     if env['TEST_STDOUT'] == 'buffered':
@@ -101,5 +105,3 @@ def runIntegrationTests(source, target, env):
                         test.stderr_file.seek(0)
                         for line in test.stderr_file.readlines():
                             print '\tSTDERR >',line,
-
-

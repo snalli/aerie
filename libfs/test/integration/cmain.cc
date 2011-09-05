@@ -10,8 +10,13 @@
 #include "rpc/jsl_log.h"
 #include "client/libfs.h"
 #include "tool/testfw/integrationtest.h"
+#include "tool/testfw/testfw.h"
 
-extern int InitializeTests(std::list<std::string>&) __attribute__((weak));
+extern int InitializeTests(testfw::TestFramework&) __attribute__((weak));
+
+namespace testfw {
+	TestFramework* __testfwp;
+}
 
 int
 main(int argc, char *argv[])
@@ -21,44 +26,21 @@ main(int argc, char *argv[])
 	int               debug_level = 0;
 	uid_t             principal_id;
 	char              ch = 0;
-	char*             suiteName;
-	char*             testName;
-	char*                   xdst=NULL;
-	std::list<std::string>  test_args_list;
-
+	const char*       suiteName;
+	const char*       testName;
+	char*             xdst=NULL;
+	extern int        opterr;
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
 	principal_id = getuid();
 
-	while ((ch = getopt(argc, argv, "T:d:h:li:t:s:"))!=-1) {
+	opterr=0;
+	while ((ch = getopt(argc, argv, "d:h:li:T:"))!=-1) {
 		switch (ch) {
 			case 'T':
-				// Test specific initilization parameters are collected
-				// here and passed to InitializeTests
-				{
-					std::string str(optarg);
-					size_t      p;
-					size_t      np;
-
-					if (optarg[0] == ',') {
-						p = 1;
-						for(;;) {
-							np = str.find(',', p);
-							if (np != std::string::npos) {
-								//std::cout << str.substr(p, np-p) << std::endl;
-								test_args_list.push_back(str.substr(p, np-p));
-							} else {
-								test_args_list.push_back(str.substr(p));
-								//std::cout << str.substr(p) << std::endl;
-								break;
-							}
-							p = np+1;
-						}
-					}
-
-				}
+				/* test framework argument -- ignore */
 				break;
 			case 'd':
 				debug_level = atoi(optarg);
@@ -72,18 +54,16 @@ main(int argc, char *argv[])
 			case 'i':
 				principal_id = atoi(optarg);
 				break;
-
-			// don't use 't' and 's' because they are already used by the
-			// testing framework
-			case 's':
-			case 't':
 			default:
 				break;
 		}
 	}
 
+	testfw::TestFramework test_fw(argc, argv);
+	testfw::__testfwp = &test_fw;
+
 	if (InitializeTests) {
-		if (ret = InitializeTests(test_args_list) > 0) {
+		if (ret = InitializeTests(test_fw) > 0) {
 			// function InitializeTests returns a value > 0 when it wants 
 			// to exit immediately with status 0
 			return 0;
@@ -100,9 +80,12 @@ main(int argc, char *argv[])
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	getTest(argc, argv, &suiteName, &testName);
 	libfs_init(principal_id, xdst);
+
+	suiteName = test_fw.SuiteName();
+	testName = test_fw.TestName();
 	ret = runTests(suiteName, testName);
+
 	libfs_shutdown();
 	return ret;
 }

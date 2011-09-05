@@ -38,6 +38,7 @@ class Test:
             self.stdout_file = tempfile.TemporaryFile()
         if stderr_ == 'none' or stderr_ == 'buffered':
             self.stderr_file = tempfile.TemporaryFile()
+        self.args.append('-T,-tag=%s' % self.name)
         self.p = subprocess.Popen([self.cmd] + self.args + extra_args.split(), shell=False,
                                  stdin=subprocess.PIPE,
                                  stdout=self.stdout_file,

@@ -26,18 +26,21 @@ public:
 
 // SUGGESTED LOCK CACHING IMPLEMENTATION PLAN:
 //
-// to work correctly for lab 7,  all the requests on the server run till 
-// completion and threads wait on condition variables on the client to
-// wait for a lock.  this allows the server to be replicated using the
-// replicated state machine approach.
+// All the requests on the server run till completion and threads wait 
+// on condition variables on the client to wait for a lock. This allows 
+// the server to:
+//  - be replicated using the replicated state machine approach (Schneider 1990)
+//  - serve requests using a single core in an event-based fashion
 //
 // On the client a lock can be in several states:
-//  - free: client owns the lock and no thread has it
-//  - locked: client owns the lock and a thread has it
+//  - xfree: client owns the lock (exclusively) and no thread has it
+//  - sfree: client shares the lock and no thread has it
+//  - xlocked: client owns the lock (exclusively) and a thread has it
+//  - slocked: client shares the lock and one thread or more have it
 //  - acquiring: the client is acquiring ownership
 //  - releasing: the client is releasing ownership
 //
-// in the state acquiring and locked there may be several threads
+// in the state acquiring and xlocked there may be several threads
 // waiting for the lock, but the first thread in the list interacts
 // with the server and wakes up the threads when its done (released
 // the lock).  a thread in the list is identified by its thread id
@@ -65,11 +68,11 @@ public:
 // the lock is free.
 //
 // a challenge in the implementation is that retry and revoke requests
-// can be out of order with the acquire and release requests.  that
+// can be out of order with the acquire and release requests. That
 // is, a client may receive a revoke request before it has received
-// the positive acknowledgement on its acquire request.  similarly, a
+// the positive acknowledgement on its acquire request.  Similarly, a
 // client may receive a retry before it has received a response on its
-// initial acquire request.  a flag field is used to record if a retry
+// initial acquire request.  A flag field is used to record if a retry
 // has been received.
 //
 
@@ -77,7 +80,16 @@ class Lock {
 
 public:
 	enum LockStatus {
-		NONE, FREE, LOCKED, ACQUIRING, /* RELEASING (unused) */
+		NONE, 
+		FREE_X, 
+		FREE_S, 
+		LOCKED_X, 
+		LOCKED_S, 
+		LOCKED_XS, 
+		ACQUIRING_X, 
+		ACQUIRING_S, 
+		/* RELEASING (unused) */
+		/* DOWNGRADING (unused) */
 	};
 
 	//Lock();
@@ -110,7 +122,6 @@ public:
 	// by completed, we mean the remote acquire() call returns with a value.
 	int                   seq_;
 	bool                  used_; // set to true after first use
-	int                   waiting_clients_; 
 	bool                  can_retry_; // set when a retry message from the server is received
 
 private:
@@ -124,6 +135,10 @@ public:
 	LockManager(rpcc*, rpcs*, std::string, class lock_release_user* l = 0);
 	~LockManager();
 	Lock* GetOrCreateLock(lock_protocol::LockId);
+	lock_protocol::status AcquireShared(Lock*);
+	lock_protocol::status AcquireShared(lock_protocol::LockId);
+	lock_protocol::status AcquireExclusive(Lock*);
+	lock_protocol::status AcquireExclusive(lock_protocol::LockId);
 	lock_protocol::status Acquire(Lock*);
 	lock_protocol::status Acquire(lock_protocol::LockId);
 	lock_protocol::status Release(Lock*);
@@ -131,7 +146,8 @@ public:
 	lock_protocol::status stat(lock_protocol::LockId);
 	void releaser();
 
-	rlock_protocol::status revoke(lock_protocol::LockId, int, int&);
+	rlock_protocol::status revoke_release(lock_protocol::LockId, int, int&);
+	rlock_protocol::status revoke_downgrade(lock_protocol::LockId, int, int&);
 	// Tell this client to retry requesting the lock in which this client
 	// was interest when that lock just became available.
 	rlock_protocol::status retry(lock_protocol::LockId, int, int&);
@@ -140,7 +156,8 @@ private:
 	int do_acquire(Lock*);
 	int do_release(Lock*);
 	Lock* GetOrCreateLockInternal(lock_protocol::LockId);
-	lock_protocol::status AcquireInternal(Lock*);
+	lock_protocol::status AcquireExclusiveInternal(Lock*);
+	lock_protocol::status AcquireSharedInternal(Lock*);
 	lock_protocol::status ReleaseInternal(Lock*);
 
 	class lock_release_user*                             lu;

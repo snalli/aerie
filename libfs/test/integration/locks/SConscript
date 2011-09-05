@@ -26,20 +26,20 @@ serverProgramAbspath = str(serverProgram[0])
 # Integration tests
 
 testStr = 'TestLockUnlockConcurrentClients1'
-test = testfw.integration_test.IntegrationTest(timeout=3)
-test.setPreTest(testProgramAbspath, '-T,-initreg', {})
+test = testfw.integration_test.IntegrationTest(timeout=30)
+test.setPreTest(testProgramAbspath, '-T,-initreg,-ccount=2', {})
 test.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
-test.addTest(None, 'C1', testProgramAbspath, '-t %s -h 10000' % testStr, {})
-test.addTest(None, 'C2', testProgramAbspath, '-t %s -h 10000' % testStr, {})
-#myTestEnv.addIntegrationTest(test)
+test.addTest(None, 'C1', testProgramAbspath, '-T,-test=%s -h 10000' % testStr, {})
+test.addTest(None, 'C2', testProgramAbspath, '-T,-test=%s -h 10000' % testStr, {})
+myTestEnv.addIntegrationTest(test)
 
 
 testStr = 'TestLockUnlockConcurrentClients2'
 test = testfw.integration_test.IntegrationTest(timeout=3)
-test.setPreTest(testProgramAbspath, '-T,-initreg', {})
+test.setPreTest(testProgramAbspath, '-T,-initreg,-ccount=2', {})
 test.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
-test.addTest(None, 'C1', testProgramAbspath, '-t %s -h 10000' % testStr, {})
-test.addTest(None, 'C2', testProgramAbspath, '-t %s -h 10000' % testStr, {})
+test.addTest(None, 'C1', testProgramAbspath, '-T,-test=%s -h 10000' % testStr, {})
+test.addTest(None, 'C2', testProgramAbspath, '-T,-test=%s -h 10000' % testStr, {})
 #myTestEnv.addIntegrationTest(test)
 
 
@@ -47,7 +47,6 @@ testStr = 'TestLockUnlockConcurrentThreads'
 test = testfw.integration_test.IntegrationTest(timeout=3)
 test.setPreTest(testProgramAbspath, '-T,-initreg', {})
 test.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
-#test.addTest(None, 'C1', testProgramAbspath, '-t %s -h 10000' % testStr, {})
-test.addTest(None, 'C2', testProgramAbspath, '-t %s -h 10000' % testStr, {})
-myTestEnv.addIntegrationTest(test)
+test.addTest(None, 'C1', testProgramAbspath, '-T,-test=%s -h 10000' % testStr, {})
+#myTestEnv.addIntegrationTest(test)
 

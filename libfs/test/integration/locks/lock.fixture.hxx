@@ -25,6 +25,7 @@ inline int LockFixture::InitRegion(void* args)
     pthread_mutexattr_init(&psharedm_attr);
     pthread_mutexattr_setpshared(&psharedm_attr, PTHREAD_PROCESS_SHARED);
 	pthread_mutex_init(&region->count_mutex, &psharedm_attr);
+	ut_barrier_init(&region->barrier, clients_count, 1);
 	for (i=0; i<256; i++) {
 		region->ct[i] = 0;
 	}

@@ -1,5 +1,10 @@
 // RPC stubs for clients to talk to lock_server, and cache the locks
 // see lckmgr.h for protocol details.
+//
+// The implementation is based on Yin Qiu's lock server/client,
+// which is in turn based on MIT 6.824 Labs. The lock server/client
+// has been extended to support exclusive/shared locking and 
+// integrate well with the LibFS architecture.
 
 #include "client/lckmgr.h"
 #include <sstream>
@@ -15,7 +20,6 @@ Lock::Lock(lock_protocol::LockId lid = 0)
 	  owner_(0), 
 	  seq_(0), 
 	  used_(false), 
-	  waiting_clients_(0), 
 	  can_retry_(false),
 	  status_(NONE)
 {
@@ -40,7 +44,7 @@ void
 Lock::set_status(LockStatus sts)
 {
 	if (status_ != sts) {
-		if (sts == LOCKED) {
+		if (sts == LOCKED_X) {
 			owner_ = pthread_self();
 			used_ = true;
 			pthread_cond_signal(&used_cv_);
@@ -82,10 +86,12 @@ LockManager::LockManager(rpcc* rpc_client,
 	  srv2cl_(rpc_server),
 	  id_(id)
 {
-	pthread_t          th;
+	pthread_t    th;
+	int          unused;
+	int          r;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-	        "[%d] Initialize LockManager", cl2srv_->id());
+	        "[%d] Initialize LockManager\n", cl2srv_->id());
 
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_mutex_init(&revoke_mutex_, NULL);
@@ -93,22 +99,35 @@ LockManager::LockManager(rpcc* rpc_client,
 
 	Locks_.set_empty_key(-1);
 
-	/* register client's lock manager RPC handlers with srv2cl_ */
-	srv2cl_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
+	// register client's lock manager RPC handlers with srv2cl_
+	srv2cl_->reg(rlock_protocol::revoke_release, this, &LockManager::revoke_release);
+	srv2cl_->reg(rlock_protocol::revoke_downgrade, this, &LockManager::revoke_downgrade);
 	srv2cl_->reg(rlock_protocol::retry, this, &LockManager::retry);
-	int r = pthread_create(&th, NULL, &releasethread, (void *) this);
+	r = pthread_create(&th, NULL, &releasethread, (void *) this);
 	assert (r == 0);
+
+	// contact the server and tell him my rpc address to subscribe 
+	// for async rpc response
+	if ((r = cl2srv_->call(lock_protocol::subscribe, cl2srv_->id(), id_, unused)) !=
+	    lock_protocol::OK) 
+	{
+		dbg_log(DBG_CRITICAL, "failed to subscribe client: %u\n", cl2srv_->id());
+	}
+
 }
 
 
 LockManager::~LockManager()
 {
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "[%d] Shut down LockManager\n", cl2srv_->id());
+
 	pthread_mutex_lock(&mutex_);
 	google::dense_hash_map<lock_protocol::LockId, Lock*>::iterator itr;
 	for (itr = Locks_.begin(); itr != Locks_.end(); ++itr) {
-		if (itr->second->status() == Lock::FREE) {
+		if (itr->second->status() == Lock::FREE_X) {
 			do_release(itr->second);
-		} else if (itr->second->status() == Lock::LOCKED
+		} else if (itr->second->status() == Lock::LOCKED_X
 		           && pthread_self() == itr->second->owner_) 
 		{
 			ReleaseInternal(itr->second);
@@ -180,7 +199,7 @@ LockManager::releaser()
 			// wait until this lock is used at least once
 			pthread_cond_wait(&l->used_cv_, &mutex_);
 		}
-		while (l->status() != Lock::FREE) {
+		while (l->status() != Lock::FREE_X) {
 			// wait until the lock is released 
 			pthread_cond_wait(&l->status_cv_, &mutex_);
 		}
@@ -203,40 +222,40 @@ LockManager::releaser()
 /// or if an unexpected error occurs.
 /// Note that acquire() is NOT an atomic operation because it may temporarily
 /// release the mutex_ while waiting on certain condition varaibles.
-/// for this reason, we need an ACQUIRING status to tell other threads that
-/// an acquisition is in progress.
+/// for this reason, we need an ACQUIRING_[X|S] status to tell other threads 
+/// that an acquisition is in progress.
 inline lock_protocol::status
-LockManager::AcquireInternal(Lock* l)
+LockManager::AcquireExclusiveInternal(Lock* l)
 {
 	lock_protocol::status r;
 	lock_protocol::LockId lid = l->lid_;
 
 	dbg_log(DBG_INFO, "Acquire\n");
 	switch (l->status()) {
-		case Lock::FREE:
+		case Lock::FREE_X:
 			// great! no one is using the cached lock
 			dbg_log(DBG_INFO, "[%d] lock %llu free locally: grant to %lu\n",
 			        cl2srv_->id(), lid, (unsigned long)pthread_self());
 			r = lock_protocol::OK;
-			l->set_status(Lock::LOCKED);
+			l->set_status(Lock::LOCKED_X);
 			break;
-		case Lock::ACQUIRING:
+		case Lock::ACQUIRING_X:
 			// There is on-going lock acquisition; we just sit here and wait
 			// its completion, in which case we can safely fall through to the
 			// next case
 			dbg_log(DBG_INFO, "[%d] lck-%llu: another thread in acquisition\n",
 			        cl2srv_->id(), lid);
-			while (l->status() == Lock::ACQUIRING) {
+			while (l->status() == Lock::ACQUIRING_X) {
 				pthread_cond_wait(&l->status_cv_, &mutex_);
 			}
-			if (l->status() == Lock::FREE) {
+			if (l->status() == Lock::FREE_X) {
 				// somehow this lock becomes mine!
 				r = lock_protocol::OK;
-				l->set_status(Lock::LOCKED);
+				l->set_status(Lock::LOCKED_X);
 				break;
 			}
-		// the lock is LOCKED or NONE, so we continue to the next case
-		case Lock::LOCKED:
+		// the lock is LOCKED_X or NONE, so we continue to the next case
+		case Lock::LOCKED_X:
 			if (l->owner_ == pthread_self()) {
 				// the current thread has already obtained the lock
 				dbg_log(DBG_INFO, "[%d] current thread already got lck %llu\n",
@@ -247,15 +266,15 @@ LockManager::AcquireInternal(Lock* l)
 				// in the predicate of the while loop, we don't check if the lock is
 				// revoked by the server. this allows competition between the local
 				// threads and the revoke thread.
-				while (l->status() != Lock::FREE && l->status() != Lock::NONE) {
+				while (l->status() != Lock::FREE_X && l->status() != Lock::NONE) {
 					// TODO also check if there are many clients waiting
 					pthread_cond_wait(&l->status_cv_, &mutex_);
 				}
-				if (l->status() == Lock::FREE) {
+				if (l->status() == Lock::FREE_X) {
 					dbg_log(DBG_INFO, "[%d] lck %llu obatained locally by th %lu\n",
 							cl2srv_->id(), lid, (unsigned long)pthread_self());
 					r = lock_protocol::OK;
-					l->set_status(Lock::LOCKED);
+					l->set_status(Lock::LOCKED_X);
 					break;
 				}
 				// if we reach here, it means the lock has been returned to the
@@ -264,7 +283,7 @@ LockManager::AcquireInternal(Lock* l)
 		case Lock::NONE:
 			dbg_log(DBG_INFO, "[%d] lock %llu not available; acquiring now\n",
 			        cl2srv_->id(), lid);
-			l->set_status(Lock::ACQUIRING);
+			l->set_status(Lock::ACQUIRING_X);
 			while ((r = do_acquire(l)) == lock_protocol::RETRY) {
 				while (!l->can_retry_) {
 					pthread_cond_wait(&l->retry_cv_, &mutex_);
@@ -273,7 +292,7 @@ LockManager::AcquireInternal(Lock* l)
 			if (r == lock_protocol::OK) {
 				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu at seq %d\n",
 				        cl2srv_->id(), pthread_self(), lid, l->seq_);
-				l->set_status(Lock::LOCKED);
+				l->set_status(Lock::LOCKED_X);
 			}
 			break;
 		default:
@@ -283,53 +302,155 @@ LockManager::AcquireInternal(Lock* l)
 }
 
 
+/// This function blocks until the specified lock is successfully acquired
+/// or if an unexpected error occurs.
+/// Note that acquire() is NOT an atomic operation because it may temporarily
+/// release the mutex_ while waiting on certain condition varaibles.
+/// for this reason, we need an [X|S]_ACQUIRING status to tell other threads that
+/// an acquisition is in progress.
+inline lock_protocol::status
+LockManager::AcquireSharedInternal(Lock* l)
+{
+	lock_protocol::status r;
+	lock_protocol::LockId lid = l->lid_;
+
+	dbg_log(DBG_INFO, "Acquire\n");
+	switch (l->status()) {
+		case Lock::FREE_X:
+			// great! no one is using the cached lock
+			dbg_log(DBG_INFO, "[%d] lock %llu free locally: grant to %lu\n",
+			        cl2srv_->id(), lid, (unsigned long)pthread_self());
+			r = lock_protocol::OK;
+			l->set_status(Lock::LOCKED_X);
+			break;
+		case Lock::ACQUIRING_X:
+			// There is on-going lock acquisition; we just sit here and wait
+			// its completion, in which case we can safely fall through to the
+			// next case
+			dbg_log(DBG_INFO, "[%d] lck-%llu: another thread in acquisition\n",
+			        cl2srv_->id(), lid);
+			while (l->status() == Lock::ACQUIRING_X) {
+				pthread_cond_wait(&l->status_cv_, &mutex_);
+			}
+			if (l->status() == Lock::FREE_X) {
+				// somehow this lock becomes mine!
+				r = lock_protocol::OK;
+				l->set_status(Lock::LOCKED_X);
+				break;
+			}
+		// the lock is LOCKED_X or NONE, so we continue to the next case
+		case Lock::LOCKED_X:
+			if (l->owner_ == pthread_self()) {
+				// the current thread has already obtained the lock
+				dbg_log(DBG_INFO, "[%d] current thread already got lck %llu\n",
+				        cl2srv_->id(), lid);
+				r = lock_protocol::OK;
+				break;
+			} else {
+				// in the predicate of the while loop, we don't check if the lock is
+				// revoked by the server. this allows competition between the local
+				// threads and the revoke thread.
+				while (l->status() != Lock::FREE_X && l->status() != Lock::NONE) {
+					// TODO also check if there are many clients waiting
+					pthread_cond_wait(&l->status_cv_, &mutex_);
+				}
+				if (l->status() == Lock::FREE_X) {
+					dbg_log(DBG_INFO, "[%d] lck %llu obatained locally by th %lu\n",
+							cl2srv_->id(), lid, (unsigned long)pthread_self());
+					r = lock_protocol::OK;
+					l->set_status(Lock::LOCKED_X);
+					break;
+				}
+				// if we reach here, it means the lock has been returned to the
+				// server, i.e., l->status() == Lock::NONE. we just fall through
+			}
+		case Lock::NONE:
+			dbg_log(DBG_INFO, "[%d] lock %llu not available; acquiring now\n",
+			        cl2srv_->id(), lid);
+			l->set_status(Lock::ACQUIRING_X);
+			while ((r = do_acquire(l)) == lock_protocol::RETRY) {
+				while (!l->can_retry_) {
+					pthread_cond_wait(&l->retry_cv_, &mutex_);
+				}
+			}
+			if (r == lock_protocol::OK) {
+				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu at seq %d\n",
+				        cl2srv_->id(), pthread_self(), lid, l->seq_);
+				l->set_status(Lock::LOCKED_X);
+			}
+			break;
+		default:
+			break;
+	}
+	return r;
+}
+
+
+
+
 lock_protocol::status
-LockManager::Acquire(Lock* lock)
+LockManager::AcquireExclusive(Lock* lock)
 {
 	lock_protocol::status r;
 
-	if (last_seq_ == 0) {
-		// this is my first contact with the server, so i have to tell him
-		// my rpc address to subscribe for async rpc response
-		int unused;
-		if ((r = cl2srv_->call(lock_protocol::subscribe, cl2srv_->id(), id_, unused)) !=
-            lock_protocol::OK) 
-		{
-			dbg_log(DBG_ERROR, "failed to subscribe client: %u\n", cl2srv_->id());
-			return r;
-		}
-	}
-
 	pthread_mutex_lock(&mutex_);
-	r = AcquireInternal(lock);
+	r = AcquireExclusiveInternal(lock);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
 
 
 lock_protocol::status
-LockManager::Acquire(lock_protocol::LockId lid)
+LockManager::AcquireExclusive(lock_protocol::LockId lid)
 {
-	Lock* lock;
+	Lock*                 lock;
 	lock_protocol::status r;
-
-	if (last_seq_ == 0) {
-		// this is my first contact with the server, so i have to tell him
-		// my rpc address to subscribe for async rpc response
-		int unused;
-		if ((r = cl2srv_->call(lock_protocol::subscribe, cl2srv_->id(), id_, unused)) !=
-            lock_protocol::OK) 
-		{
-			dbg_log(DBG_ERROR, "failed to subscribe client: %u\n", cl2srv_->id());
-			return r;
-		}
-	}
 
 	pthread_mutex_lock(&mutex_);
 	lock = GetOrCreateLockInternal(lid);
-	r = AcquireInternal(lock);
+	r = AcquireExclusiveInternal(lock);
 	pthread_mutex_unlock(&mutex_);
 	return r;
+}
+
+
+lock_protocol::status
+LockManager::AcquireShared(Lock* lock)
+{
+	lock_protocol::status r;
+
+	pthread_mutex_lock(&mutex_);
+	r = AcquireSharedInternal(lock);
+	pthread_mutex_unlock(&mutex_);
+	return r;
+}
+
+
+lock_protocol::status
+LockManager::AcquireShared(lock_protocol::LockId lid)
+{
+	Lock*                 lock;
+	lock_protocol::status r;
+
+	pthread_mutex_lock(&mutex_);
+	lock = GetOrCreateLockInternal(lid);
+	r = AcquireSharedInternal(lock);
+	pthread_mutex_unlock(&mutex_);
+	return r;
+}
+
+
+lock_protocol::status
+LockManager::Acquire(Lock* lock)
+{
+	return AcquireExclusive(lock);
+}
+
+
+lock_protocol::status
+LockManager::Acquire(lock_protocol::LockId lid)
+{
+	return AcquireExclusive(lid);
 }
 
 
@@ -340,21 +461,9 @@ LockManager::ReleaseInternal(Lock* l)
 	lock_protocol::status r = lock_protocol::OK;
 	lock_protocol::LockId lid = l->lid_;
 
-	if (l->status() == Lock::LOCKED && l->owner_ == pthread_self()) {
+	if (l->status() == Lock::LOCKED_X && l->owner_ == pthread_self()) {
 		assert(l->used_);
-		if (l->waiting_clients_ >= 5) {
-			// too many contending clients - we have to relinquish the lock
-			// right now
-			dbg_log(DBG_WARNING,
-					"[%d] more than 5 clients waiting on lck %llu; release now\n",
-					cl2srv_->id(), lid);
-			revoke_map_.erase(lid);
-			do_release(l);
-			// mark this lock as NONE anyway
-			l->set_status(Lock::NONE);
-		} else {
-			l->set_status(Lock::FREE);
-		}
+		l->set_status(Lock::FREE_X);
 	} else { 
 		dbg_log(DBG_INFO, "[%d] thread %lu is not owner of lck %llu\n",
 		        cl2srv_->id(), (unsigned long)pthread_self(), lid);
@@ -393,7 +502,7 @@ LockManager::Release(lock_protocol::LockId lid)
 
 
 rlock_protocol::status
-LockManager::revoke(lock_protocol::LockId lid, int seq, int &unused)
+LockManager::revoke_release(lock_protocol::LockId lid, int seq, int &unused)
 {
 	rlock_protocol::status r = rlock_protocol::OK;
 
@@ -405,6 +514,20 @@ LockManager::revoke(lock_protocol::LockId lid, int seq, int &unused)
 	revoke_map_[lid] = seq;
 	pthread_cond_signal(&revoke_cv);
 	pthread_mutex_unlock(&revoke_mutex_);
+	return r;
+}
+
+
+rlock_protocol::status
+LockManager::revoke_downgrade(lock_protocol::LockId lid, int seq, int &unused)
+{
+	rlock_protocol::status r = rlock_protocol::OK;
+
+	dbg_log(DBG_INFO,
+	        "[%d] server request to revoke lck %llu at seq %d\n", 
+	        cl2srv_->id(), lid, seq);
+	// we do nothing but pushing back the lock id to the revoke queue
+	// TODO: write code
 	return r;
 }
 
@@ -424,7 +547,7 @@ LockManager::retry(lock_protocol::LockId lid, int seq,
 		// it doesn't matter whether this retry message arrives before or
 		// after the response to the corresponding acquire arrives, as long
 		// as the sequence number of the retry matches that of the acquire
-		assert(l->status() == Lock::ACQUIRING);
+		assert(l->status() == Lock::ACQUIRING_X);
 		dbg_log(DBG_INFO, "[%d] retry message for lid %llu seq %d\n",
 		        cl2srv_->id(), lid, seq);
 		l->can_retry_ = true;
@@ -450,10 +573,10 @@ LockManager::do_acquire(Lock* l)
 
 	dbg_log(DBG_INFO, "[%d] calling acquire rpc for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), lid, cl2srv_->id(), last_seq_+1);
-	r = cl2srv_->call(lock_protocol::acquire, cl2srv_->id(), ++last_seq_, lid, queue_len);
+	r = cl2srv_->call(lock_protocol::acquire_exclusive, cl2srv_->id(), ++last_seq_, lid, queue_len);
 	l->seq_ = last_seq_;
 	if (r == lock_protocol::OK) {
-		l->waiting_clients_ = queue_len;
+		// great! we have the lock
 	} else if (r == lock_protocol::RETRY) {
 		l->can_retry_ = false;
 	}

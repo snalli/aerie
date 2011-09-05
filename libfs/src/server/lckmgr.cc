@@ -11,22 +11,26 @@ namespace server {
 
 ClientRecord::ClientRecord()
 	: clt_(-1), 
-	  seq_(-1)
+	  seq_(-1),
+	  req_lck_mode_(Lock::NONE)
+
 {
 
 }
 
 
-ClientRecord::ClientRecord(int clt, int seq)
+ClientRecord::ClientRecord(int clt, int seq, int req_lck_mode)
 	: clt_(clt), 
-	  seq_(seq)
+	  seq_(seq),
+	  req_lck_mode_(req_lck_mode)
 {
 
 }
 
 
 Lock::Lock()
-	: expected_clt_(-1), 
+	: status_(Lock::FREE),
+	  expected_clt_(-1), 
 	  retry_responded_(false), 
 	  revoke_sent_(false)
 {
@@ -62,7 +66,7 @@ LockManager::LockManager()
 {
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_cond_init(&revoke_cv_, NULL);
-	pthread_cond_init(&release_cv_, NULL);
+	pthread_cond_init(&available_cv_, NULL);
 
 	pthread_t th;
 	int r = pthread_create(&th, NULL, &revokethread, (void *) this);
@@ -82,43 +86,65 @@ LockManager::~LockManager()
 	pthread_mutex_unlock(&mutex_);
 	pthread_mutex_destroy(&mutex_);
 	pthread_cond_destroy(&revoke_cv_);
-	pthread_cond_destroy(&release_cv_);
+	pthread_cond_destroy(&available_cv_);
 }
 
 
 lock_protocol::status
-LockManager::acquire(int clt, int seq, lock_protocol::LockId lid,
-    int &queue_len)
+LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int req_lck_mode,
+                     int &queue_len)
 {
 	lock_protocol::status r;
-	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu\n", clt, seq, lid);
+	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
+	        lid, req_lck_mode == Lock::EXCLUSIVE ? "EXCLUSIVE": "SHARED");
 	pthread_mutex_lock(&mutex_);
-	Lock &l = locks_[lid];
+	Lock& l = locks_[lid];
 	queue_len = l.waiting_list_.size();
 	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", lid, queue_len);
-	if (l.owner_.clt_ == -1 && ((queue_len > 0 && l.expected_clt_ == clt) ||
-	    queue_len == 0)) 
+
+	if (((req_lck_mode == Lock::EXCLUSIVE && l.status_ == Lock::FREE) && 
+	     (queue_len == 0 || (queue_len > 0 && l.expected_clt_ == clt)))	||
+	    ((req_lck_mode == Lock::SHARED && 
+		  (l.status_ == Lock::FREE || l.status_ == Lock::SHARED)) && 
+	     (queue_len == 0 || (queue_len > 0 && l.expected_clt_ == clt)))
+	   )
 	{
-		dbg_log(DBG_INFO, "lock %llu is free; granting to clt %d\n", lid, clt);
-		l.owner_.clt_ = clt;
-		l.owner_.seq_ = seq;
+		dbg_log(DBG_INFO, "lock %llu is %s; granting to clt %d\n", lid, 
+		        l.status_ == Lock::FREE ? "free": "shared", clt);
+		assert(l.holders_.find(clt) == l.holders_.end());
+		l.holders_[clt] = ClientRecord(clt, seq, req_lck_mode);
+		if (req_lck_mode == Lock::EXCLUSIVE) {
+			l.status_ = Lock::EXCLUSIVE;
+		} else {
+			l.status_ = Lock::SHARED;
+		}
 		r = lock_protocol::OK;
 		if (queue_len != 0) {
 			dbg_log(DBG_INFO, "expected clt %d replied to retry request\n", clt);
 			l.expected_clt_ = -1;
-			// since there are waiting clients_, we have to unfortunately add this
-			// lock to the revoke set to get it back
-			if (queue_len < 5) {
-				revoke_set_.insert(lid);
-				l.revoke_sent_ = true;
-				pthread_cond_signal(&revoke_cv_);
+			// Since there are clients waiting, we have to unfortunately add this
+			// lock to the revoke set to get it back.
+			// Check the type of request (S or X) of the next client in line to 
+			// decide the type of revocation.
+			revoke_set_.insert(lid);
+			std::deque<ClientRecord> &wq = l.waiting_list_;
+			ClientRecord* cr = &wq.front();
+			if (cr->req_lck_mode_ == Lock::EXCLUSIVE) { 
+				l.revoke_type_ = Lock::REVOKE_RELEASE;
 			} else {
-				// if the queue has more than 5 clients_ waiting, we don't need to
-				// to send a revoke because we know the client will soon release
-				// the lock. we just pretend that we have sent a revoke to the owner
-				// of the lock
-				l.revoke_sent_ = true;
+				if (req_lck_mode == Lock::SHARED) {
+					// Client is acquiring the lock in SHARED mode so don't send 
+					// him a revoke msg as the next client in line is waiting to
+					// acquire the lock in SHARED mode too. Send the waiting 
+					// client a retry.
+					available_locks_.push_back(lid);
+					pthread_cond_signal(&available_cv_);
+				} else {
+					l.revoke_type_ = Lock::REVOKE_DOWNGRADE;
+				}
 			}
+			l.revoke_sent_ = true;
+			pthread_cond_signal(&revoke_cv_);
 			//l.retry_responded_ = true;
 			//pthread_cond_signal(&l.retry_responded_cv);
 		} else {
@@ -137,30 +163,59 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid,
 			// i will be the head of the waiting list
 			if (!l.revoke_sent_) {
 				revoke_set_.insert(lid);
+				if (req_lck_mode == Lock::SHARED) {
+					l.revoke_type_ = Lock::REVOKE_DOWNGRADE;
+				} else {
+					l.revoke_type_ = Lock::REVOKE_RELEASE;
+				}
 				l.revoke_sent_ = true;
 				pthread_cond_signal(&revoke_cv_);
 			}
 		}
-		l.waiting_list_.push_back(ClientRecord(clt, seq));
+		l.waiting_list_.push_back(ClientRecord(clt, seq, req_lck_mode));
 		r = lock_protocol::RETRY;
 	}
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
 
+
+lock_protocol::status
+LockManager::acquire_exclusive(int clt, int seq, lock_protocol::LockId lid, 
+                               int& queue_len)
+{
+	return acquire(clt, seq, lid, Lock::EXCLUSIVE, queue_len);
+}
+
+
+lock_protocol::status
+LockManager::acquire_shared(int clt, int seq, lock_protocol::LockId lid, 
+                            int& queue_len)
+{
+	return acquire(clt, seq, lid, Lock::SHARED, queue_len);
+}
+
+
 lock_protocol::status
 LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
 {
-	lock_protocol::status r = lock_protocol::OK;
+	std::map<int, ClientRecord>::iterator  itr_icr;
+	lock_protocol::status                  r = lock_protocol::OK;
 	pthread_mutex_lock(&mutex_);
-	if (locks_.find(lid) != locks_.end() && locks_[lid].owner_.clt_ == clt) {
-		assert(locks_[lid].owner_.seq_ = seq);
+
+	if (locks_.find(lid) != locks_.end() && 
+	    locks_[lid].holders_.find(clt) != locks_[lid].holders_.end())
+	{
+		assert(locks_[lid].holders_[clt].seq_ == seq);
 		dbg_log(DBG_INFO, "clt %d released lck %llu at seq %d\n", clt, lid, seq);
-		locks_[lid].owner_.clt_ = -1;
-		locks_[lid].owner_.seq_ = -1;
-		//locks_[lid].revoke_sent_ = false;
-		released_locks_.push_back(lid);
-		pthread_cond_signal(&release_cv_);
+		//TODO: remove holder and if no more holders set lock free
+		locks_[lid].holders_.erase(clt);
+		if (locks_[lid].holders_.empty()) {
+			locks_[lid].status_ = Lock::FREE;
+			//locks_[lid].revoke_sent_ = false;
+			available_locks_.push_back(lid);
+			pthread_cond_signal(&available_cv_);
+		}
 	}
 	pthread_mutex_unlock(&mutex_);
 	return r;
@@ -200,25 +255,42 @@ LockManager::subscribe(int clt, std::string id, int &unused)
 void
 LockManager::revoker()
 {
+	std::set<lock_protocol::LockId>::iterator itr_l;
+	std::map<int, ClientRecord>::iterator     itr_icr;
+	lock_protocol::LockId                     lid;
+	int                                       rpc_method;
+	int                                       clt;
+
 	while (true) {
 		pthread_mutex_lock(&mutex_);
 		while (revoke_set_.empty()) {
 			pthread_cond_wait(&revoke_cv_, &mutex_);
 		}
-		std::set<lock_protocol::LockId>::iterator itr = revoke_set_.begin();
-		lock_protocol::LockId lid = *itr;
+		itr_l = revoke_set_.begin();
+		lid = *itr_l;
 		revoke_set_.erase(lid);
-		int unused;
-		Lock &l = locks_[lid];
-		rpcc *cl = clients_[l.owner_.clt_];
-		if (cl) {
-			if (cl->call(rlock_protocol::revoke, lid, l.owner_.seq_, unused)
-			    != rlock_protocol::OK) 
-			{
-				dbg_log(DBG_ERROR, "failed to send revoke\n");
-			}
+		Lock& l = locks_[lid];
+		if (l.revoke_type_ == Lock::REVOKE_DOWNGRADE) {
+			rpc_method = rlock_protocol::revoke_downgrade;
 		} else {
-			dbg_log(DBG_ERROR, "client %d didn't subscribe\n", l.owner_.clt_);
+			rpc_method = rlock_protocol::revoke_release;
+		}
+		for (itr_icr = l.holders_.begin(); 
+		     itr_icr != l.holders_.end(); itr_icr++) 
+		{
+			int           unused;
+			int           clt = (*itr_icr).first;
+			ClientRecord& cr = (*itr_icr).second;
+			rpcc*         cl = clients_[clt];
+			if (cl) {
+				if (cl->call(rpc_method, lid, cr.seq_, unused)
+					!= rlock_protocol::OK) 
+				{
+					dbg_log(DBG_ERROR, "failed to send revoke\n");
+				}
+			} else {
+				dbg_log(DBG_ERROR, "client %d didn't subscribe\n", clt);
+			}
 		}
 		pthread_mutex_unlock(&mutex_);
 		usleep(500);
@@ -234,15 +306,15 @@ LockManager::retryer()
 
 	while (true) {
 		pthread_mutex_lock(&mutex_);
-		while (released_locks_.empty()) {
-			pthread_cond_wait(&release_cv_, &mutex_);
+		while (available_locks_.empty()) {
+			pthread_cond_wait(&available_cv_, &mutex_);
 		}
-		lock_protocol::LockId lid = released_locks_.front();
+		lock_protocol::LockId lid = available_locks_.front();
 		// XXX warning: this is not fault-tolerant
-		released_locks_.pop_front();
+		available_locks_.pop_front();
 		Lock &l = locks_[lid];
-		std::deque<ClientRecord> &wq = l.waiting_list_;
-		ClientRecord *cr = NULL;
+		std::deque<ClientRecord>& wq = l.waiting_list_;
+		ClientRecord* cr = NULL;
 		if (!wq.empty()) {
 			cr = &wq.front();
 			l.expected_clt_ = cr->clt_;
@@ -263,9 +335,20 @@ LockManager::retryer()
 				dbg_log(DBG_ERROR,
 				        "failed to tell client %d to retry lock %llu\n", 
 				        cr->clt_, lid);
+				//FIXME: if cannot reach client then we need to send a retry to the
+				//next waiting client. But here you don't actually know whether client
+				//got the call but just didn't reply. so you need to do some heart beat
+				//detection to figure whether the client is dead. If finally you decide
+				//to proceed with the next waiting client we need to ensure that he 
+				//requested the lock in the same mode. For example, if the lock is available
+				//in SHARED mode, we reached this function because the now dead client
+				//requested the lock in SHARED mode so the lock was available for him
+				//to grab. However, if the next client requires the lock in EXCLUSIVE 
+				//mode then sending him a retry is unnecessary as we know that he will
+				//fail.
 			}
 		}
-    //usleep(500);
+		//usleep(500);
 	}
 }
 
