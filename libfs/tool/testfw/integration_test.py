@@ -39,6 +39,8 @@ class Test:
         if stderr_ == 'none' or stderr_ == 'buffered':
             self.stderr_file = tempfile.TemporaryFile()
         self.args.append('-T,-tag=%s' % self.name)
+        if stderr_ == 'interactive':
+            self.args.append('-T,-interactive')
         self.p = subprocess.Popen([self.cmd] + self.args + extra_args.split(), shell=False,
                                  stdin=subprocess.PIPE,
                                  stdout=self.stdout_file,

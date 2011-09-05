@@ -35,17 +35,27 @@ def runIntegrationTests(source, target, env):
                     continue
                 test.stderr_file.seek(0)
                 lines = test.stderr_file.readlines()
-                if len(lines) > 0 and re.search("xml", lines[0]):
-                    xmlout = string.join(lines)
-                    tree = xml.etree.ElementTree.XML(xmlout)
-                    test_list = []
-                    for child in tree:
-                        failure_list = []
-                        for failure in child:
-                            failure_list.append(failure.attrib["message"])
-                            itest_has_failure = True
-                        test_list.append((child.attrib["suite"], child.attrib["name"], child.attrib["time"], failure_list))
-                    itest_results.extend(test_list)
+                if len(lines) > 0:
+                    xml_lines=[]
+                    line_is_xml = False
+                    for line in lines:
+                        if re.search("xml", line):
+                            line_is_xml = True
+                        if line_is_xml:
+                            xml_lines.append(line)
+                        if re.search("/unittest-results", line):
+                            line_is_xml = False
+                    if len(xml_lines) > 0:
+                        xmlout = string.join(xml_lines)
+                        tree = xml.etree.ElementTree.XML(xmlout)
+                        test_list = []
+                        for child in tree:
+                            failure_list = []
+                            for failure in child:
+                                failure_list.append(failure.attrib["message"])
+                                itest_has_failure = True
+                            test_list.append((child.attrib["suite"], child.attrib["name"], child.attrib["time"], failure_list))
+                        itest_results.extend(test_list)
                 else:
                     # if the process is not a process we killed (signal 9) then
                     # something really bad happen, fail immediately 

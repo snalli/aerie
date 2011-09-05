@@ -13,7 +13,6 @@ struct CountRegion {
 
 DEFINE_SHARED_MEMORY_REGION_FIXTURE(LockFixture,CountRegion)
 
-
 inline int LockFixture::InitRegion(void* args)
 {
 	CountRegion*        region;

@@ -26,8 +26,6 @@ main(int argc, char *argv[])
 	int               debug_level = 0;
 	uid_t             principal_id;
 	char              ch = 0;
-	const char*       suiteName;
-	const char*       testName;
 	char*             xdst=NULL;
 	extern int        opterr;
 
@@ -82,9 +80,7 @@ main(int argc, char *argv[])
 	
 	libfs_init(principal_id, xdst);
 
-	suiteName = test_fw.SuiteName();
-	testName = test_fw.TestName();
-	ret = runTests(suiteName, testName);
+	ret = test_fw.RunTests();
 
 	libfs_shutdown();
 	return ret;

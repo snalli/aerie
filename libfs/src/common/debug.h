@@ -46,6 +46,7 @@ static char* dbg_code2str[] = {
 };
 
 const int dbg_terminate_level = DBG_ERROR;
+const int dbg_stderr_level = DBG_WARNING;
 
 extern int   dbg_modules[];
 extern int   dbg_level;
@@ -55,9 +56,14 @@ extern char* dbg_identifier;
 
 #define dbg_log(level, format, ...)                                            \
   do {                                                                         \
+    FILE* ferr = stdout;                                                       \
     if (level && (level <= dbg_level ||                                        \
-                  level <= dbg_terminate_level)) {                             \
-      fprintf(stderr, "[%s] %s in %s <%s,%d>: " format,                        \
+                  level <= dbg_terminate_level))                               \
+    {                                                                          \
+      if (level <= dbg_stderr_level) {                                         \
+        ferr=stderr;                                                           \
+      }                                                                        \
+      fprintf(ferr, "[%s] %s in %s <%s,%d>: " format,                          \
               dbg_identifier,                                                  \
               dbg_code2str[level],                                             \
               __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);                \
@@ -70,11 +76,15 @@ extern char* dbg_identifier;
 
 #define DBG_LOG(level, module, format, ...)                                    \
   do {                                                                         \
+    FILE* ferr = stdout;                                                       \
     if (level &&                                                               \
 	    (dbg_modules[module] || dbg_modules[dbg_module_all]) &&                \
 	    (level <= dbg_level || level <= dbg_terminate_level))                  \
     {                                                                          \
- 	  fprintf(stderr, "[%s] %s in %s <%s,%d>: " format,                        \
+      if (level <= dbg_stderr_level) {                                         \
+        ferr=stderr;                                                           \
+      }                                                                        \
+ 	  fprintf(ferr, "[%s] %s in %s <%s,%d>: " format,                          \
               dbg_identifier,                                                  \
               dbg_code2str[level],                                             \
               __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);                \
