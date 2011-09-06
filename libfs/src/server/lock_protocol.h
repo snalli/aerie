@@ -7,14 +7,15 @@
 
 class lock_protocol {
 public:
-	enum xxstatus { OK, RETRY, RPCERR, NOENT, IOERR };
+	enum xxstatus { OK, TRY_UPGRADE, RETRY, RPCERR, NOENT, IOERR };
 	typedef int status;
 	typedef unsigned long long LockId;
 	enum rpc_numbers {
 		acquire_exclusive = 0x7001,
 		acquire_shared = 0x7002,
 		release,
-		subscribe,	// for lab 5
+		downgrade,
+		subscribe,
 		stat
 	};
 };

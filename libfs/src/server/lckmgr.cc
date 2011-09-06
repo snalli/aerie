@@ -208,7 +208,6 @@ LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
 	{
 		assert(locks_[lid].holders_[clt].seq_ == seq);
 		dbg_log(DBG_INFO, "clt %d released lck %llu at seq %d\n", clt, lid, seq);
-		//TODO: remove holder and if no more holders set lock free
 		locks_[lid].holders_.erase(clt);
 		if (locks_[lid].holders_.empty()) {
 			locks_[lid].status_ = Lock::FREE;
@@ -220,6 +219,32 @@ LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
+
+
+lock_protocol::status
+LockManager::downgrade(int clt, int seq, lock_protocol::LockId lid, int& unused)
+{
+	std::map<int, ClientRecord>::iterator  itr_icr;
+	lock_protocol::status                  r = lock_protocol::OK;
+	pthread_mutex_lock(&mutex_);
+
+	dbg_log(DBG_INFO, "clt %d seq %d downgrading lock %llu\n", clt, seq); 
+	
+	if (locks_.find(lid) != locks_.end() && 
+	    locks_[lid].holders_.find(clt) != locks_[lid].holders_.end())
+	{
+		assert(locks_[lid].holders_.size() == 1); // single owner
+		assert(locks_[lid].holders_[clt].seq_ == seq);
+		dbg_log(DBG_INFO, "clt %d downgraded lck %llu at seq %d\n", clt, lid, seq);
+		locks_[lid].status_ = Lock::SHARED;
+		//locks_[lid].revoke_sent_ = false;
+		available_locks_.push_back(lid);
+		pthread_cond_signal(&available_cv_);
+	}
+	pthread_mutex_unlock(&mutex_);
+	return r;
+}
+
 
 lock_protocol::status
 LockManager::stat(lock_protocol::LockId lid, int &r)

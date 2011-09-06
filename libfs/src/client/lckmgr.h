@@ -8,8 +8,11 @@
 #include <string>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
+#include <set>
 #include "rpc/rpc.h"
 #include "client/lock_protocol.h"
+
+#define TRACK_SHARERS
 
 namespace client {
 
@@ -19,6 +22,7 @@ namespace client {
 class lock_release_user {
 public:
 	virtual void dorelease(lock_protocol::LockId) = 0;
+	virtual void dodowngrade(lock_protocol::LockId) = 0;
 	virtual ~lock_release_user() {};
 };
 
@@ -33,11 +37,14 @@ public:
 //  - serve requests using a single core in an event-based fashion
 //
 // On the client a lock can be in several states:
-//  - xfree: client owns the lock (exclusively) and no thread has it
-//  - sfree: client shares the lock and no thread has it
-//  - xlocked: client owns the lock (exclusively) and a thread has it
-//  - slocked: client shares the lock and one thread or more have it
-//  - acquiring: the client is acquiring ownership
+//  - free_x: client owns the lock (exclusively) and no thread has it
+//  - free_s: client shares the lock and no thread has it
+//  - locked_x: client owns the lock (exclusively) and a thread has it
+//  - locked_s: client shares the lock and one thread or more have it
+//  - locked_xs: client owns the lock (exclusively) and at least one thread 
+//               has it locked in shared mode
+//  - acquiring_x: the client is acquiring exclusive ownership
+//  - acquiring_s: the client is acquiring shared ownership
 //  - releasing: the client is releasing ownership
 //
 // in the state acquiring and xlocked there may be several threads
@@ -116,16 +123,16 @@ public:
 	pthread_cond_t        retry_cv_;
 
 	pthread_t             owner_;
-
-	// the sequence number of the latest *COMPLETED* acquire request made
-	// by the client to obtain this lock
-	// by completed, we mean the remote acquire() call returns with a value.
+	std::set<pthread_t>   sharers_;
+	// The sequence number of the latest *COMPLETED* acquire request made
+	// by the client to obtain this lock.
+	// By completed, we mean the remote acquire() call returns with a value.
 	int                   seq_;
 	bool                  used_; // set to true after first use
 	bool                  can_retry_; // set when a retry message from the server is received
-
+	int                   revoke_type_; // type of revocation requested
 private:
-	LockStatus status_;
+	LockStatus            status_;
 
 };
 
@@ -146,6 +153,7 @@ public:
 	lock_protocol::status stat(lock_protocol::LockId);
 	void releaser();
 
+	rlock_protocol::status revoke(lock_protocol::LockId, int, int, int&);
 	rlock_protocol::status revoke_release(lock_protocol::LockId, int, int&);
 	rlock_protocol::status revoke_downgrade(lock_protocol::LockId, int, int&);
 	// Tell this client to retry requesting the lock in which this client
@@ -153,11 +161,11 @@ public:
 	rlock_protocol::status retry(lock_protocol::LockId, int, int&);
 
 private:
-	int do_acquire(Lock*);
+	int do_acquire(Lock*, bool);
 	int do_release(Lock*);
+	int do_downgrade(Lock*);
 	Lock* GetOrCreateLockInternal(lock_protocol::LockId);
-	lock_protocol::status AcquireExclusiveInternal(Lock*);
-	lock_protocol::status AcquireSharedInternal(Lock*);
+	lock_protocol::status AcquireInternal(Lock*, bool);
 	lock_protocol::status ReleaseInternal(Lock*);
 
 	class lock_release_user*                             lu;

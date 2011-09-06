@@ -3,6 +3,7 @@ DEPENDENCIES
   http://code.google.com/p/google-sparsehash/
 * Boost C++ Libraries
 * UnitTest++
+* libconfig++
 
 
 STYLE GUIDE

@@ -7,7 +7,7 @@
 #include "client/libfs.h"
 
 struct CountRegion {
-	int             ct[256];
+	unsigned int    ct[256];
 	pthread_mutex_t count_mutex;
 	ut_barrier_t    barrier;
 };

@@ -56,6 +56,7 @@ public:
 	lock_protocol::status acquire_exclusive(int, int, lock_protocol::LockId, int &);
 	lock_protocol::status acquire_shared(int, int, lock_protocol::LockId, int &);
 	lock_protocol::status release(int, int, lock_protocol::LockId, int &);
+	lock_protocol::status downgrade(int, int, lock_protocol::LockId, int &);
 	// subscribe for future notifications by telling the server the RPC addr
 	lock_protocol::status subscribe(int, std::string, int &);
 	void revoker();

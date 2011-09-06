@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include "rpc/rpc.h"
+#include "tool/testfw/integrationtest.h"
+#include "tool/testfw/testfw.h"
+#include "tool/testfw/ut_barrier.h"
+#include "client/client_i.h"
+#include "client/lock_protocol.h"
+#include "client/libfs.h"
+#include "lock.fixture.hxx"
+#include "checklock.hxx"
+
+using namespace client;
+
+static lock_protocol::LockId a = 1;
+static lock_protocol::LockId b = 2;
+static lock_protocol::LockId c = 3;
+
+
+SUITE(Lock)
+{
+	TEST_FIXTURE(LockFixture, TestSharedLockUnlockConcurrentClients1)
+	{
+		CHECK(Client::TestServerIsAlive() == 0);
+
+		global_lckmgr->AcquireShared(a);
+		CHECK(check_grant_s(region_, a) == 0);
+		ut_barrier_wait(&region_->barrier); 
+		global_lckmgr->Release(a);
+		CHECK(check_release(region_, a) == 0);
+	}
+
+	TEST_FIXTURE(LockFixture, TestSharedLockUnlockConcurrentClients2)
+	{
+		CHECK(Client::TestServerIsAlive() == 0);
+		
+		global_lckmgr->AcquireExclusive(a);
+		CHECK(check_grant_x(region_, a) == 0);
+		global_lckmgr->Release(a);
+		CHECK(check_release(region_, a) == 0);
+
+		ut_barrier_wait(&region_->barrier); 
+		
+		global_lckmgr->AcquireShared(a);
+		CHECK(check_grant_s(region_, a) == 0);
+		
+		ut_barrier_wait(&region_->barrier); 
+		global_lckmgr->Release(a);
+		CHECK(check_release(region_, a) == 0);
+	}
+
+}
