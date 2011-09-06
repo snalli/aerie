@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/ut_barrier.h"
+#include "client/libfs.h"
 
 struct CountRegion {
 	int             ct[256];

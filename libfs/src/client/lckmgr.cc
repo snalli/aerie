@@ -133,7 +133,7 @@ LockManager::~LockManager()
 			ReleaseInternal(itr->second);
 			do_release(itr->second);
 		}
-		// TODO what about other states?
+		// FIXME: what about other states?
 	}
 	pthread_mutex_unlock(&mutex_);
 	pthread_cond_destroy(&revoke_cv);

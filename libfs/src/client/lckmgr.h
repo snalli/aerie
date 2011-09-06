@@ -132,7 +132,7 @@ private:
 
 class LockManager {
 public:
-	LockManager(rpcc*, rpcs*, std::string, class lock_release_user* l = 0);
+	LockManager(rpcc*, rpcs*, std::string, class lock_release_user*);
 	~LockManager();
 	Lock* GetOrCreateLock(lock_protocol::LockId);
 	lock_protocol::status AcquireShared(Lock*);

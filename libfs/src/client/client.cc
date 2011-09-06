@@ -65,7 +65,7 @@ Client::Init(int principal_id, char* xdst)
 	// create necessary managers
 	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
 	global_smgr = new StorageManager(rpc_client, principal_id);
-	global_lckmgr = new LockManager(rpc_client, rpc_server, id);
+	global_lckmgr = new LockManager(rpc_client, rpc_server, id, 0);
 
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
