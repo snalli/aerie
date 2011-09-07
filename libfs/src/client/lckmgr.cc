@@ -214,6 +214,7 @@ LockManager::releaser()
 			}
 			// wait until the lock is released 
 			// TODO: ping the holder to release/downgrade the lock before I sleep-wait
+			// File ISSUE
 			pthread_cond_wait(&l->status_cv_, &mutex_);
 		}
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
@@ -261,7 +262,8 @@ check_state:
 	switch (l->status()) {
 		case Lock::FREE_X:
 			// great! no one is using the cached lock
-			dbg_log(DBG_INFO, "[%d] lock %llu free (X) locally: grant to %lu\n",
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
+			        "[%d] lock %llu free (X) locally: grant to %lu\n",
 			        cl2srv_->id(), lid, (unsigned long)pthread_self());
 			r = lock_protocol::OK;
 			if (xmode) {
@@ -277,6 +279,7 @@ check_state:
 				// FIXME: This step could be done more efficiently but we keep 
 				// it simple for now. The best way is to have a special UPGRADE
 				// call. 
+				// File ISSUE
 				if (do_release(l) == lock_protocol::OK) {
 					// we set the lock's status to none instead of erasing it
 					l->set_status(Lock::NONE);
@@ -321,6 +324,8 @@ check_state:
 				// TODO: what? need acquire the lock in X mode, thus fall through to none
 				// only if I am the single reader (that is ask for upgrade)
 				// Make UPGRADE call
+				// To upgrade the lock there must be no other local holders
+				// File ISSUE
 				assert(0 && "UPGRADE");
 			}
 		case Lock::LOCKED_XS:

@@ -371,6 +371,7 @@ LockManager::retryer()
 				//to grab. However, if the next client requires the lock in EXCLUSIVE 
 				//mode then sending him a retry is unnecessary as we know that he will
 				//fail.
+				// File ISSUE
 			}
 		}
 		//usleep(500);
