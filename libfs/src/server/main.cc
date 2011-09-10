@@ -240,10 +240,9 @@ void startserver()
 	serverp->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
 
 	serverp->reg(lock_protocol::stat, lm, &LockManager::stat);
-	serverp->reg(lock_protocol::acquire_exclusive, lm, &LockManager::acquire_exclusive);
-	serverp->reg(lock_protocol::acquire_shared, lm, &LockManager::acquire_shared);
+	serverp->reg(lock_protocol::acquire, lm, &LockManager::acquire);
 	serverp->reg(lock_protocol::release, lm, &LockManager::release);
-	serverp->reg(lock_protocol::downgrade, lm, &LockManager::downgrade);
+//	serverp->reg(lock_protocol::downgrade, lm, &LockManager::downgrade);
 	serverp->reg(lock_protocol::subscribe, lm, &LockManager::subscribe);
 }
 

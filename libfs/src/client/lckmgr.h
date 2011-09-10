@@ -154,8 +154,6 @@ public:
 	void releaser();
 
 	rlock_protocol::status revoke(lock_protocol::LockId, int, int, int&);
-	rlock_protocol::status revoke_release(lock_protocol::LockId, int, int&);
-	rlock_protocol::status revoke_downgrade(lock_protocol::LockId, int, int&);
 	// Tell this client to retry requesting the lock in which this client
 	// was interest when that lock just became available.
 	rlock_protocol::status retry(lock_protocol::LockId, int, int&);

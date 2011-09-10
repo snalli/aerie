@@ -10,6 +10,7 @@
 
 namespace server {
 
+
 class ClientRecord {
 public:
 	ClientRecord();
@@ -17,15 +18,18 @@ public:
 
 	int clt_;
 	int seq_;
-	int req_lck_mode_;
+	int mode_;
 };
 
+
 struct Lock {
-	enum Mode {
-		NONE = -1,
-		FREE,
-		EXCLUSIVE,
-		SHARED
+	enum Revoke {
+		RVK_NO = lock_protocol::RVK_NO,      // no revoke
+		RVK_NL = lock_protocol::RVK_NL,      
+		RVK_XL2SL = lock_protocol::RVK_XL2SL,
+		RVK_SR2SL = lock_protocol::RVK_SR2SL,
+		RVK_XR2XL = lock_protocol::RVK_XR2XL,
+		RVK_IXSL2IX = lock_protocol::RVK_IXSL2IX,
 	};
 
 	enum RevokeType {
@@ -37,13 +41,18 @@ struct Lock {
 	Lock();
 	~Lock();
 
-	Mode                         status_;
+	bool IsModeCompatible(int);
+	void AddHolderAndUpdateStatus(const ClientRecord&);
+	void RemoveHolderAndUpdateStatus(int);
+	void ConvertHolderAndUpdateStatus(int, int);
+
+	uint32_t                     status_;
+	uint8_t                      mode_cnt_[lock_protocol::IXSL+1];
 	std::map<int, ClientRecord>  holders_;
 	int                          expected_clt_;
 	std::deque<ClientRecord>     waiting_list_;
 	bool                         retry_responded_;
 	bool                         revoke_sent_;
-	RevokeType                   revoke_type_;
 	pthread_cond_t               retry_responded_cv_;
 };
 
@@ -53,10 +62,9 @@ public:
 	LockManager();
 	~LockManager();
 	lock_protocol::status stat(lock_protocol::LockId, int &);
-	lock_protocol::status acquire_exclusive(int, int, lock_protocol::LockId, int &);
-	lock_protocol::status acquire_shared(int, int, lock_protocol::LockId, int &);
-	lock_protocol::status release(int, int, lock_protocol::LockId, int &);
-	lock_protocol::status downgrade(int, int, lock_protocol::LockId, int &);
+	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, int &);
+	lock_protocol::status release(int, int, lock_protocol::LockId, int, int &);
+
 	// subscribe for future notifications by telling the server the RPC addr
 	lock_protocol::status subscribe(int, std::string, int &);
 	void revoker();
@@ -64,7 +72,6 @@ public:
 	void wait_acquie(lock_protocol::LockId);
 
 private:
-	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int &);
 
 	std::map<int, rpcc*>                    clients_;
 	std::map<lock_protocol::LockId, Lock>   locks_;

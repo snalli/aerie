@@ -8,11 +8,30 @@
 class lock_protocol {
 public:
 	enum xxstatus { OK, TRY_UPGRADE, RETRY, RPCERR, NOENT, IOERR };
+	enum mode {
+		NONE = -1,
+		FREE, // free
+		SL,   // shared local
+		SR,   // shared recursive
+		IS,   // intent shared
+		IX,   // intent exclusive
+		XL,   // exclusive local
+		XR,   // exclusive recursive
+		IXSL, // intent exclusive and shared local
+	};
+	enum revoke {
+		RVK_NO = 0,      // no revoke
+		RVK_NL,      
+		RVK_XL2SL,
+		RVK_SR2SL,
+		RVK_XR2XL,
+		RVK_IXSL2IX
+	};
+
 	typedef int status;
 	typedef unsigned long long LockId;
 	enum rpc_numbers {
-		acquire_exclusive = 0x7001,
-		acquire_shared = 0x7002,
+		acquire = 0x7001,
 		release,
 		downgrade,
 		subscribe,
@@ -26,9 +45,8 @@ public:
 	enum xxstatus { OK, RPCERR };
 	typedef int status;
 	enum rpc_numbers {
-		revoke_release = 0x8001,
-		revoke_downgrade = 0x8002,
-		retry = 0x8003
+		revoke = 0x8001,
+		retry = 0x8002
 	};
 };
 

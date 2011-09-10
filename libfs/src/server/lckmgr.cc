@@ -9,32 +9,100 @@
 
 namespace server {
 
+
+#if 0
+static int table_mode[][] = {
+	/*                                    Requested Lock Mode                             */
+	/*                SL,           SR,           XL,           XR,       IS,           IX,           IXSL            */
+	/* Status   */ 
+	/* FREE     */ {  Lock::SL,     Lock::SR,     Lock::XL,     Lock::XR, Lock::IS,     Lock::IX,     Lock::IXSL },
+	/* SL       */ {  Lock::SL,     Lock::SLSR,   Lock::NA,     Lock::NA, Lock::ISSL,   Lock::IXSL,   Lock::IXSL },
+	/* SR       */ {  Lock::SLSR,   Lock::SR,     Lock::NA,     Lock::NA, Lock::ISSR,   Lock::NA,     Lock::NA },
+	/* SLSR     */ {  Lock::SLSR,   Lock::SLSR,   Lock::NA,     Lock::NA, Lock::ISSLSR, Lock::NA,     Lock::NA },
+	/* IS       */ {  Lock::ISSL,   Lock::ISSR,   Lock::ISXL,   Lock::NA, Lock::IS,     Lock::ISIX,   Lock::ISIXSL },
+	/* IX       */ {  Lock::IXSL,   Lock::NA,     Lock::IXXL,   Lock::NA, Lock::ISIX,   Lock::IX,     Lock::IXSL },
+	/* XL       */ {  Lock::NA,     Lock::NA,     Lock::NA,     Lock::NA, Lock::ISXL,   Lock::IXXL,   Lock::NA },
+	/* XR       */ {  Lock::NA,     Lock::NA,     Lock::NA,     Lock::NA, Lock::NA,     Lock::NA,     Lock::NA },
+	/* ISSL     */ {  Lock::ISSL,   Lock::ISSLSR, Lock::NA,     Lock::NA, Lock::ISSL,   Lock::ISIXSL, Lock::ISIXSL },
+	/* ISSLSR   */ {  Lock::ISSLSR, Lock::ISSLSR, Lock::NA,     Lock::NA, Lock::ISSLSR, Lock::NA,     Lock::NA },
+	/* ISSR     */ {  Lock::ISSLSR, Lock::ISSR,   Lock::NA,     Lock::NA, Lock::ISSR,   Lock::NA,     Lock::NA },
+	/* ISXL     */ {  Lock::NA,     Lock::NA,     Lock::NA,     Lock::NA, Lock::ISXL,   Lock::ISIXXL, Lock::NA },
+	/* ISIX     */ {  Lock::ISIXSL, Lock::ISIX,   Lock::ISIXXL, Lock::NA, Lock::ISIX,   Lock::ISIX,   Lock::ISIXSL },
+	/* ISIXXL   */ {  Lock::NA,     Lock::NA,     Lock::NA,     Lock::NA, Lock::ISIXXL, Lock::ISIXXL, Lock::NA },
+	/* ISIXSL   */ {  Lock::ISIXSL, Lock::NA,     Lock::NA,     Lock::NA, Lock::ISIXSL, Lock::ISIXSL, Lock::ISIXSL },
+	/* IXSL     */ {  Lock::IXSL,   Lock::NA,     Lock::NA,     Lock::NA, Lock::ISIXSL, Lock::IXSL,   Lock::IXSL },
+	/* IXXL     */ {  Lock::NA,     Lock::NA,     Lock::NA,     Lock::NA, Lock::ISIXXL, Lock::IXXL,   Lock::NA },
+
+#endif 
+
+
+static std::string mode2str[] = { "SL", "SR", "IS", "IX", "XL", "XR", "IXSL"};
+
+static bool compatibility_table[8][8] = {
+	/*                FREE, SL,    SR,    XL,    XR,    IS,    IX,    IXSL   */
+	/* FREE     */ {  true, true,  true,  true,  true,  true,  true,  true },
+	/* SL       */ {  true, true,  true,  false, false, true,  true,  true },
+	/* SR       */ {  true, true,  true,  false, false, true,  false, false },
+	/* IS       */ {  true, true,  true,  true,  false, true,  true,  true },
+	/* IX       */ {  true, true,  false, true,  false, true,  true,  true },
+	/* XL       */ {  true, false, false, false, false, true,  true,  false },
+	/* XR       */ {  true, false, false, false, false, false, false, false },
+	/* IXSL     */ {  true, true,  false, false, false, true,  true,  true }
+};
+
+
+static int revoke_table[8][8] = {
+	/*                                                              Requested Lock Mode                                                            */
+	/*                FREE,         SL,           SR,           XL,                XR,           IS,              IX,              IXSL            */
+	/* FREE     */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO },
+	/* SL       */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO },
+	/* SR       */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_SR2SL, Lock::RVK_SR2SL },
+	/* IS       */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO },
+	/* IX       */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO },
+	/* XL       */ {  Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_XL2SL },
+	/* XR       */ {  Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_XR2XL, Lock::RVK_XR2XL, Lock::RVK_NL },
+	/* IXSL     */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_IXSL2IX, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO },
+};
+
+
+int revoke2mode_table[] = {
+	/* RVK_NO      */  -1,
+	/* RVK_NL      */  lock_protocol::FREE,
+	/* RVK_XL2SL   */  lock_protocol::SL,
+	/* RVK_SR2SL   */  lock_protocol::SL,
+	/* RVK_XR2XL   */  lock_protocol::XL,
+	/* RVK_IXSL2IX */  lock_protocol::IX
+};
+
 ClientRecord::ClientRecord()
 	: clt_(-1), 
 	  seq_(-1),
-	  req_lck_mode_(Lock::NONE)
+	  mode_(lock_protocol::NONE)
 
 {
 
 }
 
 
-ClientRecord::ClientRecord(int clt, int seq, int req_lck_mode)
+ClientRecord::ClientRecord(int clt, int seq, int mode)
 	: clt_(clt), 
 	  seq_(seq),
-	  req_lck_mode_(req_lck_mode)
+	  mode_(mode)
 {
 
 }
 
 
 Lock::Lock()
-	: status_(Lock::FREE),
+	: status_(0),
 	  expected_clt_(-1), 
 	  retry_responded_(false), 
 	  revoke_sent_(false)
 {
 	pthread_cond_init(&retry_responded_cv_, NULL);
+	for (int i=0; i<lock_protocol::IXSL+1; i++) {
+		mode_cnt_[i] = 0;
+	}
 }
 
 
@@ -44,10 +112,65 @@ Lock::~Lock()
 }
 
 
+bool
+Lock::IsModeCompatible(int mode)
+{
+	int val = status_;
+	int m;
+
+	while (val) {
+		m = __builtin_ctz(val); 
+		val &= ~(1 << m);
+		if (!compatibility_table[m][mode]) { 
+			return false;
+		}
+	}
+	return true;
+}
+
+
+void
+Lock::AddHolderAndUpdateStatus(const ClientRecord& cr)
+{
+	assert(holders_.find(cr.clt_) == holders_.end()); // a holder should use convert
+	holders_[cr.clt_] = cr;
+	mode_cnt_[cr.mode_]++;
+	status_ |= 1 << cr.mode_;
+}
+
+
+void
+Lock::RemoveHolderAndUpdateStatus(int clt)
+{
+	assert(holders_.find(clt) != holders_.end());
+	ClientRecord& cr = holders_[clt];
+	assert(mode_cnt_[cr.mode_]>0);
+	if (--mode_cnt_[cr.mode_] == 0) {
+		status_ &= ~(1 << cr.mode_);
+	}
+	holders_.erase(clt);
+}
+
+
+void
+Lock::ConvertHolderAndUpdateStatus(int clt, int new_mode)
+{
+	assert(holders_.find(clt) != holders_.end());
+	ClientRecord& cr = holders_[clt];
+	assert(mode_cnt_[cr.mode_]>0);
+	if (--mode_cnt_[cr.mode_] == 0) {
+		status_ &= ~(1 << cr.mode_);
+	}
+	cr.mode_ = new_mode;
+	mode_cnt_[cr.mode_]++;
+	status_ |= 1 << cr.mode_;
+}
+
+
 static void *
 revokethread(void *x)
 {
-	LockManager *lckmgr = (LockManager *) x;
+	LockManager* lckmgr = (LockManager *) x;
 	lckmgr->revoker();
 	return 0;
 }
@@ -56,7 +179,7 @@ revokethread(void *x)
 static void *
 retrythread(void *x)
 {
-	LockManager *lckmgr = (LockManager *) x;
+	LockManager* lckmgr = (LockManager *) x;
 	lckmgr->retryer();
 	return 0;
 }
@@ -90,63 +213,64 @@ LockManager::~LockManager()
 }
 
 
-lock_protocol::status
-LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int req_lck_mode,
-                     int &queue_len)
+	
+static std::string
+state2str(uint32_t state)
 {
+	int         m;
+	std::string str;
+	
+	while (state) {
+		m = __builtin_ctz(state); 
+		state &= ~(1 << m);
+		str+=mode2str[m];
+	}
+	return str;
+}
+
+
+
+lock_protocol::status
+LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, int flags,
+                     int &unused)
+{
+	char                  statestr[128];
+	uint32_t              next_state;
+	int                   queue_len;
 	lock_protocol::status r;
 	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
-	        lid, req_lck_mode == Lock::EXCLUSIVE ? "EXCLUSIVE": "SHARED");
+	        lid, mode2str[mode].c_str());
+
 	pthread_mutex_lock(&mutex_);
 	Lock& l = locks_[lid];
 	queue_len = l.waiting_list_.size();
 	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", lid, queue_len);
 
-	if (((req_lck_mode == Lock::EXCLUSIVE && l.status_ == Lock::FREE) && 
-	     (queue_len == 0 || (queue_len > 0 && l.expected_clt_ == clt)))	||
-	    ((req_lck_mode == Lock::SHARED && 
-		  (l.status_ == Lock::FREE || l.status_ == Lock::SHARED)) && 
-	     (queue_len == 0 || (queue_len > 0 && l.expected_clt_ == clt)))
-	   )
+    if ((queue_len == 0 || (queue_len > 0 && l.expected_clt_ == clt)) &&
+		l.IsModeCompatible(mode)) 
 	{
-		dbg_log(DBG_INFO, "lock %llu is %s; granting to clt %d\n", lid, 
-		        l.status_ == Lock::FREE ? "free": "shared", clt);
-		assert(l.holders_.find(clt) == l.holders_.end());
-		l.holders_[clt] = ClientRecord(clt, seq, req_lck_mode);
-		if (req_lck_mode == Lock::EXCLUSIVE) {
-			l.status_ = Lock::EXCLUSIVE;
-		} else {
-			l.status_ = Lock::SHARED;
-		}
+		dbg_log(DBG_INFO, "lock %llu is compatible (%s); granting to clt %d\n", 
+		        lid, state2str(l.status_).c_str(), clt);
 		r = lock_protocol::OK;
+		l.AddHolderAndUpdateStatus(ClientRecord(clt, seq, mode));
+		l.expected_clt_ = -1;
 		if (queue_len != 0) {
-			dbg_log(DBG_INFO, "expected clt %d replied to retry request\n", clt);
-			l.expected_clt_ = -1;
-			// Since there are clients waiting, we have to unfortunately add this
-			// lock to the revoke set to get it back.
-			// Check the type of request (S or X) of the next client in line to 
-			// decide the type of revocation.
-			revoke_set_.insert(lid);
-			std::deque<ClientRecord> &wq = l.waiting_list_;
-			ClientRecord* cr = &wq.front();
-			if (cr->req_lck_mode_ == Lock::EXCLUSIVE) { 
-				l.revoke_type_ = Lock::REVOKE_RELEASE;
+			// Since there are clients waiting, we have two options. If the 
+			// request of the next client in line is:
+			// 1) compatible with the just serviced request, we send a retry 
+			//    msg to the waiting client.
+			// 2) incompatible with the just serviced request, we add the lock
+			//    in the revoke set to get it back.
+			std::deque<ClientRecord>& wq = l.waiting_list_;
+			ClientRecord&             cr = wq.front();
+			if (l.IsModeCompatible(cr.mode_)) {
+				available_locks_.push_back(lid);
+				pthread_cond_signal(&available_cv_);
 			} else {
-				if (req_lck_mode == Lock::SHARED) {
-					// Client is acquiring the lock in SHARED mode so don't send 
-					// him a revoke msg as the next client in line is waiting to
-					// acquire the lock in SHARED mode too. Send the waiting 
-					// client a retry.
-					available_locks_.push_back(lid);
-					pthread_cond_signal(&available_cv_);
-				} else {
-					l.revoke_type_ = Lock::REVOKE_DOWNGRADE;
-				}
+				revoke_set_.insert(lid);
+				l.revoke_sent_ = true;
+				pthread_cond_signal(&revoke_cv_);
 			}
-			l.revoke_sent_ = true;
-			pthread_cond_signal(&revoke_cv_);
-			//l.retry_responded_ = true;
-			//pthread_cond_signal(&l.retry_responded_cv);
 		} else {
 			// a brand new lock
 			l.revoke_sent_ = false;
@@ -163,16 +287,11 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int req_lck_mo
 			// i will be the head of the waiting list
 			if (!l.revoke_sent_) {
 				revoke_set_.insert(lid);
-				if (req_lck_mode == Lock::SHARED) {
-					l.revoke_type_ = Lock::REVOKE_DOWNGRADE;
-				} else {
-					l.revoke_type_ = Lock::REVOKE_RELEASE;
-				}
 				l.revoke_sent_ = true;
 				pthread_cond_signal(&revoke_cv_);
 			}
 		}
-		l.waiting_list_.push_back(ClientRecord(clt, seq, req_lck_mode));
+		l.waiting_list_.push_back(ClientRecord(clt, seq, mode));
 		r = lock_protocol::RETRY;
 	}
 	pthread_mutex_unlock(&mutex_);
@@ -181,65 +300,39 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int req_lck_mo
 
 
 lock_protocol::status
-LockManager::acquire_exclusive(int clt, int seq, lock_protocol::LockId lid, 
-                               int& queue_len)
-{
-	return acquire(clt, seq, lid, Lock::EXCLUSIVE, queue_len);
-}
-
-
-lock_protocol::status
-LockManager::acquire_shared(int clt, int seq, lock_protocol::LockId lid, 
-                            int& queue_len)
-{
-	return acquire(clt, seq, lid, Lock::SHARED, queue_len);
-}
-
-
-lock_protocol::status
-LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
+LockManager::release(int clt, int seq, lock_protocol::LockId lid, int rl_type, int& unused)
 {
 	std::map<int, ClientRecord>::iterator  itr_icr;
 	lock_protocol::status                  r = lock_protocol::OK;
 	pthread_mutex_lock(&mutex_);
+	int                                    next_status;
 
 	if (locks_.find(lid) != locks_.end() && 
 	    locks_[lid].holders_.find(clt) != locks_[lid].holders_.end())
 	{
-		assert(locks_[lid].holders_[clt].seq_ == seq);
 		dbg_log(DBG_INFO, "clt %d released lck %llu at seq %d\n", clt, lid, seq);
-		locks_[lid].holders_.erase(clt);
-		if (locks_[lid].holders_.empty()) {
-			locks_[lid].status_ = Lock::FREE;
-			//locks_[lid].revoke_sent_ = false;
-			available_locks_.push_back(lid);
-			pthread_cond_signal(&available_cv_);
+		Lock& l = locks_[lid];
+		assert(l.holders_[clt].seq_ == seq);
+		if (rl_type == lock_protocol::RVK_NL) {
+			l.RemoveHolderAndUpdateStatus(clt);
+		} else {
+			int new_mode = revoke2mode_table[rl_type];
+			l.ConvertHolderAndUpdateStatus(clt, new_mode);
 		}
-	}
-	pthread_mutex_unlock(&mutex_);
-	return r;
-}
-
-
-lock_protocol::status
-LockManager::downgrade(int clt, int seq, lock_protocol::LockId lid, int& unused)
-{
-	std::map<int, ClientRecord>::iterator  itr_icr;
-	lock_protocol::status                  r = lock_protocol::OK;
-	pthread_mutex_lock(&mutex_);
-
-	dbg_log(DBG_INFO, "clt %d seq %d downgrading lock %llu\n", clt, seq); 
-	
-	if (locks_.find(lid) != locks_.end() && 
-	    locks_[lid].holders_.find(clt) != locks_[lid].holders_.end())
-	{
-		assert(locks_[lid].holders_.size() == 1); // single owner
-		assert(locks_[lid].holders_[clt].seq_ == seq);
-		dbg_log(DBG_INFO, "clt %d downgraded lck %llu at seq %d\n", clt, lid, seq);
-		locks_[lid].status_ = Lock::SHARED;
-		//locks_[lid].revoke_sent_ = false;
-		available_locks_.push_back(lid);
-		pthread_cond_signal(&available_cv_);
+		// Check whether the lock can be made available to the next waiting client.
+		// But first ensure there is no outstanding acquire (expected_clt == -1), 
+		// which expects to get the lock otherwise we could end up making 
+		// the lock available to a second client. 
+		if (l.expected_clt_ == -1) {
+			std::deque<ClientRecord>& wq = l.waiting_list_;
+			if (!wq.empty()) {
+				ClientRecord& wcr = wq.front();
+				if (l.IsModeCompatible(wcr.mode_)) {
+					available_locks_.push_back(lid);
+					pthread_cond_signal(&available_cv_);
+				}
+			}
+		}
 	}
 	pthread_mutex_unlock(&mutex_);
 	return r;
@@ -283,8 +376,8 @@ LockManager::revoker()
 	std::set<lock_protocol::LockId>::iterator itr_l;
 	std::map<int, ClientRecord>::iterator     itr_icr;
 	lock_protocol::LockId                     lid;
-	int                                       rpc_method;
 	int                                       clt;
+	int                                       revoke_type;
 
 	while (true) {
 		pthread_mutex_lock(&mutex_);
@@ -295,11 +388,8 @@ LockManager::revoker()
 		lid = *itr_l;
 		revoke_set_.erase(lid);
 		Lock& l = locks_[lid];
-		if (l.revoke_type_ == Lock::REVOKE_DOWNGRADE) {
-			rpc_method = rlock_protocol::revoke_downgrade;
-		} else {
-			rpc_method = rlock_protocol::revoke_release;
-		}
+		ClientRecord& waiting_cr = l.waiting_list_.front();
+
 		for (itr_icr = l.holders_.begin(); 
 		     itr_icr != l.holders_.end(); itr_icr++) 
 		{
@@ -307,8 +397,10 @@ LockManager::revoker()
 			int           clt = (*itr_icr).first;
 			ClientRecord& cr = (*itr_icr).second;
 			rpcc*         cl = clients_[clt];
+			revoke_type = revoke_table[cr.mode_][waiting_cr.mode_];
+			assert(revoke_type != Lock::RVK_NO);
 			if (cl) {
-				if (cl->call(rpc_method, lid, cr.seq_, unused)
+				if (cl->call(rlock_protocol::revoke, lid, cr.seq_, revoke_type, unused)
 					!= rlock_protocol::OK) 
 				{
 					dbg_log(DBG_ERROR, "failed to send revoke\n");
@@ -337,13 +429,19 @@ LockManager::retryer()
 		lock_protocol::LockId lid = available_locks_.front();
 		// XXX warning: this is not fault-tolerant
 		available_locks_.pop_front();
-		Lock &l = locks_[lid];
+		Lock& l = locks_[lid];
 		std::deque<ClientRecord>& wq = l.waiting_list_;
 		ClientRecord* cr = NULL;
 		if (!wq.empty()) {
+			// Verify the next waiting client can indeed grab the lock,
+			// that is we don't have any false alarm arising from a race.
 			cr = &wq.front();
-			l.expected_clt_ = cr->clt_;
-			wq.pop_front();
+			if (l.IsModeCompatible(cr->mode_)) {
+				l.expected_clt_ = cr->clt_;
+				wq.pop_front();
+			} else {
+				cr = NULL;
+			}
 		}
 		pthread_mutex_unlock(&mutex_);
 

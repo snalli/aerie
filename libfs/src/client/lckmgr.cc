@@ -105,8 +105,7 @@ LockManager::LockManager(rpcc* rpc_client,
 	Locks_.set_empty_key(-1);
 
 	// register client's lock manager RPC handlers with srv2cl_
-	srv2cl_->reg(rlock_protocol::revoke_release, this, &LockManager::revoke_release);
-	srv2cl_->reg(rlock_protocol::revoke_downgrade, this, &LockManager::revoke_downgrade);
+	srv2cl_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
 	srv2cl_->reg(rlock_protocol::retry, this, &LockManager::retry);
 	r = pthread_create(&th, NULL, &releasethread, (void *) this);
 	assert (r == 0);
@@ -208,7 +207,7 @@ LockManager::releaser()
 		}
 		while (l->status() != Lock::FREE_S && l->status() != Lock::FREE_X) {
 			if (l->status() == Lock::LOCKED_XS && 
-			    l->revoke_type_ == rlock_protocol::revoke_downgrade) 
+			    l->revoke_type_ == 0 /* FIXME */) 
 			{
 				break;
 			}
@@ -220,13 +219,13 @@ LockManager::releaser()
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 		        "[%d] calling release RPC for lock %llu\n", cl2srv_->id(), lid);
 
-		if (l->revoke_type_ == rlock_protocol::revoke_release) {
+		if (l->revoke_type_ == 000 /* FIXME */) {
 			if (do_release(l) == lock_protocol::OK) {
 				// we set the lock's status to none instead of erasing it
 				l->set_status(Lock::NONE);
 				revoke_map_.erase(lid);
 			}
-		} else if (l->revoke_type_ == rlock_protocol::revoke_downgrade) {
+		} else if (l->revoke_type_ == 000 /* FIXME */) {
 			if (do_downgrade(l) == lock_protocol::OK) {
 				l->set_status(Lock::FREE_S);
 				revoke_map_.erase(lid);
@@ -542,26 +541,6 @@ LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &un
 
 
 rlock_protocol::status
-LockManager::revoke_release(lock_protocol::LockId lid, int seq, int &unused)
-{
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
-	        "[%d] server request to revoke (release) lck %llu at seq %d\n", 
-	        cl2srv_->id(), lid, seq);
-	return revoke(lid, seq, rlock_protocol::revoke_release, unused);		
-}
-
-
-rlock_protocol::status
-LockManager::revoke_downgrade(lock_protocol::LockId lid, int seq, int &unused)
-{
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
-	        "[%d] server request to revoke (downgrade) lck %llu at seq %d\n", 
-	        cl2srv_->id(), lid, seq);
-	return revoke(lid, seq, rlock_protocol::revoke_downgrade, unused);		
-}
-
-
-rlock_protocol::status
 LockManager::retry(lock_protocol::LockId lid, int seq,
                    int& current_seq)
 {
@@ -605,8 +584,9 @@ LockManager::do_acquire(Lock* l, bool xmode)
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] calling acquire rpc for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), lid, cl2srv_->id(), last_seq_+1);
-	rpc_number = (xmode) ? lock_protocol::acquire_exclusive
-	                     : lock_protocol::acquire_shared;
+	//FIXME
+	//rpc_number = (xmode) ? lock_protocol::acquire_exclusive
+	//                     : lock_protocol::acquire_shared;
 	r = cl2srv_->call(rpc_number, cl2srv_->id(), ++last_seq_, lid, queue_len);
 	l->seq_ = last_seq_;
 	if (r == lock_protocol::OK) {
