@@ -10,7 +10,8 @@
 #include <google/dense_hash_map>
 #include <set>
 #include "rpc/rpc.h"
-#include "client/lock_protocol.h"
+#include "common/gtque.h"
+#include "common/lock_protocol.h"
 
 #define TRACK_SHARERS
 
@@ -37,14 +38,9 @@ public:
 //  - serve requests using a single core in an event-based fashion
 //
 // On the client a lock can be in several states:
-//  - free_x: client owns the lock (exclusively) and no thread has it
-//  - free_s: client shares the lock and no thread has it
-//  - locked_x: client owns the lock (exclusively) and a thread has it
-//  - locked_s: client shares the lock and one thread or more have it
-//  - locked_xs: client owns the lock (exclusively) and at least one thread 
-//               has it locked in shared mode
-//  - acquiring_x: the client is acquiring exclusive ownership
-//  - acquiring_s: the client is acquiring shared ownership
+//  - free: client owns the lock (exclusively) and no thread has it
+//  - locked: client owns the lock (exclusively) and a thread has it
+//  - acquiring: the client is acquiring lock
 //  - releasing: the client is releasing ownership
 //
 // in the state acquiring and xlocked there may be several threads
@@ -83,18 +79,40 @@ public:
 // has been received.
 //
 
+
+
+// ISSUE: to support multiple threads we need to keep a local mode per 
+// each thread
+
+
+class ThreadRecord {
+public:
+	typedef pthread_t id_t;
+	typedef lock_protocol::mode mode_t;
+	typedef lock_protocol::Mode Mode;
+
+	ThreadRecord();
+	ThreadRecord(id_t, mode_t);
+
+	id_t id() const { return tid_; };
+	mode_t mode() const { return mode_; };
+	void set_mode(mode_t mode) { mode_ = mode; };
+	void set_mode(int mode) { mode_ = (mode_t) mode; };
+
+private:
+	id_t   tid_;
+	mode_t mode_;
+};
+
+
 class Lock {
 
 public:
 	enum LockStatus {
 		NONE, 
-		FREE_X, 
-		FREE_S, 
-		LOCKED_X, 
-		LOCKED_S, 
-		LOCKED_XS, 
-		ACQUIRING_X, 
-		ACQUIRING_S, 
+		FREE, 
+		LOCKED, 
+		ACQUIRING, 
 		/* RELEASING (unused) */
 		/* DOWNGRADING (unused) */
 	};
@@ -106,34 +124,39 @@ public:
 	// changes the status of this lock
 	void set_status(LockStatus);
 	LockStatus status() const;
+	// changes the local mode of this lock
+	void set_local_mode(int);
+	int local_mode();
+	bool IsModeCompatible(int);
 
 	lock_protocol::LockId lid_;
 
 	// we use only a single cv to monitor changes of the lock's status
 	// this may be less efficient because there would be many spurious
 	// wake-ups, but it's simple anyway
-	pthread_cond_t        status_cv_;
+	pthread_cond_t            status_cv_;
 
 	// condvar that is signaled when the ``used'' field is set to true
-	pthread_cond_t        used_cv_;
+	pthread_cond_t            used_cv_;
 
-	pthread_cond_t        got_acq_reply_cv_;
+	pthread_cond_t            got_acq_reply_cv_;
   
 	// condvar that is signaled when the server informs the client to retry
-	pthread_cond_t        retry_cv_;
+	pthread_cond_t            retry_cv_;
 
-	pthread_t             owner_;
-	std::set<pthread_t>   sharers_;
+	GrantQueue<ThreadRecord>  gtque_; 
 	// The sequence number of the latest *COMPLETED* acquire request made
 	// by the client to obtain this lock.
 	// By completed, we mean the remote acquire() call returns with a value.
-	int                   seq_;
-	bool                  used_; // set to true after first use
-	bool                  can_retry_; // set when a retry message from the server is received
-	int                   revoke_type_; // type of revocation requested
-private:
-	LockStatus            status_;
+	int                       seq_;
+	bool                      used_; // set to true after first use
+	bool                      can_retry_; // set when a retry message from the server is received
+	int                       revoke_type_; // type of revocation requested
 
+	lock_protocol::mode       global_mode_; // mode as known by the server
+
+private:
+	LockStatus                status_;
 };
 
 
@@ -142,12 +165,10 @@ public:
 	LockManager(rpcc*, rpcs*, std::string, class lock_release_user*);
 	~LockManager();
 	Lock* GetOrCreateLock(lock_protocol::LockId);
-	lock_protocol::status AcquireShared(Lock*);
-	lock_protocol::status AcquireShared(lock_protocol::LockId);
-	lock_protocol::status AcquireExclusive(Lock*);
-	lock_protocol::status AcquireExclusive(lock_protocol::LockId);
-	lock_protocol::status Acquire(Lock*);
-	lock_protocol::status Acquire(lock_protocol::LockId);
+	lock_protocol::status Acquire(Lock*, int);
+	lock_protocol::status Acquire(lock_protocol::LockId, int);
+	lock_protocol::status Convert(Lock*, int);
+	lock_protocol::status Convert(lock_protocol::LockId, int);
 	lock_protocol::status Release(Lock*);
 	lock_protocol::status Release(lock_protocol::LockId);
 	lock_protocol::status stat(lock_protocol::LockId);
@@ -159,12 +180,13 @@ public:
 	rlock_protocol::status retry(lock_protocol::LockId, int, int&);
 
 private:
-	int do_acquire(Lock*, bool);
+	int do_acquire(Lock*, int);
+	int do_convert(Lock*, int);
 	int do_release(Lock*);
-	int do_downgrade(Lock*);
 	Lock* GetOrCreateLockInternal(lock_protocol::LockId);
-	lock_protocol::status AcquireInternal(Lock*, bool);
-	lock_protocol::status ReleaseInternal(Lock*);
+	lock_protocol::status AcquireInternal(unsigned long, Lock*, int);
+	lock_protocol::status ConvertInternal(unsigned long, Lock*, int);
+	lock_protocol::status ReleaseInternal(unsigned long, Lock*);
 
 	class lock_release_user*                             lu;
 	std::string                                          hostname_;

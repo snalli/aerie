@@ -6,7 +6,7 @@
 #include "tool/testfw/testfw.h"
 #include "tool/testfw/ut_barrier.h"
 #include "client/client_i.h"
-#include "client/lock_protocol.h"
+#include "common/lock_protocol.h"
 #include "client/libfs.h"
 #include "lock.fixture.hxx"
 #include "checklock.hxx"
@@ -24,7 +24,7 @@ SUITE(Lock)
 	{
 		CHECK(Client::TestServerIsAlive() == 0);
 
-		global_lckmgr->AcquireShared(a);
+		global_lckmgr->Acquire(a, lock_protocol::SL);
 		CHECK(check_grant_s(region_, a) == 0);
 		ut_barrier_wait(&region_->barrier); 
 		global_lckmgr->Release(a);
@@ -35,14 +35,14 @@ SUITE(Lock)
 	{
 		CHECK(Client::TestServerIsAlive() == 0);
 		
-		global_lckmgr->AcquireExclusive(a);
+		global_lckmgr->Acquire(a, lock_protocol::XL);
 		CHECK(check_grant_x(region_, a) == 0);
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
 
 		ut_barrier_wait(&region_->barrier); 
 		
-		global_lckmgr->AcquireShared(a);
+		global_lckmgr->Acquire(a, lock_protocol::SL);
 		CHECK(check_grant_s(region_, a) == 0);
 		
 		ut_barrier_wait(&region_->barrier); 

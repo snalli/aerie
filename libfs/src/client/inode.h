@@ -42,14 +42,16 @@ protected:
 inline int
 Inode::Lock()
 {
-	global_lckmgr->Acquire(lock_);
+	//FIXME
+	//global_lckmgr->Acquire(lock_);
 }
 
 
 inline int
 Inode::Unlock()
 {
-	global_lckmgr->Release(lock_);
+	//FIXME
+	//global_lckmgr->Release(lock_);
 }
 
 

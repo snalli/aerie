@@ -6,19 +6,30 @@
 #include <deque>
 #include <set>
 #include "rpc/rpc.h"
-#include "server/lock_protocol.h"
+#include "common/gtque.h"
+#include "common/lock_protocol.h"
 
 namespace server {
 
 
 class ClientRecord {
 public:
-	ClientRecord();
-	ClientRecord(int, int, int);
+	typedef int id_t;
+	typedef lock_protocol::mode mode_t;
+	typedef lock_protocol::Mode Mode;
 
-	int clt_;
-	int seq_;
-	int mode_;
+	ClientRecord();
+	ClientRecord(id_t, int, mode_t);
+
+	id_t id() const { return clt_; };
+	mode_t mode() const { return mode_; };
+	void set_mode(mode_t mode) { mode_ = mode; };
+	void set_mode(int mode) { mode_ = (mode_t) mode; };
+
+	int    seq_;
+private:
+	id_t   clt_;
+	mode_t mode_;
 };
 
 
@@ -41,14 +52,15 @@ struct Lock {
 	Lock();
 	~Lock();
 
+	bool IsModeCompatibleInternal(int, int);
 	bool IsModeCompatible(int);
+	bool IsModeCompatibleExcludeClient(int, int);
+	void PrintHolders(std::ostream);
 	void AddHolderAndUpdateStatus(const ClientRecord&);
 	void RemoveHolderAndUpdateStatus(int);
 	void ConvertHolderAndUpdateStatus(int, int);
 
-	uint32_t                     status_;
-	uint8_t                      mode_cnt_[lock_protocol::IXSL+1];
-	std::map<int, ClientRecord>  holders_;
+	GrantQueue<ClientRecord>     gtque_;
 	int                          expected_clt_;
 	std::deque<ClientRecord>     waiting_list_;
 	bool                         retry_responded_;
@@ -61,12 +73,13 @@ class LockManager {
 public:
 	LockManager();
 	~LockManager();
-	lock_protocol::status stat(lock_protocol::LockId, int &);
-	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, int &);
-	lock_protocol::status release(int, int, lock_protocol::LockId, int, int &);
+	lock_protocol::status stat(lock_protocol::LockId, int&);
+	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, int&);
+	lock_protocol::status release(int, int, lock_protocol::LockId, int&);
+	lock_protocol::status convert(int, int, lock_protocol::LockId, int, int&);
 
 	// subscribe for future notifications by telling the server the RPC addr
-	lock_protocol::status subscribe(int, std::string, int &);
+	lock_protocol::status subscribe(int, std::string, int&);
 	void revoker();
 	void retryer();
 	void wait_acquie(lock_protocol::LockId);

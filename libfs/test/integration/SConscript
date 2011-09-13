@@ -20,7 +20,7 @@ thedir = os.path.join(Dir('#').abspath, 'test/integration')
 dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
 
 for d in dirs:
-	if re.match(testEnv['TEST_FILTER'], d) and os.path.isfile(os.path.join(thedir, d, 'SConscript')):
+	if os.path.isfile(os.path.join(thedir, d, 'SConscript')):
 		SConscript(os.path.join(d, 'SConscript'))
 
 

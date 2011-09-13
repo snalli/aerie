@@ -26,16 +26,16 @@ serverProgramAbspath = str(serverProgram[0])
 # Integration tests
 
 test_list = [
-#             ('TestLockUnlockConcurrentClients1', 2),
-#             ('TestLockUnlockConcurrentClients2', 2),
-#             ('TestLockUnlockConcurrentThreads', 1),
-#             ('TestSharedLockUnlockConcurrentClients1', 2),
-             ('TestSharedLockUnlockConcurrentClients2', 2)
+             ('TestLockUnlockConcurrentClients1', 2),
+             ('TestLockUnlockConcurrentClients2', 2),
+             ('TestLockUnlockConcurrentClients3', 2),
+             ('TestSharedLockUnlockConcurrentClients1', 2),
+             ('TestSharedLockUnlockConcurrentClients2', 2),
 	    ]
 
 for test in test_list:
 	testStr = test[0]
-	test_obj = testfw.integration_test.IntegrationTest(timeout=5)
+	test_obj = testfw.integration_test.IntegrationTest(testStr, timeout=5)
 	test_obj.setPreTest(testProgramAbspath, '-T,-initreg,-ccount=%d' % (test[1]), {})
 	test_obj.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
 	for i in range(test[1]):
