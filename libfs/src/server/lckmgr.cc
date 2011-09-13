@@ -19,7 +19,7 @@ static int revoke_table[8][8] = {
 	/* SR   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_SR2SL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_SR2SL },
 	/* IS   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
 	/* IX   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
-	/* XL   */ {  Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_XL2SL },
+	/* XL   */ {  Lock::RVK_NO, Lock::RVK_XL2SL, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_XL2SL },
 	/* XR   */ {  Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NL, Lock::RVK_XR2XL, Lock::RVK_XR2XL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NL },
 	/* IXSL */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_IXSL2IX, Lock::RVK_NL, Lock::RVK_NO },
 };
@@ -210,7 +210,7 @@ LockManager::convert(int clt, int seq, lock_protocol::LockId lid,
 	{
 		Lock&         l = locks_[lid];
 		ClientRecord& cr = l.gtque_.Get(clt);
-		dbg_log(DBG_INFO, "clt %d converted lck %llu at seq %d (%s --> %s)\n", 
+		dbg_log(DBG_INFO, "clt %d convert lck %llu at seq %d (%s --> %s)\n", 
 		        clt, lid, seq, lock_protocol::Mode::mode2str(cr.mode()).c_str(), 
 				lock_protocol::Mode::mode2str(new_mode).c_str());
 		assert(cr.seq_ == seq);
@@ -328,6 +328,8 @@ LockManager::revoker()
 				// the lock) 
 				continue;
 			}
+			dbg_log(DBG_INFO, "revoke client %d lock %llu: \n", clt, lid, revoke_type);
+
 			if (cl) {
 				if (cl->call(rlock_protocol::revoke, lid, cr.seq_, revoke_type, unused)
 					!= rlock_protocol::OK) 

@@ -267,6 +267,9 @@ LockManager::releaser()
 			}
 			// if remote conversion fails, we leave this lock in the revoke_map_,
 			// which will be released in a later attempt
+		} else {
+			DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
+			        "[%d] why woken up?\n", cl2srv_->id());
 		}
 		pthread_mutex_unlock(&mutex_);
 		usleep(500);
@@ -295,8 +298,9 @@ check_state:
 		case Lock::FREE:
 			// great! no one is using the cached lock
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
-			        "[%d] lock %llu free (X) locally: grant to %lu\n",
-			        cl2srv_->id(), lid, tid);
+			        "[%d] lock %llu free locally (global_mode %s): grant to %lu\n",
+			        cl2srv_->id(), lid, 
+			        lock_protocol::Mode::mode2str(l->global_mode_).c_str(), tid);
 			// if mode is more restrictive than the one allowed by global mode
 			// then we need to communicate with the server.
 			// otherwise lock silently
@@ -366,6 +370,7 @@ check_state:
 			if (r == lock_protocol::OK) {
 				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu at seq %d\n",
 				        cl2srv_->id(), tid, lid, l->seq_);
+				l->global_mode_ = (lock_protocol::mode) mode;
 				l->gtque_.Add(ThreadRecord(tid, (lock_protocol::mode) mode));
 				l->set_status(Lock::LOCKED);
 			}
@@ -482,6 +487,9 @@ LockManager::ReleaseInternal(unsigned long tid, Lock* l)
 {
 	lock_protocol::status r = lock_protocol::OK;
 	lock_protocol::LockId lid = l->lid_;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "[%d] Releasing lock %llu \n", cl2srv_->id(), lid); 
 
 	if (l->gtque_.Exists(tid)) {
 		l->gtque_.Remove(tid);
