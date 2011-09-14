@@ -15,6 +15,7 @@ lib_sources = [
                'config.cc',
                'extent.cc', 
                'file.cc',
+               'hlckmgr.cc',
                'imgr.cc',
                'lckmgr.cc',
                'mpinode.cc',

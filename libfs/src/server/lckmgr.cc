@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include "common/debug.h"
 #include "common/gtque.h"
+#include "common/lock_protocol.h"
 #include "common/lock_protocol-static.h"
 
 namespace server {

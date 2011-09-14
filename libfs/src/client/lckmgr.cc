@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "rpc/rpc.h"
 #include "common/debug.h"
+#include "common/lock_protocol.h"
 #include "common/lock_protocol-static.h"
 
 namespace client {
@@ -37,7 +38,6 @@ ThreadRecord::ThreadRecord(id_t tid, mode_t mode)
 {
 
 }
-
 
 
 Lock::Lock(lock_protocol::LockId lid = 0)
@@ -93,13 +93,11 @@ Lock::status() const
 }
 
 
-
-
 static void *
 releasethread(void *x)
 {
-	LockManager* cc = (LockManager*) x;
-	cc->releaser();
+	LockManager* lm = (LockManager*) x;
+	lm->releaser();
 	return 0;
 }
 
@@ -107,8 +105,8 @@ releasethread(void *x)
 LockManager::LockManager(rpcc* rpc_client, 
                          rpcs* rpc_server, 
 						 std::string id,
-                         class lock_release_user* _lu)
-	: lu(_lu), 
+                         class lock_release_user* lu)
+	: lu_(lu), 
 	  last_seq_(0),
 	  cl2srv_(rpc_client),
 	  srv2cl_(rpc_server),
@@ -624,7 +622,7 @@ LockManager::do_convert(Lock* l, int mode)
 	        "[%d] calling convert rpc for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), l->seq_);
 	if (lu) {
-		lu->dorelease(l->lid_);
+		lu->doconvert(l->lid_);
 	}
 	r = cl2srv_->call(lock_protocol::convert, cl2srv_->id(), l->seq_, l->lid_, 
 	                  mode, unused);

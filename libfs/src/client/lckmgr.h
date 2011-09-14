@@ -23,7 +23,7 @@ namespace client {
 class lock_release_user {
 public:
 	virtual void dorelease(lock_protocol::LockId) = 0;
-	virtual void dodowngrade(lock_protocol::LockId) = 0;
+	virtual void doconvert(lock_protocol::LockId) = 0;
 	virtual ~lock_release_user() {};
 };
 
@@ -188,7 +188,7 @@ private:
 	lock_protocol::status ConvertInternal(unsigned long, Lock*, int);
 	lock_protocol::status ReleaseInternal(unsigned long, Lock*);
 
-	class lock_release_user*                             lu;
+	class lock_release_user*                             lu_;
 	std::string                                          hostname_;
 	std::string                                          id_;
 	/// the RPC object through which we receive callbacks from the server
