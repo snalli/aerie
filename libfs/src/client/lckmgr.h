@@ -13,20 +13,7 @@
 #include "common/gtque.h"
 #include "common/lock_protocol.h"
 
-#define TRACK_SHARERS
-
 namespace client {
-
-// Classes that inherit lock_release_user can override dorelease so that 
-// that they will be called when lock_client releases a lock.
-// You will not need to do anything with this class until Lab 6.
-class lock_release_user {
-public:
-	virtual void dorelease(lock_protocol::LockId) = 0;
-	virtual void doconvert(lock_protocol::LockId) = 0;
-	virtual ~lock_release_user() {};
-};
-
 
 
 // SUGGESTED LOCK CACHING IMPLEMENTATION PLAN:
@@ -81,10 +68,6 @@ public:
 
 
 
-// ISSUE: to support multiple threads we need to keep a local mode per 
-// each thread
-
-
 class ThreadRecord {
 public:
 	typedef pthread_t id_t;
@@ -108,26 +91,25 @@ private:
 class Lock {
 
 public:
+	enum Flag {
+		FLG_NOBLK = 0x1, // don't block if can't grant lock
+	};
+
 	enum LockStatus {
 		NONE, 
 		FREE, 
 		LOCKED, 
 		ACQUIRING, 
 		/* RELEASING (unused) */
-		/* DOWNGRADING (unused) */
 	};
 
-	//Lock();
 	Lock(lock_protocol::LockId);
 	~Lock();
 
 	// changes the status of this lock
 	void set_status(LockStatus);
-	LockStatus status() const;
-	// changes the local mode of this lock
-	void set_local_mode(int);
-	int local_mode();
-	bool IsModeCompatible(int);
+	LockStatus status() const { return status_; }
+	lock_protocol::LockId lid() const { return lid_; }
 
 	lock_protocol::LockId lid_;
 
@@ -149,30 +131,44 @@ public:
 	// by the client to obtain this lock.
 	// By completed, we mean the remote acquire() call returns with a value.
 	int                       seq_;
-	bool                      used_; // set to true after first use
-	bool                      can_retry_; // set when a retry message from the server is received
+	bool                      used_;        // set to true after first use
+	bool                      can_retry_;   // set when a retry message from the server is received
 	int                       revoke_type_; // type of revocation requested
 
 	lock_protocol::mode       global_mode_; // mode as known by the server
+
+	void*                     payload_;     // lock users may user anything they like
 
 private:
 	LockStatus                status_;
 };
 
 
+// Classes that inherit LockUser can override callback functions to 
+// be notified of lock events
+class LockUser {
+public:
+	virtual void OnRelease(Lock*) = 0;
+	virtual void OnConvert(Lock*) = 0;
+	virtual int Revoke(Lock*) = 0;
+	virtual ~LockUser() {};
+};
+
+
 class LockManager {
 public:
-	LockManager(rpcc*, rpcs*, std::string, class lock_release_user*);
+	LockManager(rpcc*, rpcs*, std::string, class LockUser*);
 	~LockManager();
 	Lock* GetOrCreateLock(lock_protocol::LockId);
-	lock_protocol::status Acquire(Lock*, int);
-	lock_protocol::status Acquire(lock_protocol::LockId, int);
+	lock_protocol::status Acquire(Lock*, int, int);
+	lock_protocol::status Acquire(lock_protocol::LockId, int, int);
 	lock_protocol::status Convert(Lock*, int);
 	lock_protocol::status Convert(lock_protocol::LockId, int);
 	lock_protocol::status Release(Lock*);
 	lock_protocol::status Release(lock_protocol::LockId);
 	lock_protocol::status stat(lock_protocol::LockId);
-	void releaser();
+	void Releaser();
+	void RegisterLockUser(LockUser* lu) { lu_ = lu; };
 
 	rlock_protocol::status revoke(lock_protocol::LockId, int, int, int&);
 	// Tell this client to retry requesting the lock in which this client
@@ -184,11 +180,11 @@ private:
 	int do_convert(Lock*, int);
 	int do_release(Lock*);
 	Lock* GetOrCreateLockInternal(lock_protocol::LockId);
-	lock_protocol::status AcquireInternal(unsigned long, Lock*, int);
+	lock_protocol::status AcquireInternal(unsigned long, Lock*, int, int);
 	lock_protocol::status ConvertInternal(unsigned long, Lock*, int);
 	lock_protocol::status ReleaseInternal(unsigned long, Lock*);
 
-	class lock_release_user*                             lu_;
+	class LockUser*                                      lu_;
 	std::string                                          hostname_;
 	std::string                                          id_;
 	/// the RPC object through which we receive callbacks from the server
@@ -199,7 +195,7 @@ private:
 	int                                                  last_seq_;
 	bool                                                 running_;
 
-	google::dense_hash_map<lock_protocol::LockId, Lock*> Locks_;
+	google::dense_hash_map<lock_protocol::LockId, Lock*> locks_;
 
 	// key: lock id; value: seq no. of the corresponding acquire
 	std::map<lock_protocol::LockId, int>                 revoke_map_;

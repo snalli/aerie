@@ -13,16 +13,16 @@
 namespace server {
 
 static int revoke_table[8][8] = {
-	/*                                                              Requested Lock Mode                                                            */
-	/*            NL,           SL,           SR,           IS,              IX,              XL,                XR,           IXSL            */
-	/* NL   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO },
-	/* SL   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NO },
-	/* SR   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_SR2SL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_SR2SL },
-	/* IS   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
-	/* IX   */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
+	/*                                                              Requested Lock Mode                                                           */
+	/*            NL,           SL,              SR,           IS,              IX,              XL,                XR,           IXSL            */
+	/* NL   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO },
+	/* SL   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NO },
+	/* SR   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_SR2SL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_SR2SL },
+	/* IS   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
+	/* IX   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
 	/* XL   */ {  Lock::RVK_NO, Lock::RVK_XL2SL, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_XL2SL },
-	/* XR   */ {  Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NL, Lock::RVK_XR2XL, Lock::RVK_XR2XL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NL },
-	/* IXSL */ {  Lock::RVK_NO, Lock::RVK_NO, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_IXSL2IX, Lock::RVK_NL, Lock::RVK_NO },
+	/* XR   */ {  Lock::RVK_NO, Lock::RVK_NL,    Lock::RVK_NL, Lock::RVK_XR2XL, Lock::RVK_XR2XL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NL },
+	/* IXSL */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_IXSL2IX, Lock::RVK_NL, Lock::RVK_NO },
 };
 
 
@@ -219,7 +219,8 @@ LockManager::convert(int clt, int seq, lock_protocol::LockId lid,
 		// approach is to deny the conversion if this is an upgrade as 
 		// it could conflict with the new mode requested by revoke
 		if (l.revoke_sent_ &&
-		    lock_protocol::Mode::severity_table[new_mode] > l.gtque_.Severity())
+		    !l.gtque_.IsModeSet(new_mode) &&
+			l.gtque_.PartialOrder(new_mode) >= 0)
 		{
 			r = lock_protocol::RETRY;
 			goto out;

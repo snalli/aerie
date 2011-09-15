@@ -48,7 +48,8 @@ Lock::Lock(lock_protocol::LockId lid = 0)
 	  revoke_type_(0),
 	  status_(NONE),
 	  global_mode_(lock_protocol::NL),
-	  gtque_(lock_protocol::IXSL+1)
+	  gtque_(lock_protocol::IXSL+1),
+	  payload_(0)
 {
 	pthread_cond_init(&status_cv_, NULL);
 	pthread_cond_init(&used_cv_, NULL);
@@ -86,18 +87,11 @@ Lock::set_status(LockStatus sts)
 }
 
 
-Lock::LockStatus
-Lock::status() const
-{
-	return status_;
-}
-
-
-static void *
-releasethread(void *x)
+static void*
+releasethread(void* x)
 {
 	LockManager* lm = (LockManager*) x;
-	lm->releaser();
+	lm->Releaser();
 	return 0;
 }
 
@@ -105,7 +99,7 @@ releasethread(void *x)
 LockManager::LockManager(rpcc* rpc_client, 
                          rpcs* rpc_server, 
 						 std::string id,
-                         class lock_release_user* lu)
+						 class LockUser* lu)
 	: lu_(lu), 
 	  last_seq_(0),
 	  cl2srv_(rpc_client),
@@ -123,7 +117,7 @@ LockManager::LockManager(rpcc* rpc_client,
 	pthread_mutex_init(&revoke_mutex_, NULL);
 	pthread_cond_init(&revoke_cv, NULL);
 
-	Locks_.set_empty_key(-1);
+	locks_.set_empty_key(-1);
 
 	// register client's lock manager RPC handlers with srv2cl_
 	srv2cl_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
@@ -150,7 +144,7 @@ LockManager::~LockManager()
 
 	pthread_mutex_lock(&mutex_);
 	google::dense_hash_map<lock_protocol::LockId, Lock*>::iterator itr;
-	for (itr = Locks_.begin(); itr != Locks_.end(); ++itr) {
+	for (itr = locks_.begin(); itr != locks_.end(); ++itr) {
 		if (itr->second->status() == Lock::FREE) {
 			do_release(itr->second);
 		} else if (itr->second->status() == Lock::LOCKED)
@@ -170,14 +164,14 @@ LockManager::~LockManager()
 inline Lock*
 LockManager::GetOrCreateLockInternal(lock_protocol::LockId lid)
 {
-	Lock* lockp;
+	Lock* lp;
 
-	lockp = Locks_[lid];
-	if (lockp == NULL) {
-		lockp = new Lock(lid);
-		Locks_[lid] = lockp;
+	lp = locks_[lid];
+	if (lp == NULL) {
+		lp = new Lock(lid);
+		locks_[lid] = lp;
 	}	
-	return lockp;
+	return lp;
 }
 
 
@@ -186,12 +180,12 @@ LockManager::GetOrCreateLockInternal(lock_protocol::LockId lid)
 Lock*
 LockManager::GetOrCreateLock(lock_protocol::LockId lid)
 {
-	Lock* lockp;
+	Lock* l;
 
 	pthread_mutex_lock(&mutex_);
-	lockp = GetOrCreateLockInternal(lid);
+	l = GetOrCreateLockInternal(lid);
 	pthread_mutex_unlock(&mutex_);
-	return lockp;
+	return l;
 }
 
 
@@ -205,7 +199,7 @@ LockManager::GetOrCreateLock(lock_protocol::LockId lid)
 ///    with the requested mode and in such a case he ignores the revoke
 ///    request. 
 void
-LockManager::releaser()
+LockManager::Releaser()
 {
 	running_ = true;
 	while (running_) {
@@ -218,7 +212,7 @@ LockManager::releaser()
 		int seq = itr->second;
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 		        "[%d] releasing lock %llu at seq %d\n", cl2srv_->id(), lid, seq);
-		Lock* l = Locks_[lid];
+		Lock* l = locks_[lid];
 		if (l->status() == Lock::NONE) {
 			DBG_LOG(DBG_WARNING, DBG_MODULE(client_lckmgr), 
 			        "[%d] false revoke alarm: %llu\n", cl2srv_->id(), lid);
@@ -234,14 +228,19 @@ LockManager::releaser()
 			pthread_cond_wait(&l->used_cv_, &mutex_);
 		}
 
+		// wait until the lock is released or becomes compatible with the
+		// revoke-request's mode
 		while (!((l->status() == Lock::FREE) || 
 			     (l->status() == Lock::LOCKED && 
 				  l->revoke_type_ != lock_protocol::RVK_NL &&
 		          l->gtque_.CanGrant(revoke2mode_table[l->revoke_type_]) ))) 
 		{
-			// wait until the lock is released or becomes compatible with the
-			// revoke-request's mode
-			// TODO: ping the holder to release/downgrade the lock before I sleep-wait
+			// ping the holder to release/downgrade the lock before I sleep-wait
+			if (lu_) {
+				if (lu_->Revoke(l) >= 0) {
+					continue;
+				}
+			}
 			pthread_cond_wait(&l->status_cv_, &mutex_);
 		}
 		if (l->status() == Lock::FREE) {
@@ -282,7 +281,7 @@ LockManager::releaser()
 /// for this reason, we need an ACQUIRING status to tell other threads 
 /// that an acquisition is in progress.
 inline lock_protocol::status
-LockManager::AcquireInternal(unsigned long tid, Lock* l, int mode)
+LockManager::AcquireInternal(unsigned long tid, Lock* l, int mode, int flags)
 {
 	lock_protocol::status r;
 	lock_protocol::LockId lid = l->lid_;
@@ -299,11 +298,12 @@ check_state:
 			        "[%d] lock %llu free locally (global_mode %s): grant to %lu\n",
 			        cl2srv_->id(), lid, 
 			        lock_protocol::Mode::mode2str(l->global_mode_).c_str(), tid);
-			// if mode is more restrictive than the one allowed by global mode
-			// then we need to communicate with the server.
-			// otherwise lock silently
-			if (lock_protocol::Mode::Severity(mode) > 
-				lock_protocol::Mode::Severity(l->global_mode_))
+
+			// if mode is the as restrictive as or more than the one allowed
+			// by global mode then we need to communicate with the server.
+			// otherwise we perform the conversion silently
+			if (mode != l->global_mode_ &&
+				lock_protocol::Mode::PartialOrder(mode, l->global_mode_) >= 0)  
 			{
 				if ((r = do_convert(l, mode)) == lock_protocol::OK) {
 					l->global_mode_ = (lock_protocol::mode) mode;
@@ -341,8 +341,8 @@ check_state:
 			} else {
 				// we cannot lock at a more restrictive mode than the 
 				// one allowed by the server 
-				if ((lock_protocol::Mode::Severity(mode) <= 
-				     lock_protocol::Mode::Severity(l->global_mode_)) &&
+				if (mode != l->global_mode_ &&
+				    lock_protocol::Mode::PartialOrder(mode, l->global_mode_) < 0 && 
 				    l->gtque_.CanGrant(mode)) 
 				{
 					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
@@ -381,19 +381,19 @@ check_state:
 
 
 lock_protocol::status
-LockManager::Acquire(Lock* lock, int mode)
+LockManager::Acquire(Lock* lock, int mode, int flags)
 {
 	lock_protocol::status r;
 
 	pthread_mutex_lock(&mutex_);
-	r = AcquireInternal(0, lock, mode);
+	r = AcquireInternal(0, lock, mode, flags);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
 
 
 lock_protocol::status
-LockManager::Acquire(lock_protocol::LockId lid, int mode)
+LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
 {
 	Lock*                 lock;
 	lock_protocol::status r;
@@ -421,11 +421,11 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l, int new_mode)
 	}
 
 	if (l->gtque_.Exists(tid)) {
-		// if new mode after conversion is more restrictive than the one allowed by
-		// global mode then we need to communicate with the server.
-		// otherwise we perform the conversion silently
-		if (lock_protocol::Mode::Severity(new_mode) > 
-		    lock_protocol::Mode::Severity(l->global_mode_))
+		// if new mode after conversion is as restrictive as or more than 
+		// the one allowed by global mode then we need to communicate with the
+		// server. otherwise we perform the conversion silently
+		if (new_mode != l->global_mode_ &&
+		    lock_protocol::Mode::PartialOrder(new_mode, l->global_mode_) >= 0)  
 		{
 			if ((r = do_convert(l, new_mode)) == lock_protocol::OK) {
 				l->global_mode_ = (lock_protocol::mode) new_mode;
@@ -472,7 +472,7 @@ LockManager::Convert(lock_protocol::LockId lid, int mode)
 	Lock*                 lock;
 
 	pthread_mutex_lock(&mutex_);
-	assert(Locks_.find(lid) != Locks_.end());
+	assert(locks_.find(lid) != locks_.end());
 	lock = GetOrCreateLockInternal(lid);
 	r = ConvertInternal(0, lock, mode);
 	pthread_mutex_unlock(&mutex_);
@@ -525,7 +525,7 @@ LockManager::Release(lock_protocol::LockId lid)
 	Lock*                 lock;
 
 	pthread_mutex_lock(&mutex_);
-	assert(Locks_.find(lid) != Locks_.end());
+	assert(locks_.find(lid) != locks_.end());
 	lock = GetOrCreateLockInternal(lid);
 	r = ReleaseInternal(0, lock);
 	pthread_mutex_unlock(&mutex_);
@@ -537,7 +537,7 @@ rlock_protocol::status
 LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &unused)
 {
 	rlock_protocol::status r = rlock_protocol::OK;
-	Lock*                  lock;
+	Lock*                  l;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 	        "[%d] server request to revoke lck %llu at seq %d\n", 
@@ -545,13 +545,16 @@ LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &un
 
 	// we do nothing but pushing back the lock id to the revoke queue
 	// and marking down the type of revocation
-	pthread_mutex_lock(&revoke_mutex_);
+	// ISSUE: we would like to use revoke_mutex_ to protect the revoke
+	// queue so that we don't block the server behind the coarse grain 
+	// lock mutex_
+	pthread_mutex_lock(&mutex_);
 	revoke_map_[lid] = seq;
-	assert(Locks_.find(lid) != Locks_.end());
-	lock = Locks_[lid];
-	lock->revoke_type_ = revoke_type;		
+	assert(locks_.find(lid) != locks_.end());
+	l = locks_[lid];
+	l->revoke_type_ = revoke_type;		
 	pthread_cond_signal(&revoke_cv);
-	pthread_mutex_unlock(&revoke_mutex_);
+	pthread_mutex_unlock(&mutex_);
 	return r;
 }
 
@@ -564,7 +567,7 @@ LockManager::retry(lock_protocol::LockId lid, int seq,
 	Lock*                  l;
 
 	pthread_mutex_lock(&mutex_);
-	assert(Locks_.find(lid) != Locks_.end());
+	assert(locks_.find(lid) != locks_.end());
 	l = GetOrCreateLockInternal(lid);
 
 	if (seq >= l->seq_) {
@@ -621,8 +624,8 @@ LockManager::do_convert(Lock* l, int mode)
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] calling convert rpc for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), l->seq_);
-	if (lu) {
-		lu->doconvert(l->lid_);
+	if (lu_) {
+		lu_->OnConvert(l);
 	}
 	r = cl2srv_->call(lock_protocol::convert, cl2srv_->id(), l->seq_, l->lid_, 
 	                  mode, unused);
@@ -639,8 +642,8 @@ LockManager::do_release(Lock* l)
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] calling release rpc for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), l->seq_);
-	if (lu) {
-		lu->dorelease(l->lid_);
+	if (lu_) {
+		lu_->OnRelease(l);
 	}
 	r = cl2srv_->call(lock_protocol::release, cl2srv_->id(), l->seq_, l->lid_, 
 	                  unused);

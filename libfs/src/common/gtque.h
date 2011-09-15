@@ -15,16 +15,17 @@ public:
 	bool Exists(typename MemberType::id_t);
 	bool CanGrant(int);
 	int ConvertInPlace(typename MemberType::id_t, int);
-	int Severity();
 	void Add(const MemberType&);
 	void Remove(typename MemberType::id_t);
-	int  Size() { return members_.size(); };
-	int  Empty() { return members_.empty(); };
+	int PartialOrder(int mode);
+	bool IsModeSet(int mode) { return (mode_union_ & (1 << mode));}
+	int  Size() { return members_.size(); }
+	int  Empty() { return members_.empty(); }
 	void Print(std::ostream);
 	MemberType& Get(int);
 
-	iterator begin() { return members_.begin(); };
-	iterator end() { return members_.end(); };
+	iterator begin() { return members_.begin(); }
+	iterator end() { return members_.end(); }
 
 private:
 	bool IsModeCompatible(int, int);
@@ -82,20 +83,24 @@ GrantQueue<MemberType>::IsModeCompatible(int mode, int exclude_mode)
 	return true;
 }
 
-
+// mode less-than         union(grant_queue): returns -1
+// mode greater-than      union(grant_queue): returns 1
+// mode not-ordered-with  union(grant_queue): returns 0
 template <class MemberType>
 int
-GrantQueue<MemberType>::Severity()
+GrantQueue<MemberType>::PartialOrder(int mode)
 {
 	int val = mode_union_;
 	int severity = 0;
 	int m;
+	int po = -1;
+	int r;
 
 	while (val) {
 		m = __builtin_ctz(val); 
 		val &= ~(1 << m);
-		if (MemberType::Mode::severity_table[m] > severity) {
-			severity = MemberType::Mode::severity_table[m];
+		if ((r = MemberType::Mode::PartialOrder(mode, m)) > po) {
+			po = r;
 		}
 	}
 	return severity;

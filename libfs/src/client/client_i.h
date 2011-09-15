@@ -13,12 +13,14 @@
 namespace client {
 
 class LockManager;
+class HLockManager;
 
-extern NameSpace*          global_namespace;
-extern StorageManager*     global_smgr;
-extern FileManager*        global_fmgr;
-extern InodeManager*       global_imgr;
-extern LockManager*        global_lckmgr;
+extern NameSpace*        global_namespace;
+extern StorageManager*   global_smgr;
+extern FileManager*      global_fmgr;
+extern InodeManager*     global_imgr;
+extern LockManager*      global_lckmgr;
+extern HLockManager*     global_hlckmgr;
 
 
 class Client {

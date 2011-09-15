@@ -8,22 +8,23 @@
 #include "common/debug.h"
 #include "server/api.h"
 #include "client/config.h"
-
+#include "client/lckmgr.h"
+#include "client/hlckmgr.h"
 #include "chunkstore/registry.h"
 
 #include "mfs/mfs.h"
 
 namespace client {
 
-FileManager*        global_fmgr;
-NameSpace*          global_namespace;
-StorageManager*     global_smgr;
-InodeManager*       global_imgr;
-LockManager*        global_lckmgr;
-
-Registry*           registry;
-rpcc*               rpc_client;
-rpcs*               rpc_server;
+FileManager*     global_fmgr;
+NameSpace*       global_namespace;
+StorageManager*  global_smgr;
+InodeManager*    global_imgr;
+LockManager*     global_lckmgr;
+HLockManager*    global_hlckmgr;
+Registry*        registry;
+rpcc*            rpc_client;
+rpcs*            rpc_server;
 
 
 // Known backend file system implementations
@@ -66,6 +67,7 @@ Client::Init(int principal_id, char* xdst)
 	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
 	global_smgr = new StorageManager(rpc_client, principal_id);
 	global_lckmgr = new LockManager(rpc_client, rpc_server, id, 0);
+	global_hlckmgr = new HLockManager(global_lckmgr);
 
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
@@ -82,6 +84,7 @@ int
 Client::Shutdown() 
 {
 	// TODO: properly destroy any state created
+	delete global_hlckmgr;
 	delete global_lckmgr;
 	return 0;
 }
