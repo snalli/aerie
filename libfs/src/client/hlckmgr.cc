@@ -57,13 +57,13 @@ HLock::HLock(lock_protocol::LockId lid, HLock* phl)
 	pthread_mutex_init(&mutex_, NULL);
 }
 
-
+/*
 HLock::HLock(lock_protocol::LockId lid, HLock* phl)
 {
 	// this creates a child lock under parent HLock phl
 	// don't need to allocate Lock lid
 }
-
+*/
 
 HLockManager::HLockManager(LockManager* lm, HLockUser* hlu)
 	: lm_(lm),
@@ -77,11 +77,11 @@ HLockManager::HLockManager(LockManager* lm, HLockUser* hlu)
 inline HLock*
 HLockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 {
-	Lock* lp;
+	HLock* lp;
 
 	lp = locks_[lid];
 	if (lp == NULL) {
-		lp = new Lock(lid);
+		// FIXME: lp = new HLock(lid);
 		locks_[lid] = lp;
 	}	
 	return lp;
@@ -93,7 +93,7 @@ HLockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 inline HLock*
 HLockManager::FindOrCreateLock(lock_protocol::LockId lid)
 {
-	Lock* l;
+	HLock* l;
 
 	pthread_mutex_lock(&mutex_);
 	l = FindOrCreateLockInternal(lid);
@@ -105,8 +105,8 @@ HLockManager::FindOrCreateLock(lock_protocol::LockId lid)
 inline HLock*
 HLockManager::InitLock(lock_protocol::LockId lid, lock_protocol::LockId plid)
 {
-	
-	FindOrCreateLockInternal();
+	//TODO
+	//FindOrCreateLockInternal();
 }
 
 
@@ -141,9 +141,12 @@ lock_protocol::status
 HLockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
 {
 	lock_protocol::status r;
+	HLock*                hlock;
 
 	pthread_mutex_lock(&hlock->mutex_);
-	r = 
+	hlock = FindOrCreateLockInternal(lid);
+	//TODO: 
+	//r = 
 	pthread_mutex_unlock(&hlock->mutex_);
 }
 

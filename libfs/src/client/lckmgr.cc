@@ -412,7 +412,7 @@ LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
 
 	pthread_mutex_lock(&mutex_);
 	lock = FindOrCreateLockInternal(lid);
-	r = AcquireInternal(0, lock, mode);
+	r = AcquireInternal(0, lock, mode, flags);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }

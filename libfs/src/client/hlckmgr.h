@@ -5,6 +5,8 @@
 #ifndef _CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
 #define _CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
 
+#include <google/sparsehash/sparseconfig.h>
+#include <google/dense_hash_map>
 #include "client/lckmgr.h"
 
 namespace client {
@@ -32,8 +34,7 @@ public:
 		IXSL = lock_protocol::IXSL, // intent exclusive and shared local
 	};
 
-	HLock(lock_protocol::LockId );
-	HLock(HLock*);
+	HLock(lock_protocol::LockId, HLock*);
 	HLock(HLock*);
 
 	Lock*                 lock_;
@@ -64,9 +65,20 @@ public:
 	void OnConvert(Lock*) { return; };
 	int Revoke(Lock*);
 
+	HLock* FindOrCreateLockInternal(lock_protocol::LockId);
+	HLock* FindOrCreateLock(lock_protocol::LockId lid);
+	HLock* InitLock(lock_protocol::LockId, lock_protocol::LockId);
+	HLock* InitLock(lock_protocol::LockId, HLock*);
+	HLock* InitLock(HLock*, HLock*);
+
+	lock_protocol::status Acquire(HLock* hlock, int mode, int flags);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, int mode, int flags);
+
 private:
+	pthread_mutex_t      mutex_;
 	HLockUser*           hlu_;
 	LockManager*         lm_;
+	google::dense_hash_map<lock_protocol::LockId, HLock*> locks_;
 };
 
 

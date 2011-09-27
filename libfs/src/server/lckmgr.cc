@@ -173,7 +173,7 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, int 
 			l.revoke_sent_ = false;
 		}
 	} else {
-		if ((flags & lock_protocol::FLG_NOQUE) == 0) 
+		if ((flags & lock_protocol::FLG_NOQUE) == 0) {
 			if (wq_len > 0) {
 				// Note that we don't need to add lid to revoke_set_ here, because we
 				// already did so for the head of the queue
@@ -261,7 +261,7 @@ LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
 {
 	dbg_log(DBG_INFO, "clt %d release lck %llu at seq %d\n", 
 	        clt, lid, seq);
-	return convert(clt, seq, lid, lock_protocol::NL, unused);
+	return convert(clt, seq, lid, lock_protocol::NL, 0, unused);
 }
 
 
@@ -410,5 +410,6 @@ LockManager::retryer()
 		//usleep(500);
 	}
 }
+
 
 } // namespace server
