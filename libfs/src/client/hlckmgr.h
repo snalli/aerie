@@ -13,14 +13,35 @@ namespace client {
 // invariant: mode < root.mode
 class HLock {
 public:
-	HLock(lock_protocol::LockId);
+	enum LockStatus {
+		NONE, 
+		FREE, 
+		LOCKED, 
+		ACQUIRING, 
+		/* RELEASING (unused) */
+	};
+
+	enum Mode {
+		NL = lock_protocol::NL,     // not locked
+		SL = lock_protocol::SL,     // shared local
+		SR = lock_protocol::SR,     // shared recursive
+		IS = lock_protocol::IS,     // intent shared
+		IX = lock_protocol::IX,     // intent exclusive
+		XL = lock_protocol::XL,     // exclusive local
+		XR = lock_protocol::XR,     // exclusive recursive
+		IXSL = lock_protocol::IXSL, // intent exclusive and shared local
+	};
+
+	HLock(lock_protocol::LockId );
+	HLock(HLock*);
 	HLock(HLock*);
 
 	Lock*                 lock_;
 	HLock*                parent_;
 	pthread_mutex_t       mutex_;
 	int                   status_;
-	int                   mode_;
+	int                   supremum_mode_; // supremum of all ancestors' modes
+	int                   mode_; // local mode
 	lock_protocol::LockId lid_;
 	
 };

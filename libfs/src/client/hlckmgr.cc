@@ -50,11 +50,11 @@ namespace client {
 //   in the same inode
 
 
-HLock::HLock(lock_protocol::LockId lid)
+HLock::HLock(lock_protocol::LockId lid, HLock* phl)
+	: status_(HLock::NONE),
+	  mode_(HLock::NL)
 {
-	// this creates a root lock 
-	// need to allocate Lock lid
-
+	pthread_mutex_init(&mutex_, NULL);
 }
 
 
@@ -70,6 +70,81 @@ HLockManager::HLockManager(LockManager* lm, HLockUser* hlu)
 	  hlu_(hlu)
 {
 	lm_->RegisterLockUser(this);
+}
+
+
+// assumes caller has the mutex mutex_
+inline HLock*
+HLockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
+{
+	Lock* lp;
+
+	lp = locks_[lid];
+	if (lp == NULL) {
+		lp = new Lock(lid);
+		locks_[lid] = lp;
+	}	
+	return lp;
+}
+
+
+/// Returns a reference (pointer) to the lock
+/// Does no reference counting.
+inline HLock*
+HLockManager::FindOrCreateLock(lock_protocol::LockId lid)
+{
+	Lock* l;
+
+	pthread_mutex_lock(&mutex_);
+	l = FindOrCreateLockInternal(lid);
+	pthread_mutex_unlock(&mutex_);
+	return l;
+}
+
+
+inline HLock*
+HLockManager::InitLock(lock_protocol::LockId lid, lock_protocol::LockId plid)
+{
+	
+	FindOrCreateLockInternal();
+}
+
+
+inline HLock*
+HLockManager::InitLock(lock_protocol::LockId lid, HLock* phl)
+{
+	
+}
+
+
+inline HLock*
+HLockManager::InitLock(HLock* hl, HLock* phl)
+{
+
+}
+
+
+
+
+lock_protocol::status
+HLockManager::Acquire(HLock* hlock, int mode, int flags)
+{
+	lock_protocol::status r;
+
+	pthread_mutex_lock(&hlock->mutex_);
+	r = 
+	pthread_mutex_unlock(&hlock->mutex_);
+}
+
+
+lock_protocol::status
+HLockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
+{
+	lock_protocol::status r;
+
+	pthread_mutex_lock(&hlock->mutex_);
+	r = 
+	pthread_mutex_unlock(&hlock->mutex_);
 }
 
 

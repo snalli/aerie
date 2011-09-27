@@ -22,7 +22,7 @@ public:
 	int  Size() { return members_.size(); }
 	int  Empty() { return members_.empty(); }
 	void Print(std::ostream);
-	MemberType& Get(int);
+	MemberType& Find(int);
 
 	iterator begin() { return members_.begin(); }
 	iterator end() { return members_.end(); }
@@ -57,7 +57,7 @@ GrantQueue<MemberType>::Exists(typename MemberType::id_t id) {
 
 template <class MemberType>
 MemberType&
-GrantQueue<MemberType>::Get(int clt)
+GrantQueue<MemberType>::Find(int clt)
 {
 	return members_[clt];
 }

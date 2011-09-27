@@ -76,7 +76,7 @@ public:
 	lock_protocol::status stat(lock_protocol::LockId, int&);
 	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, int&);
 	lock_protocol::status release(int, int, lock_protocol::LockId, int&);
-	lock_protocol::status convert(int, int, lock_protocol::LockId, int, int&);
+	lock_protocol::status convert(int, int, lock_protocol::LockId, int, int, int&);
 
 	// subscribe for future notifications by telling the server the RPC addr
 	lock_protocol::status subscribe(int, std::string, int&);

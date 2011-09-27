@@ -181,7 +181,7 @@ retry:
 		}
 		if (nameiparent && *path == '\0') {
 			// Stop one level early.
-			//TODO: unlock inode 
+			//TODO: unlock inode after lookup and lock the next
 			// follow superblock's root inode if parent is mount point
 			if (typeid(*inode) == typeid(MPInode)) {
 				if ((ret = inode->Lookup(name, &inode_next)) == -2) {

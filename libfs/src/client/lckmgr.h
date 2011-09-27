@@ -91,16 +91,27 @@ private:
 class Lock {
 
 public:
-	enum Flag {
-		FLG_NOBLK = 0x1, // don't block if can't grant lock
-	};
-
 	enum LockStatus {
 		NONE, 
 		FREE, 
 		LOCKED, 
 		ACQUIRING, 
 		/* RELEASING (unused) */
+	};
+
+	enum Mode {
+		NL = lock_protocol::NL,     // not locked
+		SL = lock_protocol::SL,     // shared local
+		SR = lock_protocol::SR,     // shared recursive
+		IS = lock_protocol::IS,     // intent shared
+		IX = lock_protocol::IX,     // intent exclusive
+		XL = lock_protocol::XL,     // exclusive local
+		XR = lock_protocol::XR,     // exclusive recursive
+		IXSL = lock_protocol::IXSL, // intent exclusive and shared local
+	};
+
+	enum Flag {
+		FLG_NOBLK = 0x1, // don't block if can't grant lock
 	};
 
 	Lock(lock_protocol::LockId);
@@ -159,7 +170,7 @@ class LockManager {
 public:
 	LockManager(rpcc*, rpcs*, std::string, class LockUser*);
 	~LockManager();
-	Lock* GetOrCreateLock(lock_protocol::LockId);
+	Lock* FindOrCreateLock(lock_protocol::LockId);
 	lock_protocol::status Acquire(Lock*, int, int);
 	lock_protocol::status Acquire(lock_protocol::LockId, int, int);
 	lock_protocol::status Convert(Lock*, int);
@@ -176,10 +187,10 @@ public:
 	rlock_protocol::status retry(lock_protocol::LockId, int, int&);
 
 private:
-	int do_acquire(Lock*, int);
-	int do_convert(Lock*, int);
+	int do_acquire(Lock*, int, int);
+	int do_convert(Lock*, int, int);
 	int do_release(Lock*);
-	Lock* GetOrCreateLockInternal(lock_protocol::LockId);
+	Lock* FindOrCreateLockInternal(lock_protocol::LockId);
 	lock_protocol::status AcquireInternal(unsigned long, Lock*, int, int);
 	lock_protocol::status ConvertInternal(unsigned long, Lock*, int);
 	lock_protocol::status ReleaseInternal(unsigned long, Lock*);

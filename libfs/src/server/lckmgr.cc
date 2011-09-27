@@ -173,22 +173,24 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, int 
 			l.revoke_sent_ = false;
 		}
 	} else {
-		if (wq_len > 0) {
-			// Note that we don't need to add lid to revoke_set_ here, because we
-			// already did so for the head of the queue
-			dbg_log(DBG_INFO, "clt %d not expected for lock %llu; queued\n",
-			        clt, lid);
-		} else {
-			dbg_log(DBG_INFO, "queuing clt %d seq %d for lock %llu\n", 
-			        clt, seq, lid);
-			// i will be the head of the waiting list
-			if (!l.revoke_sent_) {
-				revoke_set_.insert(lid);
-				l.revoke_sent_ = true;
-				pthread_cond_signal(&revoke_cv_);
+		if ((flags & lock_protocol::FLG_NOQUE) == 0) 
+			if (wq_len > 0) {
+				// Note that we don't need to add lid to revoke_set_ here, because we
+				// already did so for the head of the queue
+				dbg_log(DBG_INFO, "clt %d not expected for lock %llu; queued\n",
+						clt, lid);
+			} else {
+				dbg_log(DBG_INFO, "queuing clt %d seq %d for lock %llu\n", 
+						clt, seq, lid);
+				// i will be the head of the waiting list
+				if (!l.revoke_sent_) {
+					revoke_set_.insert(lid);
+					l.revoke_sent_ = true;
+					pthread_cond_signal(&revoke_cv_);
+				}
 			}
+			l.waiting_list_.push_back(ClientRecord(clt, seq, (lock_protocol::mode) mode));
 		}
-		l.waiting_list_.push_back(ClientRecord(clt, seq, (lock_protocol::mode) mode));
 		r = lock_protocol::RETRY;
 	}
 	pthread_mutex_unlock(&mutex_);
@@ -199,7 +201,7 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, int 
 // convert does not block to avoid any deadlocks.
 lock_protocol::status
 LockManager::convert(int clt, int seq, lock_protocol::LockId lid, 
-                     int new_mode, int& unused)
+                     int new_mode, int flags, int& unused)
 {
 	std::map<int, ClientRecord>::iterator itr_icr;
 	lock_protocol::status                 r = lock_protocol::NOENT;
@@ -210,7 +212,7 @@ LockManager::convert(int clt, int seq, lock_protocol::LockId lid,
 		locks_[lid].gtque_.Exists(clt))
 	{
 		Lock&         l = locks_[lid];
-		ClientRecord& cr = l.gtque_.Get(clt);
+		ClientRecord& cr = l.gtque_.Find(clt);
 		dbg_log(DBG_INFO, "clt %d convert lck %llu at seq %d (%s --> %s)\n", 
 		        clt, lid, seq, lock_protocol::Mode::mode2str(cr.mode()).c_str(), 
 				lock_protocol::Mode::mode2str(new_mode).c_str());

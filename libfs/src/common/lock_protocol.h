@@ -22,9 +22,11 @@ public:
 		XR,   // exclusive recursive
 		IXSL, // intent exclusive and shared local
 	};
+
 	enum flag {
 		FLG_NOQUE = 0x1,  // don't queue client if can't grant request
 	};
+
 	enum revoke {
 		RVK_NO = 0,      // no revoke
 		RVK_NL,      
