@@ -13,7 +13,8 @@ extern "C" {
 #define FOREACH_DEBUG_MODULE(ACTION)                        \
 	ACTION(all) /* special name that covers all modules */  \
 	ACTION(rpc)                                             \
-	ACTION(client_lckmgr)  
+	ACTION(client_lckmgr)                                   \
+	ACTION(client_hlckmgr)  
 
 
 

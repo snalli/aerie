@@ -103,7 +103,7 @@ public:
 	}
 
 	static bool         compatibility_table[][lock_protocol::Mode::CARDINALITY];
-
+	static int          hierarchy_rule[lock_protocol::Mode::CARDINALITY];
 private:
 	static std::string  mode2str_table[lock_protocol::Mode::CARDINALITY];
 	static int          severity_table[lock_protocol::Mode::CARDINALITY];

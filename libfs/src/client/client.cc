@@ -84,8 +84,10 @@ int
 Client::Shutdown() 
 {
 	// TODO: properly destroy any state created
-	delete global_hlckmgr;
+	// lock manager's destructor makes callbacks to the hierarchical lock
+	// manager so destroy it first
 	delete global_lckmgr;
+	delete global_hlckmgr;
 	return 0;
 }
 

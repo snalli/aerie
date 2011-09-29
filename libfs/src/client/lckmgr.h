@@ -121,34 +121,39 @@ public:
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
 	lock_protocol::LockId lid() const { return lid_; }
+	lock_protocol::mode mode(pthread_t tid) { 
+		ThreadRecord t = gtque_.Find(tid);
+		return t.mode();
+	}
 
 	lock_protocol::LockId lid_;
 
-	// we use only a single cv to monitor changes of the lock's status
-	// this may be less efficient because there would be many spurious
-	// wake-ups, but it's simple anyway
+	/// we use only a single cv to monitor changes of the lock's status
+	/// this may be less efficient because there would be many spurious
+	/// wake-ups, but it's simple anyway
 	pthread_cond_t            status_cv_;
 
-	// condvar that is signaled when the ``used'' field is set to true
+	/// condvar that is signaled when the ``used'' field is set to true
 	pthread_cond_t            used_cv_;
 
 	pthread_cond_t            got_acq_reply_cv_;
   
-	// condvar that is signaled when the server informs the client to retry
+	/// condvar that is signaled when the server informs the client to retry
 	pthread_cond_t            retry_cv_;
 
 	GrantQueue<ThreadRecord>  gtque_; 
-	// The sequence number of the latest *COMPLETED* acquire request made
-	// by the client to obtain this lock.
-	// By completed, we mean the remote acquire() call returns with a value.
+	
+	/// The sequence number of the latest *COMPLETED* acquire request made
+	/// by the client to obtain this lock.
+	/// By completed, we mean the remote acquire() call returns with a value.
 	int                       seq_;
-	bool                      used_;        // set to true after first use
-	bool                      can_retry_;   // set when a retry message from the server is received
-	int                       revoke_type_; // type of revocation requested
+	bool                      used_;        ///< set to true after first use
+	bool                      can_retry_;   ///< set when a retry message from the server is received
+	int                       revoke_type_; ///< type of revocation requested
 
-	lock_protocol::mode       global_mode_; // mode as known by the server
+	lock_protocol::mode       global_mode_; ///< mode as known by the server
 
-	void*                     payload_;     // lock users may user anything they like
+	void*                     payload_;     ///< lock users may use it for anything they like
 
 private:
 	LockStatus                status_;
@@ -168,32 +173,36 @@ public:
 
 class LockManager {
 public:
-	LockManager(rpcc*, rpcs*, std::string, class LockUser*);
+	LockManager(rpcc* rpc_client, rpcs* rpc_server, std::string id, class LockUser* lu);
 	~LockManager();
-	Lock* FindOrCreateLock(lock_protocol::LockId);
-	lock_protocol::status Acquire(Lock*, int, int);
-	lock_protocol::status Acquire(lock_protocol::LockId, int, int);
-	lock_protocol::status Convert(Lock*, int);
-	lock_protocol::status Convert(lock_protocol::LockId, int);
-	lock_protocol::status Release(Lock*);
-	lock_protocol::status Release(lock_protocol::LockId);
-	lock_protocol::status stat(lock_protocol::LockId);
+	Lock* FindOrCreateLock(lock_protocol::LockId lid);
+	lock_protocol::status Acquire(Lock* lock, int mode, int flags, std::vector<unsigned long long> argv);
+	lock_protocol::status Acquire(Lock* lock, int mode, int flags);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, int mode, int flags, std::vector<unsigned long long> argv);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, int mode, int flags);
+	lock_protocol::status Convert(Lock* lock, int new_mode);
+	lock_protocol::status Convert(lock_protocol::LockId lid, int new_mode);
+	lock_protocol::status Release(Lock* lock);
+	lock_protocol::status Release(lock_protocol::LockId lid);
+	lock_protocol::status stat(lock_protocol::LockId lid);
 	void Releaser();
 	void RegisterLockUser(LockUser* lu) { lu_ = lu; };
 
-	rlock_protocol::status revoke(lock_protocol::LockId, int, int, int&);
+	rlock_protocol::status revoke(lock_protocol::LockId lid, int seq, int revoke_type, int& unused);
 	// Tell this client to retry requesting the lock in which this client
 	// was interest when that lock just became available.
-	rlock_protocol::status retry(lock_protocol::LockId, int, int&);
+	rlock_protocol::status retry(lock_protocol::LockId lid, int seq, int& current_seq);
+
+	int id() { return cl2srv_->id(); }
 
 private:
-	int do_acquire(Lock*, int, int);
-	int do_convert(Lock*, int, int);
-	int do_release(Lock*);
-	Lock* FindOrCreateLockInternal(lock_protocol::LockId);
-	lock_protocol::status AcquireInternal(unsigned long, Lock*, int, int);
-	lock_protocol::status ConvertInternal(unsigned long, Lock*, int);
-	lock_protocol::status ReleaseInternal(unsigned long, Lock*);
+	int do_acquire(Lock* l, int mode, int flags, std::vector<unsigned long long> argv);
+	int do_convert(Lock* l, int mode, int flags);
+	int do_release(Lock* l);
+	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
+	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, int mode, int flags, std::vector<unsigned long long> argv);
+	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, int new_mode);
+	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e);
 
 	class LockUser*                                      lu_;
 	std::string                                          hostname_;

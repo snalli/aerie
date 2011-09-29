@@ -10,3 +10,6 @@ if GetOption('run_integration_tests') == True:
 	if mainEnv['TEST_FILTER'] is None:
 		mainEnv['TEST_FILTER'] = ".*"
 	SConscript('integration/SConscript') #, variant_dir = s.path.join('test', 'integration'))
+
+
+SConscript('interactive/SConscript') #, variant_dir = s.path.join('test', 'interactive'))

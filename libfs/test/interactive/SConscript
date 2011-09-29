@@ -1,0 +1,18 @@
+import re, os, sys, string
+sys.path.append('%s/library' % (Dir('#').abspath))
+
+
+Import('mainEnv')
+testEnv = mainEnv.Clone()
+testEnv.Append(CPPPATH = ['#', '#src'])
+
+# For correct and complete compilation.
+
+Export('testEnv')
+
+thedir = os.path.join(Dir('#').abspath, 'test/interactive')
+dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
+
+for d in dirs:
+	if os.path.isfile(os.path.join(thedir, d, 'SConscript')):
+		SConscript(os.path.join(d, 'SConscript'))

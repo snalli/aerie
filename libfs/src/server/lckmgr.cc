@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <vector>
 #include "common/debug.h"
 #include "common/gtque.h"
 #include "common/lock_protocol.h"
@@ -128,13 +129,14 @@ state2str(uint32_t state)
 
 
 lock_protocol::status
-LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, int flags,
-                     int &unused)
+LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, 
+                     int flags, std::vector<unsigned long long> argv, int& unused)
 {
 	char                  statestr[128];
 	uint32_t              next_state;
 	int                   wq_len;
 	lock_protocol::status r;
+
 	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
 	        lid, lock_protocol::Mode::mode2str(mode).c_str());
 

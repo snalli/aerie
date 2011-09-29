@@ -56,6 +56,53 @@ int lock_protocol::Mode::successor_table[] = {
 };
 
 
+// Hierarchical Locks
+
+inline int 
+BITSET(int b)
+{
+	return 1 << b;
+}
+
+
+int lock_protocol::Mode::hierarchy_rule[] = {
+	/* NL   */  BITSET(lock_protocol::NL) | 
+	            BITSET(lock_protocol::SL) |
+	            BITSET(lock_protocol::SR) |
+	            BITSET(lock_protocol::IS) | 
+	            BITSET(lock_protocol::IX) | 
+	            BITSET(lock_protocol::XL) | 
+	            BITSET(lock_protocol::XR) | 
+	            BITSET(lock_protocol::IXSL),
+
+	/* SL   */  BITSET(lock_protocol::IS) | 
+	            BITSET(lock_protocol::SR) |
+	            BITSET(lock_protocol::IX) |
+	            BITSET(lock_protocol::XR)
+
+	/* SR   */  BITSET(lock_protocol::IS) | 
+	            BITSET(lock_protocol::SR) |
+	            BITSET(lock_protocol::IX)
+
+	/* IS   */  BITSET(lock_protocol::IS) | 
+	            BITSET(lock_protocol::SR)
+	
+	/* IX   */  BITSET(lock_protocol::IS) | 
+	            BITSET(lock_protocol::IX)
+
+	/* XL   */  BITSET(lock_protocol::IX) | 
+	            BITSET(lock_protocol::XR) |
+	            BITSET(lock_protocol::IXSL)
+	
+	/* XR   */  BITSET(lock_protocol::IX) | 
+	            BITSET(lock_protocol::IXSL)
+
+	/* IXSL */  BITSET(lock_protocol::IX) | 
+	            BITSET(lock_protocol::IXSL) |
+	            BITSET(lock_protocol::XR)
+};
+
+
 std::string lock_protocol::Mode::mode2str_table[] = { 
 	"NL", "SL", "SR", "IS", "IX", "XL", "XR", "IXSL"
 };

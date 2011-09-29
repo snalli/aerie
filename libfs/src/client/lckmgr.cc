@@ -174,8 +174,11 @@ LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 	return lp;
 }
 
-
-/// Returns a reference (pointer) to the lock
+/// \brief Finds the lock identified by lid or if lock lid does not exist it creates the lock.
+///
+/// \param lid lock identifier. 
+/// \return a reference (pointer) to the lock.
+///
 /// Does no reference counting.
 Lock*
 LockManager::FindOrCreateLock(lock_protocol::LockId lid)
@@ -280,8 +283,9 @@ LockManager::Releaser()
 /// release the mutex_ while waiting on certain condition varaibles.
 /// for this reason, we need an ACQUIRING status to tell other threads 
 /// that an acquisition is in progress.
-inline lock_protocol::status
-LockManager::AcquireInternal(unsigned long tid, Lock* l, int mode, int flags)
+lock_protocol::status
+LockManager::AcquireInternal(unsigned long tid, Lock* l, int mode, int flags, 
+                             std::vector<unsigned long long> argv)
 {
 	lock_protocol::status r;
 	lock_protocol::LockId lid = l->lid_;
@@ -299,7 +303,7 @@ check_state:
 			        cl2srv_->id(), lid, 
 			        lock_protocol::Mode::mode2str(l->global_mode_).c_str(), tid);
 
-			// if mode is the as restrictive as or more than the one allowed
+			// if mode is as restrictive as or more than the one allowed
 			// by global mode then we need to communicate with the server.
 			// otherwise we perform the conversion silently
 			if (mode != l->global_mode_ &&
@@ -370,7 +374,7 @@ check_state:
 			dbg_log(DBG_INFO, "[%d] lock %llu not available; acquiring now\n",
 			        cl2srv_->id(), lid);
 			l->set_status(Lock::ACQUIRING);
-			while ((r = do_acquire(l, mode, flags & Lock::FLG_NOBLK)) 
+			while ((r = do_acquire(l, mode, flags & Lock::FLG_NOBLK, argv)) 
 			       == lock_protocol::RETRY) 
 			{
 				while (!l->can_retry_) {
@@ -393,12 +397,37 @@ check_state:
 
 
 lock_protocol::status
-LockManager::Acquire(Lock* lock, int mode, int flags)
+LockManager::Acquire(Lock* lock, int mode, int flags, 
+                     std::vector<unsigned long long> argv)
 {
 	lock_protocol::status r;
 
 	pthread_mutex_lock(&mutex_);
-	r = AcquireInternal(0, lock, mode, flags);
+	r = AcquireInternal(0, lock, mode, flags, argv);
+	pthread_mutex_unlock(&mutex_);
+	return r;
+}
+
+
+lock_protocol::status
+LockManager::Acquire(Lock* lock, int mode, int flags)
+{
+	std::vector<unsigned long long> argv;
+
+	return Acquire(lock, mode, flags, argv);
+}
+
+
+lock_protocol::status
+LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags,
+                     std::vector<unsigned long long> argv)
+{
+	Lock*                 lock;
+	lock_protocol::status r;
+
+	pthread_mutex_lock(&mutex_);
+	lock = FindOrCreateLockInternal(lid);
+	r = AcquireInternal(0, lock, mode, flags, argv);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
@@ -407,15 +436,11 @@ LockManager::Acquire(Lock* lock, int mode, int flags)
 lock_protocol::status
 LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
 {
-	Lock*                 lock;
-	lock_protocol::status r;
+	std::vector<unsigned long long> argv;
 
-	pthread_mutex_lock(&mutex_);
-	lock = FindOrCreateLockInternal(lid);
-	r = AcquireInternal(0, lock, mode, flags);
-	pthread_mutex_unlock(&mutex_);
-	return r;
+	return Acquire(lid, mode, flags, argv);
 }
+
 
 
 inline lock_protocol::status
@@ -465,12 +490,12 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l, int new_mode)
 
 // release() is an atomic operation
 lock_protocol::status
-LockManager::Convert(Lock* lock, int mode)
+LockManager::Convert(Lock* lock, int new_mode)
 {
 	lock_protocol::status r;
 
 	pthread_mutex_lock(&mutex_);
-	r = ConvertInternal(0, lock, mode);
+	r = ConvertInternal(0, lock, new_mode);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
@@ -478,7 +503,7 @@ LockManager::Convert(Lock* lock, int mode)
 
 // release() is an atomic operation
 lock_protocol::status
-LockManager::Convert(lock_protocol::LockId lid, int mode)
+LockManager::Convert(lock_protocol::LockId lid, int new_mode)
 {
 	lock_protocol::status r;
 	Lock*                 lock;
@@ -486,13 +511,13 @@ LockManager::Convert(lock_protocol::LockId lid, int mode)
 	pthread_mutex_lock(&mutex_);
 	assert(locks_.find(lid) != locks_.end());
 	lock = FindOrCreateLockInternal(lid);
-	r = ConvertInternal(0, lock, mode);
+	r = ConvertInternal(0, lock, new_mode);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
 
 
-inline lock_protocol::status
+lock_protocol::status
 LockManager::ReleaseInternal(unsigned long tid, Lock* l)
 {
 	lock_protocol::status r = lock_protocol::OK;
@@ -605,7 +630,8 @@ LockManager::retry(lock_protocol::LockId lid, int seq,
 
 // assumes the current thread holds the mutex_
 int
-LockManager::do_acquire(Lock* l, int mode, int flags)
+LockManager::do_acquire(Lock* l, int mode, int flags, 
+                        std::vector<unsigned long long> argv)
 {
 	lock_protocol::rpc_numbers rpc_number;
 	int                        r;
@@ -617,7 +643,7 @@ LockManager::do_acquire(Lock* l, int mode, int flags)
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), last_seq_+1);
 	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
 	r = cl2srv_->call(lock_protocol::acquire, cl2srv_->id(), ++last_seq_, l->lid_, 
-	                  mode, rpc_flags, unused);
+	                  mode, rpc_flags, argv, unused);
 	l->seq_ = last_seq_;
 	if (r == lock_protocol::OK) {
 		// great! we have the lock

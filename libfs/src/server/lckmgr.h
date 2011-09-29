@@ -5,6 +5,7 @@
 #include <string>
 #include <deque>
 #include <set>
+#include <vector>
 #include "rpc/rpc.h"
 #include "common/gtque.h"
 #include "common/lock_protocol.h"
@@ -74,7 +75,7 @@ public:
 	LockManager();
 	~LockManager();
 	lock_protocol::status stat(lock_protocol::LockId, int&);
-	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, int&);
+	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, std::vector<unsigned long long>, int&);
 	lock_protocol::status release(int, int, lock_protocol::LockId, int&);
 	lock_protocol::status convert(int, int, lock_protocol::LockId, int, int, int&);
 
