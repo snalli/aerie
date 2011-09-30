@@ -127,6 +127,15 @@ state2str(uint32_t state)
 }
 
 
+int
+LockManager::PolicyPickMode(Lock& lock, int mode)
+{
+	/* Pick the most severe that can be granted instantly, or
+	 * wait for the lease severe */
+
+	
+}
+
 
 lock_protocol::status
 LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, 
@@ -145,7 +154,8 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode,
 	wq_len = l.waiting_list_.size();
 	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", lid, wq_len);
 
-    if ((wq_len == 0 || (wq_len > 0 && l.expected_clt_ == clt)) &&
+	
+	if ((wq_len == 0 || (wq_len > 0 && l.expected_clt_ == clt)) &&
 		l.gtque_.CanGrant(mode)) 
 	{
 		dbg_log(DBG_INFO, "lock %llu is compatible; granting to clt %d\n", 
@@ -214,11 +224,11 @@ LockManager::convert(int clt, int seq, lock_protocol::LockId lid,
 		locks_[lid].gtque_.Exists(clt))
 	{
 		Lock&         l = locks_[lid];
-		ClientRecord& cr = l.gtque_.Find(clt);
+		ClientRecord* cr = l.gtque_.Find(clt);
 		dbg_log(DBG_INFO, "clt %d convert lck %llu at seq %d (%s --> %s)\n", 
-		        clt, lid, seq, lock_protocol::Mode::mode2str(cr.mode()).c_str(), 
+		        clt, lid, seq, lock_protocol::Mode::mode2str(cr->mode()).c_str(), 
 				lock_protocol::Mode::mode2str(new_mode).c_str());
-		assert(cr.seq_ == seq);
+		assert(cr->seq_ == seq);
 		// if there is an outstanding revoke request then the simplest
 		// approach is to deny the conversion if this is an upgrade as 
 		// it could conflict with the new mode requested by revoke

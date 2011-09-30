@@ -12,6 +12,7 @@
 #include "rpc/rpc.h"
 #include "common/gtque.h"
 #include "common/lock_protocol.h"
+#include "common/bitmap.h"
 
 namespace client {
 
@@ -100,14 +101,14 @@ public:
 	};
 
 	enum Mode {
-		NL = lock_protocol::NL,     // not locked
-		SL = lock_protocol::SL,     // shared local
-		SR = lock_protocol::SR,     // shared recursive
-		IS = lock_protocol::IS,     // intent shared
-		IX = lock_protocol::IX,     // intent exclusive
-		XL = lock_protocol::XL,     // exclusive local
-		XR = lock_protocol::XR,     // exclusive recursive
-		IXSL = lock_protocol::IXSL, // intent exclusive and shared local
+		NL = lock_protocol::Mode::NL,     // not locked
+		SL = lock_protocol::Mode::SL,     // shared local
+		SR = lock_protocol::Mode::SR,     // shared recursive
+		IS = lock_protocol::Mode::IS,     // intent shared
+		IX = lock_protocol::Mode::IX,     // intent exclusive
+		XL = lock_protocol::Mode::XL,     // exclusive local
+		XR = lock_protocol::Mode::XR,     // exclusive recursive
+		IXSL = lock_protocol::Mode::IXSL, // intent exclusive and shared local
 	};
 
 	enum Flag {
@@ -122,8 +123,8 @@ public:
 	LockStatus status() const { return status_; }
 	lock_protocol::LockId lid() const { return lid_; }
 	lock_protocol::mode mode(pthread_t tid) { 
-		ThreadRecord t = gtque_.Find(tid);
-		return t.mode();
+		ThreadRecord* t = gtque_.Find(tid);
+		return (t != NULL) ? t->mode(): lock_protocol::NL;
 	}
 
 	lock_protocol::LockId lid_;
@@ -175,6 +176,7 @@ class LockManager {
 public:
 	LockManager(rpcc* rpc_client, rpcs* rpc_server, std::string id, class LockUser* lu);
 	~LockManager();
+	Lock* FindLock(lock_protocol::LockId lid);
 	Lock* FindOrCreateLock(lock_protocol::LockId lid);
 	lock_protocol::status Acquire(Lock* lock, int mode, int flags, std::vector<unsigned long long> argv);
 	lock_protocol::status Acquire(Lock* lock, int mode, int flags);
@@ -199,6 +201,7 @@ private:
 	int do_acquire(Lock* l, int mode, int flags, std::vector<unsigned long long> argv);
 	int do_convert(Lock* l, int mode, int flags);
 	int do_release(Lock* l);
+	Lock* FindLockInternal(lock_protocol::LockId lid);
 	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
 	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, int mode, int flags, std::vector<unsigned long long> argv);
 	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, int new_mode);

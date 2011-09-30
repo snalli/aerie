@@ -26,6 +26,8 @@ serverProgramAbspath = str(serverProgram[0])
 # Integration tests
 
 test_list = [
+             ('TestLockUnlockSingleClient1', 1),
+             ('TestLockUnlockSingleClient2', 1),
              ('TestLockUnlockConcurrentClients1', 2),
              ('TestLockUnlockConcurrentClients2', 2),
              ('TestLockUnlockConcurrentClients3', 2),

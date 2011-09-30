@@ -8,19 +8,43 @@
 #include "common/lock_protocol.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
+#include "client/hlckmgr.h"
 //#include "checklock.hxx"
 
 using namespace client;
 
-static lock_protocol::LockId a = 1;
-static lock_protocol::LockId b = 2;
-static lock_protocol::LockId c = 3;
+static lock_protocol::LockId root = 1;
+static lock_protocol::LockId a = 2;
+static lock_protocol::LockId b = 3;
+static lock_protocol::LockId c = 4;
 
-void test(char* tag)
+void test1(char* tag)
 {
-	printf("%s\n", tag);
-
-	global_lckmgr->Acquire(a, Lock::XL, 0);
+	global_hlckmgr->Acquire(root, 0, HLock::IX, 0);
+	global_hlckmgr->Acquire(a, root, HLock::XR, 0);
 	
-	global_lckmgr->Release(a);
+	global_hlckmgr->Release(a);
+}
+
+
+void test2(char* tag)
+{
+	global_hlckmgr->Acquire(root, 0, HLock::IX, 0);
+	global_hlckmgr->Acquire(a, root, HLock::XR, 0);
+	global_hlckmgr->Acquire(b, a, HLock::XL, 0);
+	
+	global_hlckmgr->Release(b);
+	global_hlckmgr->Release(a);
+
+	global_hlckmgr->Acquire(a, root, HLock::XL, 0);
+	global_hlckmgr->Acquire(b, a, HLock::XL, 0);
+	
+	global_hlckmgr->Release(b);
+	global_hlckmgr->Release(a);
+
+}
+
+
+void test(char* tag) {
+	test2(tag);
 }

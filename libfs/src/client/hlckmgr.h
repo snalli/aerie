@@ -7,6 +7,7 @@
 
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
+#include <google/dense_hash_set>
 #include "client/lckmgr.h"
 
 namespace client {
@@ -46,6 +47,7 @@ public:
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
 	lock_protocol::LockId lid() const { return lid_; }
+	int AddChild(HLock* hlock);
 	
 
 	Lock*                 lock_;
@@ -61,15 +63,19 @@ public:
 	pthread_cond_t        used_cv_;
 
 	pthread_mutex_t       mutex_;
-	bool                  used_;          ///< set to true after first use
-	bool                  can_retry_;     ///< set when a retry message from the server is received
-	int                   mode_;          ///< local mode
-	int                   supremum_mode_; ///< most restrictive ancestor mode
+	bool                  used_;                    ///< set to true after first use
+	bool                  can_retry_;               ///< set when a retry message from the server is received
+	/// locking mode. used only when the lock is attached to a base lock to keep the
+	/// actual locking mode of the 
+	int                   mode_;                    
+	int                   ancestor_recursive_mode_; ///< recursive mode of ancestors
 	lock_protocol::LockId lid_;
 
+	google::dense_hash_set<HLock*> children_;
 private:	
 	LockStatus            status_;
 };
+
 
 
 class HLockUser {
@@ -100,7 +106,8 @@ public:
 	lock_protocol::status Release(lock_protocol::LockId lid);
 
 private:
-	HLock* FindOrCreateLockInternal(lock_protocol::LockId lid, HLock* plp, bool create);
+	HLock* FindLockInternal(lock_protocol::LockId lid, HLock* plp);
+	HLock* FindOrCreateLockInternal(lock_protocol::LockId lid, HLock* plp);
 	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, int mode, int flags);
 	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock);
 
@@ -109,6 +116,15 @@ private:
 	LockManager*         lm_;
 	google::dense_hash_map<lock_protocol::LockId, HLock*> locks_;
 };
+
+
+inline int 
+HLock::AddChild(HLock* hlock)
+{
+	children_.insert(hlock);
+}
+
+
 
 } // namespace client
 

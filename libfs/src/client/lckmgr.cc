@@ -159,8 +159,22 @@ LockManager::~LockManager()
 	pthread_mutex_destroy(&mutex_);
 }
 
+/// \brief Returns the lock lid if it exists, otherwise it returns NULL
+/// Assumes caller has the mutex LockManager::mutex_
+inline Lock*
+LockManager::FindLockInternal(lock_protocol::LockId lid)
+{
+	Lock* lp;
 
-// assumes caller has the mutex mutex_
+	// if lid does not exist then the initial value of the slot is 0 (NULL)
+	lp = locks_[lid];
+	return lp;
+}
+
+
+/// \brief Returns the lock lid. If the lock does not exist, it first creates 
+/// the lock.
+/// Assumes caller has the mutex LockManager::mutex_
 inline Lock*
 LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 {
@@ -168,13 +182,35 @@ LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 
 	lp = locks_[lid];
 	if (lp == NULL) {
+		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+		        "[%d] Creating lock %llu\n", cl2srv_->id(), lid);
 		lp = new Lock(lid);
 		locks_[lid] = lp;
 	}	
 	return lp;
 }
 
-/// \brief Finds the lock identified by lid or if lock lid does not exist it creates the lock.
+
+/// \brief Finds the lock identified by lid. 
+///
+/// \param lid lock identifier. 
+/// \return a reference (pointer) to the lock.
+///
+/// Does no reference counting.
+Lock*
+LockManager::FindLock(lock_protocol::LockId lid)
+{
+	Lock* l;
+
+	pthread_mutex_lock(&mutex_);
+	l = FindLockInternal(lid);
+	pthread_mutex_unlock(&mutex_);
+	return l;
+}
+
+
+/// \brief Finds the lock identified by lid. If the lock lid does not exist 
+/// it first creates the lock.
 ///
 /// \param lid lock identifier. 
 /// \return a reference (pointer) to the lock.
@@ -442,7 +478,7 @@ LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
 }
 
 
-
+// this method never blocks and is never queued in the server
 inline lock_protocol::status
 LockManager::ConvertInternal(unsigned long tid, Lock* l, int new_mode)
 {
@@ -464,7 +500,7 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l, int new_mode)
 		if (new_mode != l->global_mode_ &&
 		    lock_protocol::Mode::PartialOrder(new_mode, l->global_mode_) >= 0)  
 		{
-			if ((r = do_convert(l, new_mode, 0)) == lock_protocol::OK) {
+			if ((r = do_convert(l, new_mode, Lock::FLG_NOBLK)) == lock_protocol::OK) {
 				l->global_mode_ = (lock_protocol::mode) new_mode;
 			} else {
 				return r;
@@ -510,7 +546,7 @@ LockManager::Convert(lock_protocol::LockId lid, int new_mode)
 
 	pthread_mutex_lock(&mutex_);
 	assert(locks_.find(lid) != locks_.end());
-	lock = FindOrCreateLockInternal(lid);
+	lock = FindLockInternal(lid);
 	r = ConvertInternal(0, lock, new_mode);
 	pthread_mutex_unlock(&mutex_);
 	return r;
@@ -563,7 +599,7 @@ LockManager::Release(lock_protocol::LockId lid)
 
 	pthread_mutex_lock(&mutex_);
 	assert(locks_.find(lid) != locks_.end());
-	lock = FindOrCreateLockInternal(lid);
+	lock = FindLockInternal(lid);
 	r = ReleaseInternal(0, lock);
 	pthread_mutex_unlock(&mutex_);
 	return r;
@@ -605,7 +641,7 @@ LockManager::retry(lock_protocol::LockId lid, int seq,
 
 	pthread_mutex_lock(&mutex_);
 	assert(locks_.find(lid) != locks_.end());
-	l = FindOrCreateLockInternal(lid);
+	l = FindLockInternal(lid);
 
 	if (seq >= l->seq_) {
 		// it doesn't matter whether this retry message arrives before or
@@ -663,7 +699,7 @@ LockManager::do_convert(Lock* l, int mode, int flags)
 	int rpc_flags;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-	        "[%d] calling convert rpc for lck %llu id=%d seq=%d\n",
+	        "[%d] calling convert RPC for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), l->seq_);
 	if (lu_) {
 		lu_->OnConvert(l);
@@ -682,7 +718,7 @@ LockManager::do_release(Lock* l)
 	int unused;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-	        "[%d] calling release rpc for lck %llu id=%d seq=%d\n",
+	        "[%d] calling release RPC for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), l->seq_);
 	if (lu_) {
 		lu_->OnRelease(l);

@@ -1,6 +1,7 @@
 #ifndef _GRANT_QUEUE_H_AJK191
 #define _GRANT_QUEUE_H_AJK191
 
+#include <iostream>
 #include <stdint.h>
 #include <map>
 #include <vector>
@@ -21,8 +22,8 @@ public:
 	bool IsModeSet(int mode) { return (mode_union_ & (1 << mode));}
 	int  Size() { return members_.size(); }
 	int  Empty() { return members_.empty(); }
-	void Print(std::ostream);
-	MemberType& Find(int);
+	void Print(std::ostream&);
+	MemberType* Find(typename MemberType::id_t);
 
 	iterator begin() { return members_.begin(); }
 	iterator end() { return members_.end(); }
@@ -56,10 +57,15 @@ GrantQueue<MemberType>::Exists(typename MemberType::id_t id) {
 
 
 template <class MemberType>
-MemberType&
-GrantQueue<MemberType>::Find(int clt)
+MemberType*
+GrantQueue<MemberType>::Find(typename MemberType::id_t id)
 {
-	return members_[clt];
+	typename std::map<typename MemberType::id_t, MemberType>::iterator itr;
+
+	if ((itr = members_.find(id)) != members_.end()) {
+		return &(*itr).second;
+	} 
+	return NULL;
 }
 
 
@@ -91,7 +97,6 @@ int
 GrantQueue<MemberType>::PartialOrder(int mode)
 {
 	int val = mode_union_;
-	int severity = 0;
 	int m;
 	int po = -1;
 	int r;
@@ -103,7 +108,7 @@ GrantQueue<MemberType>::PartialOrder(int mode)
 			po = r;
 		}
 	}
-	return severity;
+	return po;
 }
 
 
@@ -183,11 +188,11 @@ GrantQueue<MemberType>::Remove(typename MemberType::id_t id)
 
 template <class MemberType>
 void
-GrantQueue<MemberType>::Print(std::ostream out)
+GrantQueue<MemberType>::Print(std::ostream& out)
 {
-	typename std::map<int, MemberType>::iterator   itr_icr;
+	typename std::map<typename MemberType::id_t, MemberType>::iterator   itr_icr;
 
-	out << "MEMBERS" << std::endl;
+	out << "MEMBERS: " << members_.size() << std::endl;
 	for (itr_icr = members_.begin(); 
 	     itr_icr != members_.end(); itr_icr++) 
 	{

@@ -20,6 +20,24 @@ static lock_protocol::LockId c = 3;
 
 SUITE(Lock)
 {
+	TEST_FIXTURE(LockFixture, TestLockUnlockSingleClient1)
+	{
+		CHECK(Client::TestServerIsAlive() == 0);
+		global_lckmgr->Acquire(a, Lock::XL, 0);
+		CHECK(check_grant_x(region_, a) == 0);
+		global_lckmgr->Release(a);
+		CHECK(check_release(region_, a) == 0);
+	}
+
+	TEST_FIXTURE(LockFixture, TestLockUnlockSingleClient2)
+	{
+		CHECK(Client::TestServerIsAlive() == 0);
+		global_lckmgr->Acquire(a, Lock::XL, 0);
+		CHECK(check_grant_x(region_, a) == 0);
+		global_lckmgr->Release(a);
+		CHECK(check_release(region_, a) == 0);
+	}
+
 	TEST_FIXTURE(LockFixture, TestLockUnlockConcurrentClients1)
 	{
 		CHECK(Client::TestServerIsAlive() == 0);

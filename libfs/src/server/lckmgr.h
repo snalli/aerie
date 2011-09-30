@@ -78,12 +78,13 @@ public:
 	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, std::vector<unsigned long long>, int&);
 	lock_protocol::status release(int, int, lock_protocol::LockId, int&);
 	lock_protocol::status convert(int, int, lock_protocol::LockId, int, int, int&);
+	
+	int  PolicyPickMode(Lock& lock, int mode);
 
 	// subscribe for future notifications by telling the server the RPC addr
 	lock_protocol::status subscribe(int, std::string, int&);
 	void revoker();
 	void retryer();
-	void wait_acquie(lock_protocol::LockId);
 
 private:
 

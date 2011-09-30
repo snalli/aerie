@@ -58,49 +58,68 @@ int lock_protocol::Mode::successor_table[] = {
 
 // Hierarchical Locks
 
-inline int 
-BITSET(int b)
-{
-	return 1 << b;
-}
+uint32_t lock_protocol::Mode::hierarchy_rule_bitmaps[] = {
+	/* NL   */  Bitmap<uint32_t>::Set(lock_protocol::NL) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::SL) |
+	            Bitmap<uint32_t>::Set(lock_protocol::SR) |
+	            Bitmap<uint32_t>::Set(lock_protocol::IS) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::IX) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::XL) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::XR) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::IXSL),
 
+	/* SL   */  Bitmap<uint32_t>::Set(lock_protocol::IS) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::SR) |
+	            Bitmap<uint32_t>::Set(lock_protocol::IX) |
+	            Bitmap<uint32_t>::Set(lock_protocol::XR),
 
-int lock_protocol::Mode::hierarchy_rule[] = {
-	/* NL   */  BITSET(lock_protocol::NL) | 
-	            BITSET(lock_protocol::SL) |
-	            BITSET(lock_protocol::SR) |
-	            BITSET(lock_protocol::IS) | 
-	            BITSET(lock_protocol::IX) | 
-	            BITSET(lock_protocol::XL) | 
-	            BITSET(lock_protocol::XR) | 
-	            BITSET(lock_protocol::IXSL),
+	/* SR   */  Bitmap<uint32_t>::Set(lock_protocol::IS) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::IX) |
+	            Bitmap<uint32_t>::Set(lock_protocol::SR),
 
-	/* SL   */  BITSET(lock_protocol::IS) | 
-	            BITSET(lock_protocol::SR) |
-	            BITSET(lock_protocol::IX) |
-	            BITSET(lock_protocol::XR)
-
-	/* SR   */  BITSET(lock_protocol::IS) | 
-	            BITSET(lock_protocol::SR) |
-	            BITSET(lock_protocol::IX)
-
-	/* IS   */  BITSET(lock_protocol::IS) | 
-	            BITSET(lock_protocol::SR)
+	/* IS   */  Bitmap<uint32_t>::Set(lock_protocol::IS) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::SR),
 	
-	/* IX   */  BITSET(lock_protocol::IS) | 
-	            BITSET(lock_protocol::IX)
+	/* IX   */  Bitmap<uint32_t>::Set(lock_protocol::IS) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::IX),
 
-	/* XL   */  BITSET(lock_protocol::IX) | 
-	            BITSET(lock_protocol::XR) |
-	            BITSET(lock_protocol::IXSL)
+	/* XL   */  Bitmap<uint32_t>::Set(lock_protocol::IX) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::XR) |
+	            Bitmap<uint32_t>::Set(lock_protocol::IXSL),
 	
-	/* XR   */  BITSET(lock_protocol::IX) | 
-	            BITSET(lock_protocol::IXSL)
+	/* XR   */  Bitmap<uint32_t>::Set(lock_protocol::IX) |
+	            Bitmap<uint32_t>::Set(lock_protocol::IXSL) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::XR),
 
-	/* IXSL */  BITSET(lock_protocol::IX) | 
-	            BITSET(lock_protocol::IXSL) |
-	            BITSET(lock_protocol::XR)
+	/* IXSL */  Bitmap<uint32_t>::Set(lock_protocol::IX) | 
+	            Bitmap<uint32_t>::Set(lock_protocol::IXSL) |
+	            Bitmap<uint32_t>::Set(lock_protocol::XR)
 };
+
+
+uint32_t lock_protocol::Mode::recursive_rule_bitmaps[] = {
+	/* NL   */ Bitmap<uint32_t>::Set(lock_protocol::NL) |
+	           Bitmap<uint32_t>::Set(lock_protocol::SR) |
+	           Bitmap<uint32_t>::Set(lock_protocol::XR),
+
+	/* SL   */ Bitmap<uint32_t>::Set(lock_protocol::SR) |
+	           Bitmap<uint32_t>::Set(lock_protocol::XR),
+
+	/* SR   */ Bitmap<uint32_t>::Set(lock_protocol::SR),
+
+	/* IS   */ Bitmap<uint32_t>::Set(lock_protocol::SR) |
+	           Bitmap<uint32_t>::Set(lock_protocol::XR),
+	
+	/* IX   */ Bitmap<uint32_t>::Set(lock_protocol::XR),
+
+	/* XL   */ Bitmap<uint32_t>::Set(lock_protocol::XR),
+
+	/* XR   */ Bitmap<uint32_t>::Set(lock_protocol::XR),
+	
+	/* IXSL */ Bitmap<uint32_t>::Set(lock_protocol::XR)
+};
+
+
 
 
 std::string lock_protocol::Mode::mode2str_table[] = { 
