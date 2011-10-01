@@ -16,21 +16,21 @@ def addUnitTestFilter(env, path, test_filter):
         if m:
             test = m.group(1)
     if suite:
-        args.extend(['-s', suite])
+        args.append('-T,-suite=%s' % (suite))
     if test:
-        args.extend(['-t', test])
+        args.append('-T,-test=%s' % (test))
     env.Append(UNIT_TEST_CMDS = [(osenv, path, args)])
 
  
 def addUnitTestList(env, path, suite, *tests):
     if tests == ():
         osenv = ({})
-        args = ['-s', suite]
+        args = ['-T,-suite=%s' % (suite, utest)]
         env.Append(UNIT_TEST_CMDS = [(osenv, path, args)])
     else:
         for utest in tests[0]:
             osenv = ({})
-            args = ['-s', suite, '-t', utest]
+            args = ['-T,-suite=%s,-test=%s' % (suite, utest)]
             env.Append(UNIT_TEST_CMDS = [(osenv, path, args)])
 
 

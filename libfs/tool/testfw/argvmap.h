@@ -1,6 +1,7 @@
 #ifndef _TESTFW_CMD_LINE_ARGS_H_AKL189
 #define _TESTFW_CMD_LINE_ARGS_H_AKL189
 
+#include <assert.h>
 #include <unistd.h>
 #include <map>
 

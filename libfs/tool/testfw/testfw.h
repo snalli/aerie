@@ -1,6 +1,15 @@
 #ifndef _TESTFW_TESTFW_H_APK199
 #define _TESTFW_TESTFW_H_APK199
 
+#include <iostream>
+#include <fstream>
+#include <getopt.h>
+#include <string.h>
+#include <unittest++/UnitTest++.h>
+#include <unittest++/TestReporterStdout.h>
+#include <unittest++/TestRunner.h>
+#include <unittest++/Test.h>
+#include <unittest++/XmlTestReporter.h>
 #include "tool/testfw/unittest.h"
 #include "tool/testfw/argvmap.h"
 
@@ -8,6 +17,37 @@
 
 
 namespace testfw {
+
+struct RunTestIfMatchFilter
+{
+	RunTestIfMatchFilter(char const* suite_filter, char const* test_filter)
+	: suite_filter_(suite_filter),
+	  test_filter_(test_filter)
+	{ }
+
+	bool operator()(const UnitTest::Test* const test) const
+	{
+		int suite_filter_len;
+		int test_filter_len;
+		
+		suite_filter_len = suite_filter_ ? strlen(suite_filter_): 0;
+		test_filter_len = test_filter_ ? strlen(test_filter_): 0;
+		if ((suite_filter_len == 0 || 
+		     (strncmp(test->m_details.suiteName, suite_filter_, suite_filter_len) == 0)) &&
+			(test_filter_len == 0 || 
+		     (strncmp(test->m_details.testName, test_filter_, test_filter_len) == 0)))
+		{
+			return true;
+		} 
+		return false;
+	}
+
+	char const* suite_filter_;
+	char const* test_filter_;
+};
+
+
+
 
 class TestFramework;
 
@@ -83,11 +123,11 @@ TestFramework::RunTests()
 
 	UnitTest::TestRunner     runner(*reporter);
 
-	if (test_name_) {
-		RunTestIfTestNameIs predicate(test_name_);
-		ret = runner.RunTestsIf(UnitTest::Test::GetTestList(), suite_name_, predicate, 0);
+	if (suite_name_ || test_name_) {
+		RunTestIfMatchFilter predicate(suite_name_, test_name_);
+		ret = runner.RunTestsIf(UnitTest::Test::GetTestList(), NULL, predicate, 0);
 	} else {
-		ret = runner.RunTestsIf(UnitTest::Test::GetTestList(), suite_name_, UnitTest::True(), 0);
+		ret = runner.RunTestsIf(UnitTest::Test::GetTestList(), NULL, UnitTest::True(), 0);
 	}
 
 	if (!interactive_) {

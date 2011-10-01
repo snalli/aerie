@@ -2,7 +2,7 @@
 #include "tool/testfw/unittest.h"
 
 
-SUITE(SuiteLockProtocol)
+SUITE(LockProtocol)
 {
 	TEST(Test1)
 	{
