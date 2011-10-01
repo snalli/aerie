@@ -22,6 +22,7 @@ public:
 
 
 #define BITMAP_SET(bit) (1 << (bit))
+#define BITMAP_ISSET(bm, bit) (((1 << (bit)) & bm) ? true: false)
 
 //Bitmap<b64>::Set(1);
 
