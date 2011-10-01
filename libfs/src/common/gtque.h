@@ -82,7 +82,7 @@ GrantQueue<MemberType>::IsModeCompatible(int mode, int exclude_mode)
 		if (m == exclude_mode) {
 			continue;
 		}
-		if (!MemberType::Mode::compatibility_table[m][mode]) { 
+		if (!MemberType::Mode::Compatible(m, mode)) { 
 			return false;
 		}
 	}

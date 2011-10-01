@@ -1,6 +1,8 @@
 from unit_test import addUnitTest
+from unit_test import addUnitTestFilter
 from unit_test import addUnitTestSuite
 from unit_test import addUnitTestList
+from unit_test import runUnitTests
 import re, os, sys, string
 sys.path.append('%s/library' % (Dir('#').abspath))
 
@@ -11,18 +13,35 @@ testEnv.Append(CPPPATH = ['#', '#src'])
 
 # For correct and complete compilation.
 testEnv.AddMethod(addUnitTest, "addUnitTest")
+testEnv.AddMethod(addUnitTestFilter, "addUnitTestFilter")
 testEnv.AddMethod(addUnitTestSuite, "addUnitTestSuite")
 testEnv.AddMethod(addUnitTestList, "addUnitTestList")
 testEnv['UNIT_TEST_CMDS'] = []
-
+testEnv['TEST_FILTER'] = GetOption('test_filter')
 Export('testEnv')
 
-thedir = os.path.join(Dir('#').abspath, 'test')
+thedir = os.path.join(Dir('#').abspath, 'test/unit')
 dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
 
-for d in dirs:
-	if re.match(testEnv['TEST_FILTER'], d) and os.path.isfile(os.path.join(thedir, d, 'SConscript')):
-		SConscript(os.path.join(d, 'SConscript'))
+Import('fscLibrary')
+Import('mfsLibrary')
+Import('commonLibrary')
+Import('chunkstoreLibrary')
+Import('rpcLibrary')
+depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 
+source = [Glob('*/*.test.cxx'), Glob('*/*.fixture.cxx'), Glob('*/*.helper.cxx'), 'main.cxx']
+test = testEnv.Program('test', source, LIBS=['pthread', 'rt', 'UnitTest++']+depLibs)
 
-mainEnv['TEST_FILTER'] = GetOption('test_filter')
+if testEnv['TEST_FILTER']:
+	try:
+		os.remove(os.path.join(Dir('#').abspath, 'build/test/unit/test.filter.passed'))
+	except OSError:
+		# just ignore the exception; it is most likely raised because the file 
+		# does not exist
+		pass
+	runtests = testEnv.Command("test.filter.passed", ['test', mfsLibrary], runUnitTests)
+else:
+	runtests = testEnv.Command("test.passed", ['test', mfsLibrary], runUnitTests)
+
+testEnv.addUnitTestFilter(test[0].path, testEnv['TEST_FILTER'])

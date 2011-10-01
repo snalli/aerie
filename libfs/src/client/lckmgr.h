@@ -71,9 +71,9 @@ namespace client {
 
 class ThreadRecord {
 public:
-	typedef pthread_t id_t;
-	typedef lock_protocol::mode mode_t;
-	typedef lock_protocol::Mode Mode;
+	typedef pthread_t                 id_t;
+	typedef lock_protocol::mode       mode_t;
+	typedef lock_protocol::Mode       Mode;
 
 	ThreadRecord();
 	ThreadRecord(id_t, mode_t);
@@ -122,9 +122,10 @@ public:
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
 	lock_protocol::LockId lid() const { return lid_; }
-	lock_protocol::mode mode(pthread_t tid) { 
-		ThreadRecord* t = gtque_.Find(tid);
-		return (t != NULL) ? t->mode(): lock_protocol::NL;
+	lock_protocol::Mode::mode mode(pthread_t tid) { 
+		//FIXME: FIXTYPE fix type
+		//ThreadRecord* t = gtque_.Find(tid);
+		//return (t != NULL) ? t->mode(): lock_protocol::Mode::NL;
 	}
 
 	lock_protocol::LockId lid_;

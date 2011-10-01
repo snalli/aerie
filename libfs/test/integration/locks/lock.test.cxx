@@ -32,7 +32,9 @@ SUITE(Lock)
 	TEST_FIXTURE(LockFixture, TestLockUnlockSingleClient2)
 	{
 		CHECK(Client::TestServerIsAlive() == 0);
-		global_lckmgr->Acquire(a, Lock::XL, 0);
+		//global_lckmgr->Acquire(a, Lock::XL, 0);
+		//global_lckmgr->Acquire(a, lock_protocol::BitmapMode::XL, 0);
+		global_lckmgr->Acquire(a, Lock::Mode::XL, 0);
 		CHECK(check_grant_x(region_, a) == 0);
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);

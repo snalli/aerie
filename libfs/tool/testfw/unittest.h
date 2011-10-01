@@ -11,20 +11,49 @@
 #include <unittest++/Test.h>
 #include <unittest++/XmlTestReporter.h>
 
-struct RunTestIfNameIs
+struct RunTestIfTestNameIs
 {
-	RunTestIfNameIs(char const* name_)
-	: name(name_)
-	{
-	}
+	RunTestIfTestNameIs(char const* test_name)
+		: test_name_(test_name)
+	{ }
 
 	bool operator()(const UnitTest::Test* const test) const
 	{
 		using namespace std;
-		return (0 == strcmp(test->m_details.testName, name));
+		return (0 == strcmp(test->m_details.testName, test_name_));
 	}
 
-	char const* name;
+	char const* test_name_;
+};
+
+
+
+struct RunTestIfMatchFilter
+{
+	RunTestIfMatchFilter(char const* suite_filter, char const* test_filter)
+	: suite_filter_(suite_filter),
+	  test_filter_(test_filter)
+	{ }
+
+	bool operator()(const UnitTest::Test* const test) const
+	{
+		int suite_filter_len;
+		int test_filter_len;
+		
+		suite_filter_len = suite_filter_ ? strlen(suite_filter_): 0;
+		test_filter_len = test_filter_ ? strlen(test_filter_): 0;
+		if ((suite_filter_len == 0 || 
+		     (strncmp(test->m_details.suiteName, suite_filter_, suite_filter_len) == 0)) &&
+			(test_filter_len == 0 || 
+		     (strncmp(test->m_details.testName, test_filter_, test_filter_len) == 0)))
+		{
+			return true;
+		} 
+		return false;
+	}
+
+	char const* suite_filter_;
+	char const* test_filter_;
 };
 
 
@@ -34,11 +63,12 @@ static inline int runTests(const char *suiteName, const char *testName)
 	UnitTest::XmlTestReporter    reporter(std::cerr);
 	UnitTest::TestRunner         runner(reporter);
 
-	if (testName) {
-		RunTestIfNameIs predicate(testName);
-		return runner.RunTestsIf(UnitTest::Test::GetTestList(), suiteName, predicate, 0);
+	printf("suite=%s, test=%s\n", suiteName, testName);
+	if (testName || suiteName) {
+		RunTestIfMatchFilter predicate(suiteName, testName);
+		return runner.RunTestsIf(UnitTest::Test::GetTestList(), NULL, predicate, 0);
 	} else {
-		return runner.RunTestsIf(UnitTest::Test::GetTestList(), suiteName, UnitTest::True(), 0);
+		return runner.RunTestsIf(UnitTest::Test::GetTestList(), NULL, UnitTest::True(), 0);
 	}
 }
 

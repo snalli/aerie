@@ -1,7 +1,25 @@
 import os, subprocess, string, re
 from xml.etree.ElementTree import ElementTree
 import xml
+import re
 
+def addUnitTestFilter(env, path, test_filter):
+    args = []
+    osenv = ({})
+    suite = None
+    test = None
+    if test_filter:
+        m = re.search("suite=([A-Za-z0-9]*)", test_filter)
+        if m:
+            suite = m.group(1)    
+        m = re.search("test=([A-Za-z0-9]*)", test_filter)
+        if m:
+            test = m.group(1)
+    if suite:
+        args.extend(['-s', suite])
+    if test:
+        args.extend(['-t', test])
+    env.Append(UNIT_TEST_CMDS = [(osenv, path, args)])
 
  
 def addUnitTestList(env, path, suite, *tests):

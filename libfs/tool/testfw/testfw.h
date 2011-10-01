@@ -84,7 +84,7 @@ TestFramework::RunTests()
 	UnitTest::TestRunner     runner(*reporter);
 
 	if (test_name_) {
-		RunTestIfNameIs predicate(test_name_);
+		RunTestIfTestNameIs predicate(test_name_);
 		ret = runner.RunTestsIf(UnitTest::Test::GetTestList(), suite_name_, predicate, 0);
 	} else {
 		ret = runner.RunTestsIf(UnitTest::Test::GetTestList(), suite_name_, UnitTest::True(), 0);
