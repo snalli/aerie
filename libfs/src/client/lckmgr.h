@@ -71,8 +71,8 @@ namespace client {
 
 class ThreadRecord {
 public:
-	typedef pthread_t                 id_t;
-	typedef lock_protocol::Mode       Mode;
+	typedef pthread_t            id_t;
+	typedef lock_protocol::Mode  Mode;
 
 	ThreadRecord();
 	ThreadRecord(id_t, Mode);
@@ -82,7 +82,7 @@ public:
 	void set_mode(Mode mode) { mode_ = mode; };
 
 private:
-	id_t   tid_;
+	id_t tid_;
 	Mode mode_;
 };
 

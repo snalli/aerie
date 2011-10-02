@@ -48,7 +48,7 @@ Lock::Lock(lock_protocol::LockId lid = 0)
 	  revoke_type_(0),
 	  status_(NONE),
 	  global_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
-	  gtque_(lock_protocol::Mode::CARDINALITY),
+	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode::NL),
 	  payload_(0)
 {
 	pthread_cond_init(&status_cv_, NULL);
@@ -349,7 +349,7 @@ check_state:
 				if ((r = do_convert(l, mode, flags & Lock::FLG_NOBLK)) 
 				    == lock_protocol::OK) 
 				{
-					l->global_mode_ = (lock_protocol::mode) mode;
+					l->global_mode_ = mode;
 				} else {
 					// TODO: ISSUE cannot lock remotely. Modify server to 
 					// allow releasing the lock voluntarily so that we 
@@ -360,7 +360,7 @@ check_state:
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 					"[%d] thread %lu got lock %llu at seq %d\n",
 					cl2srv_->id(), tid, lid, l->seq_);
-			l->gtque_.Add(ThreadRecord(tid, (lock_protocol::mode) mode));
+			l->gtque_.Add(ThreadRecord(tid, mode));
 			l->set_status(Lock::LOCKED);
 			r = lock_protocol::OK;
 			break;
@@ -395,7 +395,7 @@ check_state:
 					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 					        "[%d] thread %lu got lock %llu at seq %d\n",
 							cl2srv_->id(), tid, lid, l->seq_);
-					l->gtque_.Add(ThreadRecord(tid, (lock_protocol::mode) mode));
+					l->gtque_.Add(ThreadRecord(tid, mode));
 					r = lock_protocol::OK;
 				} else {
 					if (flags & Lock::FLG_NOBLK) {
@@ -421,8 +421,8 @@ check_state:
 			if (r == lock_protocol::OK) {
 				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu at seq %d\n",
 				        cl2srv_->id(), tid, lid, l->seq_);
-				l->global_mode_ = (lock_protocol::mode) mode;
-				l->gtque_.Add(ThreadRecord(tid, (lock_protocol::mode) mode));
+				l->global_mode_ = mode;
+				l->gtque_.Add(ThreadRecord(tid, mode));
 				l->set_status(Lock::LOCKED);
 			}
 			break;
@@ -512,7 +512,7 @@ LockManager::ConvertInternal(unsigned long tid,
 		    lock_protocol::Mode::PartialOrder(new_mode, l->global_mode_) >= 0)  
 		{
 			if ((r = do_convert(l, new_mode, Lock::FLG_NOBLK)) == lock_protocol::OK) {
-				l->global_mode_ = (lock_protocol::mode) new_mode;
+				l->global_mode_ = new_mode;
 			} else {
 				return r;
 			}

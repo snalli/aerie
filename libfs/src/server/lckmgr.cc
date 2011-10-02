@@ -31,14 +31,14 @@ static int revoke_table[8][8] = {
 ClientRecord::ClientRecord()
 	: clt_(-1), 
 	  seq_(-1),
-	  mode_(lock_protocol::NONE)
+	  mode_(lock_protocol::Mode::NL)
 
 {
 
 }
 
 
-ClientRecord::ClientRecord(ClientRecord::id_t clt, int seq, ClientRecord::mode_t mode)
+ClientRecord::ClientRecord(ClientRecord::id_t clt, int seq, ClientRecord::Mode mode)
 	: clt_(clt), 
 	  seq_(seq),
 	  mode_(mode)
@@ -51,7 +51,7 @@ Lock::Lock()
 	: expected_clt_(-1), 
 	  retry_responded_(false), 
 	  revoke_sent_(false),
-	  gtque_(lock_protocol::IXSL+1)
+	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode(lock_protocol::Mode::NL))
 {
 	pthread_cond_init(&retry_responded_cv_, NULL);
 }
@@ -111,22 +111,6 @@ LockManager::~LockManager()
 }
 
 
-	
-static std::string
-state2str(uint32_t state)
-{
-	int         m;
-	std::string str;
-	
-	while (state) {
-		m = __builtin_ctz(state); 
-		state &= ~(1 << m);
-		str+=lock_protocol::Mode::mode2str(m);
-	}
-	return str;
-}
-
-
 int
 LockManager::PolicyPickMode(Lock& lock, int mode)
 {
@@ -138,8 +122,9 @@ LockManager::PolicyPickMode(Lock& lock, int mode)
 
 
 lock_protocol::status
-LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode, 
-                     int flags, std::vector<unsigned long long> argv, int& unused)
+LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid, 
+                             lock_protocol::Mode mode, int flags, 
+                             std::vector<unsigned long long> argv, int& unused)
 {
 	char                  statestr[128];
 	uint32_t              next_state;
@@ -147,7 +132,7 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode,
 	lock_protocol::status r;
 
 	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
-	        lid, lock_protocol::Mode::mode2str(mode).c_str());
+	        lid, mode.String().c_str());
 
 	pthread_mutex_lock(&mutex_);
 	Lock& l = locks_[lid];
@@ -161,7 +146,7 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode,
 		dbg_log(DBG_INFO, "lock %llu is compatible; granting to clt %d\n", 
 		        lid, clt);
 		r = lock_protocol::OK;
-		l.gtque_.Add(ClientRecord(clt, seq, (lock_protocol::mode) mode));
+		l.gtque_.Add(ClientRecord(clt, seq, mode));
 		l.expected_clt_ = -1;
 		if (wq_len != 0) {
 			// Since there are clients waiting, we have two options. If the 
@@ -201,7 +186,7 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode,
 					pthread_cond_signal(&revoke_cv_);
 				}
 			}
-			l.waiting_list_.push_back(ClientRecord(clt, seq, (lock_protocol::mode) mode));
+			l.waiting_list_.push_back(ClientRecord(clt, seq, mode));
 		}
 		r = lock_protocol::RETRY;
 	}
@@ -210,10 +195,21 @@ LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, int mode,
 }
 
 
+lock_protocol::status
+LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, 
+                     int mode, int flags, 
+                     std::vector<unsigned long long> argv, int& unused)
+{
+	lock_protocol::Mode::Enum enum_mode = static_cast<lock_protocol::Mode::Enum>(mode);
+	return AcquireInternal(clt, seq, lid, lock_protocol::Mode(enum_mode), flags, argv, unused);
+}
+
+
 // convert does not block to avoid any deadlocks.
 lock_protocol::status
-LockManager::convert(int clt, int seq, lock_protocol::LockId lid, 
-                     int new_mode, int flags, int& unused)
+LockManager::ConvertInternal(int clt, int seq, lock_protocol::LockId lid, 
+                             lock_protocol::Mode new_mode, 
+                             int flags, int& unused)
 {
 	std::map<int, ClientRecord>::iterator itr_icr;
 	lock_protocol::status                 r = lock_protocol::NOENT;
@@ -226,12 +222,15 @@ LockManager::convert(int clt, int seq, lock_protocol::LockId lid,
 		Lock&         l = locks_[lid];
 		ClientRecord* cr = l.gtque_.Find(clt);
 		dbg_log(DBG_INFO, "clt %d convert lck %llu at seq %d (%s --> %s)\n", 
-		        clt, lid, seq, lock_protocol::Mode::mode2str(cr->mode()).c_str(), 
-				lock_protocol::Mode::mode2str(new_mode).c_str());
+		        clt, lid, seq, cr->mode().String().c_str(), 
+				new_mode.String().c_str());
 		assert(cr->seq_ == seq);
-		// if there is an outstanding revoke request then the simplest
-		// approach is to deny the conversion if this is an upgrade as 
-		// it could conflict with the new mode requested by revoke
+		// if there is an outstanding revoke request then 
+		// the simplest approach is to deny the conversion
+		// as the new mode could conflict with the new mode
+		// requested by revoke.
+		// We only grant the conversion if it does not 
+		// upgrade the current mode.
 		if (l.revoke_sent_ &&
 		    !l.gtque_.IsModeSet(new_mode) &&
 			l.gtque_.PartialOrder(new_mode) >= 0)
@@ -268,12 +267,21 @@ out:
 }
 
 
+// convert does not block to avoid any deadlocks.
+lock_protocol::status
+LockManager::convert(int clt, int seq, lock_protocol::LockId lid, 
+                     int new_mode, int flags, int& unused)
+{
+	lock_protocol::Mode::Enum enum_new_mode = static_cast<lock_protocol::Mode::Enum>(new_mode);
+	return ConvertInternal(clt, seq, lid, lock_protocol::Mode(enum_new_mode), flags, unused);
+}
+
 lock_protocol::status
 LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
 {
 	dbg_log(DBG_INFO, "clt %d release lck %llu at seq %d\n", 
 	        clt, lid, seq);
-	return convert(clt, seq, lid, lock_protocol::NL, 0, unused);
+	return ConvertInternal(clt, seq, lid, lock_protocol::Mode(lock_protocol::Mode::NL), 0, unused);
 }
 
 
@@ -335,7 +343,7 @@ LockManager::revoker()
 			int           clt = (*itr_icr).first;
 			ClientRecord& cr = (*itr_icr).second;
 			rpcc*         cl = clients_[clt];
-			revoke_type = revoke_table[cr.mode()][waiting_cr.mode()];
+			revoke_type = revoke_table[cr.mode().value()][waiting_cr.mode().value()];
 			if (revoke_type == Lock::RVK_NO) {
 				// false alarm 
 				// this could happen if the server converts the lock to a 

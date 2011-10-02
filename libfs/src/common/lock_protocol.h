@@ -3,6 +3,7 @@
 #ifndef _LOCK_PROTOCOL_H_AKL156
 #define _LOCK_PROTOCOL_H_AKL156
 
+#include <stdio.h>
 #include <stdint.h>
 #include "rpc/rpc.h"
 #include "common/bitmap.h"
@@ -66,6 +67,10 @@ public:
 		CARDINALITY 
 	};
 
+	Mode()
+		: value_(lock_protocol::Mode::NL)
+	{ }
+	
 	Mode(lock_protocol::Mode::Enum val)
 		: value_(val)
 	{ }
@@ -229,6 +234,11 @@ public:
 	{
 		return ((1 << mode.value_) & value_) ? true : false;
 	}
+	
+	void Insert(lock_protocol::Mode mode)
+	{
+		value_ |= (1 << mode.value_);
+	}
 
 	void Remove(lock_protocol::Mode mode)
 	{
@@ -254,21 +264,30 @@ public:
 	}
 
 
-	static int PartialOrder(lock_protocol::Mode mode, lock_protocol::Mode::Bitmap bitmap_mode) 
+	static int PartialOrder(lock_protocol::Mode mode, 
+	                        lock_protocol::Mode::Bitmap bitmap_mode) 
 	{
 		int                       val = bitmap_mode.value_;
 		int                       m;
 		lock_protocol::Mode::Enum enum_m;
-		int                       po = -1;
 		int                       r;
+		bool                      init_po = false;
+		int                       po;
 
 		while (val) {
 			m = __builtin_ctz(val); 
 			enum_m = static_cast<lock_protocol::Mode::Enum>(m);
 			val &= ~(1 << m);
-			if ((r = lock_protocol::Mode::PartialOrder(mode, lock_protocol::Mode(enum_m))) > po) {
+			r = lock_protocol::Mode::PartialOrder(mode, lock_protocol::Mode(enum_m));
+			if (init_po == false) {
+				init_po = true;
 				po = r;
-			}
+			} else {
+				if (r != po) {
+					po = 0;
+					return po;
+				}
+			} 
 		}
 		return po;
 	}

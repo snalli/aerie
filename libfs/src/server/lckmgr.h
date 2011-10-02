@@ -15,22 +15,20 @@ namespace server {
 
 class ClientRecord {
 public:
-	typedef int id_t;
-	typedef lock_protocol::mode mode_t;
+	typedef int                 id_t;
 	typedef lock_protocol::Mode Mode;
 
 	ClientRecord();
-	ClientRecord(id_t, int, mode_t);
+	ClientRecord(id_t id, int seq, Mode mode);
 
 	id_t id() const { return clt_; };
-	mode_t mode() const { return mode_; };
-	void set_mode(mode_t mode) { mode_ = mode; };
-	void set_mode(int mode) { mode_ = (mode_t) mode; };
+	Mode mode() const { return mode_; };
+	void set_mode(Mode mode) { mode_ = mode; };
 
-	int    seq_;
+	int   seq_;
 private:
-	id_t   clt_;
-	mode_t mode_;
+	id_t  clt_;
+	Mode  mode_;
 };
 
 
@@ -75,9 +73,9 @@ public:
 	LockManager();
 	~LockManager();
 	lock_protocol::status stat(lock_protocol::LockId, int&);
-	lock_protocol::status acquire(int, int, lock_protocol::LockId, int, int, std::vector<unsigned long long>, int&);
-	lock_protocol::status release(int, int, lock_protocol::LockId, int&);
-	lock_protocol::status convert(int, int, lock_protocol::LockId, int, int, int&);
+	lock_protocol::status acquire(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, std::vector<unsigned long long> argv, int& unused);
+	lock_protocol::status convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
+	lock_protocol::status release(int clt, int seq, lock_protocol::LockId lid, int& unused);
 	
 	int  PolicyPickMode(Lock& lock, int mode);
 
@@ -87,6 +85,8 @@ public:
 	void retryer();
 
 private:
+	lock_protocol::status AcquireInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv, int& unused);
+	lock_protocol::status ConvertInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, int& unused);
 
 	std::map<int, rpcc*>                    clients_;
 	std::map<lock_protocol::LockId, Lock>   locks_;
