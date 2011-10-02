@@ -55,8 +55,8 @@ namespace client {
 
 HLock::HLock(lock_protocol::LockId lid, HLock* phl)
 	: status_(NONE),
-	  mode_(lock_protocol::NL),
-	  ancestor_recursive_mode_(lock_protocol::NL),
+	  mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
+	  ancestor_recursive_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  can_retry_(false),
 	  used_(false),
 	  lid_(lid),
@@ -218,15 +218,18 @@ int BreakLock()
 
 
 lock_protocol::status
-HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, int mode, int flags)
+HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, 
+                              lock_protocol::Mode::Bitmap mode_bitmap, int flags)
 {
+#if 0
+	//FIXME: extract mode from multiple modes 
 	lock_protocol::status r;
 	lock_protocol::LockId lid = hlock->lid_;
 	HLock*                phlock;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d:%lu] Acquiring hierarchical lock %llu (%s)\n", lm_->id(), 
-			tid, lid, lock_protocol::Mode::mode2str(mode).c_str());
+			tid, lid, mode.String());
 	
 	if (!hlock) {
 		r = lock_protocol::NOENT;
@@ -244,7 +247,7 @@ check_state:
 			        "[%d:%lu] hierarchical lock %llu free locally (base lock mode %s): "
 					"grant to thread %lu\n",
 			        lm_->id(), tid, lid, 
-			        lock_protocol::Mode::mode2str(hlock->lock_->global_mode_).c_str(), tid);
+			        hlock->lock_->global_mode_.String().c_str(), tid);
 				if (lock_protocol::Mode::PartialOrder(mode, hlock->mode_) < 0) {
 					//FIXME: hlock->mode_
 					hlock->owner_ = tid;
@@ -393,28 +396,29 @@ check_state:
 done:
 	pthread_mutex_unlock(&hlock->mutex_);
 	return r;
+#endif	
 }
 
 
 lock_protocol::status
-HLockManager::Acquire(HLock* hlock, int mode, int flags)
+HLockManager::Acquire(HLock* hlock, lock_protocol::Mode::Bitmap mode_bitmap, int flags)
 {
 	lock_protocol::status r;
 
-	r = AcquireInternal(pthread_self(), hlock, mode, flags);
+	r = AcquireInternal(pthread_self(), hlock, mode_bitmap, flags);
 	return r;
 }
 
 
 lock_protocol::status
 HLockManager::Acquire(lock_protocol::LockId lid, lock_protocol::LockId plid, 
-                      int mode, int flags)
+                      lock_protocol::Mode::Bitmap mode_bitmap, int flags)
 {
 	lock_protocol::status r;
 	HLock*                hlock;
 
 	hlock = FindOrCreateLock(lid, plid);
-	r = AcquireInternal(pthread_self(), hlock, mode, flags);
+	r = AcquireInternal(pthread_self(), hlock, mode_bitmap, flags);
 }
 
 

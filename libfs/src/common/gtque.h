@@ -14,12 +14,12 @@ public:
 	typedef typename std::map<int, MemberType>::iterator iterator;
 	GrantQueue(int);
 	bool Exists(typename MemberType::id_t);
-	bool CanGrant(int);
-	int ConvertInPlace(typename MemberType::id_t, int);
-	void Add(const MemberType&);
-	void Remove(typename MemberType::id_t);
-	int PartialOrder(int mode);
-	bool IsModeSet(int mode) { return (mode_union_ & (1 << mode));}
+	bool CanGrant(typename MemberType::Mode mode);
+	int ConvertInPlace(typename MemberType::id_t id, typename MemberType::Mode new_mode);
+	void Add(const MemberType& cr);
+	void Remove(typename MemberType::id_t id);
+	int PartialOrder(typename MemberType::Mode mode);
+	bool IsModeSet(typename MemberType::Mode mode) { return (mode_union_.IsSet(mode));}
 	int  Size() { return members_.size(); }
 	int  Empty() { return members_.empty(); }
 	void Print(std::ostream&);
@@ -29,11 +29,10 @@ public:
 	iterator end() { return members_.end(); }
 
 private:
-	bool IsModeCompatible(int, int);
-	bool CanConvertInPlace(typename MemberType::id_t, int);
+	bool CanConvertInPlace(typename MemberType::id_t, typename MemberType::Mode new_mode);
 
 	std::map<typename MemberType::id_t, MemberType>  members_;
-	uint32_t                                         mode_union_;
+	typename MemberType::Mode::Bitmap                mode_union_;
 	std::vector<uint8_t>                             mode_cnt_;
 };
 
@@ -69,54 +68,22 @@ GrantQueue<MemberType>::Find(typename MemberType::id_t id)
 }
 
 
-template <class MemberType>
-bool
-GrantQueue<MemberType>::IsModeCompatible(int mode, int exclude_mode)
-{
-	int val = mode_union_;
-	int m;
-
-	while (val) {
-		m = __builtin_ctz(val); 
-		val &= ~(1 << m);
-		if (m == exclude_mode) {
-			continue;
-		}
-		if (!MemberType::Mode::Compatible(m, mode)) { 
-			return false;
-		}
-	}
-	return true;
-}
-
 // mode less-than         union(grant_queue): returns -1
 // mode greater-than      union(grant_queue): returns 1
 // mode not-ordered-with  union(grant_queue): returns 0
 template <class MemberType>
 int
-GrantQueue<MemberType>::PartialOrder(int mode)
+GrantQueue<MemberType>::PartialOrder(typename MemberType::Mode mode)
 {
-	int val = mode_union_;
-	int m;
-	int po = -1;
-	int r;
-
-	while (val) {
-		m = __builtin_ctz(val); 
-		val &= ~(1 << m);
-		if ((r = MemberType::Mode::PartialOrder(mode, m)) > po) {
-			po = r;
-		}
-	}
-	return po;
+	return MemberType::Mode::Bitmap::PartialOrder(mode, mode_union_);
 }
 
 
 template <class MemberType>
 bool
-GrantQueue<MemberType>::CanGrant(int mode)
+GrantQueue<MemberType>::CanGrant(typename MemberType::Mode mode)
 {
-	return IsModeCompatible(mode, -1);
+	return MemberType::Mode::Bitmap::Compatible(mode, mode_union_);
 }
 
 
@@ -126,35 +93,38 @@ GrantQueue<MemberType>::Add(const MemberType& cr)
 {
 	assert(Exists(cr.id()) == false); // existing member should use convert
 	members_[cr.id()] = cr;
-	mode_cnt_[cr.mode()]++;
+	mode_cnt_[cr.mode().value()]++;
 	mode_union_ |= 1 << cr.mode();
 }
 
 
 template <class MemberType>
 bool
-GrantQueue<MemberType>::CanConvertInPlace(typename MemberType::id_t id, int new_mode)
+GrantQueue<MemberType>::CanConvertInPlace(typename MemberType::id_t id, 
+                                          typename MemberType::Mode new_mode)
 {
-	int val = mode_union_;
-	int member_mode;
-	int exclude_mode = -1;
+	typename MemberType::Mode::Bitmap mode_union = mode_union_;
+	typename MemberType::Mode         member_mode;
 
-	assert(Exists(id)==true);
+	assert(Exists(id) == true);
 	member_mode = members_[id].mode();
 
 	// if the mode bit flag is set because of member id then 
 	// exclude the mode this member holds the lock at
-	exclude_mode = (mode_cnt_[member_mode]-1==0) ? member_mode: -1;
-
-	return IsModeCompatible(new_mode, exclude_mode);
+	if ((mode_cnt_[member_mode.value()]-1==0)) {
+		mode_union.Remove(member_mode);
+	}
+	
+	return MemberType::Mode::Bitmap::Compatible(new_mode, mode_union);
 }
 
 
 // if new_mode is 0 then conversion removes member
 template <class MemberType>
 int
-GrantQueue<MemberType>::ConvertInPlace(typename MemberType::id_t id, int new_mode)
-{
+GrantQueue<MemberType>::ConvertInPlace(typename MemberType::id_t id, 
+                                       typename MemberType::Mode new_mode)
+{	
 	if (Exists(id) == false) {
 		return -1;
 	}
@@ -163,14 +133,14 @@ GrantQueue<MemberType>::ConvertInPlace(typename MemberType::id_t id, int new_mod
 	}
 
 	MemberType& mb = members_[id];
-	assert(mode_cnt_[mb.mode()]>0);
-	if (--mode_cnt_[mb.mode()] == 0) {
-		mode_union_ &= ~(1 << mb.mode());
+	assert(mode_cnt_[mb.mode().value()]>0);
+	if (--mode_cnt_[mb.mode().value()] == 0) {
+		mode_union_.Remove(mb.mode());
 	}
 	if (new_mode != 0) {
 		mb.set_mode(new_mode);
-		mode_cnt_[mb.mode()]++;
-		mode_union_ |= 1 << mb.mode();
+		mode_cnt_[mb.mode().value()]++;
+		mode_union_.Insert(mb.mode());
 	} else {
 		members_.erase(id);
 	}

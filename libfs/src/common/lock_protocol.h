@@ -11,20 +11,7 @@
 class lock_protocol {
 public:
 	class Mode;
-	class MODE;
 	enum xxstatus { OK, RETRY, RPCERR, NOENT, IOERR };
-
-	enum mode {
-		NONE = -1,
-		NL,   // not locked
-		SL,   // shared local
-		SR,   // shared recursive
-		IS,   // intent shared
-		IX,   // intent exclusive
-		XL,   // exclusive local
-		XR,   // exclusive recursive
-		IXSL, // intent exclusive and shared local
-	};
 
 	enum flag {
 		FLG_NOQUE = 0x1,  // don't queue client if can't grant request
@@ -64,108 +51,6 @@ public:
 
 class lock_protocol::Mode {
 public:
-	enum mode {
-		NONE = -1,
-		NL,   // not locked
-		SL,   // shared local
-		SR,   // shared recursive
-		IS,   // intent shared
-		IX,   // intent exclusive
-		XL,   // exclusive local
-		XR,   // exclusive recursive
-		IXSL, // intent exclusive and shared local
-		CARDINALITY 
-	};
-
-	static std::string mode2str(int mode) {
-		return mode2str_table_[mode];
-	}
-
-	static int Successor(int mode) {
-		return successor_table_[mode];
-	}
-
-
-	/// \brief Returns the partial order of two modes mode1 and mode2
-	//  \param mode1 mode
-	//  \param mode2 mode
-	/// \return 1, if mode1 less-than        mode2\n
-	///         -1, if mode1 greater-than     mode2\n
-	///         0, if mode1 not-ordered-with mode2
-	static int PartialOrder(int mode1, int mode2) {
-		if (mode1 == lock_protocol::Mode::IX && mode2 == lock_protocol::Mode::IXSL) {
-			return -1;
-		} else if (mode1 == lock_protocol::Mode::IXSL && mode2 == lock_protocol::Mode::IX) {
-			return 1;
-		} else {
-			int s1 = severity_table_[mode1];
-			int s2 = severity_table_[mode2];
-			if (s1 > s2) {
-				return 1;
-			} else if (s1 < s2) {
-				return -1;
-			} 
-		}
-		return 0; // no ordering
-	}
-
-	/// \brief Returns the supremum mode of two modes mode1 and mode2
-	static int Supremum(int mode1, int mode2) {
-		int po;
-
-		while (mode1 != mode2) {
-			po = PartialOrder(mode1, mode2);
-			if (po < 0) {
-				return mode2;
-			} else if (po > 0) {
-				return mode1;
-			}
-			mode1 = Successor(mode1);
-			mode2 = Successor(mode2);
-		}
-
-		return mode1;
-	}
-
-	static bool Compatible(int mode1, int mode2)
-	{
-		return compatibility_table_[mode1][mode2];
-	}
-
-	static bool AbidesRecursiveRule(int mode, int ancestor_recursive_mode)
-	{
-		uint32_t bm = recursive_rule_bitmaps_[mode];
-
-		if (Bitmap<uint32_t>::IsSet(bm, ancestor_recursive_mode)) {
-			return true;
-		}
-		return false;
-	}
-
-	static bool AbidesHierarchyRule(int mode, int ancestor_mode)
-	{
-		uint32_t bm = hierarchy_rule_bitmaps_[mode];
-
-		if (Bitmap<uint32_t>::IsSet(bm, ancestor_mode)) {
-			return true;
-		}
-		return false;
-	}
-
-private:
-	static bool         compatibility_table_[][lock_protocol::Mode::CARDINALITY];
-	static uint32_t     recursive_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
-	static uint32_t     hierarchy_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
-	static std::string  mode2str_table_[lock_protocol::Mode::CARDINALITY];
-	static int          severity_table_[lock_protocol::Mode::CARDINALITY];
-	static int          successor_table_[lock_protocol::Mode::CARDINALITY];
-
-	int value_;
-};
-
-
-class lock_protocol::MODE {
-public:
 	class Bitmap;
 
 	enum Enum {
@@ -181,21 +66,23 @@ public:
 		CARDINALITY 
 	};
 
-	MODE(lock_protocol::MODE::Enum val)
+	Mode(lock_protocol::Mode::Enum val)
 		: value_(val)
 	{ }
 	
-	lock_protocol::MODE Successor() {
-		return MODE(successor_table_[value_]);
+	lock_protocol::Mode Successor() {
+		return Mode(successor_table_[value_]);
 	}
 	
-	static lock_protocol::MODE Successor(lock_protocol::MODE mode) {
-		return MODE(successor_table_[mode.value_]);
+	static lock_protocol::Mode Successor(lock_protocol::Mode mode) {
+		return Mode(successor_table_[mode.value_]);
 	}
 
-	static std::string String(int mode) {
-		return mode2str_table_[mode];
+	static std::string String(lock_protocol::Mode mode) {
+		return mode2str_table_[mode.value_];
 	}
+
+	std::string String() { return mode2str_table_[value_]; }
 
 	operator std::string() {
 		return mode2str_table_[value_];
@@ -207,13 +94,14 @@ public:
 	/// \return 1, if mode1 less-than        mode2\n
 	///         -1, if mode1 greater-than     mode2\n
 	///         0, if mode1 not-ordered-with mode2
-	static int PartialOrder(lock_protocol::MODE mode1, lock_protocol::MODE mode2) {
-		if (mode1 == MODE(lock_protocol::MODE::IX) && 
-		    mode2 == MODE(lock_protocol::MODE::IXSL)) 
+	static int PartialOrder(lock_protocol::Mode mode1, lock_protocol::Mode mode2) 
+	{
+		if (mode1 == Mode(lock_protocol::Mode::IX) && 
+		    mode2 == Mode(lock_protocol::Mode::IXSL)) 
 		{
 			return -1;
-		} else if (mode1 == MODE(lock_protocol::MODE::IXSL) && 
-		           mode2 == MODE(lock_protocol::MODE::IX)) 
+		} else if (mode1 == Mode(lock_protocol::Mode::IXSL) && 
+		           mode2 == Mode(lock_protocol::Mode::IX)) 
 		{
 			return 1;
 		} else {
@@ -228,9 +116,10 @@ public:
 		return 0; // no ordering
 	}
 
+
 	/// \brief Returns the supremum mode of two modes mode1 and mode2
-	static lock_protocol::MODE Supremum(lock_protocol::MODE mode1, 
-	                                    lock_protocol::MODE mode2) 
+	static lock_protocol::Mode Supremum(lock_protocol::Mode mode1, 
+	                                    lock_protocol::Mode mode2) 
 	{
 		int po;
 
@@ -248,13 +137,13 @@ public:
 		return mode1;
 	}
 
-	static bool Compatible(lock_protocol::MODE mode1, lock_protocol::MODE mode2)
+	static bool Compatible(lock_protocol::Mode mode1, lock_protocol::Mode mode2)
 	{
 		return compatibility_table_[mode1.value_][mode2.value_];
 	}
 
-	static bool AbidesRecursiveRule(lock_protocol::MODE mode, 
-	                                lock_protocol::MODE ancestor_recursive_mode)
+	static bool AbidesRecursiveRule(lock_protocol::Mode mode, 
+	                                lock_protocol::Mode ancestor_recursive_mode)
 	{
 		uint32_t bm = recursive_rule_bitmaps_[mode.value_];
 
@@ -264,8 +153,8 @@ public:
 		return false;
 	}
 
-	static bool AbidesHierarchyRule(lock_protocol::MODE mode, 
-	                                lock_protocol::MODE ancestor_mode)
+	static bool AbidesHierarchyRule(lock_protocol::Mode mode, 
+	                                lock_protocol::Mode ancestor_mode)
 	{
 		uint32_t bm = hierarchy_rule_bitmaps_[mode.value_];
 
@@ -275,58 +164,60 @@ public:
 		return false;
 	}
 
-	bool operator==(const lock_protocol::MODE& other) {
+	bool operator==(const lock_protocol::Mode& other) {
 		return (value_ == other.value_) ? true: false;
 	}
 
-	bool operator!=(const lock_protocol::MODE& other) {
+	bool operator!=(const lock_protocol::Mode& other) {
 		return !(*this == other);
 	}
 
-	bool operator<(const lock_protocol::MODE& other) {
+	bool operator<(const lock_protocol::Mode& other) {
 		return (PartialOrder(*this, other) < 0) ? true: false;
 	}
 
-	bool operator>(const lock_protocol::MODE& other) {
+	bool operator>(const lock_protocol::Mode& other) {
 		return (PartialOrder(*this, other) > 0) ? true: false;
 	}
 
+	int value() const { return static_cast<int>(value_); }
+
 private:
-	static bool         compatibility_table_[][lock_protocol::MODE::CARDINALITY];
-	static uint32_t     recursive_rule_bitmaps_[lock_protocol::MODE::CARDINALITY];
-	static uint32_t     hierarchy_rule_bitmaps_[lock_protocol::MODE::CARDINALITY];
-	static std::string  mode2str_table_[lock_protocol::MODE::CARDINALITY];
-	static int          severity_table_[lock_protocol::MODE::CARDINALITY];
-	static lock_protocol::MODE::Enum          successor_table_[lock_protocol::MODE::CARDINALITY];
+	static bool         compatibility_table_[][lock_protocol::Mode::CARDINALITY];
+	static uint32_t     recursive_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
+	static uint32_t     hierarchy_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
+	static std::string  mode2str_table_[lock_protocol::Mode::CARDINALITY];
+	static int          severity_table_[lock_protocol::Mode::CARDINALITY];
+	static lock_protocol::Mode::Enum          successor_table_[lock_protocol::Mode::CARDINALITY];
 
 	Enum value_;
 };
 
 
-class lock_protocol::MODE::Bitmap {
+class lock_protocol::Mode::Bitmap {
 public:
 	enum Enum {
 		NONE = -1,
-		NL = BITMAP_SET(lock_protocol::MODE::NL),   // not locked
-		SL = BITMAP_SET(lock_protocol::MODE::SL),   // shared local
-		SR = BITMAP_SET(lock_protocol::MODE::SR),   // shared recursive
-		IS = BITMAP_SET(lock_protocol::MODE::IS),   // intent shared
-		IX = BITMAP_SET(lock_protocol::MODE::IX),   // intent exclusive
-		XL = BITMAP_SET(lock_protocol::MODE::XL),   // exclusive local
-		XR = BITMAP_SET(lock_protocol::MODE::XR),   // exclusive recursive
-		IXSL = BITMAP_SET(lock_protocol::MODE::IXSL), // intent exclusive and shared local
+		NL = BITMAP_SET(lock_protocol::Mode::NL),   // not locked
+		SL = BITMAP_SET(lock_protocol::Mode::SL),   // shared local
+		SR = BITMAP_SET(lock_protocol::Mode::SR),   // shared recursive
+		IS = BITMAP_SET(lock_protocol::Mode::IS),   // intent shared
+		IX = BITMAP_SET(lock_protocol::Mode::IX),   // intent exclusive
+		XL = BITMAP_SET(lock_protocol::Mode::XL),   // exclusive local
+		XR = BITMAP_SET(lock_protocol::Mode::XR),   // exclusive recursive
+		IXSL = BITMAP_SET(lock_protocol::Mode::IXSL), // intent exclusive and shared local
 		CARDINALITY 
 	};
 
-	Bitmap(lock_protocol::MODE::Enum val) 
+	Bitmap(lock_protocol::Mode::Enum val) 
 		: value_(static_cast<int>(BITMAP_SET(val)))
 	{ }
 
-	Bitmap(lock_protocol::MODE mode) 
+	Bitmap(lock_protocol::Mode mode) 
 		: value_(static_cast<int>(BITMAP_SET(mode.value_)))
 	{ }
 
-	Bitmap(const lock_protocol::MODE::Bitmap& bitmap_mode)
+	Bitmap(const lock_protocol::Mode::Bitmap& bitmap_mode)
 		: value_(bitmap_mode.value_)
 	{ }
 
@@ -334,14 +225,61 @@ public:
 		: value_(val)
 	{ }
 
+	bool Exists(lock_protocol::Mode mode)
+	{
+		return ((1 << mode.value_) & value_) ? true : false;
+	}
 
-	lock_protocol::MODE::Bitmap& operator|=(const lock_protocol::MODE::Bitmap& other) 
+	void Remove(lock_protocol::Mode mode)
+	{
+		value_ = (~(1 << mode.value_)) & value_;
+	}
+
+
+	static bool Compatible(lock_protocol::Mode mode, lock_protocol::Mode::Bitmap bitmap_mode)
+	{
+		int                       val = bitmap_mode.value_;
+		int                       m;
+		lock_protocol::Mode::Enum enum_m;
+
+		while (val) {
+			m = __builtin_ctz(val); 
+			enum_m = static_cast<lock_protocol::Mode::Enum>(m);
+			val &= ~(1 << m);
+			if (!lock_protocol::Mode::Compatible(lock_protocol::Mode(enum_m), mode)) { 
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	static int PartialOrder(lock_protocol::Mode mode, lock_protocol::Mode::Bitmap bitmap_mode) 
+	{
+		int                       val = bitmap_mode.value_;
+		int                       m;
+		lock_protocol::Mode::Enum enum_m;
+		int                       po = -1;
+		int                       r;
+
+		while (val) {
+			m = __builtin_ctz(val); 
+			enum_m = static_cast<lock_protocol::Mode::Enum>(m);
+			val &= ~(1 << m);
+			if ((r = lock_protocol::Mode::PartialOrder(mode, lock_protocol::Mode(enum_m))) > po) {
+				po = r;
+			}
+		}
+		return po;
+	}
+
+	lock_protocol::Mode::Bitmap& operator|=(const lock_protocol::Mode::Bitmap& other) 
 	{
 		value_ |= other.value_;
 		return *this;
 	}
 
-	const lock_protocol::MODE::Bitmap operator|(const lock_protocol::MODE::Bitmap& other)
+	const lock_protocol::Mode::Bitmap operator|(const lock_protocol::Mode::Bitmap& other)
 	{
 		Bitmap result = *this;
 		result |= other;
@@ -354,8 +292,9 @@ private:
 	int value_;
 };
 
-inline lock_protocol::MODE::Bitmap::Enum operator|(lock_protocol::MODE::Enum a, lock_protocol::MODE::Enum b)
+inline lock_protocol::Mode::Bitmap::Enum operator|(lock_protocol::Mode::Enum a, lock_protocol::Mode::Enum b)
 {
-	return static_cast<lock_protocol::MODE::Bitmap::Enum>((1 << a) | (1 <<b ));
+	return static_cast<lock_protocol::Mode::Bitmap::Enum>((1 << a) | (1 <<b ));
 }
+
 #endif /* _LOCK_PROTOCOL_H_AKL156 */

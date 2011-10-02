@@ -4,6 +4,22 @@
 
 SUITE(LockProtocolMode)
 {
+
+	TEST(TestAssignment)
+	{
+		lock_protocol::MODE mode0 = lock_protocol::MODE::NL;
+		lock_protocol::MODE mode1 = lock_protocol::MODE::XL;
+		lock_prootcol::Mode mode2;
+		lock_protocol::Mode mode3;
+
+		mode2 = mode0;
+		mode3 = mode1
+
+		CHECK(mode0 == mode2);
+		CHECK(mode1 == mode3);
+
+	}
+
 	TEST(TestEquality1)
 	{
 		lock_protocol::MODE mode0 = lock_protocol::MODE::NL;

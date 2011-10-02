@@ -72,20 +72,18 @@ namespace client {
 class ThreadRecord {
 public:
 	typedef pthread_t                 id_t;
-	typedef lock_protocol::mode       mode_t;
 	typedef lock_protocol::Mode       Mode;
 
 	ThreadRecord();
-	ThreadRecord(id_t, mode_t);
+	ThreadRecord(id_t, Mode);
 
 	id_t id() const { return tid_; };
-	mode_t mode() const { return mode_; };
-	void set_mode(mode_t mode) { mode_ = mode; };
-	void set_mode(int mode) { mode_ = (mode_t) mode; };
+	Mode mode() const { return mode_; };
+	void set_mode(Mode mode) { mode_ = mode; };
 
 private:
 	id_t   tid_;
-	mode_t mode_;
+	Mode mode_;
 };
 
 
@@ -122,10 +120,9 @@ public:
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
 	lock_protocol::LockId lid() const { return lid_; }
-	lock_protocol::Mode::mode mode(pthread_t tid) { 
-		//FIXME: FIXTYPE fix type
-		//ThreadRecord* t = gtque_.Find(tid);
-		//return (t != NULL) ? t->mode(): lock_protocol::Mode::NL;
+	lock_protocol::Mode mode(pthread_t tid) { 
+		ThreadRecord* t = gtque_.Find(tid);
+		return (t != NULL) ? t->mode(): lock_protocol::Mode(lock_protocol::Mode::NL);
 	}
 
 	lock_protocol::LockId lid_;
@@ -153,7 +150,7 @@ public:
 	bool                      can_retry_;   ///< set when a retry message from the server is received
 	int                       revoke_type_; ///< type of revocation requested
 
-	lock_protocol::mode       global_mode_; ///< mode as known by the server
+	lock_protocol::Mode       global_mode_; ///< mode as known by the server
 
 	void*                     payload_;     ///< lock users may use it for anything they like
 
@@ -179,12 +176,12 @@ public:
 	~LockManager();
 	Lock* FindLock(lock_protocol::LockId lid);
 	Lock* FindOrCreateLock(lock_protocol::LockId lid);
-	lock_protocol::status Acquire(Lock* lock, int mode, int flags, std::vector<unsigned long long> argv);
-	lock_protocol::status Acquire(Lock* lock, int mode, int flags);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, int mode, int flags, std::vector<unsigned long long> argv);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, int mode, int flags);
-	lock_protocol::status Convert(Lock* lock, int new_mode);
-	lock_protocol::status Convert(lock_protocol::LockId lid, int new_mode);
+	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
+	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode mode, int flags);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode mode, int flags);
+	lock_protocol::status Convert(Lock* lock, lock_protocol::Mode new_mode);
+	lock_protocol::status Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode);
 	lock_protocol::status Release(Lock* lock);
 	lock_protocol::status Release(lock_protocol::LockId lid);
 	lock_protocol::status stat(lock_protocol::LockId lid);
@@ -199,13 +196,13 @@ public:
 	int id() { return cl2srv_->id(); }
 
 private:
-	int do_acquire(Lock* l, int mode, int flags, std::vector<unsigned long long> argv);
-	int do_convert(Lock* l, int mode, int flags);
+	int do_acquire(Lock* l, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
+	int do_convert(Lock* l, lock_protocol::Mode mode, int flags);
 	int do_release(Lock* l);
 	Lock* FindLockInternal(lock_protocol::LockId lid);
 	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
-	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, int mode, int flags, std::vector<unsigned long long> argv);
-	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, int new_mode);
+	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
+	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode);
 	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e);
 
 	class LockUser*                                      lu_;

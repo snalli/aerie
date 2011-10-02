@@ -16,23 +16,23 @@ namespace client {
 
 static int revoke2mode_table[] = {
 	/* RVK_NO      */  -1,
-	/* RVK_NL      */  lock_protocol::NL,
-	/* RVK_XL2SL   */  lock_protocol::SL,
-	/* RVK_SR2SL   */  lock_protocol::SL,
-	/* RVK_XR2XL   */  lock_protocol::XL,
-	/* RVK_IXSL2IX */  lock_protocol::IX
+	/* RVK_NL      */  lock_protocol::Mode::NL,
+	/* RVK_XL2SL   */  lock_protocol::Mode::SL,
+	/* RVK_SR2SL   */  lock_protocol::Mode::SL,
+	/* RVK_XR2XL   */  lock_protocol::Mode::XL,
+	/* RVK_IXSL2IX */  lock_protocol::Mode::IX
 };
 
 
 ThreadRecord::ThreadRecord()
 	: tid_(-1), 
-	  mode_(lock_protocol::NL)
+	  mode_(lock_protocol::Mode(lock_protocol::Mode::NL))
 {
 
 }
 
 
-ThreadRecord::ThreadRecord(id_t tid, mode_t mode)
+ThreadRecord::ThreadRecord(id_t tid, Mode mode)
 	: tid_(tid), 
 	  mode_(mode)
 {
@@ -47,8 +47,8 @@ Lock::Lock(lock_protocol::LockId lid = 0)
 	  can_retry_(false),
 	  revoke_type_(0),
 	  status_(NONE),
-	  global_mode_(lock_protocol::NL),
-	  gtque_(Lock::IXSL+1),
+	  global_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
+	  gtque_(lock_protocol::Mode::CARDINALITY),
 	  payload_(0)
 {
 	pthread_cond_init(&status_cv_, NULL);
@@ -272,7 +272,7 @@ LockManager::Releaser()
 		while (!((l->status() == Lock::FREE) || 
 			     (l->status() == Lock::LOCKED && 
 				  l->revoke_type_ != lock_protocol::RVK_NL &&
-		          l->gtque_.CanGrant(revoke2mode_table[l->revoke_type_]) ))) 
+		          l->gtque_.CanGrant(lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]))) ))) 
 		{
 			// ping the holder to release/downgrade the lock before I sleep-wait
 			if (lu_) {
@@ -295,10 +295,10 @@ LockManager::Releaser()
 		} else if (l->status() == Lock::LOCKED) {
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 			        "[%d] calling convert RPC for lock %llu\n", cl2srv_->id(), lid);
-			assert(l->gtque_.CanGrant(revoke2mode_table[l->revoke_type_]));
-			int new_mode = revoke2mode_table[l->revoke_type_];
+			lock_protocol::Mode new_mode = lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
+			assert(l->gtque_.CanGrant(new_mode));
 			if (do_convert(l, new_mode, 0) == lock_protocol::OK) {
-				l->global_mode_ = (lock_protocol::mode) new_mode;
+				l->global_mode_ = new_mode;
 				revoke_map_.erase(lid);
 			}
 			// if remote conversion fails, we leave this lock in the revoke_map_,
@@ -320,7 +320,8 @@ LockManager::Releaser()
 /// for this reason, we need an ACQUIRING status to tell other threads 
 /// that an acquisition is in progress.
 lock_protocol::status
-LockManager::AcquireInternal(unsigned long tid, Lock* l, int mode, int flags, 
+LockManager::AcquireInternal(unsigned long tid, Lock* l, 
+                             lock_protocol::Mode mode, int flags, 
                              std::vector<unsigned long long> argv)
 {
 	lock_protocol::status r;
@@ -328,7 +329,7 @@ LockManager::AcquireInternal(unsigned long tid, Lock* l, int mode, int flags,
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] Acquiring lock %llu (%s)\n", cl2srv_->id(), lid, 
-			lock_protocol::Mode::mode2str(mode).c_str());
+			mode.String().c_str());
 
 check_state:
 	switch (l->status()) {
@@ -337,7 +338,7 @@ check_state:
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 			        "[%d] lock %llu free locally (global_mode %s): grant to %lu\n",
 			        cl2srv_->id(), lid, 
-			        lock_protocol::Mode::mode2str(l->global_mode_).c_str(), tid);
+			        l->global_mode_.String().c_str(), tid);
 
 			// if mode is as restrictive as or more than the one allowed
 			// by global mode then we need to communicate with the server.
@@ -433,7 +434,9 @@ check_state:
 
 
 lock_protocol::status
-LockManager::Acquire(Lock* lock, int mode, int flags, 
+LockManager::Acquire(Lock* lock, 
+                     lock_protocol::Mode mode, 
+                     int flags, 
                      std::vector<unsigned long long> argv)
 {
 	lock_protocol::status r;
@@ -446,7 +449,9 @@ LockManager::Acquire(Lock* lock, int mode, int flags,
 
 
 lock_protocol::status
-LockManager::Acquire(Lock* lock, int mode, int flags)
+LockManager::Acquire(Lock* lock, 
+                     lock_protocol::Mode mode, 
+                     int flags)
 {
 	std::vector<unsigned long long> argv;
 
@@ -455,7 +460,9 @@ LockManager::Acquire(Lock* lock, int mode, int flags)
 
 
 lock_protocol::status
-LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags,
+LockManager::Acquire(lock_protocol::LockId lid, 
+                     lock_protocol::Mode mode, 
+                     int flags,
                      std::vector<unsigned long long> argv)
 {
 	Lock*                 lock;
@@ -470,7 +477,9 @@ LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags,
 
 
 lock_protocol::status
-LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
+LockManager::Acquire(lock_protocol::LockId lid, 
+                     lock_protocol::Mode mode, 
+                     int flags)
 {
 	std::vector<unsigned long long> argv;
 
@@ -480,7 +489,9 @@ LockManager::Acquire(lock_protocol::LockId lid, int mode, int flags)
 
 // this method never blocks and is never queued in the server
 inline lock_protocol::status
-LockManager::ConvertInternal(unsigned long tid, Lock* l, int new_mode)
+LockManager::ConvertInternal(unsigned long tid, 
+                             Lock* l, 
+                             lock_protocol::Mode new_mode)
 {
 	lock_protocol::status r = lock_protocol::OK;
 	lock_protocol::LockId lid = l->lid_;
@@ -526,7 +537,7 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l, int new_mode)
 
 // release() is an atomic operation
 lock_protocol::status
-LockManager::Convert(Lock* lock, int new_mode)
+LockManager::Convert(Lock* lock, lock_protocol::Mode new_mode)
 {
 	lock_protocol::status r;
 
@@ -539,7 +550,7 @@ LockManager::Convert(Lock* lock, int new_mode)
 
 // release() is an atomic operation
 lock_protocol::status
-LockManager::Convert(lock_protocol::LockId lid, int new_mode)
+LockManager::Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode)
 {
 	lock_protocol::status r;
 	Lock*                 lock;
@@ -633,7 +644,8 @@ LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &un
 
 
 rlock_protocol::status
-LockManager::retry(lock_protocol::LockId lid, int seq,
+LockManager::retry(lock_protocol::LockId lid, 
+                   int seq,
                    int& current_seq)
 {
 	rlock_protocol::status r = rlock_protocol::OK;
@@ -666,7 +678,7 @@ LockManager::retry(lock_protocol::LockId lid, int seq,
 
 // assumes the current thread holds the mutex_
 int
-LockManager::do_acquire(Lock* l, int mode, int flags, 
+LockManager::do_acquire(Lock* l, lock_protocol::Mode mode, int flags, 
                         std::vector<unsigned long long> argv)
 {
 	lock_protocol::rpc_numbers rpc_number;
@@ -679,7 +691,7 @@ LockManager::do_acquire(Lock* l, int mode, int flags,
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), last_seq_+1);
 	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
 	r = cl2srv_->call(lock_protocol::acquire, cl2srv_->id(), ++last_seq_, l->lid_, 
-	                  mode, rpc_flags, argv, unused);
+	                  mode.value(), rpc_flags, argv, unused);
 	l->seq_ = last_seq_;
 	if (r == lock_protocol::OK) {
 		// great! we have the lock
@@ -692,7 +704,7 @@ LockManager::do_acquire(Lock* l, int mode, int flags,
 
 
 int
-LockManager::do_convert(Lock* l, int mode, int flags)
+LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 {
 	int r;
 	int unused;
@@ -706,7 +718,7 @@ LockManager::do_convert(Lock* l, int mode, int flags)
 	}
 	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
 	r = cl2srv_->call(lock_protocol::convert, cl2srv_->id(), l->seq_, l->lid_, 
-	                  mode, rpc_flags, unused);
+	                  mode.value(), rpc_flags, unused);
 	return r;
 }
 
