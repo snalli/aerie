@@ -1,6 +1,6 @@
+#include <set>
 #include "common/lock_protocol.h"
 #include "tool/testfw/unittest.h"
-
 
 SUITE(LockProtocolMode)
 {
@@ -64,5 +64,58 @@ SUITE(LockProtocolMode)
 		      (lock_protocol::Mode::Set::XL | lock_protocol::Mode::Set::SL));
 		CHECK((lock_protocol::Mode::Set(lock_protocol::Mode::XL) | lock_protocol::Mode::Set(lock_protocol::Mode::SL)).value() == 
 		      (lock_protocol::Mode::Set::XL | lock_protocol::Mode::Set::SL));
+	}
+
+	TEST(TestSetIterator1)
+	{
+		lock_protocol::Mode::Set            mode_set;
+		lock_protocol::Mode::Set::Iterator  itr;
+		std::set<lock_protocol::Mode::Enum> stl_set;
+
+		for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+			CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+		}
+
+		mode_set.Insert(lock_protocol::Mode::NL);
+		mode_set.Insert(lock_protocol::Mode::SL);
+		stl_set.insert(lock_protocol::Mode::NL);
+		stl_set.insert(lock_protocol::Mode::SL);
+
+		for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+			CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+		}
+		CHECK(stl_set.size() == 0); // for-loop removed all entries
+	}
+
+	TEST(TestSetIterator2)
+	{
+		lock_protocol::Mode::Set            mode_set;
+		lock_protocol::Mode::Set::Iterator  itr;
+		std::set<lock_protocol::Mode::Enum> stl_set;
+
+		mode_set.Insert(lock_protocol::Mode::XL);
+		mode_set.Insert(lock_protocol::Mode::SL);
+		stl_set.insert(lock_protocol::Mode::XL);
+		stl_set.insert(lock_protocol::Mode::SL);
+
+		for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+			CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+		}
+		CHECK(stl_set.size() == 0); // for-loop removed all entries
+	}
+
+	TEST(TestSetIterator3)
+	{
+		lock_protocol::Mode::Set            mode_set;
+		lock_protocol::Mode::Set::Iterator  itr;
+		std::set<lock_protocol::Mode::Enum> stl_set;
+
+		mode_set.Insert(lock_protocol::Mode::IXSL);
+		stl_set.insert(lock_protocol::Mode::IXSL);
+
+		for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+			CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+		}
+		CHECK(stl_set.size() == 0); // for-loop removed all entries
 	}
 }

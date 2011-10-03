@@ -204,7 +204,7 @@ public:
 	class Iterator;
 
 	enum Enum {
-		NONE = -1,
+		NONE = 0,
 		NL = BITMAP_SET(lock_protocol::Mode::NL),   // not locked
 		SL = BITMAP_SET(lock_protocol::Mode::SL),   // shared local
 		SR = BITMAP_SET(lock_protocol::Mode::SR),   // shared recursive
@@ -215,6 +215,10 @@ public:
 		IXSL = BITMAP_SET(lock_protocol::Mode::IXSL), // intent exclusive and shared local
 		CARDINALITY 
 	};
+
+	Set() 
+		: value_(0)
+	{ }
 
 	Set(lock_protocol::Mode::Enum val) 
 		: value_(static_cast<int>(BITMAP_SET(val)))
@@ -248,52 +252,10 @@ public:
 	}
 
 
-	static bool Compatible(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set)
-	{
-		int                       val = mode_set.value_;
-		int                       m;
-		lock_protocol::Mode::Enum enum_m;
+	static bool Compatible(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set);
 
-		while (val) {
-			m = __builtin_ctz(val); 
-			enum_m = static_cast<lock_protocol::Mode::Enum>(m);
-			val &= ~(1 << m);
-			if (!lock_protocol::Mode::Compatible(lock_protocol::Mode(enum_m), mode)) { 
-				return false;
-			}
-		}
-		return true;
-	}
-
-
-	static int PartialOrder(lock_protocol::Mode mode, 
-	                        lock_protocol::Mode::Set mode_set) 
-	{
-		int                       val = mode_set.value_;
-		int                       m;
-		lock_protocol::Mode::Enum enum_m;
-		int                       r;
-		bool                      init_po = false;
-		int                       po;
-
-		while (val) {
-			m = __builtin_ctz(val); 
-			enum_m = static_cast<lock_protocol::Mode::Enum>(m);
-			val &= ~(1 << m);
-			r = lock_protocol::Mode::PartialOrder(mode, lock_protocol::Mode(enum_m));
-			if (init_po == false) {
-				init_po = true;
-				po = r;
-			} else {
-				if (r != po) {
-					po = 0;
-					return po;
-				}
-			} 
-		}
-		return po;
-	}
-
+	static int PartialOrder(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set);
+	
 	lock_protocol::Mode::Set& operator|=(const lock_protocol::Mode::Set& other) 
 	{
 		value_ |= other.value_;
@@ -308,33 +270,128 @@ public:
 	}
 	
 	int value() const { return value_; }
+	inline std::string String();
 
-	std::string String() {  
-		//TODO
+	Iterator begin();
+	Iterator end();
+
+private:
+	int value_;
+};
+
+
+class lock_protocol::Mode::Set::Iterator {
+public:
+	Iterator()
+		: value_(0)
+	{ }
+
+	Iterator(lock_protocol::Mode::Set set)
+		: value_(set.value_)
+	{ }
+
+	void operator++(int) {
+		int m;
+
+		m = __builtin_ctz(value_); 
+		value_ &= ~(1 << m);
+	}
+
+	lock_protocol::Mode operator*() {
+		int                       m;
+		lock_protocol::Mode::Enum enum_m;
+		m = __builtin_ctz(value_); 
+		enum_m = static_cast<lock_protocol::Mode::Enum>(m);
+		return lock_protocol::Mode(enum_m);
+	}
+
+	bool operator==(const lock_protocol::Mode::Set::Iterator& other)
+	{
+		return (value_ == other.value_) ? true : false;
+	}
+
+	bool operator!=(const lock_protocol::Mode::Set::Iterator& other)
+	{
+		return !(*this == other);
 	}
 
 private:
 	int value_;
 };
 
+
 inline lock_protocol::Mode::Set::Enum operator|(lock_protocol::Mode::Enum a, lock_protocol::Mode::Enum b)
 {
 	return static_cast<lock_protocol::Mode::Set::Enum>((1 << a) | (1 <<b ));
 }
 
-/*
-class lock_protocol::Mode::Set::Iterator {
-public:
-	Iterator() { }
 
-	Iterator(lock_protocol::Mode::Set mode_set )
-	{
-	}
-
-    Iterator(const PInode::Iterator& val)
-    //  	start_(val.start_), current_(val.current_) {}
-	{}
+inline lock_protocol::Mode::Set::Iterator 
+lock_protocol::Mode::Set::begin()
+{
+	return Iterator(*this);
 }
-*/
+
+
+inline lock_protocol::Mode::Set::Iterator 
+lock_protocol::Mode::Set::end()
+{
+	return Iterator();
+}
+
+
+inline bool 
+lock_protocol::Mode::Set::Compatible(lock_protocol::Mode mode, 
+                                     lock_protocol::Mode::Set mode_set)
+{
+	Iterator itr;
+
+	for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+		if (!lock_protocol::Mode::Compatible((*itr), mode)) { 
+			return false;
+		}
+	}
+	return true;
+}
+
+
+inline int 
+lock_protocol::Mode::Set::PartialOrder(lock_protocol::Mode mode, 
+						               lock_protocol::Mode::Set mode_set) 
+{
+	int      r;
+	bool     init_po = false;
+	int      po;
+	Iterator itr;
+
+	for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+		r = lock_protocol::Mode::PartialOrder(mode, (*itr));
+		if (init_po == false) {
+			init_po = true;
+			po = r;
+		} else {
+			if (r != po) {
+				po = 0;
+				return po;
+			}
+		} 
+	}
+	return po;
+}
+
+
+inline std::string lock_protocol::Mode::Set::String()
+{
+	Iterator    itr;
+	std::string str;
+	bool        cat_separator = false;
+
+	for (itr = begin(); itr != end(); itr++) {
+		str += (cat_separator) ? "|" : ""; 
+		str += (*itr).String(); 
+		cat_separator = true;
+	}
+	return str;
+}
 
 #endif /* _LOCK_PROTOCOL_H_AKL156 */
