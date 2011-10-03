@@ -34,19 +34,14 @@ ClientRecord::ClientRecord()
 	: clt_(-1), 
 	  seq_(-1),
 	  mode_(lock_protocol::Mode::NL)
-
-{
-
-}
+{ }
 
 
 ClientRecord::ClientRecord(ClientRecord::id_t clt, int seq, ClientRecord::Mode mode)
 	: clt_(clt), 
 	  seq_(seq),
 	  mode_(mode)
-{
-
-}
+{ }
 
 
 Lock::Lock()
@@ -118,15 +113,11 @@ LockManager::SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set)
 {
 	/* Pick the most severe that can be granted instantly, or
 	 * wait for the lease severe */
-	lock_protocol::Mode::Set::Iterator itr;
-	lock_protocol::Mode                mode;
-
-	for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
-		if ((*itr) > mode) {
-			mode = *itr;
-		}
-	}
 	
+	lock_protocol::Mode mode = mode_set.MostSevere(lock_protocol::Mode::NL);
+	
+	dbg_log(DBG_INFO, "selecting mode %s out of modes {%s}\n",  
+	        mode.String().c_str(), mode_set.String().c_str());
 	return mode;
 }
 

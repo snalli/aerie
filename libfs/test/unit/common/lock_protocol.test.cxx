@@ -118,4 +118,35 @@ SUITE(LockProtocolMode)
 		}
 		CHECK(stl_set.size() == 0); // for-loop removed all entries
 	}
+
+	TEST(TestMostSevere)
+	{
+		lock_protocol::Mode::Set   mode_set;
+
+		mode_set.Insert(lock_protocol::Mode::IXSL);
+		CHECK(mode_set.Exists(lock_protocol::Mode::IXSL));
+		mode_set.Insert(lock_protocol::Mode::XR);
+		CHECK(mode_set.Exists(lock_protocol::Mode::XR));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) == lock_protocol::Mode(lock_protocol::Mode::XR));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::IX) == lock_protocol::Mode(lock_protocol::Mode::IXSL));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::SR) == lock_protocol::Mode(lock_protocol::Mode::NL));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::SL) == lock_protocol::Mode(lock_protocol::Mode::IXSL));
+		
+		mode_set.Clear();
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) == lock_protocol::Mode(lock_protocol::Mode::NL));
+		mode_set.Insert(lock_protocol::Mode::XR);
+		CHECK(mode_set.Exists(lock_protocol::Mode::XR));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) == lock_protocol::Mode(lock_protocol::Mode::XR));
+		
+		mode_set.Clear();
+		mode_set.Insert(lock_protocol::Mode::SL);
+		CHECK(mode_set.Exists(lock_protocol::Mode::SL));
+		mode_set.Insert(lock_protocol::Mode::IX);
+		CHECK(mode_set.Exists(lock_protocol::Mode::IX));
+		mode_set.Insert(lock_protocol::Mode::XR);
+		CHECK(mode_set.Exists(lock_protocol::Mode::XR));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) == lock_protocol::Mode(lock_protocol::Mode::XR));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::SL) == lock_protocol::Mode(lock_protocol::Mode::IX));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::SR) == lock_protocol::Mode(lock_protocol::Mode::SL));
+	}
 }

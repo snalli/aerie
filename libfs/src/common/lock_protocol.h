@@ -138,17 +138,27 @@ public:
 		return mode1;
 	}
 
+	lock_protocol::Mode LeastRecursiveMode()
+	{
+		return lock_protocol::Mode(least_recursive_mode_table_[value_]);
+	}
+	
+	bool Compatible(lock_protocol::Mode other)
+	{
+		return compatibility_table_[value_][other.value_];
+	}
+
 	static bool Compatible(lock_protocol::Mode mode1, lock_protocol::Mode mode2)
 	{
 		return compatibility_table_[mode1.value_][mode2.value_];
 	}
 
 	static bool AbidesRecursiveRule(lock_protocol::Mode mode, 
-	                                lock_protocol::Mode ancestor_recursive_mode)
+	                                lock_protocol::Mode recursive_mode)
 	{
 		uint32_t bm = recursive_rule_bitmaps_[mode.value_];
 
-		if (BITMAP_ISSET(bm, ancestor_recursive_mode.value_)) {
+		if (BITMAP_ISSET(bm, recursive_mode.value_)) {
 			return true;
 		}
 		return false;
@@ -184,12 +194,13 @@ public:
 	int value() const { return static_cast<int>(value_); }
 
 private:
-	static bool         compatibility_table_[][lock_protocol::Mode::CARDINALITY];
-	static uint32_t     recursive_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
-	static uint32_t     hierarchy_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
-	static std::string  mode2str_table_[lock_protocol::Mode::CARDINALITY];
-	static int          severity_table_[lock_protocol::Mode::CARDINALITY];
-	static lock_protocol::Mode::Enum          successor_table_[lock_protocol::Mode::CARDINALITY];
+	static bool                      compatibility_table_[][lock_protocol::Mode::CARDINALITY];
+	static uint32_t                  recursive_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
+	static uint32_t                  hierarchy_rule_bitmaps_[lock_protocol::Mode::CARDINALITY];
+	static std::string               mode2str_table_[lock_protocol::Mode::CARDINALITY];
+	static int                       severity_table_[lock_protocol::Mode::CARDINALITY];
+	static lock_protocol::Mode::Enum successor_table_[lock_protocol::Mode::CARDINALITY];
+	static lock_protocol::Mode::Enum least_recursive_mode_table_[lock_protocol::Mode::CARDINALITY];
 
 	Enum value_;
 };
@@ -247,11 +258,15 @@ public:
 		value_ = (~(1 << mode.value_)) & value_;
 	}
 
+	void Clear()
+	{
+		value_ = 0;
+	}
 
 	static bool Compatible(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set);
-
 	static int PartialOrder(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set);
-	
+	lock_protocol::Mode MostSevere(lock_protocol::Mode compatible_mode);
+
 	lock_protocol::Mode::Set& operator|=(const lock_protocol::Mode::Set& other) 
 	{
 		value_ |= other.value_;

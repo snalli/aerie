@@ -372,6 +372,8 @@ check_state:
 			mode = SelectMode(l, mode_set);
 			if (mode == lock_protocol::Mode(lock_protocol::Mode::NL)) {
 				// lock cannot be granted locally. we need to communicate with the server.
+				// grant the most severe lock
+				mode = mode_set.MostSevere(lock_protocol::Mode::NL);
 				if ((r = do_convert(l, mode, flags & Lock::FLG_NOBLK)) 
 				    == lock_protocol::OK) 
 				{
@@ -408,7 +410,7 @@ check_state:
 		case Lock::LOCKED:
 			tr = l->gtque_.Find(tid);
 			if (tr) {
-				// the current thread has already obtained the lock
+				// current thread has already obtained the lock
 				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 				        "[%d] current thread already got lck %llu\n",
 				        cl2srv_->id(), lid);

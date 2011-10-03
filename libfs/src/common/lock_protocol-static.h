@@ -55,6 +55,18 @@ lock_protocol::Mode::Enum lock_protocol::Mode::successor_table_[] = {
 	/* IXSL */  lock_protocol::Mode::XR
 };
 
+// for each mode, the least severe recursive mode that covers this mode
+lock_protocol::Mode::Enum lock_protocol::Mode::least_recursive_mode_table_[] = {
+	/* NL   */  lock_protocol::Mode::SR,
+	/* SL   */  lock_protocol::Mode::SR,
+	/* SR   */  lock_protocol::Mode::SR,
+	/* IS   */  lock_protocol::Mode::SR,
+	/* IX   */  lock_protocol::Mode::XR,
+	/* XL   */  lock_protocol::Mode::XR,
+	/* XR   */  lock_protocol::Mode::XR,
+	/* IXSL */  lock_protocol::Mode::XR
+};
+
 
 // Hierarchical Locks
 

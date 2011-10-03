@@ -62,7 +62,8 @@ lock_protocol::Mode::Set::PartialOrder(lock_protocol::Mode mode,
 }
 
 
-inline std::string lock_protocol::Mode::Set::String()
+inline std::string 
+lock_protocol::Mode::Set::String()
 {
 	Iterator    itr;
 	std::string str;
@@ -76,6 +77,22 @@ inline std::string lock_protocol::Mode::Set::String()
 	return str;
 }
 
+/// \brief Retuns the most severe mode found in the set, which is compatible
+/// with mode compatible_mode.
+inline lock_protocol::Mode
+lock_protocol::Mode::Set::MostSevere(lock_protocol::Mode compatible_mode)
+{
+	lock_protocol::Mode::Set::Iterator itr;
+	lock_protocol::Mode                mode;
+
+	for (itr = begin(); itr != end(); itr++) {
+		if ((*itr) > mode && compatible_mode.Compatible(*itr)) {
+			mode = *itr;
+		}
+	}
+	
+	return mode;
+}
 
 
 #endif /* _LOCK_PROTOCOL_INLINE_H_AKL156 */

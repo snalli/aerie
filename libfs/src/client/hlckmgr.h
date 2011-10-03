@@ -29,17 +29,6 @@ public:
 		RELEASING 
 	};
 
-	enum Mode {
-		NL = lock_protocol::Mode::NL,     // not locked
-		SL = lock_protocol::Mode::SL,     // shared local
-		SR = lock_protocol::Mode::SR,     // shared recursive
-		IS = lock_protocol::Mode::IS,     // intent shared
-		IX = lock_protocol::Mode::IX,     // intent exclusive
-		XL = lock_protocol::Mode::XL,     // exclusive local
-		XR = lock_protocol::Mode::XR,     // exclusive recursive
-		IXSL = lock_protocol::Mode::IXSL, // intent exclusive and shared local
-	};
-
 	HLock(lock_protocol::LockId, HLock*);
 	HLock(HLock*);
 	
@@ -65,8 +54,9 @@ public:
 	pthread_mutex_t       mutex_;
 	bool                  used_;                    ///< set to true after first use
 	bool                  can_retry_;               ///< set when a retry message from the server is received
-	/// locking mode. used only when the lock is attached to a base lock to keep the
-	/// actual locking mode of the 
+	/// local locking mode. indicates the mode locked by the hierarchical 
+	/// manager. this is the mode seen by the user of the lock. 
+	/// downgradeing mode_ requires contacting the owner of the lock 
 	lock_protocol::Mode   mode_;                    
 	lock_protocol::Mode   ancestor_recursive_mode_; ///< recursive mode of ancestors
 	lock_protocol::LockId lid_;
@@ -100,15 +90,15 @@ public:
 	HLock* InitLock(lock_protocol::LockId lid, HLock*);
 	HLock* InitLock(HLock*, HLock*);
 
-	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode::Set mode_set, int flags);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::LockId, lock_protocol::Mode::Set mode_set, int flags);
+	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode mode, int flags);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::LockId, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Release(HLock* hlock);
 	lock_protocol::status Release(lock_protocol::LockId lid);
 
 private:
 	HLock* FindLockInternal(lock_protocol::LockId lid, HLock* plp);
 	HLock* FindOrCreateLockInternal(lock_protocol::LockId lid, HLock* plp);
-	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode::Set mode_set, int flags);
+	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock);
 
 	pthread_mutex_t      mutex_;
