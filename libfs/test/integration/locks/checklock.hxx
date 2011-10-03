@@ -11,10 +11,10 @@ check_grant_x(CountRegion* region, lock_protocol::LockId lid)
 {
 	pthread_mutex_lock(&region->count_mutex);
 	int x = lid & 0xff;
-	if (region->ct[x] & lock_mask == lock_x) {
+	if ((region->ct[x] & lock_mask) == lock_x) {
 		fprintf(stderr, "error: server granted exclusive lock %016llx twice\n", lid);
 		return -1;
-	} else if (region->ct[x] & lock_mask == lock_s) {
+	} else if ((region->ct[x] & lock_mask) == lock_s) {
 		fprintf(stderr, "error: server granted shared lock %016llx exclusively\n", lid);
 		return -1;
 	}
@@ -29,7 +29,7 @@ check_grant_s(CountRegion* region, lock_protocol::LockId lid)
 {
 	pthread_mutex_lock(&region->count_mutex);
 	int x = lid & 0xff;
-	if (region->ct[x] && lock_mask == lock_x) {
+	if ((region->ct[x] && lock_mask) == lock_x) {
 		fprintf(stderr, "error: server granted exclusive lock %016llx for sharing\n", lid);
 		return -1;
 	}

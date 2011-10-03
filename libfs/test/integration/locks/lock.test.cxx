@@ -92,6 +92,35 @@ SUITE(Lock)
 		}
 	}
 
+	// checks that a client that grabs a cached lock is serialized
+	// with respect to another client trying to acquire the same lock
+	TEST_FIXTURE(LockFixture, TestLockUnlockConcurrentClients4)
+	{
+		lock_protocol::Mode unused;
+		CHECK(Client::TestServerIsAlive() == 0);
+
+		if (strcmp(TESTFW->Tag(), "C1")==0) {
+			ut_barrier_wait(&region_->barrier); 
+			global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+			CHECK(check_grant_x(region_, a) == 0);
+			global_lckmgr->Release(a);
+			CHECK(check_release(region_, a) == 0);
+		} else if (strcmp(TESTFW->Tag(), "C2")==0) {
+			// the second acquire grabs the cached lock
+			global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+			CHECK(check_grant_x(region_, a) == 0);
+			global_lckmgr->Release(a);
+			CHECK(check_release(region_, a) == 0);
+			global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused); // second acquire
+			CHECK(check_grant_x(region_, a) == 0);
+			ut_barrier_wait(&region_->barrier); 
+			usleep(1000); // give enough time for the competing thread to try to acquire the lock
+			global_lckmgr->Release(a);
+			CHECK(check_release(region_, a) == 0);
+		}
+		ut_barrier_wait(&region_->barrier); 
+	}
+
 /*
 	TEST_THREAD_FIXTURE(LockFixture, TestLockUnlockConcurrentThreads, 2)
 	{

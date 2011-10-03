@@ -1,6 +1,8 @@
 // the caching lock server implementation
 
 #include "server/lckmgr.h"
+#include <string>
+#include <iostream>
 #include <sstream>
 #include <stdio.h>
 #include <unistd.h>
@@ -111,34 +113,42 @@ LockManager::~LockManager()
 }
 
 
-int
-LockManager::PolicyPickMode(Lock& lock, int mode)
+lock_protocol::Mode
+LockManager::SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set)
 {
 	/* Pick the most severe that can be granted instantly, or
 	 * wait for the lease severe */
+	lock_protocol::Mode::Set::Iterator itr;
+	lock_protocol::Mode                mode;
 
+	for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+		if ((*itr) > mode) {
+			mode = *itr;
+		}
+	}
 	
+	return mode;
 }
 
 
 lock_protocol::status
 LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid, 
-                             lock_protocol::Mode mode, int flags, 
-                             std::vector<unsigned long long> argv, int& unused)
+                             lock_protocol::Mode::Set mode_set, int flags, 
+                             std::vector<unsigned long long> argv, int& mode_granted)
 {
 	char                  statestr[128];
 	uint32_t              next_state;
 	int                   wq_len;
 	lock_protocol::status r;
-
-	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
-	        lid, mode.String().c_str());
-
+	lock_protocol::Mode   mode;
+	
 	pthread_mutex_lock(&mutex_);
 	Lock& l = locks_[lid];
+	mode = SelectMode(l, mode_set);
+	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
+	        lid, mode.String().c_str());
 	wq_len = l.waiting_list_.size();
 	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", lid, wq_len);
-
 	
 	if ((wq_len == 0 || (wq_len > 0 && l.expected_clt_ == clt)) &&
 		l.gtque_.CanGrant(mode)) 
@@ -169,6 +179,7 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 			// a brand new lock
 			l.revoke_sent_ = false;
 		}
+		mode_granted = mode.value();
 	} else {
 		if ((flags & lock_protocol::FLG_NOQUE) == 0) {
 			if (wq_len > 0) {
@@ -197,11 +208,10 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 
 lock_protocol::status
 LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, 
-                     int mode, int flags, 
+                     int mode_set, int flags, 
                      std::vector<unsigned long long> argv, int& unused)
 {
-	lock_protocol::Mode::Enum enum_mode = static_cast<lock_protocol::Mode::Enum>(mode);
-	return AcquireInternal(clt, seq, lid, lock_protocol::Mode(enum_mode), flags, argv, unused);
+	return AcquireInternal(clt, seq, lid, lock_protocol::Mode::Set(mode_set), flags, argv, unused);
 }
 
 

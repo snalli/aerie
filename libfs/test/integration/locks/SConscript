@@ -31,6 +31,7 @@ test_list = [
              ('TestLockUnlockConcurrentClients1', 2),
              ('TestLockUnlockConcurrentClients2', 2),
              ('TestLockUnlockConcurrentClients3', 2),
+             ('TestLockUnlockConcurrentClients4', 2),
              ('TestSharedLockUnlockConcurrentClients1', 2),
              ('TestSharedLockUnlockConcurrentClients2', 2),
 	    ]

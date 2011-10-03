@@ -73,11 +73,10 @@ public:
 	LockManager();
 	~LockManager();
 	lock_protocol::status stat(lock_protocol::LockId, int&);
-	lock_protocol::status acquire(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, std::vector<unsigned long long> argv, int& unused);
+	lock_protocol::status acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, std::vector<unsigned long long> argv, int& unused);
 	lock_protocol::status convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
 	lock_protocol::status release(int clt, int seq, lock_protocol::LockId lid, int& unused);
-	
-	int  PolicyPickMode(Lock& lock, int mode);
+	lock_protocol::Mode  SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set);
 
 	// subscribe for future notifications by telling the server the RPC addr
 	lock_protocol::status subscribe(int, std::string, int&);
@@ -85,7 +84,7 @@ public:
 	void retryer();
 
 private:
-	lock_protocol::status AcquireInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv, int& unused);
+	lock_protocol::status AcquireInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, int& mode_granted);
 	lock_protocol::status ConvertInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, int& unused);
 
 	std::map<int, rpcc*>                    clients_;
