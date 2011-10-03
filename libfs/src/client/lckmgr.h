@@ -98,17 +98,6 @@ public:
 		/* RELEASING (unused) */
 	};
 
-	enum Mode {
-		NL = lock_protocol::Mode::NL,     // not locked
-		SL = lock_protocol::Mode::SL,     // shared local
-		SR = lock_protocol::Mode::SR,     // shared recursive
-		IS = lock_protocol::Mode::IS,     // intent shared
-		IX = lock_protocol::Mode::IX,     // intent exclusive
-		XL = lock_protocol::Mode::XL,     // exclusive local
-		XR = lock_protocol::Mode::XR,     // exclusive recursive
-		IXSL = lock_protocol::Mode::IXSL, // intent exclusive and shared local
-	};
-
 	enum Flag {
 		FLG_NOBLK = 0x1, // don't block if can't grant lock
 	};
@@ -176,10 +165,10 @@ public:
 	~LockManager();
 	Lock* FindLock(lock_protocol::LockId lid);
 	Lock* FindOrCreateLock(lock_protocol::LockId lid);
-	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
-	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode mode, int flags);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode mode, int flags);
+	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
+	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Convert(Lock* lock, lock_protocol::Mode new_mode);
 	lock_protocol::status Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode);
 	lock_protocol::status Release(Lock* lock);
@@ -196,14 +185,15 @@ public:
 	int id() { return cl2srv_->id(); }
 
 private:
-	int do_acquire(Lock* l, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
+	int do_acquire(Lock* l, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
 	int do_convert(Lock* l, lock_protocol::Mode mode, int flags);
 	int do_release(Lock* l);
 	Lock* FindLockInternal(lock_protocol::LockId lid);
 	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
-	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode mode, int flags, std::vector<unsigned long long> argv);
+	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode);
 	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e);
+	lock_protocol::Mode SelectMode(Lock* l, lock_protocol::Mode::Set mode_set);
 
 	class LockUser*                                      lu_;
 	std::string                                          hostname_;

@@ -219,7 +219,7 @@ int BreakLock()
 
 lock_protocol::status
 HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, 
-                              lock_protocol::Mode::Bitmap mode_bitmap, int flags)
+                              lock_protocol::Mode::Set mode_set, int flags)
 {
 #if 0
 	//FIXME: extract mode from multiple modes 
@@ -401,24 +401,24 @@ done:
 
 
 lock_protocol::status
-HLockManager::Acquire(HLock* hlock, lock_protocol::Mode::Bitmap mode_bitmap, int flags)
+HLockManager::Acquire(HLock* hlock, lock_protocol::Mode::Set mode_set, int flags)
 {
 	lock_protocol::status r;
 
-	r = AcquireInternal(pthread_self(), hlock, mode_bitmap, flags);
+	r = AcquireInternal(pthread_self(), hlock, mode_set, flags);
 	return r;
 }
 
 
 lock_protocol::status
 HLockManager::Acquire(lock_protocol::LockId lid, lock_protocol::LockId plid, 
-                      lock_protocol::Mode::Bitmap mode_bitmap, int flags)
+                      lock_protocol::Mode::Set mode_set, int flags)
 {
 	lock_protocol::status r;
 	HLock*                hlock;
 
 	hlock = FindOrCreateLock(lid, plid);
-	r = AcquireInternal(pthread_self(), hlock, mode_bitmap, flags);
+	r = AcquireInternal(pthread_self(), hlock, mode_set, flags);
 }
 
 

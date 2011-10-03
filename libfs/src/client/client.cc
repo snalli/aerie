@@ -28,8 +28,8 @@ rpcs*            rpc_server;
 
 
 // Known backend file system implementations
-struct {
-	char* name;
+struct KnownFS {
+	const char*         name;
 	client::SuperBlock* (*CreateSuperBlock)(void*);
 } known_fs[] = {
 	{"mfs", mfs::CreateSuperBlock},

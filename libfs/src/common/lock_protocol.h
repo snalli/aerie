@@ -52,7 +52,7 @@ public:
 
 class lock_protocol::Mode {
 public:
-	class Bitmap;
+	class Set;
 
 	enum Enum {
 		NONE = -1,
@@ -199,8 +199,10 @@ private:
 };
 
 
-class lock_protocol::Mode::Bitmap {
+class lock_protocol::Mode::Set {
 public:
+	class Iterator;
+
 	enum Enum {
 		NONE = -1,
 		NL = BITMAP_SET(lock_protocol::Mode::NL),   // not locked
@@ -214,19 +216,19 @@ public:
 		CARDINALITY 
 	};
 
-	Bitmap(lock_protocol::Mode::Enum val) 
+	Set(lock_protocol::Mode::Enum val) 
 		: value_(static_cast<int>(BITMAP_SET(val)))
 	{ }
 
-	Bitmap(lock_protocol::Mode mode) 
+	Set(lock_protocol::Mode mode) 
 		: value_(static_cast<int>(BITMAP_SET(mode.value_)))
 	{ }
 
-	Bitmap(const lock_protocol::Mode::Bitmap& bitmap_mode)
-		: value_(bitmap_mode.value_)
+	Set(const lock_protocol::Mode::Set& mode_set)
+		: value_(mode_set.value_)
 	{ }
 
-	Bitmap(int val)
+	Set(int val)
 		: value_(val)
 	{ }
 
@@ -246,9 +248,9 @@ public:
 	}
 
 
-	static bool Compatible(lock_protocol::Mode mode, lock_protocol::Mode::Bitmap bitmap_mode)
+	static bool Compatible(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set)
 	{
-		int                       val = bitmap_mode.value_;
+		int                       val = mode_set.value_;
 		int                       m;
 		lock_protocol::Mode::Enum enum_m;
 
@@ -265,9 +267,9 @@ public:
 
 
 	static int PartialOrder(lock_protocol::Mode mode, 
-	                        lock_protocol::Mode::Bitmap bitmap_mode) 
+	                        lock_protocol::Mode::Set mode_set) 
 	{
-		int                       val = bitmap_mode.value_;
+		int                       val = mode_set.value_;
 		int                       m;
 		lock_protocol::Mode::Enum enum_m;
 		int                       r;
@@ -292,28 +294,47 @@ public:
 		return po;
 	}
 
-	lock_protocol::Mode::Bitmap& operator|=(const lock_protocol::Mode::Bitmap& other) 
+	lock_protocol::Mode::Set& operator|=(const lock_protocol::Mode::Set& other) 
 	{
 		value_ |= other.value_;
 		return *this;
 	}
 
-	const lock_protocol::Mode::Bitmap operator|(const lock_protocol::Mode::Bitmap& other)
+	const lock_protocol::Mode::Set operator|(const lock_protocol::Mode::Set& other)
 	{
-		Bitmap result = *this;
+		Set result = *this;
 		result |= other;
 		return result;
 	}
 	
 	int value() const { return value_; }
 
+	std::string String() {  
+		//TODO
+	}
+
 private:
 	int value_;
 };
 
-inline lock_protocol::Mode::Bitmap::Enum operator|(lock_protocol::Mode::Enum a, lock_protocol::Mode::Enum b)
+inline lock_protocol::Mode::Set::Enum operator|(lock_protocol::Mode::Enum a, lock_protocol::Mode::Enum b)
 {
-	return static_cast<lock_protocol::Mode::Bitmap::Enum>((1 << a) | (1 <<b ));
+	return static_cast<lock_protocol::Mode::Set::Enum>((1 << a) | (1 <<b ));
 }
+
+/*
+class lock_protocol::Mode::Set::Iterator {
+public:
+	Iterator() { }
+
+	Iterator(lock_protocol::Mode::Set mode_set )
+	{
+	}
+
+    Iterator(const PInode::Iterator& val)
+    //  	start_(val.start_), current_(val.current_) {}
+	{}
+}
+*/
 
 #endif /* _LOCK_PROTOCOL_H_AKL156 */

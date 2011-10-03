@@ -55,14 +55,14 @@ SUITE(LockProtocolMode)
 		      == lock_protocol::Mode::XR);
 	}
 
-	TEST(TestBitmap)
+	TEST(TestSet)
 	{
-		CHECK(lock_protocol::Mode::Bitmap::NL == lock_protocol::Mode::Bitmap(lock_protocol::Mode::NL).value());
-		CHECK(lock_protocol::Mode::Bitmap::SL != lock_protocol::Mode::Bitmap(lock_protocol::Mode::NL).value());
-		CHECK(lock_protocol::Mode::Bitmap::XL == lock_protocol::Mode::Bitmap(lock_protocol::Mode::XL).value());
+		CHECK(lock_protocol::Mode::Set::NL == lock_protocol::Mode::Set(lock_protocol::Mode::NL).value());
+		CHECK(lock_protocol::Mode::Set::SL != lock_protocol::Mode::Set(lock_protocol::Mode::NL).value());
+		CHECK(lock_protocol::Mode::Set::XL == lock_protocol::Mode::Set(lock_protocol::Mode::XL).value());
 		CHECK((lock_protocol::Mode::XL | lock_protocol::Mode::SL) == 
-		      (lock_protocol::Mode::Bitmap::XL | lock_protocol::Mode::Bitmap::SL));
-		CHECK((lock_protocol::Mode::Bitmap(lock_protocol::Mode::XL) | lock_protocol::Mode::Bitmap(lock_protocol::Mode::SL)).value() == 
-		      (lock_protocol::Mode::Bitmap::XL | lock_protocol::Mode::Bitmap::SL));
+		      (lock_protocol::Mode::Set::XL | lock_protocol::Mode::Set::SL));
+		CHECK((lock_protocol::Mode::Set(lock_protocol::Mode::XL) | lock_protocol::Mode::Set(lock_protocol::Mode::SL)).value() == 
+		      (lock_protocol::Mode::Set::XL | lock_protocol::Mode::Set::SL));
 	}
 }

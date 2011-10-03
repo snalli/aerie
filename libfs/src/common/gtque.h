@@ -32,7 +32,7 @@ private:
 	bool CanConvertInPlace(typename MemberType::id_t, typename MemberType::Mode new_mode);
 
 	std::map<typename MemberType::id_t, MemberType>  members_;
-	typename MemberType::Mode::Bitmap                mode_union_;
+	typename MemberType::Mode::Set                   mode_union_;
 	std::vector<uint8_t>                             mode_cnt_;
 	typename MemberType::Mode                        no_member_mode_;
 };
@@ -111,7 +111,7 @@ template <class MemberType>
 int
 GrantQueue<MemberType>::PartialOrder(typename MemberType::Mode mode)
 {
-	return MemberType::Mode::Bitmap::PartialOrder(mode, mode_union_);
+	return MemberType::Mode::Set::PartialOrder(mode, mode_union_);
 }
 
 
@@ -119,7 +119,7 @@ template <class MemberType>
 bool
 GrantQueue<MemberType>::CanGrant(typename MemberType::Mode mode)
 {
-	return MemberType::Mode::Bitmap::Compatible(mode, mode_union_);
+	return MemberType::Mode::Set::Compatible(mode, mode_union_);
 }
 
 
@@ -143,7 +143,7 @@ GrantQueue<MemberType>::CanConvertInPlace(typename MemberType::id_t id,
                                           typename MemberType::Mode new_mode)
 {
 	assert(Exists(id) == true);
-	typename MemberType::Mode::Bitmap mode_union = mode_union_;
+	typename MemberType::Mode::Set mode_union = mode_union_;
 	typename MemberType::Mode         member_mode = members_[id].mode();
 
 	// if the mode bit flag is set because of member id then 
@@ -152,7 +152,7 @@ GrantQueue<MemberType>::CanConvertInPlace(typename MemberType::id_t id,
 		mode_union.Remove(member_mode);
 	}
 	
-	return MemberType::Mode::Bitmap::Compatible(new_mode, mode_union);
+	return MemberType::Mode::Set::Compatible(new_mode, mode_union);
 }
 
 

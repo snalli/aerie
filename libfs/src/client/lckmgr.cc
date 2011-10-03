@@ -313,6 +313,20 @@ LockManager::Releaser()
 }
 
 
+lock_protocol::Mode
+LockManager::SelectMode(Lock* l, lock_protocol::Mode::Set mode_set)
+{
+	// policy: pick the most severe mode that can be granted locally
+	/*
+		if (mode != l->global_mode_ &&
+				    lock_protocol::Mode::PartialOrder(mode, l->global_mode_) < 0 && 
+				    l->gtque_.CanGrant(mode)) 
+				{
+*/
+
+}
+
+
 /// This function blocks until the specified lock is successfully acquired
 /// or if an unexpected error occurs.
 /// Note that acquire() is NOT an atomic operation because it may temporarily
@@ -320,16 +334,20 @@ LockManager::Releaser()
 /// for this reason, we need an ACQUIRING status to tell other threads 
 /// that an acquisition is in progress.
 lock_protocol::status
-LockManager::AcquireInternal(unsigned long tid, Lock* l, 
-                             lock_protocol::Mode mode, int flags, 
-                             std::vector<unsigned long long> argv)
+LockManager::AcquireInternal(unsigned long tid, 
+                             Lock* l, 
+                             lock_protocol::Mode::Set mode_set, 
+                             int flags, 
+                             std::vector<unsigned long long> argv,
+                             lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::status r;
 	lock_protocol::LockId lid = l->lid_;
+	ThreadRecord*         tr;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] Acquiring lock %llu (%s)\n", cl2srv_->id(), lid, 
-			mode.String().c_str());
+			mode_set.String().c_str());
 
 check_state:
 	switch (l->status()) {
@@ -339,7 +357,8 @@ check_state:
 			        "[%d] lock %llu free locally (global_mode %s): grant to %lu\n",
 			        cl2srv_->id(), lid, 
 			        l->global_mode_.String().c_str(), tid);
-
+/*
+ * TODO FIXME
 			// if mode is as restrictive as or more than the one allowed
 			// by global mode then we need to communicate with the server.
 			// otherwise we perform the conversion silently
@@ -363,6 +382,7 @@ check_state:
 			l->gtque_.Add(ThreadRecord(tid, mode));
 			l->set_status(Lock::LOCKED);
 			r = lock_protocol::OK;
+*/			
 			break;
 		case Lock::ACQUIRING:
 			// There is on-going lock acquisition; we just sit here and wait
@@ -379,23 +399,22 @@ check_state:
 			}
 			goto check_state;	// Status changed. Re-check.
 		case Lock::LOCKED:
-			if (l->gtque_.Exists(tid)) {
+			tr = l->gtque_.Find(tid);
+			if (tr) {
 				// the current thread has already obtained the lock
 				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 				        "[%d] current thread already got lck %llu\n",
 				        cl2srv_->id(), lid);
+				mode_granted = tr->mode();
 				r = lock_protocol::OK;
 			} else {
-				// we cannot lock at a more restrictive mode than the 
-				// one allowed by the server 
-				if (mode != l->global_mode_ &&
-				    lock_protocol::Mode::PartialOrder(mode, l->global_mode_) < 0 && 
-				    l->gtque_.CanGrant(mode)) 
-				{
+				lock_protocol::Mode mode = SelectMode(l, mode_set);
+				if (mode != lock_protocol::Mode::NL) {
 					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 					        "[%d] thread %lu got lock %llu at seq %d\n",
 							cl2srv_->id(), tid, lid, l->seq_);
 					l->gtque_.Add(ThreadRecord(tid, mode));
+					mode_granted = mode;
 					r = lock_protocol::OK;
 				} else {
 					if (flags & Lock::FLG_NOBLK) {
@@ -411,7 +430,7 @@ check_state:
 			dbg_log(DBG_INFO, "[%d] lock %llu not available; acquiring now\n",
 			        cl2srv_->id(), lid);
 			l->set_status(Lock::ACQUIRING);
-			while ((r = do_acquire(l, mode, flags & Lock::FLG_NOBLK, argv)) 
+			while ((r = do_acquire(l, mode_set, flags & Lock::FLG_NOBLK, argv, mode_granted)) 
 			       == lock_protocol::RETRY) 
 			{
 				while (!l->can_retry_) {
@@ -421,8 +440,8 @@ check_state:
 			if (r == lock_protocol::OK) {
 				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu at seq %d\n",
 				        cl2srv_->id(), tid, lid, l->seq_);
-				l->global_mode_ = mode;
-				l->gtque_.Add(ThreadRecord(tid, mode));
+				l->global_mode_ = mode_granted;
+				l->gtque_.Add(ThreadRecord(tid, mode_granted));
 				l->set_status(Lock::LOCKED);
 			}
 			break;
@@ -435,14 +454,15 @@ check_state:
 
 lock_protocol::status
 LockManager::Acquire(Lock* lock, 
-                     lock_protocol::Mode mode, 
+                     lock_protocol::Mode::Set mode_set, 
                      int flags, 
-                     std::vector<unsigned long long> argv)
+                     std::vector<unsigned long long> argv,
+                     lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::status r;
 
 	pthread_mutex_lock(&mutex_);
-	r = AcquireInternal(0, lock, mode, flags, argv);
+	r = AcquireInternal(0, lock, mode_set, flags, argv, mode_granted);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
@@ -450,27 +470,29 @@ LockManager::Acquire(Lock* lock,
 
 lock_protocol::status
 LockManager::Acquire(Lock* lock, 
-                     lock_protocol::Mode mode, 
-                     int flags)
+                     lock_protocol::Mode::Set mode_set, 
+                     int flags,
+                     lock_protocol::Mode& mode_granted)
 {
 	std::vector<unsigned long long> argv;
 
-	return Acquire(lock, mode, flags, argv);
+	return Acquire(lock, mode_set, flags, argv, mode_granted);
 }
 
 
 lock_protocol::status
 LockManager::Acquire(lock_protocol::LockId lid, 
-                     lock_protocol::Mode mode, 
+                     lock_protocol::Mode::Set mode_set, 
                      int flags,
-                     std::vector<unsigned long long> argv)
+                     std::vector<unsigned long long> argv,
+                     lock_protocol::Mode& mode_granted)
 {
 	Lock*                 lock;
 	lock_protocol::status r;
 
 	pthread_mutex_lock(&mutex_);
 	lock = FindOrCreateLockInternal(lid);
-	r = AcquireInternal(0, lock, mode, flags, argv);
+	r = AcquireInternal(0, lock, mode_set, flags, argv, mode_granted);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
@@ -478,12 +500,13 @@ LockManager::Acquire(lock_protocol::LockId lid,
 
 lock_protocol::status
 LockManager::Acquire(lock_protocol::LockId lid, 
-                     lock_protocol::Mode mode, 
-                     int flags)
+                     lock_protocol::Mode::Set mode_set, 
+                     int flags,
+                     lock_protocol::Mode& mode_granted)
 {
 	std::vector<unsigned long long> argv;
 
-	return Acquire(lid, mode, flags, argv);
+	return Acquire(lid, mode_set, flags, argv, mode_granted);
 }
 
 
@@ -678,12 +701,15 @@ LockManager::retry(lock_protocol::LockId lid,
 
 // assumes the current thread holds the mutex_
 int
-LockManager::do_acquire(Lock* l, lock_protocol::Mode mode, int flags, 
-                        std::vector<unsigned long long> argv)
+LockManager::do_acquire(Lock* l, 
+                        lock_protocol::Mode::Set mode_set, 
+                        int flags, 
+                        std::vector<unsigned long long> argv,
+                        lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::rpc_numbers rpc_number;
 	int                        r;
-	int                        unused;
+	int                        retval;
 	int                        rpc_flags=0;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
@@ -691,12 +717,16 @@ LockManager::do_acquire(Lock* l, lock_protocol::Mode mode, int flags,
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), last_seq_+1);
 	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
 	r = cl2srv_->call(lock_protocol::acquire, cl2srv_->id(), ++last_seq_, l->lid_, 
-	                  mode.value(), rpc_flags, argv, unused);
+	                  mode_set.value(), rpc_flags, argv, retval);
 	l->seq_ = last_seq_;
 	if (r == lock_protocol::OK) {
 		// great! we have the lock
-	} else if (r == lock_protocol::RETRY) {
-		l->can_retry_ = false;
+		mode_granted = static_cast<lock_protocol::Mode::Enum>(retval);
+	} else { 
+		if (r == lock_protocol::RETRY) {
+			l->can_retry_ = false;
+		}
+		mode_granted = lock_protocol::Mode::NL;
 	}
 	pthread_cond_signal(&l->got_acq_reply_cv_);
 	return r;

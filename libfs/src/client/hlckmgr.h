@@ -100,15 +100,15 @@ public:
 	HLock* InitLock(lock_protocol::LockId lid, HLock*);
 	HLock* InitLock(HLock*, HLock*);
 
-	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode::Bitmap mode, int flags);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::LockId, lock_protocol::Mode::Bitmap mode, int flags);
+	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode::Set mode_set, int flags);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::LockId, lock_protocol::Mode::Set mode_set, int flags);
 	lock_protocol::status Release(HLock* hlock);
 	lock_protocol::status Release(lock_protocol::LockId lid);
 
 private:
 	HLock* FindLockInternal(lock_protocol::LockId lid, HLock* plp);
 	HLock* FindOrCreateLockInternal(lock_protocol::LockId lid, HLock* plp);
-	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode::Bitmap mode, int flags);
+	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode::Set mode_set, int flags);
 	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock);
 
 	pthread_mutex_t      mutex_;

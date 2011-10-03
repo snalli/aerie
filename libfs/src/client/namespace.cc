@@ -121,12 +121,13 @@ NameSpace::Unmount(const char* name)
 #else 
 
 int
-NameSpace::Mount(char* path, SuperBlock* sb)
+NameSpace::Mount(const char* const_path, SuperBlock* sb)
 {
 	char     name[128];
 	MPInode* mpnode;
 	MPInode* mpnode_next;
 	int      ret;
+	char*    path = const_cast<char*>(const_path);
 	
 	printf("NameSpace::Mount(%s)\n", path);
 

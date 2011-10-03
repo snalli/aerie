@@ -22,9 +22,10 @@ SUITE(Lock)
 {
 	TEST_FIXTURE(LockFixture, TestSharedLockUnlockConcurrentClients1)
 	{
+		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 
-		global_lckmgr->Acquire(a, lock_protocol::Mode::SL, 0);
+		global_lckmgr->Acquire(a, lock_protocol::Mode::SL, 0, unused);
 		CHECK(check_grant_s(region_, a) == 0);
 		ut_barrier_wait(&region_->barrier); 
 		global_lckmgr->Release(a);
@@ -33,16 +34,17 @@ SUITE(Lock)
 
 	TEST_FIXTURE(LockFixture, TestSharedLockUnlockConcurrentClients2)
 	{
+		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 		
-		global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0);
+		global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		CHECK(check_grant_x(region_, a) == 0);
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
 
 		ut_barrier_wait(&region_->barrier); 
 		
-		global_lckmgr->Acquire(a, lock_protocol::Mode::SL, 0);
+		global_lckmgr->Acquire(a, lock_protocol::Mode::SL, 0, unused);
 		CHECK(check_grant_s(region_, a) == 0);
 		
 		ut_barrier_wait(&region_->barrier); 

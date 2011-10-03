@@ -16,7 +16,7 @@ public:
 	int Unlink(const char* name);
 	int Namei(const char* path, Inode**);
 	int Nameiparent(const char* path, char* name, Inode**);
-	int Mount(char*, SuperBlock*);
+	int Mount(const char*, SuperBlock*);
 	int Unmount(char*);
 	int Init();
 
