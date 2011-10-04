@@ -55,6 +55,12 @@ SUITE(LockProtocolMode)
 		      == lock_protocol::Mode::XR);
 	}
 
+	TEST(TestSupremum2)
+	{
+		CHECK(lock_protocol::Mode::Supremum(lock_protocol::Mode(lock_protocol::Mode::IXSL), lock_protocol::Mode(lock_protocol::Mode::SL)) 
+		      == lock_protocol::Mode::IXSL);
+	}
+
 	TEST(TestSet)
 	{
 		CHECK(lock_protocol::Mode::Set::NL == lock_protocol::Mode::Set(lock_protocol::Mode::NL).value());

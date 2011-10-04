@@ -278,6 +278,8 @@ check_state:
 					if (lock_protocol::Mode::AbidesRecursiveRule(mode, 
 						   hlock->ancestor_recursive_mode_))
 					{
+						hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
+						assert(lock_protocol::Mode::AbidesRecursiveRule(hlock->mode_, hlock->ancestor_recursive_mode_));
 						hlock->owner_ = tid;
 						hlock->set_status(HLock::LOCKED);
 						r = lock_protocol::OK;
@@ -540,11 +542,16 @@ HLockManager::Revoke(Lock* lp)
 	// if you already have a recursive lock then you know that you can acquire a recursive 
 	// lock on the children as well. so there are several children upgrades which
 	// you know can happen. 
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Revoking lock %llu \n", lm_->id(), lp->lid_); 
+	
 
+
+
+	
+	return 0;
 }
-
-
-
 
 
 } // namespace client

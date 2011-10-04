@@ -44,15 +44,30 @@ void test2(char* tag)
 
 }
 
-void test3(char* tag)
+void test31(char* tag)
 {
+	printf("test31\n");
 	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IXSL, 0);
+	global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XL, 0);
+	global_hlckmgr->Release(a);
 	global_hlckmgr->Release(root);
+	sleep(10);
+}
 
-	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::XL, 0);
+void test32(char* tag)
+{
+	printf("test32\n");
+	sleep(1);
+	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IXSL, 0);
+	global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XL, 0);
+	global_hlckmgr->Release(a);
 	global_hlckmgr->Release(root);
 }
 
 void test(char* tag) {
-	test3(tag);
+	if (strcmp(tag, "C1") == 0) {
+		test31(tag);
+	} else {
+		test32(tag);
+	}
 }

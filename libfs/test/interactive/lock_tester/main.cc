@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	principal_id = getuid();
 
 	opterr=0;
-	while ((ch = getopt(argc, argv, "d:h:li:T:"))!=-1) {
+	while ((ch = getopt(argc, argv, "d:h:li:t:T:"))!=-1) {
 		switch (ch) {
 			case 'T':
 				/* test framework argument -- ignore */

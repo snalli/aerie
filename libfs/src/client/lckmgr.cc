@@ -274,13 +274,16 @@ LockManager::Releaser()
 				  l->revoke_type_ != lock_protocol::RVK_NL &&
 		          l->gtque_.CanGrant(lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]))) ))) 
 		{
-			// ping the holder to release/downgrade the lock before I sleep-wait
 			if (lu_) {
-				if (lu_->Revoke(l) >= 0) {
-					continue;
-				}
+				pthread_mutex_unlock(&mutex_);
+				lu_->Revoke(l);
+				//if (lu_->Revoke(l) >= 0) {
+				//	continue;
+				//}
+				pthread_mutex_lock(&mutex_);
+			} else {
+				pthread_cond_wait(&l->status_cv_, &mutex_);
 			}
-			pthread_cond_wait(&l->status_cv_, &mutex_);
 		}
 		if (l->status() == Lock::FREE) {
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
