@@ -34,6 +34,7 @@ test_list = [
              ('TestLockUnlockConcurrentClients4', 2),
              ('TestSharedLockUnlockConcurrentClients1', 2),
              ('TestSharedLockUnlockConcurrentClients2', 2),
+             ('TestLockConvert1', 2),
 	    ]
 
 for test in test_list:

@@ -150,8 +150,7 @@ LockManager::~LockManager()
 		if (itr->second->status() == Lock::FREE) {
 			do_release(itr->second);
 		} else if (itr->second->status() == Lock::LOCKED) {
-			ReleaseInternal(0, itr->second);
-			do_release(itr->second);
+			ReleaseInternal(0, itr->second, true);
 		}
 		// FIXME: what about other states?
 	}
@@ -277,39 +276,45 @@ LockManager::Releaser()
 			pthread_mutex_unlock(&mutex_);
 			lu_->Revoke(l, static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
 		} else {
+			lock_protocol::Mode new_mode = lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
 			// wait until the lock is released or becomes compatible with the
 			// revoke-request's mode
-			while (!((l->status() == Lock::FREE) || 
+			while (!((l->status() == Lock::NONE) ||
+			         (l->status() == Lock::FREE) || 
 					 (l->status() == Lock::LOCKED && 
 					  l->revoke_type_ != lock_protocol::RVK_NL &&
-					  l->gtque_.CanGrant(lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]))) ))) 
+					  (l->gtque_.PartialOrder(new_mode) > 0 || l->gtque_.MostSevere() == new_mode)))) 
 			{
 				pthread_cond_wait(&l->status_cv_, &mutex_);
 			}
-			if (l->status() == Lock::FREE) {
-				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-						"[%d] calling release RPC for lock %llu\n", cl2srv_->id(), lid);
-				if (do_release(l) == lock_protocol::OK) {
-					// we set the lock's status to none instead of erasing it
-					l->set_status(Lock::NONE);
-					revoke_map_.erase(lid);
+			// if a synchronous release/convert call has revoked the lock
+			// while we were sleeping then we don't need to do anything
+			if (revoke_map_.find(lid) != revoke_map_.end()) {	
+				if (l->status() == Lock::FREE) {
+					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+							"[%d] calling release RPC for lock %llu\n", cl2srv_->id(), lid);
+					if (do_release(l) == lock_protocol::OK) {
+						// we set the lock's status to none instead of erasing it
+						l->set_status(Lock::NONE);
+						revoke_map_.erase(lid);
+					}
+					// if remote release fails, we leave this lock in the revoke_map_,
+					// which will be released in a later attempt
+				} else if (l->status() == Lock::LOCKED) {
+					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+							"[%d] calling convert RPC for lock %llu\n", cl2srv_->id(), lid);
+					assert(l->gtque_.PartialOrder(new_mode) > 0 || 
+					       l->gtque_.MostSevere() == new_mode);
+					if (do_convert(l, new_mode, 0) == lock_protocol::OK) {
+						l->global_mode_ = new_mode;
+						revoke_map_.erase(lid);
+					}
+					// if remote conversion fails, we leave this lock in the revoke_map_,
+					// which will be converted in a later attempt
+				} else {
+					DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
+							"[%d] why woken up?\n", cl2srv_->id());
 				}
-				// if remote release fails, we leave this lock in the revoke_map_,
-				// which will be released in a later attempt
-			} else if (l->status() == Lock::LOCKED) {
-				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-						"[%d] calling convert RPC for lock %llu\n", cl2srv_->id(), lid);
-				lock_protocol::Mode new_mode = lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
-				assert(l->gtque_.CanGrant(new_mode));
-				if (do_convert(l, new_mode, 0) == lock_protocol::OK) {
-					l->global_mode_ = new_mode;
-					revoke_map_.erase(lid);
-				}
-				// if remote conversion fails, we leave this lock in the revoke_map_,
-				// which will be converted in a later attempt
-			} else {
-				DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
-						"[%d] why woken up?\n", cl2srv_->id());
 			}
 			pthread_mutex_unlock(&mutex_);
 		}
@@ -541,28 +546,45 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l,
 	}
 
 	if (l->gtque_.Exists(tid)) {
-		// if this is an upgrade (new mode after conversion is as restrictive 
-		// as or more than the one allowed by global mode then we need to 
-		// communicate with the server. 
-		// otherwise we perform the conversion silently
 		if (new_mode != l->global_mode_ &&
 		    lock_protocol::Mode::PartialOrder(new_mode, l->global_mode_) >= 0)  
 		{
+			// UPGRADE
+			// this is an upgrade (new mode after conversion is as restrictive 
+			// as or more than the one allowed by global mode) so we need to 
+			// communicate with the server. 
+			// FIXME: upgrade should consider what happens with l->seq_ and l->used_
+			// as it is possible the releaser thread to be in the middle of a revocation.
 			if ((r = do_convert(l, new_mode, Lock::FLG_NOBLK)) == lock_protocol::OK) {
 				l->global_mode_ = new_mode;
-				synchronous = false; // so we don't make another RPC below 
 			} else {
 				return r;
 			}
-		}
-		//FIXME: do an RPC if synchronous call
-		assert(l->gtque_.ConvertInPlace(tid, new_mode) == 0);
-		if (l->gtque_.Empty()) {
-			l->set_status(Lock::FREE);
+			// wait for other threads
+			while (l->gtque_.ConvertInPlace(tid, new_mode) != 0) {
+				while (l->status() == Lock::LOCKED) {
+					pthread_cond_wait(&l->status_cv_, &mutex_);
+				}
+			}
 		} else {
-			// signal status_cv_ because there is likely an internal mode change 
-			// the releaser thread depends on
-			pthread_cond_broadcast(&l->status_cv_);
+			// DOWNGRADE
+			// this is a downgrade. we first perform the conversion locally and 
+			// then communicate with the server if asked (synchronous==true) or let
+			// the releaser thread do it asynchronously for us (synchronous==false)
+			assert(l->gtque_.ConvertInPlace(tid, new_mode) == 0);
+			if (l->gtque_.Empty()) {
+				l->set_status(Lock::FREE);
+			} else {
+				// signal status_cv_ because there is likely an internal mode change 
+				// the releaser thread depends on
+				pthread_cond_broadcast(&l->status_cv_);
+			}
+			if (synchronous) {
+				if (do_convert(l, new_mode, 0) == lock_protocol::OK) {
+					l->global_mode_ = new_mode;
+					revoke_map_.erase(lid);
+				}
+			}
 		}
 	} else { 
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
@@ -631,11 +653,11 @@ LockManager::ReleaseInternal(unsigned long tid, Lock* l, bool synchronous)
 
 	if (synchronous && (l->status() == Lock::FREE)) {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-				"[%d] calling release RPC for lock %llu\n", cl2srv_->id(), lid);
+				"[%d] calling release RPC for lock %llu\n", cl2srv_->id(), l->lid_);
 		if (do_release(l) == lock_protocol::OK) {
 			// we set the lock's status to none instead of erasing it
 			l->set_status(Lock::NONE);
-			revoke_map_.erase(lid);
+			revoke_map_.erase(l->lid_);
 		}
 	}
 

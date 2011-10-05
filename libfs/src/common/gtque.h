@@ -20,6 +20,7 @@ public:
 	int Grant(const MemberType& cr);
 	int ConvertInPlace(typename MemberType::id_t id, typename MemberType::Mode new_mode);
 	int PartialOrder(typename MemberType::Mode mode);
+	typename MemberType::Mode MostSevere();
 	bool IsModeSet(typename MemberType::Mode mode) { return (mode_union_.Exists(mode));}
 	int  Size() { return members_.size(); }
 	int  Empty() { return members_.empty(); }
@@ -116,6 +117,14 @@ GrantQueue<MemberType>::PartialOrder(typename MemberType::Mode mode)
 
 
 template <class MemberType>
+typename MemberType::Mode
+GrantQueue<MemberType>::MostSevere()
+{
+	return mode_union_.MostSevere(no_member_mode_);
+}
+
+
+template <class MemberType>
 bool
 GrantQueue<MemberType>::CanGrant(typename MemberType::Mode mode)
 {
@@ -144,7 +153,7 @@ GrantQueue<MemberType>::CanConvertInPlace(typename MemberType::id_t id,
 {
 	assert(Exists(id) == true);
 	typename MemberType::Mode::Set mode_union = mode_union_;
-	typename MemberType::Mode         member_mode = members_[id].mode();
+	typename MemberType::Mode      member_mode = members_[id].mode();
 
 	// if the mode bit flag is set because of member id then 
 	// exclude the mode this member holds the lock at

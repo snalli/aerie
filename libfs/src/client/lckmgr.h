@@ -191,7 +191,7 @@ private:
 	Lock* FindLockInternal(lock_protocol::LockId lid);
 	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
 	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
-	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode);
+	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode, bool synchronous);
 	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e, bool synchronous);
 	lock_protocol::Mode SelectMode(Lock* l, lock_protocol::Mode::Set mode_set);
 
