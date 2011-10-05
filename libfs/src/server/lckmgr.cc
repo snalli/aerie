@@ -15,17 +15,19 @@
 
 namespace server {
 
+// we ask the client to revoke the lock to a mode which is at least compatible to
+// the conflicting lock request.
 static int revoke_table[8][8] = {
 	/*                                                              Requested Lock Mode                                                           */
-	/*            NL,           SL,              SR,           IS,              IX,              XL,                XR,           IXSL            */
-	/* NL   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO },
-	/* SL   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NO },
-	/* SR   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_SR2SL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_SR2SL },
-	/* IS   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
-	/* IX   */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
-	/* XL   */ {  Lock::RVK_NO, Lock::RVK_XL2SL, Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_XL2SL },
-	/* XR   */ {  Lock::RVK_NO, Lock::RVK_NL,    Lock::RVK_NL, Lock::RVK_XR2XL, Lock::RVK_XR2XL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NL },
-	/* IXSL */ {  Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_IXSL2IX, Lock::RVK_NL, Lock::RVK_NO },
+	/*            NL,           SL,                SR,           IS,              IX,              XL,                XR,           IXSL          */
+	/* NL   */ {  Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO },
+	/* SL   */ {  Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_NO },
+	/* SR   */ {  Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_SR2SL, Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_SR2SL },
+	/* IS   */ {  Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NO, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
+	/* IX   */ {  Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO },
+	/* XL   */ {  Lock::RVK_NO, Lock::RVK_XL2SL,   Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_NL,      Lock::RVK_NL, Lock::RVK_XL2SL },
+	/* XR   */ {  Lock::RVK_NO, Lock::RVK_XR2IXSL, Lock::RVK_NL, Lock::RVK_XR2XL, Lock::RVK_XR2XL, Lock::RVK_XR2IX,   Lock::RVK_NL, Lock::RVK_XR2IXSL },
+	/* IXSL */ {  Lock::RVK_NO, Lock::RVK_NO,      Lock::RVK_NL, Lock::RVK_NO,    Lock::RVK_NO,    Lock::RVK_IXSL2IX, Lock::RVK_NL, Lock::RVK_NO },
 };
 
 
@@ -112,10 +114,12 @@ lock_protocol::Mode
 LockManager::SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set)
 {
 	/* Pick the most severe that can be granted instantly, or
-	 * wait for the lease severe */
+	 * wait for the least severe */
 	
 	lock_protocol::Mode mode = mode_set.MostSevere(lock_protocol::Mode::NL);
-	
+	if (!lock.gtque_.CanGrant(mode)) {
+		mode = mode_set.LeastSevere();
+	}
 	dbg_log(DBG_INFO, "selecting mode %s out of modes {%s}\n",  
 	        mode.String().c_str(), mode_set.String().c_str());
 	return mode;

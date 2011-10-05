@@ -23,7 +23,9 @@ public:
 		RVK_NL,      
 		RVK_XL2SL,
 		RVK_SR2SL,
+		RVK_XR2IX,
 		RVK_XR2XL,
+		RVK_XR2IXSL,
 		RVK_IXSL2IX
 	};
 
@@ -266,6 +268,7 @@ public:
 	static bool Compatible(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set);
 	static int PartialOrder(lock_protocol::Mode mode, lock_protocol::Mode::Set mode_set);
 	lock_protocol::Mode MostSevere(lock_protocol::Mode compatible_mode);
+	lock_protocol::Mode LeastSevere();
 
 	lock_protocol::Mode::Set& operator|=(const lock_protocol::Mode::Set& other) 
 	{

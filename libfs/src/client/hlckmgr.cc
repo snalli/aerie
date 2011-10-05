@@ -60,6 +60,7 @@ namespace client {
 //    threads cannot acquire the lock even if the locked is held at a mode
 //    permitting multiple owners (e.g. SL). 
 
+
 HLock::HLock(lock_protocol::LockId lid, HLock* phl)
 	: status_(NONE),
 	  mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
@@ -301,7 +302,7 @@ check_state:
 				break;
 			}
 			while (hlock->status() == HLock::ACQUIRING) {
-				pthread_cond_wait(&hlock->status_cv_, &mutex_);
+				pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
 			}
 			goto check_state;	// Status changed. Re-check.
 		case HLock::RELEASING:
@@ -309,7 +310,7 @@ check_state:
 			        "[%d:%lu] hierarchical lock manager is releasing lock %llu\n",
 			        lm_->id(), tid, lid);
 			while (hlock->status() == HLock::RELEASING) {
-				pthread_cond_wait(&hlock->status_cv_, &mutex_);
+				pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
 			}
 			goto check_state;	// Status changed. Re-check.
 		case HLock::LOCKED:
@@ -325,7 +326,7 @@ check_state:
 					break;
 				}
 				while (hlock->status() == HLock::LOCKED) {
-					pthread_cond_wait(&hlock->status_cv_, &mutex_);
+					pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
 				}
 				goto check_state;	// Status changed. Re-check.
 			}
@@ -383,6 +384,7 @@ check_state:
 					mode_set.Insert(mode.LeastRecursiveMode());
 					pthread_mutex_unlock(&phlock->mutex_);
 					r = lm_->Acquire(lid, mode_set, flags, mode_granted);
+					
 					pthread_mutex_lock(&phlock->mutex_);
 					if (!(phlock->status() == HLock::LOCKED || 
 						  phlock->status() == HLock::FREE))
@@ -404,6 +406,7 @@ check_state:
 						}
 						phlock->AddChild(hlock);
 						hlock->lock_ = lm_->FindLock(lid);
+						hlock->lock_->payload_ = static_cast<void *>(hlock);
 						hlock->mode_ = mode;
 						hlock->owner_ = tid;
 						hlock->set_status(HLock::LOCKED);
@@ -429,6 +432,7 @@ check_state:
 						hlock->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
 					}
 					hlock->lock_ = lm_->FindLock(lid);
+					hlock->lock_->payload_ = static_cast<void *>(hlock);
 					hlock->mode_ = mode;
 					hlock->owner_ = tid;
 					hlock->set_status(HLock::LOCKED);
@@ -527,13 +531,14 @@ HLockManager::Release(lock_protocol::LockId lid)
 	return r;
 }
 
-
+// revocations must be serialized. for example, consider /X/Y/Z. Revoking
+// Y cannot be done concurrently with revoking X. 
 int 
-HLockManager::Revoke(Lock* lp)
+HLockManager::Revoke(Lock* lp, lock_protocol::Mode mode)
 {
 	// if can downgrade a lock by silently upgrading its children 
 	// then you don't need to publish.
-	// CHALLENGE: if you come here via a synchronous call by the base lock manager
+	// CHALLENGE: if you come here via a synchronous call from the base lock manager
 	// then you can't block when trying to upgrade the children's locks. 
 	// you either need to respond to the caller immediately and acquire locks 
 	// asynchronously in a different thread (i.e. context switch or user level thread package)
@@ -543,12 +548,37 @@ HLockManager::Revoke(Lock* lp)
 	// lock on the children as well. so there are several children upgrades which
 	// you know can happen. 
 	
+	HLock* hlock;
+
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d] Revoking lock %llu \n", lm_->id(), lp->lid_); 
+	        "[%d] Revoking lock %llu to %s\n", lm_->id(), lp->lid_, mode.String().c_str()); 
 	
+	hlock = static_cast<HLock*>(lp->payload_);
 
+	pthread_mutex_lock(&hlock->mutex_);
+	
+check_state:	
+	switch(hlock->status()) {
+		case HLock::FREE:
+			hlock->set_status(HLock::RELEASING);
+			break;
+		case HLock::ACQUIRING:
+		case HLock::LOCKED:
+			pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
+			goto check_state;	// Status changed. Re-check.
+		case HLock::RELEASING:
+			assert(0); // who is releasing it?
+	}
 
+	pthread_mutex_unlock(&hlock->mutex_);
 
+	if (mode == hlock->mode_) {
+		lm_->Convert(lp, mode, true);
+		// what if convert fails? 
+	} else {
+		lm_->Release(lp);
+		// what if release fails?
+	}
 	
 	return 0;
 }

@@ -38,7 +38,9 @@ struct Lock {
 		RVK_NL = lock_protocol::RVK_NL,      
 		RVK_XL2SL = lock_protocol::RVK_XL2SL,
 		RVK_SR2SL = lock_protocol::RVK_SR2SL,
+		RVK_XR2IX = lock_protocol::RVK_XR2IX,
 		RVK_XR2XL = lock_protocol::RVK_XR2XL,
+		RVK_XR2IXSL = lock_protocol::RVK_XR2IXSL,
 		RVK_IXSL2IX = lock_protocol::RVK_IXSL2IX,
 	};
 

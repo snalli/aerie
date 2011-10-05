@@ -95,4 +95,25 @@ lock_protocol::Mode::Set::MostSevere(lock_protocol::Mode compatible_mode)
 }
 
 
+/// \brief Retuns the least severe mode found in the set
+inline lock_protocol::Mode
+lock_protocol::Mode::Set::LeastSevere()
+{
+	lock_protocol::Mode::Set::Iterator itr;
+	lock_protocol::Mode                mode;
+
+	itr = begin();
+	if (itr != end()) {
+		mode = *itr;
+	}
+	for (itr++; itr != end(); itr++) {
+		if ((*itr) < mode) {
+			mode = *itr;
+		}
+	}
+	
+	return mode;
+}
+
+
 #endif /* _LOCK_PROTOCOL_INLINE_H_AKL156 */

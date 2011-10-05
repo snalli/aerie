@@ -154,7 +154,7 @@ class LockUser {
 public:
 	virtual void OnRelease(Lock*) = 0;
 	virtual void OnConvert(Lock*) = 0;
-	virtual int Revoke(Lock*) = 0;
+	virtual int Revoke(Lock* lock, lock_protocol::Mode mode) = 0;
 	virtual ~LockUser() {};
 };
 
@@ -169,10 +169,10 @@ public:
 	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
-	lock_protocol::status Convert(Lock* lock, lock_protocol::Mode new_mode);
-	lock_protocol::status Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode);
-	lock_protocol::status Release(Lock* lock);
-	lock_protocol::status Release(lock_protocol::LockId lid);
+	lock_protocol::status Convert(Lock* lock, lock_protocol::Mode new_mode, bool synchronous = false);
+	lock_protocol::status Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode, bool synchronous = false);
+	lock_protocol::status Release(Lock* lock, bool synchronous = false);
+	lock_protocol::status Release(lock_protocol::LockId lid, bool synchronous = false);
 	lock_protocol::status stat(lock_protocol::LockId lid);
 	void Releaser();
 	void RegisterLockUser(LockUser* lu) { lu_ = lu; };
@@ -192,7 +192,7 @@ private:
 	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
 	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode);
-	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e);
+	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e, bool synchronous);
 	lock_protocol::Mode SelectMode(Lock* l, lock_protocol::Mode::Set mode_set);
 
 	class LockUser*                                      lu_;

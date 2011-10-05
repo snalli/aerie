@@ -83,7 +83,7 @@ public:
 	
 	void OnRelease(Lock* l) { return; };
 	void OnConvert(Lock* l) { return; };
-	int Revoke(Lock*);
+	int Revoke(Lock* lock, lock_protocol::Mode mode);
 
 	HLock* FindOrCreateLock(lock_protocol::LockId lid, lock_protocol::LockId plid);
 	HLock* InitLock(lock_protocol::LockId lid, lock_protocol::LockId);
