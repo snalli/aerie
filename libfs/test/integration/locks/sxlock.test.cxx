@@ -20,6 +20,7 @@ static lock_protocol::LockId c = 3;
 
 SUITE(Lock)
 {
+/*
 	TEST_FIXTURE(LockFixture, TestSharedLockUnlockConcurrentClients1)
 	{
 		lock_protocol::Mode unused;
@@ -51,5 +52,5 @@ SUITE(Lock)
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
 	}
-
+*/
 }

@@ -22,10 +22,15 @@ extern InodeManager*     global_imgr;
 extern LockManager*      global_lckmgr;
 extern HLockManager*     global_hlckmgr;
 
+extern rpcc*             rpc_client;
+extern rpcs*             rpc_server;
+extern std::string       id;
+
 
 class Client {
 public:
-	static int Init(int principal_id, char* xdst);
+	static int InitRPC(int principal_id, const char* xdst);
+	static int Init(int principal_id, const char* xdst);
 	static int Shutdown(); 
 	static int Mount(const char* source, const char* target, const char* fstype, uint32_t flags);
 	static int Mkfs(const char* target, const char* fstype, uint32_t flags);

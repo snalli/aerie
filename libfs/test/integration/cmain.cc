@@ -12,7 +12,7 @@
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
 
-extern int InitializeTests(testfw::TestFramework&) __attribute__((weak));
+extern int InitializeTest(testfw::TestFramework&) __attribute__((weak));
 
 namespace testfw {
 	TestFramework* __testfwp;
@@ -28,6 +28,7 @@ main(int argc, char *argv[])
 	char              ch = 0;
 	char*             xdst=NULL;
 	extern int        opterr;
+	std::string       unused;
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
@@ -60,16 +61,11 @@ main(int argc, char *argv[])
 	testfw::TestFramework test_fw(argc, argv);
 	testfw::__testfwp = &test_fw;
 
-	if (InitializeTests) {
-		if (ret = InitializeTests(test_fw) > 0) {
-			// function InitializeTests returns a value > 0 when it wants 
-			// to exit immediately with status 0
-			return 0;
+	if (test_fw.ArgVal("init", unused)==0) {
+		if (InitializeTest) {
+			return InitializeTest(test_fw);
 		}
-	}
-
-	if (!xdst) {
-		return -1;
+		return 0;
 	}
 
 	dbg_init(debug_level, NULL);
@@ -78,10 +74,7 @@ main(int argc, char *argv[])
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	libfs_init(principal_id, xdst);
-
 	ret = test_fw.RunTests();
 
-	libfs_shutdown();
 	return ret;
 }

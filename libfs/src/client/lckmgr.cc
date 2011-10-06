@@ -250,7 +250,7 @@ LockManager::Releaser()
 		lock_protocol::LockId lid = itr->first;
 		int seq = itr->second;
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-		        "[%d] releasing lock %llu at seq %d\n", cl2srv_->id(), lid, seq);
+		        "[%d] releasing/converting lock %llu at seq %d\n", cl2srv_->id(), lid, seq);
 		Lock* l = locks_[lid];
 		if (l->status() == Lock::NONE) {
 			DBG_LOG(DBG_WARNING, DBG_MODULE(client_lckmgr), 
@@ -555,6 +555,9 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l,
 			// communicate with the server. 
 			// FIXME: upgrade should consider what happens with l->seq_ and l->used_
 			// as it is possible the releaser thread to be in the middle of a revocation.
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+					"[%d] Converting lock %llu (UPGRADE: %s to %s)\n", cl2srv_->id(), lid, 
+					l->global_mode_.String().c_str(), new_mode.String().c_str());
 			if ((r = do_convert(l, new_mode, Lock::FLG_NOBLK)) == lock_protocol::OK) {
 				l->global_mode_ = new_mode;
 			} else {
@@ -571,6 +574,9 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l,
 			// this is a downgrade. we first perform the conversion locally and 
 			// then communicate with the server if asked (synchronous==true) or let
 			// the releaser thread do it asynchronously for us (synchronous==false)
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+					"[%d] Converting lock %llu (DOWNGRADE: %s to %s)\n", cl2srv_->id(), lid, 
+					l->global_mode_.String().c_str(), new_mode.String().c_str());
 			assert(l->gtque_.ConvertInPlace(tid, new_mode) == 0);
 			if (l->gtque_.Empty()) {
 				l->set_status(Lock::FREE);

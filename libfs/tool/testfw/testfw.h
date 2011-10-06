@@ -63,12 +63,14 @@ public:
 	const char* SuiteName() { return suite_name_; }
 	const char* TestName() { return test_name_; }
 	const char* Tag() { return tag_name_; }
+	int numclients() { return numclients_; }
 
 private:
 	int         argc_;
 	char**      argv_;
 	ArgValMap   argvmap_;
 	bool        interactive_;
+	int         numclients_;
 	const char* suite_name_;  
 	const char* test_name_;  
 	const char* tag_name_;  
@@ -82,6 +84,10 @@ TestFramework::TestFramework(int argc, char** argv)
 	  argvmap_(argc, argv)
 {
 	std::string* val;
+
+	for (int i = argc; i<argc;i++) {
+		printf("arg=%s\n", argv[i]);
+	}
 
 	if (val = argvmap_.ArgVal(std::string("test"))) {
 		test_name_ = val->c_str();
@@ -99,6 +105,12 @@ TestFramework::TestFramework(int argc, char** argv)
 		tag_name_ = val->c_str();
 	} else {
 		tag_name_ = NULL;
+	}
+	
+	if (val = argvmap_.ArgVal(std::string("numclients"))) {
+		numclients_ = atoi(val->c_str());
+	} else {
+		numclients_ = 0;
 	}
 
 	if (val = argvmap_.ArgVal(std::string("interactive"))) {

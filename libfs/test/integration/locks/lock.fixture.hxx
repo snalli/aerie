@@ -5,6 +5,11 @@
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/ut_barrier.h"
 #include "client/libfs.h"
+#include "client/config.h"
+#include "client/client_i.h"
+#include "rpc.fixture.hxx"
+
+using namespace client;
 
 struct CountRegion {
 	unsigned int    ct[256];
@@ -12,9 +17,9 @@ struct CountRegion {
 	ut_barrier_t    barrier;
 };
 
-DEFINE_SHARED_MEMORY_REGION_FIXTURE(LockFixture,CountRegion)
+DEFINE_SHARED_MEMORY_REGION_FIXTURE(LockRegionFixture, CountRegion)
 
-inline int LockFixture::InitRegion(void* args)
+inline int LockRegionFixture::InitRegion(void* args)
 {
 	CountRegion*        region;
 	pthread_mutexattr_t psharedm_attr;
@@ -30,6 +35,19 @@ inline int LockFixture::InitRegion(void* args)
 		region->ct[i] = 0;
 	}
 }
+
+
+struct LockFixture: public LockRegionFixture, RPCFixture {
+	LockFixture() 
+	{
+		global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id, 0);
+	}
+
+	~LockFixture() 
+	{
+		delete global_lckmgr;
+	}
+};
 
 
 #endif /* _LOCK_FIXTURE_HXX_AGL189 */

@@ -25,7 +25,7 @@ HLockManager*    global_hlckmgr;
 Registry*        registry;
 rpcc*            rpc_client;
 rpcs*            rpc_server;
-
+std::string      id;
 
 // Known backend file system implementations
 struct KnownFS {
@@ -38,16 +38,12 @@ struct KnownFS {
 
 
 int 
-Client::Init(int principal_id, char* xdst) 
+Client::InitRPC(int principal_id, const char* xdst)
 {
-	struct rlimit      rlim_nofile;
 	struct sockaddr_in dst; //server's ip address
 	int                rport;
 	std::ostringstream host;
 	const char*        hname;
-	std::string        id;
-
-	Config::Init();
 
 	// setup RPC for making calls to the server
 	make_sockaddr(xdst, &dst);
@@ -62,6 +58,16 @@ Client::Init(int principal_id, char* xdst)
 	host << hname << ":" << rport;
 	id = host.str();
 	std::cout << "Client: id="<<id<<std::endl;
+}
+
+
+int 
+Client::Init(int principal_id, const char* xdst) 
+{
+	struct rlimit      rlim_nofile;
+
+	Config::Init();
+	Client::InitRPC(principal_id, xdst);
 
 	// create necessary managers
 	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
