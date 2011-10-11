@@ -239,11 +239,12 @@ void startserver()
 	serverp->reg(RPC_REGISTRY_REMOVE, &service, &srv::registry_remove);
 	serverp->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
 
-	serverp->reg(lock_protocol::stat, lm, &LockManager::stat);
-	serverp->reg(lock_protocol::acquire, lm, &LockManager::acquire);
-	serverp->reg(lock_protocol::release, lm, &LockManager::release);
-	serverp->reg(lock_protocol::convert, lm, &LockManager::convert);
-	serverp->reg(lock_protocol::subscribe, lm, &LockManager::subscribe);
+	serverp->reg(lock_protocol::stat, lm, &LockManager::Stat);
+	serverp->reg(lock_protocol::acquire, lm, &LockManager::Acquire);
+	serverp->reg(lock_protocol::acquirev, lm, &LockManager::AcquireVector);
+	serverp->reg(lock_protocol::release, lm, &LockManager::Release);
+	serverp->reg(lock_protocol::convert, lm, &LockManager::Convert);
+	serverp->reg(lock_protocol::subscribe, lm, &LockManager::Subscribe);
 }
 
 int

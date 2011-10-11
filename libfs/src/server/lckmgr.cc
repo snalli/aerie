@@ -139,12 +139,12 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 	
 	pthread_mutex_lock(&mutex_);
 	Lock& l = locks_[lid];
-	mode = SelectMode(l, mode_set);
 	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
-	        lid, mode.String().c_str());
+	        lid, mode_set.String().c_str());
+	mode = SelectMode(l, mode_set);
 	wq_len = l.waiting_list_.size();
 	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", lid, wq_len);
-	
+
 	if ((wq_len == 0 || (wq_len > 0 && l.expected_clt_ == clt)) &&
 		l.gtque_.CanGrant(mode)) 
 	{
@@ -202,11 +202,36 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 
 
 lock_protocol::status
-LockManager::acquire(int clt, int seq, lock_protocol::LockId lid, 
+LockManager::Acquire(int clt, int seq, lock_protocol::LockId lid, 
                      int mode_set, int flags, 
-                     std::vector<unsigned long long> argv, int& unused)
+                     std::vector<unsigned long long> argv, int& mode_granted)
 {
-	return AcquireInternal(clt, seq, lid, lock_protocol::Mode::Set(mode_set), flags, argv, unused);
+	return AcquireInternal(clt, seq, lid, lock_protocol::Mode::Set(mode_set), 
+	                       flags, argv, mode_granted);
+}
+
+
+lock_protocol::status
+LockManager::AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, 
+                           std::vector<int> modeiv, int flags, 
+                           std::vector<unsigned long long> argv, int& num_locks_granted)
+{
+	lock_protocol::status                         r;
+	std::vector<lock_protocol::LockId>::iterator  lidv_itr;
+	std::vector<int>::iterator                    modeiv_itr;
+	
+	for (lidv_itr = lidv.begin(), modeiv_itr = modeiv.begin(); 
+		lidv_itr != lidv.end() && modeiv_itr != modeiv.end(); 
+		lidv_itr++, modeiv_itr++) 
+	{
+		printf("lid=%llu, mode=%s\n", *lidv_itr, lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(*modeiv_itr)).String().c_str());
+	}
+
+	//TODO
+
+	r = lock_protocol::OK;
+
+	return r;
 }
 
 
@@ -274,7 +299,7 @@ out:
 
 // convert does not block to avoid any deadlocks.
 lock_protocol::status
-LockManager::convert(int clt, int seq, lock_protocol::LockId lid, 
+LockManager::Convert(int clt, int seq, lock_protocol::LockId lid, 
                      int new_mode, int flags, int& unused)
 {
 	lock_protocol::Mode::Enum enum_new_mode = static_cast<lock_protocol::Mode::Enum>(new_mode);
@@ -282,7 +307,7 @@ LockManager::convert(int clt, int seq, lock_protocol::LockId lid,
 }
 
 lock_protocol::status
-LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
+LockManager::Release(int clt, int seq, lock_protocol::LockId lid, int& unused)
 {
 	dbg_log(DBG_INFO, "clt %d release lck %llu at seq %d\n", 
 	        clt, lid, seq);
@@ -291,7 +316,7 @@ LockManager::release(int clt, int seq, lock_protocol::LockId lid, int& unused)
 
 
 lock_protocol::status
-LockManager::stat(lock_protocol::LockId lid, int &r)
+LockManager::Stat(lock_protocol::LockId lid, int &r)
 {
 	lock_protocol::status ret = lock_protocol::OK;
 	r = 0;
@@ -299,7 +324,7 @@ LockManager::stat(lock_protocol::LockId lid, int &r)
 }
 
 lock_protocol::status
-LockManager::subscribe(int clt, std::string id, int &unused)
+LockManager::Subscribe(int clt, std::string id, int &unused)
 {
 	sockaddr_in           dstsock;
 	rpcc*                 cl;

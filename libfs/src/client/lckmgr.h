@@ -139,7 +139,7 @@ public:
 	bool                      can_retry_;   ///< set when a retry message from the server is received
 	int                       revoke_type_; ///< type of revocation requested
 
-	lock_protocol::Mode       global_mode_; ///< mode as known by the server
+	lock_protocol::Mode       public_mode_; ///< mode as known by the server
 
 	void*                     payload_;     ///< lock users may use it for anything they like
 
@@ -186,6 +186,7 @@ public:
 
 private:
 	int do_acquire(Lock* l, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
+	int do_acquirev(std::vector<Lock*> lv, std::vector<lock_protocol::Mode> modev, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
 	int do_convert(Lock* l, lock_protocol::Mode mode, int flags);
 	int do_release(Lock* l);
 	Lock* FindLockInternal(lock_protocol::LockId lid);

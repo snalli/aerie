@@ -49,7 +49,7 @@ Lock::Lock(lock_protocol::LockId lid = 0)
 	  can_retry_(false),
 	  revoke_type_(0),
 	  status_(NONE),
-	  global_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
+	  public_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode::NL),
 	  payload_(0)
 {
@@ -306,7 +306,7 @@ LockManager::Releaser()
 					assert(l->gtque_.PartialOrder(new_mode) > 0 || 
 					       l->gtque_.MostSevere() == new_mode);
 					if (do_convert(l, new_mode, 0) == lock_protocol::OK) {
-						l->global_mode_ = new_mode;
+						l->public_mode_ = new_mode;
 						revoke_map_.erase(lid);
 					}
 					// if remote conversion fails, we leave this lock in the revoke_map_,
@@ -332,12 +332,12 @@ LockManager::SelectMode(Lock* l, lock_protocol::Mode::Set mode_set)
 	lock_protocol::Mode                mode;
 
 	for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
-		if ((*itr) == l->global_mode_) {
+		if ((*itr) == l->public_mode_) {
 			mode = *itr;
 			break;
 		} else {
 			if (lock_protocol::Mode::PartialOrder(*itr, mode) > 0 && 
-			    lock_protocol::Mode::PartialOrder(*itr, l->global_mode_) < 0 && 
+			    lock_protocol::Mode::PartialOrder(*itr, l->public_mode_) < 0 && 
 			    l->gtque_.CanGrant(*itr))
 			{
 				mode = *itr;
@@ -376,9 +376,9 @@ check_state:
 		case Lock::FREE:
 			// great! no one is using the cached lock
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
-			        "[%d] lock %llu free locally (global_mode %s): grant to %lu\n",
+			        "[%d] lock %llu free locally (public_mode %s): grant to %lu\n",
 			        cl2srv_->id(), lid, 
-			        l->global_mode_.String().c_str(), tid);
+			        l->public_mode_.String().c_str(), tid);
 			mode = SelectMode(l, mode_set);
 			if (mode == lock_protocol::Mode(lock_protocol::Mode::NL)) {
 				// lock cannot be granted locally. we need to communicate with the server.
@@ -387,7 +387,7 @@ check_state:
 				if ((r = do_convert(l, mode, flags & Lock::FLG_NOBLK)) 
 				    == lock_protocol::OK) 
 				{
-					l->global_mode_ = mode;
+					l->public_mode_ = mode;
 				} else {
 					// TODO: ISSUE cannot lock remotely. Modify server to 
 					// allow releasing the lock voluntarily so that we 
@@ -451,15 +451,15 @@ check_state:
 			l->set_status(Lock::ACQUIRING);
 			while ((r = do_acquire(l, mode_set, flags & Lock::FLG_NOBLK, argv, mode_granted)) 
 			       == lock_protocol::RETRY) 
-			{
+			{	
 				while (!l->can_retry_) {
 					pthread_cond_wait(&l->retry_cv_, &mutex_);
 				}
 			}
 			if (r == lock_protocol::OK) {
-				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu at seq %d\n",
-				        cl2srv_->id(), tid, lid, l->seq_);
-				l->global_mode_ = mode_granted;
+				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu (%s) at seq %d\n",
+				        cl2srv_->id(), tid, lid, mode_granted.String().c_str(), l->seq_);
+				l->public_mode_ = mode_granted;
 				l->gtque_.Add(ThreadRecord(tid, mode_granted));
 				l->set_status(Lock::LOCKED);
 			}
@@ -546,8 +546,8 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l,
 	}
 
 	if (l->gtque_.Exists(tid)) {
-		if (new_mode != l->global_mode_ &&
-		    lock_protocol::Mode::PartialOrder(new_mode, l->global_mode_) >= 0)  
+		if (new_mode != l->public_mode_ &&
+		    lock_protocol::Mode::PartialOrder(new_mode, l->public_mode_) >= 0)  
 		{
 			// UPGRADE
 			// this is an upgrade (new mode after conversion is as restrictive 
@@ -557,9 +557,9 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l,
 			// as it is possible the releaser thread to be in the middle of a revocation.
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 					"[%d] Converting lock %llu (UPGRADE: %s to %s)\n", cl2srv_->id(), lid, 
-					l->global_mode_.String().c_str(), new_mode.String().c_str());
+					l->public_mode_.String().c_str(), new_mode.String().c_str());
 			if ((r = do_convert(l, new_mode, Lock::FLG_NOBLK)) == lock_protocol::OK) {
-				l->global_mode_ = new_mode;
+				l->public_mode_ = new_mode;
 			} else {
 				return r;
 			}
@@ -576,7 +576,7 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l,
 			// the releaser thread do it asynchronously for us (synchronous==false)
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 					"[%d] Converting lock %llu (DOWNGRADE: %s to %s)\n", cl2srv_->id(), lid, 
-					l->global_mode_.String().c_str(), new_mode.String().c_str());
+					l->public_mode_.String().c_str(), new_mode.String().c_str());
 			assert(l->gtque_.ConvertInPlace(tid, new_mode) == 0);
 			if (l->gtque_.Empty()) {
 				l->set_status(Lock::FREE);
@@ -587,7 +587,7 @@ LockManager::ConvertInternal(unsigned long tid, Lock* l,
 			}
 			if (synchronous) {
 				if (do_convert(l, new_mode, 0) == lock_protocol::OK) {
-					l->global_mode_ = new_mode;
+					l->public_mode_ = new_mode;
 					revoke_map_.erase(lid);
 				}
 			}
@@ -766,7 +766,6 @@ LockManager::do_acquire(Lock* l,
                         std::vector<unsigned long long> argv,
                         lock_protocol::Mode& mode_granted)
 {
-	lock_protocol::rpc_numbers rpc_number;
 	int                        r;
 	int                        retval;
 	int                        rpc_flags=0;
@@ -788,6 +787,57 @@ LockManager::do_acquire(Lock* l,
 		mode_granted = lock_protocol::Mode::NL;
 	}
 	pthread_cond_signal(&l->got_acq_reply_cv_);
+	return r;
+}
+
+
+// assumes the current thread holds the mutex_
+int
+LockManager::do_acquirev(std::vector<Lock*> lv, 
+                         std::vector<lock_protocol::Mode> modev, 
+                         int flags, 
+                         std::vector<unsigned long long> argv,
+                         int& num_locks_granted)
+{
+	Lock*                                      l;
+	int                                        r;
+	int                                        rpc_flags=0;
+	std::vector<Lock*>::iterator               lock_itr;
+	std::vector<lock_protocol::Mode>::iterator mode_itr;
+	std::vector<lock_protocol::LockId>         lidv;
+	std::vector<int>                           modeiv;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "[%d] calling acquirev rpc. seq=%d\n",
+	        cl2srv_->id(), cl2srv_->id(), last_seq_+1);
+			
+	for (lock_itr = lv.begin(); lock_itr != lv.end(); lock_itr++) {
+		lidv.push_back((*lock_itr)->lid_);
+	}
+	for (mode_itr = modev.begin(); mode_itr != modev.end(); mode_itr++) {
+		modeiv.push_back((*mode_itr).value());
+	}
+	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
+	r = cl2srv_->call(lock_protocol::acquirev, cl2srv_->id(), ++last_seq_, lidv, 
+	                  modeiv, rpc_flags, argv, num_locks_granted);
+	for (lock_itr = lv.begin(); lock_itr != lv.end(); lock_itr++) {
+		l = *lock_itr;
+		l->seq_ = last_seq_;
+	}
+
+	if (r == lock_protocol::OK) {
+		// great! we have the lock
+	} else { 
+		//FIXME 
+		assert(0);
+		if (r == lock_protocol::RETRY) {
+			//l->can_retry_ = false;
+		}
+	}
+	for (lock_itr = lv.begin(); lock_itr != lv.end(); lock_itr++) {
+		l = *lock_itr;
+		pthread_cond_signal(&l->got_acq_reply_cv_);
+	}
 	return r;
 }
 

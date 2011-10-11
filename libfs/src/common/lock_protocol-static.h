@@ -6,6 +6,7 @@
 
 #include "common/lock_protocol.h"
 
+
 // compatibilities among access modes
 bool lock_protocol::Mode::compatibility_table_[][lock_protocol::Mode::CARDINALITY] = {
 	/*             NL,   SL,    SR,    IS,    IX,    XL,    XR,    IXSL   */
@@ -19,6 +20,7 @@ bool lock_protocol::Mode::compatibility_table_[][lock_protocol::Mode::CARDINALIT
 	/* IXSL  */ {  true, true,  false, true,  true,  false, false, true }
 };
 
+//FIXME: it should be IX < IXSL < XL according to the table above. double check compatibilities
 
 // partial order lattice:
 //

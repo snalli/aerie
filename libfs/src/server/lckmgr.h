@@ -74,14 +74,15 @@ class LockManager {
 public:
 	LockManager();
 	~LockManager();
-	lock_protocol::status stat(lock_protocol::LockId, int&);
-	lock_protocol::status acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, std::vector<unsigned long long> argv, int& unused);
-	lock_protocol::status convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
-	lock_protocol::status release(int clt, int seq, lock_protocol::LockId lid, int& unused);
+	lock_protocol::status Stat(lock_protocol::LockId, int&);
+	lock_protocol::status Acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, std::vector<unsigned long long> argv, int& mode_granted);
+	lock_protocol::status AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, std::vector<int> modeiv, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
+	lock_protocol::status Convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
+	lock_protocol::status Release(int clt, int seq, lock_protocol::LockId lid, int& unused);
 	lock_protocol::Mode  SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set);
 
 	// subscribe for future notifications by telling the server the RPC addr
-	lock_protocol::status subscribe(int, std::string, int&);
+	lock_protocol::status Subscribe(int, std::string, int&);
 	void revoker();
 	void retryer();
 

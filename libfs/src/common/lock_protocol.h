@@ -12,7 +12,7 @@
 class lock_protocol {
 public:
 	class Mode;
-	enum xxstatus { OK, RETRY, RPCERR, NOENT, IOERR };
+	enum xxstatus { OK, RETRY, RPCERR, NOENT, IOERR, HRERR, DEADLK };
 
 	enum flag {
 		FLG_NOQUE = 0x1,  // don't queue client if can't grant request
@@ -33,6 +33,7 @@ public:
 	typedef unsigned long long LockId;
 	enum rpc_numbers {
 		acquire = 0x7001,
+		acquirev,
 		release,
 		convert,
 		subscribe,

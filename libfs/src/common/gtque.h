@@ -24,7 +24,7 @@ public:
 	bool IsModeSet(typename MemberType::Mode mode) { return (mode_union_.Exists(mode));}
 	int  Size() { return members_.size(); }
 	int  Empty() { return members_.empty(); }
-	void Print(std::ostream&);
+	void Print();
 
 	iterator begin() { return members_.begin(); }
 	iterator end() { return members_.end(); }
@@ -197,16 +197,16 @@ GrantQueue<MemberType>::ConvertInPlace(typename MemberType::id_t id,
 
 template <class MemberType>
 void
-GrantQueue<MemberType>::Print(std::ostream& out)
+GrantQueue<MemberType>::Print()
 {
 	typename std::map<typename MemberType::id_t, MemberType>::iterator   itr_icr;
 
-	out << "MEMBERS: " << members_.size() << std::endl;
+	printf("MEMBERS: %d\n", members_.size());
 	for (itr_icr = members_.begin(); 
 	     itr_icr != members_.end(); itr_icr++) 
 	{
 		MemberType& h = (*itr_icr).second;
-		out << "clt=" << h.id() << ", mode=" << "(" << h.mode() << ")" << std::endl; 
+		printf("clt=%d, mode=(%s)\n", h.id(), h.mode().String().c_str()); 
 	}
 }
 

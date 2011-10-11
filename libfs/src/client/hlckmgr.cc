@@ -59,7 +59,52 @@ namespace client {
 // 2) Hierarchical lock acts as mutex lock between threads, that is multiple 
 //    threads cannot acquire the lock even if the locked is held at a mode
 //    permitting multiple owners (e.g. SL). 
-
+//
+// Invariants 
+//
+// 1) Base lock's mode cannot change without invoking the hierarchical lock 
+// manager so it's safe to check lock's state without going through the 
+// base lock manager.
+//
+//
+// Locking protocol:
+//
+// 1) If we have a parent then try to acquire a private lock under the 
+//    parent. 
+//    we need to meet the recursive rule:
+//      recursive rule: some ancestor has a recursive lock 
+//      this rule enables us to acquire a local lock without 
+//      invoking the server lock manager. 
+//
+//    if we fail the recursive rule then we acquire a public lock.
+//    we need to meet the hierarchy rule:
+//      hierarchy rule: there is an intention or recursive lock on 
+//      the parent's globally visible lock that is compatible.
+//      this rule guarantees we acquire globally visible locks 
+//      hierarchically. 
+//    e.g if SR and need IXSL, we violate the hierarchy rule
+//
+//    if we don't meet the hierarchy rule, then we report a hierarchy 
+//    violation. 
+//
+// 2) If we don't have a parent then we need to have a capability, which 
+//    we provide to the server to get a globally visible lock.
+//
+// 
+// TOCTTOU RACE:
+//
+// The locking protocol does not protect against TOCTTOU races sush as 
+// when we check we are under a parent and then someone moves us under 
+// a new parent. The user is responsible for ensuring such races don't 
+// happen by doing lock-coupling of parent and child.
+//
+//
+// States:
+//
+// CONVERTING: intermediate state. 
+// prevents others from modifying lock metadata such as public lock, 
+// mode, children set. 
+// enables a high priority task to abort a low priority task.
 
 HLock::HLock(lock_protocol::LockId lid, HLock* phl)
 	: status_(NONE),
@@ -98,12 +143,82 @@ HLock::set_status(LockStatus sts)
 }
 
 
+int
+HLock::BeginConverting(bool lock) 
+{
+	if (lock) {
+		pthread_mutex_lock(&mutex_);
+	}
+	printf("lid=%d, status=%d\n", lid_, status_);
+	while (!(status_ == HLock::FREE || 
+	         status_ == HLock::LOCKED)) 
+	{
+		pthread_cond_wait(&status_cv_, &mutex_);
+	}
+	if (status_ == HLock::LOCKED) {
+		set_status(HLock::LOCKED_CONVERTING);
+	} else {
+		set_status(HLock::CONVERTING);
+	}
+	if (lock) {
+		pthread_mutex_unlock(&mutex_);
+	}
+	return 0;
+}
+
+int
+HLock::EndConverting(bool lock) 
+{
+	if (lock) {
+		pthread_mutex_lock(&mutex_);
+	}
+	if (status_ == HLock::LOCKED_CONVERTING) {
+		set_status(HLock::LOCKED);
+	} else {
+		set_status(HLock::FREE);
+	}
+	if (lock) {
+		pthread_mutex_unlock(&mutex_);
+	}
+	return 0;
+}
+
+// \brief waits the lock to reach status old_status and then changes lock
+// to new_status
+int
+HLock::ChangeStatus(LockStatus old_sts, LockStatus new_sts) 
+{
+	pthread_mutex_lock(&mutex_);
+	while (status_ != old_sts) {
+		pthread_cond_wait(&status_cv_, &mutex_);
+	}
+	set_status(new_sts);
+	pthread_mutex_unlock(&mutex_);
+	return 0;
+}
+
+
+// \brief waits the lock to reach status old_status
+//
+// assumes mutex lock is help
+int
+HLock::WaitStatus2(LockStatus old_sts1, LockStatus old_sts2) 
+{
+	while (!(status_ == old_sts1 || status_ == old_sts2)) {
+		pthread_cond_wait(&status_cv_, &mutex_);
+	}
+	return 0;
+}
+
+
 HLockManager::HLockManager(LockManager* lm, HLockUser* hlu)
 	: lm_(lm),
-	  hlu_(hlu)
+	  hlu_(hlu),
+	  status_(NONE)
 {
 	lm_->RegisterLockUser(this);
 	pthread_mutex_init(&mutex_, NULL);
+	pthread_cond_init(&status_cv_, NULL);
 	locks_.set_empty_key(-1);
 }
 
@@ -160,69 +275,281 @@ HLockManager::FindOrCreateLock(lock_protocol::LockId lid,
 }
 
 
-inline HLock*
-HLockManager::InitLock(lock_protocol::LockId lid, lock_protocol::LockId plid)
+/// \brief Acquires and attaches a base lock on a hierarchical lock using
+//  a capability
+/// 
+/// Assumes:
+///   caller holds hlock's mutex or has the lock set at CONVERTING state
+///
+lock_protocol::status
+HLockManager::AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int flags)
 {
-	//TODO
-	//FindOrCreateLockInternal();
-}
-
-
-inline HLock*
-HLockManager::InitLock(lock_protocol::LockId lid, HLock* phl)
-{
+	Lock*                    lock;
+	lock_protocol::LockId    lid = hlock->lid_;
+	lock_protocol::Mode::Set mode_set;
+	lock_protocol::Mode      mode_granted;
+	int                      r;
 	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Attaching public lock %llu to hierarchical lock %llu (%s) using capability\n", lm_->id(), 
+			lid, lid, mode.String().c_str());
+
+	mode_set.Insert(mode);
+	mode_set.Insert(mode.LeastRecursiveMode());
+
+	r = lm_->Acquire(lid, mode_set, 0, mode_granted);
+
+	if (r == lock_protocol::OK) {
+		if (mode_granted == lock_protocol::Mode(lock_protocol::Mode::XR) || 
+			mode_granted == lock_protocol::Mode(lock_protocol::Mode::SR)) 
+		{
+			hlock->ancestor_recursive_mode_ = mode_granted;
+		} else {
+			hlock->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
+		}
+		hlock->lock_ = lm_->FindLock(lid);
+		hlock->lock_->payload_ = static_cast<void*>(hlock);
+		r = lock_protocol::OK;
+	}
+
+	return r;
 }
 
 
-inline HLock*
-HLockManager::InitLock(HLock* hl, HLock* phl)
+
+/// \brief Acquires and attaches a public lock to a hierarchical lock
+/// 
+/// Invariant: to acquire a public lock, all the lock's ancestors 
+/// must already have a public lock.
+///
+/// Assumes caller holds hlock's mutex or has the lock set at CONVERTING state
+/// Caller is also responsible for setting mode and status of the hierarchical 
+/// lock after attachment
+lock_protocol::status
+HLockManager::AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, int flags)
 {
+	Lock*                    lock;
+	HLock*                   phlock = hlock->parent_;
+	lock_protocol::LockId    lid = hlock->lid_;
+	lock_protocol::Mode::Set mode_set;
+	lock_protocol::Mode      mode_granted;
+	int                      r;
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Attaching public lock %llu to hierarchical lock %llu (%s)\n", 
+	        lm_->id(), lid, lid, mode.String().c_str());
 
+	mode_set.Insert(mode);
+	mode_set.Insert(mode.LeastRecursiveMode());
+
+	if (phlock) {
+		if (!(flags & FLG_HAVEPARENT)) {
+			assert (phlock->BeginConverting(true) == 0);
+		}
+		if (phlock->lock_) {
+			if (lock_protocol::Mode::AbidesHierarchyRule(mode, phlock->lock_->public_mode_)) {
+				if ((r = lm_->Acquire(lid, mode_set, 0, mode_granted)) != 
+				    lock_protocol::OK)
+				{
+					if (r == lock_protocol::DEADLK) {
+						DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_hlckmgr), 
+								"[%d] Deadlock detected. Must abort\n", lm_->id());
+					}
+					goto done;
+				}
+			} else {
+				r = lock_protocol::HRERR;
+				goto done;
+			}
+		} else {
+			if (!(flags & FLG_HAVEPARENT)) {
+				phlock->EndConverting(true);
+			}
+			return AttachPublicLockChainUp(hlock, mode, flags);
+		}
+	} else {
+		r = lock_protocol::NOENT;
+		return r;
+	}
+
+	if (r == lock_protocol::OK) {
+		if (mode_granted == lock_protocol::Mode(lock_protocol::Mode::XR) || 
+			mode_granted == lock_protocol::Mode(lock_protocol::Mode::SR)) 
+		{
+			hlock->ancestor_recursive_mode_ = mode_granted;
+		} else {
+			hlock->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
+		}
+		if (phlock) {
+			phlock->AddChild(hlock);
+		}
+		hlock->lock_ = lm_->FindLock(lid);
+		hlock->lock_->payload_ = static_cast<void*>(hlock);
+		r = lock_protocol::OK;
+	}
+
+done:
+	if (!(flags & FLG_HAVEPARENT)) {
+		phlock->EndConverting(true);
+	}
+	return r;
 }
 
 
-bool
-HierarchyRule(int mode, HLock* phlock)
+/// \brief Acquires and attaches public locks on a chain of hierarchical locks
+/// 
+/// Assumes caller holds:
+///   hlock's mutex or has the lock set at CONVERTING state
+///
+lock_protocol::status
+HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, int flags)
 {
-	//(1 << phlock->mode_) & lock_protocol::Mode::hierarchy_rule[mode]
+	struct LockDsc{
+		lock_protocol::LockId lid;
 
+	};
+	Lock*                          lock;
+	HLock*                         phlock = hlock->parent_;
+	HLock*                         hl;
+	HLock*                         old_hl;
+	lock_protocol::LockId          lid = hlock->lid_;
+	lock_protocol::Mode::Set       mode_set;
+	lock_protocol::Mode            mode_granted;
+	int                            r;
+	std::vector<HLock*>            hlv;
+	std::vector<HLock*>::iterator  hlv_itr; 
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Attaching public lock %llu to hierarchical lock %llu (%s)\n", 
+	        lm_->id(), lid, lid, mode.String().c_str());
+
+	// serialize self to anyone travering the lock hierarchy such as other 
+	// AttachPublicLockUp and revocations.
+	pthread_mutex_lock(&mutex_);
+	while (status_ != NONE) {
+		pthread_cond_wait(&status_cv_, &mutex_);
+	}
+	status_ = ATTACHING;
+	pthread_mutex_unlock(&mutex_);
+
+	// mark all locks up to the ancestor that has a public lock attached 
+	// as CONVERTING
+	hl = hlock->parent_;
+	pthread_mutex_lock(&hl->mutex_);
+	while (!hl->lock_) { 
+		assert(hl->BeginConverting(false) == 0);
+		hlv.push_back(hl);
+		old_hl = hl;
+		hl = hl->parent_;
+		pthread_mutex_lock(&hl->mutex_);
+		pthread_mutex_unlock(&old_hl->mutex_);
+	}
+	pthread_mutex_unlock(&hl->mutex_);
+	
+	// acquire and attach public locks top-to-bottom
+	for (hlv_itr = hlv.end()-1; hlv_itr >= hlv.begin(); hlv_itr--) {
+		hl = *hlv_itr;
+		lid = hl->lid_;
+		r = lm_->Acquire(lid, hl->mode_, 0, mode_granted);
+		pthread_mutex_lock(&hl->mutex_);
+		hl->lock_ = lm_->FindLock(lid);
+		hl->lock_->payload_ = static_cast<void*>(hl);
+		if (hl == phlock) {
+			hl->AddChild(hlock);
+		}
+		hl->EndConverting(false);
+		pthread_mutex_unlock(&hl->mutex_);
+	}
+	// attach public lock to the lock
+	r = lm_->Acquire(hlock->lid_, mode, 0, mode_granted);
+	hlock->lock_ = lm_->FindLock(lid);
+	hlock->lock_->payload_ = static_cast<void*>(hlock);
+	
+	pthread_mutex_lock(&mutex_);
+	status_ = NONE;
+	pthread_mutex_unlock(&mutex_);
+
+	return r;
 }
 
 
-//BreakLock
-int BreakLock()
+/// \brief Acquires and attaches a public lock on a child hierarchical lock
+///
+/// It propagates a parent lock by acquiring on a child a public lock 
+/// of the same mode as the parent's. 
+/// If a child has already a public lock attached (e.g. by AttachPublicLockChainUp) 
+/// then we convert the public lock to the supremum mode.
+lock_protocol::status 
+HLockManager::AttachPublicLockChild(HLock* phlock, HLock* chlock, lock_protocol::Mode mode)
 {
+	lock_protocol::status  r;
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Attach public lock (%s) to child %llu of hierarchical lock %llu.\n", 
+	        lm_->id(), mode.String().c_str(), chlock->lid_, phlock->lid_);
 
+	assert(phlock->status() == HLock::LOCKED_CONVERTING || phlock->status() == HLock::CONVERTING);
+	assert(chlock->status() == HLock::LOCKED_CONVERTING || chlock->status() == HLock::CONVERTING) ;
+
+	if (!lock_protocol::Mode::AbidesHierarchyRule(mode, phlock->lock_->public_mode_)) {
+		return lock_protocol::HRERR;
+	}
+
+	if (chlock->lock_) {	
+		// a competing thread attached a lock from bottom-to-up through 
+		// AttachPublicLockChainUp. just convert the public lock to the 
+		// supremum mode. this call should not block.
+		lock_protocol::Mode mode = lock_protocol::Mode::Supremum(mode, chlock->mode_);
+		lm_->Convert(chlock->lock_, mode, true);
+	} else {
+		if ((r = AttachPublicLock(chlock, mode, FLG_HAVEPARENT)) == 
+			lock_protocol::RETRY) 
+		{
+			// I have the recursive lock but couldn't grab a public lock on my
+			// child? How is this possible? It should be possible only with a
+			// child that is reachable through multiple paths. I should check this
+			// TODO
+			assert(0 && "TODO");
+		}
+	}
+	return lock_protocol::OK;
 }
 
 
-// Base lock's mode cannot change without invoking the hierarchical lock manager
-// so it is safe to check lock's state without going through the base lock
-// manager.
-//
-// locking protocol:
-// 1) If we have a parent then try to acquire a local lock under the 
-//    parent. 
-//    we need to meet the recursive rule:
-//      recursive rule: some ancestor has a recursive lock 
-//      this rule enables us to acquire a local lock without 
-//      invoking the server lock manager. 
-//
-//    if we fail the recursive rule then we acquire a globally
-//    visible lock.
-//    we need to meet the hierarchy rule:
-//      hierarchy rule: there is an intention or recursive lock on 
-//      the parent's globally visible lock that is compatible.
-//      this rule guarantees we acquire globally visible locks 
-//      hierarchically. 
-//    e.g if SR and need IXSL, we violate the hierarchy rule
-//
-//    if we don't meet the hierarchy rule, then we report a hierarchy 
-//    violation. 
-//
-// 2) If we don't have a parent then we need to have a capability, which 
-//    we provide to the server to get a globally visible lock.
+/// \brief Acquires and attaches public locks on a set of hierarchical locks
+///
+/// Assumes:
+///  caller has marked hlock as CONVERTING
+lock_protocol::status 
+HLockManager::AttachPublicLockChildren(HLock* hlock, lock_protocol::Mode mode)
+{
+	HLockPtrSet::iterator itr;
+	lock_protocol::status r;
+	HLock*                hl;
+	HLockPtrSet&          hlock_set = hlock->children_; 
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Attaching public locks (%s) to children of hierarchical lock %llu.\n", 
+	        lm_->id(), mode.String().c_str(), hlock->lid_);
+
+	assert(hlock->status() == HLock::LOCKED_CONVERTING || hlock->status() == HLock::CONVERTING);
+
+	if (hlock_set.size() == 0) {
+		// no members exist so there is nothing to do
+		return lock_protocol::OK;
+	}
+	if (!lock_protocol::Mode::AbidesHierarchyRule(mode, hlock->lock_->public_mode_)) {
+		return lock_protocol::HRERR;
+	}
+
+	for (itr = hlock_set.begin(); itr != hlock_set.end(); itr++) {
+		hl = *itr;
+		assert(hl->BeginConverting(true) == 0);
+		assert(AttachPublicLockChild(hlock, hl, mode)==0);
+		hl->EndConverting(true);
+	}
+	return lock_protocol::OK;
+}
 
 
 lock_protocol::status
@@ -254,27 +581,35 @@ check_state:
 			            "[%d:%lu] hierarchical lock %llu free locally (base lock mode %s): "
 					    "grant to thread %lu\n",
 			            lm_->id(), tid, lid, 
-			            hlock->lock_->global_mode_.String().c_str(), tid);
+			            hlock->lock_->public_mode_.String().c_str(), tid);
 				if (mode < hlock->mode_) {
+					// silent acquisition covered by private mode
 					hlock->owner_ = tid;
 					hlock->set_status(HLock::LOCKED);
 					r = lock_protocol::OK;
 					break;
 				} else {
-					if (mode < hlock->lock_->global_mode_) {
+					if (mode < hlock->lock_->public_mode_) {
+						// silent acquisition covered by public mode
 						hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
-						assert((hlock->mode_ == hlock->lock_->global_mode_) ||
-						       (hlock->mode_ < hlock->lock_->global_mode_));
+						assert((hlock->mode_ == hlock->lock_->public_mode_) ||
+						       (hlock->mode_ < hlock->lock_->public_mode_));
 						hlock->owner_ = tid;	
 						hlock->set_status(HLock::LOCKED);
 						r = lock_protocol::OK;
 					} else {
-						// must convert base lock
+						// must convert public lock
 						DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_hlckmgr), 
-								"Must convert base lock\n");
+								"Must convert public lock\n");
 					}
 				}
 			} else {
+				//FIXME: instead of checking the acnestor_recursive_mode, we check 
+				// whether we are covered by our most recent acnestor. otherwise, we 
+				// follow up the parent chain to find the ancestor that covers us. 
+				// invariant: the lock has not been dropped so there must be an ancestor
+				// that covers us. otherwise our lock should had been revoked.
+				// we'll need to grab the mutex of the ancestor to check its state
 				if (phlock = hlock->parent_) {
 					if (lock_protocol::Mode::AbidesRecursiveRule(mode, 
 						   hlock->ancestor_recursive_mode_))
@@ -305,11 +640,14 @@ check_state:
 				pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
 			}
 			goto check_state;	// Status changed. Re-check.
-		case HLock::RELEASING:
+		case HLock::LOCKED_CONVERTING:
+		case HLock::CONVERTING:
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
-			        "[%d:%lu] hierarchical lock manager is releasing lock %llu\n",
+			        "[%d:%lu] hierarchical lock manager is converting lock %llu\n",
 			        lm_->id(), tid, lid);
-			while (hlock->status() == HLock::RELEASING) {
+			while (hlock->status() == HLock::CONVERTING || 
+			       hlock->status() == HLock::LOCKED_CONVERTING) 
+			{
 				pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
 			}
 			goto check_state;	// Status changed. Re-check.
@@ -334,115 +672,39 @@ check_state:
 		case HLock::NONE:
 			dbg_log(DBG_INFO, "[%d:%lu] lock %llu not available; acquiring now\n",
 			        lm_->id(), tid, lid);
-			
 			hlock->set_status(HLock::ACQUIRING);
-
 			if (phlock = hlock->parent_) {
 				pthread_mutex_lock(&phlock->mutex_);
-				// check we own the parent lock
-				// FIXME: there is still a TOCTTOU race: another client grabbed the lock
-				// moved us under a new parent, and then some other fellow thread locks 
-				// the old parent. we fail finding the parent has changed. UNIX provides
-				// these semantics but not sure whether these semantics are safe for us.
-				// SOLUTION: use version numbers on locks, or have a notification mechanism
-				// that cancels on going lock acquisitions on a release and restarts any
-				// lookups, or before acquiring a lock register the node as the child of 
-				// the parent, and the child still checks the node is a parent. 
-				// the registration is done by lookup before releasing the lock on the 
-				// parent 
-				
-				// FIXME: if we enforce that a user must perform spider-locking then we 
-				// should not allow HLock::FREE
-				if (!(phlock->status() == HLock::LOCKED || 
-				      phlock->status() == HLock::FREE))
+				if (flags & HLock::FLG_PUBLIC ||
+					!lock_protocol::Mode::AbidesRecursiveRule(mode, phlock->ancestor_recursive_mode_))
 				{
 					pthread_mutex_unlock(&phlock->mutex_);
-					r = lock_protocol::RETRY;
-					goto done;
-				}
-				if (lock_protocol::Mode::AbidesRecursiveRule(mode, phlock->ancestor_recursive_mode_))
-				{
-					phlock->AddChild(hlock);
-					hlock->ancestor_recursive_mode_ = phlock->ancestor_recursive_mode_;
-					hlock->owner_ = tid;
-					hlock->set_status(HLock::LOCKED);
-					r = lock_protocol::OK;
-				} else {
-					// failed the recursive rule. acquire a globally visible lock
-					//TODO: test hierarchy rule
-					
-					// FIXME: Acquire may block. drop hlock->mutex_ ?
-					// what can go wrong? i haven't attached myself to the parent 
-					// so nobody can see me
-					//pthread_mutex_unlock(&hlock->mutex_);
-					
-					// FIXME: we release parent mutex so parent lock might have been 
-					// dropped till we get the mutex and check again.
-					// same TOCTTOU race as above
-					lock_protocol::Mode::Set mode_set;
-					mode_set.Insert(mode);
-					mode_set.Insert(mode.LeastRecursiveMode());
-					pthread_mutex_unlock(&phlock->mutex_);
-					r = lm_->Acquire(lid, mode_set, flags, mode_granted);
-					
-					pthread_mutex_lock(&phlock->mutex_);
-					if (!(phlock->status() == HLock::LOCKED || 
-						  phlock->status() == HLock::FREE))
-					{
-						pthread_mutex_unlock(&phlock->mutex_);
-						r = lock_protocol::RETRY;
-						goto done;
-					}
-
+					r = AttachPublicLock(hlock, mode, flags);
 					if (r == lock_protocol::OK) {
-						dbg_log(DBG_INFO, "[%d:%lu] thread %lu got lock %llu\n",
-								lm_->id(), tid, tid, lid);
-						if (mode_granted == lock_protocol::Mode(lock_protocol::Mode::XR) || 
-						    mode_granted == lock_protocol::Mode(lock_protocol::Mode::SR)) 
-						{
-							hlock->ancestor_recursive_mode_ = mode_granted;
-						} else {
-							hlock->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
-						}
-						phlock->AddChild(hlock);
-						hlock->lock_ = lm_->FindLock(lid);
-						hlock->lock_->payload_ = static_cast<void *>(hlock);
 						hlock->mode_ = mode;
 						hlock->owner_ = tid;
 						hlock->set_status(HLock::LOCKED);
-						r = lock_protocol::OK;
 					}
-				}
-
-				pthread_mutex_unlock(&phlock->mutex_);
-			} else {
-				// TODO: no parent. need to have a capability given from the server
-				lock_protocol::Mode::Set mode_set;
-				mode_set.Insert(mode);
-				mode_set.Insert(mode.LeastRecursiveMode());
-				r = lm_->Acquire(lid, mode_set, flags, mode_granted);
-				if (r == lock_protocol::OK) {
-					dbg_log(DBG_INFO, "[%d:%lu] thread %lu got lock %llu\n",
-							lm_->id(), tid, tid, lid);
-					if (mode_granted == lock_protocol::Mode(lock_protocol::Mode::XR) || 
-						    mode_granted == lock_protocol::Mode(lock_protocol::Mode::SR)) 
-					{
-						hlock->ancestor_recursive_mode_ = mode_granted;
-					} else {
-						hlock->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
-					}
-					hlock->lock_ = lm_->FindLock(lid);
-					hlock->lock_->payload_ = static_cast<void *>(hlock);
-					hlock->mode_ = mode;
+				} else {	
+					phlock->AddChild(hlock);
+					hlock->ancestor_recursive_mode_ = phlock->ancestor_recursive_mode_;
+					hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
 					hlock->owner_ = tid;
 					hlock->set_status(HLock::LOCKED);
 					r = lock_protocol::OK;
+					pthread_mutex_unlock(&phlock->mutex_);
+				}
+			} else {
+				r = AttachPublicLockCapability(hlock, mode, flags);
+				if (r == lock_protocol::OK) {
+					hlock->mode_ = mode;
+					hlock->owner_ = tid;
+					hlock->set_status(HLock::LOCKED);
 				}
 			}
 			break;
 		default:
 			break;
-
 	}
 
 
@@ -474,11 +736,6 @@ HLockManager::Acquire(lock_protocol::LockId lid, lock_protocol::LockId plid,
 }
 
 
-//TODO: Convert method: converts lock into a new mode
-//      calls base lock manager if it is attached to a 
-// base lock which needs to be converted (e.g upgrade)
-
-
 lock_protocol::status
 HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock)
 {
@@ -489,7 +746,11 @@ HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock)
 	        "[%d:%lu] Releasing lock %llu \n", lm_->id(), tid, lid); 
 	
 	if (hlock->owner_ == tid) {
-		hlock->set_status(HLock::FREE);
+		if (hlock->status() == HLock::LOCKED_CONVERTING) {
+			hlock->set_status(HLock::CONVERTING);
+		} else {
+			hlock->set_status(HLock::FREE);
+		}
 	} else {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 		        "[%d:%lu] thread %lu is not holder of lck %llu\n",
@@ -531,13 +792,12 @@ HLockManager::Release(lock_protocol::LockId lid)
 	return r;
 }
 
-// revocations must be serialized. for example, consider /X/Y/Z. Revoking
-// Y cannot be done concurrently with revoking X. 
+
+
 int 
-HLockManager::Revoke(Lock* lp, lock_protocol::Mode mode)
+HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 {
-	// if can downgrade a lock by silently upgrading its children 
-	// then you don't need to publish.
+	// FILEISSUE
 	// CHALLENGE: if you come here via a synchronous call from the base lock manager
 	// then you can't block when trying to upgrade the children's locks. 
 	// you either need to respond to the caller immediately and acquire locks 
@@ -548,40 +808,86 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode mode)
 	// lock on the children as well. so there are several children upgrades which
 	// you know can happen. 
 	
-	HLock* hlock;
+	HLockPtrSet::iterator itr;
+	HLockPtrSet           release_set;
+	HLock*                hlock;
+	HLock*                hl;
+	lock_protocol::Mode   old_public_mode;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d] Revoking lock %llu to %s\n", lm_->id(), lp->lid_, mode.String().c_str()); 
+	        "[%d] Revoking lock %llu to %s\n", lm_->id(), lp->lid_, new_mode.String().c_str()); 
 	
-	hlock = static_cast<HLock*>(lp->payload_);
+	// serialize self to other revocations and to other threads that try to 
+	// traverse the lock hierarchy such as anyone calling AttachPublicLockChainUp
+	pthread_mutex_lock(&mutex_);
+	while (status_ != NONE) {
+		pthread_cond_wait(&status_cv_, &mutex_);
+	}
+	status_ = REVOKING;
+	pthread_mutex_unlock(&mutex_);
 
-	pthread_mutex_lock(&hlock->mutex_);
-	
-check_state:	
-	switch(hlock->status()) {
-		case HLock::FREE:
-			hlock->set_status(HLock::RELEASING);
-			break;
-		case HLock::ACQUIRING:
-		case HLock::LOCKED:
-			pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
-			goto check_state;	// Status changed. Re-check.
-		case HLock::RELEASING:
-			assert(0); // who is releasing it?
+
+	hlock = static_cast<HLock*>(lp->payload_);
+	hlock->BeginConverting(true);
+	old_public_mode = hlock->lock_->public_mode_;
+	hlock->lock_->public_mode_ = new_mode;
+
+	// check whether new_mode covers lock's private mode
+	if (new_mode > hlock->mode_ || new_mode == hlock->mode_) 
+	{
+		// new_mode covers lock's private mode.
+		// just check whether we propagate a public recursive lock
+		// down to the children 
+		if (old_public_mode == lock_protocol::Mode::XR ||
+		    old_public_mode == lock_protocol::Mode::SR) 
+		{
+			for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+				hl = *itr;
+				assert(hl->BeginConverting(true) == 0);
+				assert(AttachPublicLockChild(hlock, hl, old_public_mode)==0);
+				assert(hl->ancestor_recursive_mode_ == old_public_mode);
+				hl->EndConverting(true);
+			}
+		}	
+	} else {
+		// new_mode no longer covers lock's private mode. 
+		// must release the lock and every descendant of the lock that 
+		// depends on the old mode (i.e. child violates hierarchy rule 
+		// under the new mode)
+		for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+			hl = *itr;
+			assert(hl->BeginConverting(true) == 0);
+			if (!lock_protocol::Mode::AbidesHierarchyRule(hl->lock_->public_mode_, new_mode)) {
+				release_set.insert(hl);
+			} else {
+				hl->EndConverting(true);
+			}
+		}
+		if (release_set.size() > 0) {
+			for (itr = release_set.begin(); itr != release_set.end(); itr++) {
+				hl = *itr;
+				assert(0 && "TODO: drop lock subtree");
+				hlock->EndConverting(true);
+			}
+		}
 	}
 
-	pthread_mutex_unlock(&hlock->mutex_);
+	hlock->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
 
-	if (mode == hlock->mode_) {
-		lm_->Convert(lp, mode, true);
+	if (new_mode == hlock->mode_ || new_mode > hlock->mode_) {
+		lm_->Convert(lp, new_mode, true);
 		// what if convert fails? 
 	} else {
-		lm_->Release(lp);
+		lm_->Release(lp, true);
 		// what if release fails?
 	}
-	
+	hlock->EndConverting(true);
+
+	pthread_mutex_lock(&mutex_);
+	status_ = NONE;
+	pthread_mutex_unlock(&mutex_);
+
 	return 0;
 }
-
 
 } // namespace client
