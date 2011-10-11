@@ -32,15 +32,17 @@ test_list = [
              ('TestLockUnlockConcurrentClients2', 2),
              ('TestLockUnlockConcurrentClients3', 2),
              ('TestLockUnlockConcurrentClients4', 2),
-             ('TestSharedLockUnlockConcurrentClients1', 2),
-             ('TestSharedLockUnlockConcurrentClients2', 2),
              ('TestLockConvert1', 2),
              ('TestLockConvert2', 2),
+             ('TestLockCancel1', 2),
+             ('TestLockCancel2', 2),
+             ('TestSharedLockUnlockConcurrentClients1', 2),
+             ('TestSharedLockUnlockConcurrentClients2', 2),
 	    ]
 
 for test in test_list:
 	testStr = test[0]
-	test_obj = testfw.integration_test.IntegrationTest(testStr, timeout=5)
+	test_obj = testfw.integration_test.IntegrationTest(testStr, timeout=5000)
 	test_obj.setPreTest(testProgramAbspath, '-T,-init,-numclients=%d' % (test[1]), {})
 	test_obj.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
 	for i in range(test[1]):

@@ -8,6 +8,7 @@
 #include <string>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
+#include <google/dense_hash_set>
 #include <set>
 #include "rpc/rpc.h"
 #include "common/gtque.h"
@@ -67,6 +68,19 @@ namespace client {
 // has been received.
 //
 
+
+// ISSUES to be filed in the issue tracker
+//
+// include extra data structure outstanding_locks_to keep track of outstanding lock 
+// requests to speeden up lookup of outstanind locks. the downside of including 
+// such a data structure is that it is placed in the critical path of lock acquisition
+// (but since lock acquisition involves an RPC, we expect the overhead of the data
+// structure to be relatively small)
+//
+// 
+// currently we serialize access to the lock state through the lock manager global
+// lock. we expect this to be okay as public locks are heavyweight (involve RPC)
+// consider using fine grain mutex (one per lock) if we see contention.
 
 
 class ThreadRecord {
@@ -138,11 +152,9 @@ public:
 	bool                      used_;        ///< set to true after first use
 	bool                      can_retry_;   ///< set when a retry message from the server is received
 	int                       revoke_type_; ///< type of revocation requested
-
-	lock_protocol::Mode       public_mode_; ///< mode as known by the server
-
+	lock_protocol::Mode       public_mode_; ///< mode as known by the server and seen by the world
 	void*                     payload_;     ///< lock users may use it for anything they like
-
+	bool                      cancel_;      ///< cancel outstanding request
 private:
 	LockStatus                status_;
 };
@@ -173,6 +185,8 @@ public:
 	lock_protocol::status Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode, bool synchronous = false);
 	lock_protocol::status Release(Lock* lock, bool synchronous = false);
 	lock_protocol::status Release(lock_protocol::LockId lid, bool synchronous = false);
+	lock_protocol::status Cancel(Lock* l);
+	lock_protocol::status Cancel(lock_protocol::LockId lid);
 	lock_protocol::status stat(lock_protocol::LockId lid);
 	void Releaser();
 	void RegisterLockUser(LockUser* lu) { lu_ = lu; };
@@ -195,6 +209,7 @@ private:
 	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode, bool synchronous);
 	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e, bool synchronous);
 	lock_protocol::Mode SelectMode(Lock* l, lock_protocol::Mode::Set mode_set);
+	lock_protocol::status CancelLockRequestInternal(Lock* l);
 
 	class LockUser*                                      lu_;
 	std::string                                          hostname_;
@@ -207,12 +222,13 @@ private:
 	int                                                  last_seq_;
 	bool                                                 running_;
 
+	/// locks known to this lock manager
 	google::dense_hash_map<lock_protocol::LockId, Lock*> locks_;
 
-	// key: lock id; value: seq no. of the corresponding acquire
-	std::map<lock_protocol::LockId, int>                 revoke_map_;
 	// global lock
 	pthread_mutex_t                                      mutex_;
+	// key: lock id; value: seq no. of the corresponding acquire
+	std::map<lock_protocol::LockId, int>                 revoke_map_;
 	// controls access to the revoke_map
 	pthread_mutex_t                                      revoke_mutex_;
 	pthread_cond_t                                       revoke_cv;

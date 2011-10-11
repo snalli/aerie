@@ -12,7 +12,16 @@
 class lock_protocol {
 public:
 	class Mode;
-	enum xxstatus { OK, RETRY, RPCERR, NOENT, IOERR, HRERR, DEADLK };
+	enum xxstatus { 
+		OK,      // okay. no error
+		RETRY,   // expect a retry call
+		RPCERR,  // RPC frustrate error
+		NOENT,   // generic error
+		IOERR,   // IO error 
+		HRERR,   // Hierarchy violation
+		CANCEL,  // Request is cancelled. don't expect a retry.
+		DEADLK   // Deadlock detected
+	};
 
 	enum flag {
 		FLG_NOQUE = 0x1,  // don't queue client if can't grant request

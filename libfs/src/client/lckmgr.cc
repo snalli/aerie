@@ -47,6 +47,7 @@ Lock::Lock(lock_protocol::LockId lid = 0)
 	  seq_(0), 
 	  used_(false), 
 	  can_retry_(false),
+	  cancel_(false),
 	  revoke_type_(0),
 	  status_(NONE),
 	  public_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
@@ -82,6 +83,7 @@ Lock::set_status(LockStatus sts)
 			// clear all fields
 			used_ = false;
 			can_retry_ = false;
+			cancel_ = false;
 		}
 		status_ = sts;
 		pthread_cond_broadcast(&status_cv_);
@@ -377,8 +379,7 @@ check_state:
 			// great! no one is using the cached lock
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 			        "[%d] lock %llu free locally (public_mode %s): grant to %lu\n",
-			        cl2srv_->id(), lid, 
-			        l->public_mode_.String().c_str(), tid);
+			        cl2srv_->id(), lid, l->public_mode_.String().c_str(), tid);
 			mode = SelectMode(l, mode_set);
 			if (mode == lock_protocol::Mode(lock_protocol::Mode::NL)) {
 				// lock cannot be granted locally. we need to communicate with the server.
@@ -396,8 +397,7 @@ check_state:
 				}
 			}
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-					"[%d] thread %lu got lock %llu at seq %d\n",
-					cl2srv_->id(), tid, lid, l->seq_);
+					"[%d:%d] got lock %llu at seq %d\n", cl2srv_->id(), tid, lid, l->seq_);
 			mode_granted = mode;
 			l->gtque_.Add(ThreadRecord(tid, mode));
 			l->set_status(Lock::LOCKED);
@@ -422,16 +422,14 @@ check_state:
 			if (tr) {
 				// current thread has already obtained the lock
 				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
-				        "[%d] current thread already got lck %llu\n",
-				        cl2srv_->id(), lid);
+				        "[%d:%d] current thread already got lck %llu\n", cl2srv_->id(), tid, lid);
 				mode_granted = tr->mode();
 				r = lock_protocol::OK;
 			} else {
 				lock_protocol::Mode mode = SelectMode(l, mode_set);
 				if (mode != lock_protocol::Mode::NL) {
 					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-					        "[%d] thread %lu got lock %llu at seq %d\n",
-							cl2srv_->id(), tid, lid, l->seq_);
+					        "[%d:%d] got lock %llu at seq %d\n", cl2srv_->id(), tid, lid, l->seq_);
 					l->gtque_.Add(ThreadRecord(tid, mode));
 					mode_granted = mode;
 					r = lock_protocol::OK;
@@ -446,18 +444,25 @@ check_state:
 			}
 			break;
 		case Lock::NONE:
-			dbg_log(DBG_INFO, "[%d] lock %llu not available; acquiring now\n",
-			        cl2srv_->id(), lid);
+			dbg_log(DBG_INFO, "[%d:%d] lock %llu not available; acquiring now\n",
+			        cl2srv_->id(), tid, lid);
 			l->set_status(Lock::ACQUIRING);
 			while ((r = do_acquire(l, mode_set, flags & Lock::FLG_NOBLK, argv, mode_granted)) 
 			       == lock_protocol::RETRY) 
 			{	
-				while (!l->can_retry_) {
+				while (!(l->can_retry_ || l->cancel_)) {
 					pthread_cond_wait(&l->retry_cv_, &mutex_);
+				}
+				if (l->cancel_) {
+					dbg_log(DBG_INFO, "[%d:%d] Cancelling request for lock %llu (%s) at seq %d\n",
+					        cl2srv_->id(), tid, lid, mode_granted.String().c_str(), l->seq_);
+					l->set_status(Lock::NONE);
+					r = lock_protocol::DEADLK;
+					break;
 				}
 			}
 			if (r == lock_protocol::OK) {
-				dbg_log(DBG_INFO, "[%d] thread %lu got lock %llu (%s) at seq %d\n",
+				dbg_log(DBG_INFO, "[%d:%d] got lock %llu (%s) at seq %d\n",
 				        cl2srv_->id(), tid, lid, mode_granted.String().c_str(), l->seq_);
 				l->public_mode_ = mode_granted;
 				l->gtque_.Add(ThreadRecord(tid, mode_granted));
@@ -699,6 +704,44 @@ LockManager::Release(lock_protocol::LockId lid, bool synchronous)
 }
 
 
+lock_protocol::status
+LockManager::CancelLockRequestInternal(Lock* l)
+{
+	dbg_log(DBG_INFO, "[%d] Cancel lock %llu\n", cl2srv_->id(), l->lid_);
+	
+	if (l->status() == Lock::ACQUIRING) {
+		l->cancel_ = true;
+		pthread_cond_signal(&l->retry_cv_);
+	}
+}
+
+
+lock_protocol::status
+LockManager::Cancel(Lock* l)
+{
+	lock_protocol::status r;
+
+	pthread_mutex_lock(&mutex_);
+	r = CancelLockRequestInternal(l);
+	pthread_mutex_unlock(&mutex_);
+	return r;
+}
+
+
+lock_protocol::status
+LockManager::Cancel(lock_protocol::LockId lid)
+{
+	Lock*                 lock;
+	lock_protocol::status r;
+
+	pthread_mutex_lock(&mutex_);
+	lock = FindOrCreateLockInternal(lid);
+	r = CancelLockRequestInternal(lock);
+	pthread_mutex_unlock(&mutex_);
+	return r;
+}
+
+
 rlock_protocol::status
 LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &unused)
 {
@@ -828,11 +871,7 @@ LockManager::do_acquirev(std::vector<Lock*> lv,
 	if (r == lock_protocol::OK) {
 		// great! we have the lock
 	} else { 
-		//FIXME 
-		assert(0);
-		if (r == lock_protocol::RETRY) {
-			//l->can_retry_ = false;
-		}
+		assert(0 && "TODO");
 	}
 	for (lock_itr = lv.begin(); lock_itr != lv.end(); lock_itr++) {
 		l = *lock_itr;

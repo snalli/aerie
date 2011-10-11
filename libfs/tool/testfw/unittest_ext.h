@@ -1,6 +1,8 @@
 #ifndef _TESTFW_UNITTEST_EXTENSION_H_AFS156
 #define _TESTFW_UNITTEST_EXTENSION_H_AFS156
 
+#include "tool/testfw/ut_barrier.h"
+
 //
 // Macros extending unittest++ functionality 
 //
@@ -15,6 +17,7 @@
 class Fixture##TestName##Helper;                                             \
 struct Fixture##TestName##ThreadTestName##Helper {                           \
 	Fixture##TestName##Helper* shared;                                       \
+	ut_barrier_t*              barrier;                                      \
 	int                        thread_id;                                    \
 };                                                                           \
 void* ThreadTestName(Fixture##TestName##ThreadTestName##Helper* self);
@@ -26,14 +29,17 @@ void* ThreadTestName(Fixture##TestName##ThreadTestName##Helper* self)
 
 #define CALL_AND_WAIT_THREADS(Fixture, TestName, ThreadTestName, NumThreads) \
 do {                                                                         \
-  pthread_t* th = new pthread_t[NumThreads];                                 \
+  pthread_t*   th = new pthread_t[NumThreads];                               \
+  ut_barrier_t thread_barrier;												 \
                                                                              \
   Fixture##TestName##ThreadTestName##Helper* th_struct =                     \
         new Fixture##TestName##ThreadTestName##Helper[NumThreads];           \
                                                                              \
+  ut_barrier_init(&thread_barrier, NumThreads, false);                       \
   for (int i=0; i<NumThreads; i++) {                                         \
     th_struct[i].thread_id = i;                                              \
     th_struct[i].shared = this;                                              \
+	th_struct[i].barrier = &thread_barrier;                                  \
     pthread_create(&th[i], NULL, (void* (*)(void*))ThreadTestName,           \
                    &th_struct[i]);                                           \
   }                                                                          \

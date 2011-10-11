@@ -353,7 +353,7 @@ HLockManager::AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, int flags
 				{
 					if (r == lock_protocol::DEADLK) {
 						DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_hlckmgr), 
-								"[%d] Deadlock detected. Must abort\n", lm_->id());
+								"[%d] Potential deadlock. Must abort\n", lm_->id());
 					}
 					goto done;
 				}

@@ -81,7 +81,6 @@ ut_barrier_wait(register ut_barrier_t *bp)
       	}  
     } else {  
 		bp->sb[sbi].runners--;    /* one less runner */  
-  
 		while (bp->sb[sbi].runners != bp->maxcnt) { 
 			pthread_cond_wait( &bp->sb[sbi].wait_cv, &bp->sb[sbi].wait_lk);  
 		}	
