@@ -13,6 +13,20 @@
 #include "common/lock_protocol.h"
 #include "common/lock_protocol-static.h"
 
+// TODO: leases
+// Server does not trust clients so it should adopt timeouts to expire 
+// lock acquisitions and expire retry requests that are not followed by
+// acquisition.
+// 1) lock acquisition expires after time Tacq after sending a revoke msg.
+// 2) lock retry expires after time Tr after sending a retry msg. This allows
+//    to provide some degree of fairness without letting a malicious client
+//    starve other clients.
+//
+// Locks are ordered by time of expiration. A thread periodically checks
+// if there any expired locks and collects such locks. 
+
+
+
 namespace server {
 
 // we ask the client to revoke the lock to a mode which is at least compatible to

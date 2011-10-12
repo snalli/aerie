@@ -157,7 +157,7 @@ SUITE(Lock)
 		ut_barrier_wait(&region_->barrier); 
 	}
 
-	// deadlock scenario. cancel request
+	// cancel request. deadlock scenario.
 	TEST_THREAD_FIXTURE(LockFixture, TestLockCancel1, 2)
 	{
 		lock_protocol::Mode unused;
@@ -192,7 +192,6 @@ SUITE(Lock)
 	TEST_THREAD_FIXTURE(LockFixture, TestLockCancel2, 2)
 	{
 		lock_protocol::Mode unused;
-		printf("%s\n", __FUNCTION__);
 		if (strcmp(TESTFW->Tag(), "C1")==0) {
 			// client 1 runs two threads
 			if (TEST_THREAD_LOCAL->thread_id == 0) {

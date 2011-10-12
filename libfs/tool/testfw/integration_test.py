@@ -56,7 +56,8 @@ class Test:
 
 
 class IntegrationTest:
-    def __init__(self, name, timeout=60, osenv={}):
+    def __init__(self, suite, name, timeout=60, osenv={}):
+        self.suite = suite
         self.name = name
         self.pid2test = {}
         self.osenv = osenv

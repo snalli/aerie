@@ -46,6 +46,7 @@ public:
 	lock_protocol::LockId lid() const { return lid_; }
 	int AddChild(HLock* hlock);
 	int ChangeStatus(LockStatus old_sts, LockStatus new_sts);
+	int WaitStatus(LockStatus old_sts);
 	int WaitStatus2(LockStatus old_sts1, LockStatus old_sts2);
 	int BeginConverting(bool lock);
 	int EndConverting(bool lock);

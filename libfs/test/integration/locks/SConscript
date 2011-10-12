@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import string
 import testfw
@@ -26,25 +27,31 @@ serverProgramAbspath = str(serverProgram[0])
 # Integration tests
 
 test_list = [
-             ('TestLockUnlockSingleClient1', 1),
-             ('TestLockUnlockSingleClient2', 1),
-             ('TestLockUnlockConcurrentClients1', 2),
-             ('TestLockUnlockConcurrentClients2', 2),
-             ('TestLockUnlockConcurrentClients3', 2),
-             ('TestLockUnlockConcurrentClients4', 2),
-             ('TestLockConvert1', 2),
-             ('TestLockConvert2', 2),
-             ('TestLockCancel1', 2),
-             ('TestLockCancel2', 2),
-             ('TestSharedLockUnlockConcurrentClients1', 2),
-             ('TestSharedLockUnlockConcurrentClients2', 2),
+             ('Lock', 'TestLockUnlockSingleClient1', 1),
+             ('Lock', 'TestLockUnlockSingleClient2', 1),
+             ('Lock', 'TestLockUnlockConcurrentClients1', 2),
+             ('Lock', 'TestLockUnlockConcurrentClients2', 2),
+             ('Lock', 'TestLockUnlockConcurrentClients3', 2),
+             ('Lock', 'TestLockUnlockConcurrentClients4', 2),
+             ('Lock', 'TestLockConvert1', 2),
+             ('Lock', 'TestLockConvert2', 2),
+             ('Lock', 'TestLockCancel1', 2),
+             ('Lock', 'TestLockCancel2', 2),
+             ('Lock', 'TestSharedLockUnlockConcurrentClients1', 2),
+             ('Lock', 'TestSharedLockUnlockConcurrentClients2', 2),
+             ('HLock', 'TestLockUnlockSingleClient1', 1),
+             ('HLock', 'TestLockUnlockConcurrentClient1', 2),
+             ('HLock', 'TestLockUnlockConcurrentClient2', 2),
 	    ]
 
+
 for test in test_list:
-	testStr = test[0]
-	test_obj = testfw.integration_test.IntegrationTest(testStr, timeout=5000)
-	test_obj.setPreTest(testProgramAbspath, '-T,-init,-numclients=%d' % (test[1]), {})
+	suiteStr = test[0]
+	testStr = test[1]
+	numClients = test[2]
+	test_obj = testfw.integration_test.IntegrationTest(suiteStr, testStr, timeout=5000)
+	test_obj.setPreTest(testProgramAbspath, '-T,-init,-numclients=%d' % (numClients), {})
 	test_obj.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
-	for i in range(test[1]):
-		test_obj.addTest(None, 'C%d' % (i+1), testProgramAbspath, '-T,-test=%s,-host=10000' % testStr, {})
+	for i in range(numClients):
+		test_obj.addTest(None, 'C%d' % (i+1), testProgramAbspath, '-T,-suite=%s,-test=%s,-host=10000' % (suiteStr, testStr), {})
 	myTestEnv.addIntegrationTest(test_obj)

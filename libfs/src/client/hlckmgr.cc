@@ -210,6 +210,17 @@ HLock::WaitStatus2(LockStatus old_sts1, LockStatus old_sts2)
 	return 0;
 }
 
+// \brief waits the lock to reach status old_status
+//
+// assumes mutex lock is help
+int
+HLock::WaitStatus(LockStatus old_sts) 
+{
+	while (!(status_ == old_sts)) {
+		pthread_cond_wait(&status_cv_, &mutex_);
+	}
+	return 0;
+}
 
 HLockManager::HLockManager(LockManager* lm, HLockUser* hlu)
 	: lm_(lm),
@@ -832,6 +843,8 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	old_public_mode = hlock->lock_->public_mode_;
 	hlock->lock_->public_mode_ = new_mode;
 
+					printf("mode: %s\n", hlock->mode_.String().c_str());
+					printf("newmode: %s\n", new_mode.String().c_str());
 	// check whether new_mode covers lock's private mode
 	if (new_mode > hlock->mode_ || new_mode == hlock->mode_) 
 	{
@@ -863,12 +876,14 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 				hl->EndConverting(true);
 			}
 		}
-		if (release_set.size() > 0) {
-			for (itr = release_set.begin(); itr != release_set.end(); itr++) {
-				hl = *itr;
-				assert(0 && "TODO: drop lock subtree");
-				hlock->EndConverting(true);
-			}
+	}
+
+	// release locks
+	if (release_set.size() > 0) {
+		for (itr = release_set.begin(); itr != release_set.end(); itr++) {
+			hl = *itr;
+			assert(0 && "TODO: drop lock subtree");
+			hlock->EndConverting(true);
 		}
 	}
 
@@ -878,6 +893,11 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 		lm_->Convert(lp, new_mode, true);
 		// what if convert fails? 
 	} else {
+		// if lock is LOCKED then wait to be released. 
+		// may need to abort any other dependent lock requests to avoid deadlock
+		pthread_mutex_lock(&hlock->mutex_);
+		hlock->WaitStatus(HLock::CONVERTING);
+		pthread_mutex_unlock(&hlock->mutex_);
 		lm_->Release(lp, true);
 		// what if release fails?
 	}

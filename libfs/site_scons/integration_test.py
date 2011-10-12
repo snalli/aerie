@@ -17,7 +17,7 @@ def runIntegrationTests(source, target, env):
     timeout_itests = []
     failed_itests = []
     for itest in env['INTEGRATION_TESTS']:
-        if not re.match(env['TEST_FILTER'], itest.name):
+        if not re.match(env['TEST_FILTER'], itest.suite+itest.name):
             continue
         itest.run(env['TEST_STDOUT'], env['TEST_STDERR'], env['TEST_EXTRA_ARGS'])
         itest_results = []

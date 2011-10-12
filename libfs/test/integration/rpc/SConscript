@@ -25,7 +25,7 @@ serverProgramAbspath = str(serverProgram[0])
 
 # Integration tests
 
-test = testfw.integration_test.IntegrationTest('rpc', timeout=3)
+test = testfw.integration_test.IntegrationTest('RPC', 'rpc', timeout=3)
 test.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
 test.addTest(None, 'C1', testProgramAbspath, '-T,-test=TestServerIsAlive,-host=10000', {})
 test.addTest(None, 'C2', testProgramAbspath, '-T,-test=TestServerIsAlive,-host=10000', {})
