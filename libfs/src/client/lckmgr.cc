@@ -397,7 +397,7 @@ check_state:
 				}
 			}
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-					"[%d:%d] got lock %llu at seq %d\n", cl2srv_->id(), tid, lid, l->seq_);
+					"[%d:%lu] got lock %llu at seq %d\n", cl2srv_->id(), tid, lid, l->seq_);
 			mode_granted = mode;
 			l->gtque_.Add(ThreadRecord(tid, mode));
 			l->set_status(Lock::LOCKED);
@@ -422,14 +422,14 @@ check_state:
 			if (tr) {
 				// current thread has already obtained the lock
 				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
-				        "[%d:%d] current thread already got lck %llu\n", cl2srv_->id(), tid, lid);
+				        "[%d:%lu] current thread already got lck %llu\n", cl2srv_->id(), tid, lid);
 				mode_granted = tr->mode();
 				r = lock_protocol::OK;
 			} else {
 				lock_protocol::Mode mode = SelectMode(l, mode_set);
 				if (mode != lock_protocol::Mode::NL) {
 					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-					        "[%d:%d] got lock %llu at seq %d\n", cl2srv_->id(), tid, lid, l->seq_);
+					        "[%d:%lu] got lock %llu at seq %d\n", cl2srv_->id(), tid, lid, l->seq_);
 					l->gtque_.Add(ThreadRecord(tid, mode));
 					mode_granted = mode;
 					r = lock_protocol::OK;
@@ -444,7 +444,7 @@ check_state:
 			}
 			break;
 		case Lock::NONE:
-			dbg_log(DBG_INFO, "[%d:%d] lock %llu not available; acquiring now\n",
+			dbg_log(DBG_INFO, "[%d:%lu] lock %llu not available; acquiring now\n",
 			        cl2srv_->id(), tid, lid);
 			l->set_status(Lock::ACQUIRING);
 			while ((r = do_acquire(l, mode_set, flags & Lock::FLG_NOBLK, argv, mode_granted)) 
@@ -454,7 +454,7 @@ check_state:
 					pthread_cond_wait(&l->retry_cv_, &mutex_);
 				}
 				if (l->cancel_) {
-					dbg_log(DBG_INFO, "[%d:%d] Cancelling request for lock %llu (%s) at seq %d\n",
+					dbg_log(DBG_INFO, "[%d:%lu] Cancelling request for lock %llu (%s) at seq %d\n",
 					        cl2srv_->id(), tid, lid, mode_granted.String().c_str(), l->seq_);
 					l->set_status(Lock::NONE);
 					r = lock_protocol::DEADLK;
@@ -462,7 +462,7 @@ check_state:
 				}
 			}
 			if (r == lock_protocol::OK) {
-				dbg_log(DBG_INFO, "[%d:%d] got lock %llu (%s) at seq %d\n",
+				dbg_log(DBG_INFO, "[%d:%lu] got lock %llu (%s) at seq %d\n",
 				        cl2srv_->id(), tid, lid, mode_granted.String().c_str(), l->seq_);
 				l->public_mode_ = mode_granted;
 				l->gtque_.Add(ThreadRecord(tid, mode_granted));
@@ -771,7 +771,7 @@ LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &un
 rlock_protocol::status
 LockManager::retry(lock_protocol::LockId lid, 
                    int seq,
-                   int& current_seq)
+                   int& accepted)
 {
 	rlock_protocol::status r = rlock_protocol::OK;
 	Lock*                  l;
@@ -784,12 +784,21 @@ LockManager::retry(lock_protocol::LockId lid,
 		// it doesn't matter whether this retry message arrives before or
 		// after the response to the corresponding acquire arrives, as long
 		// as the sequence number of the retry matches that of the acquire
-		assert(l->status() == Lock::ACQUIRING);
-		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-		        "[%d] retry message for lid %llu seq %d\n", cl2srv_->id(), 
-		        lid, seq);
-		l->can_retry_ = true;
-		pthread_cond_signal(&l->retry_cv_);
+		if (l->status() == Lock::NONE) {
+			// lock request was cancelled. ignore retry.
+		DBG_LOG(DBG_WARNING, DBG_MODULE(client_lckmgr),
+		        "[%d] ignoring retry %d for cancelled request, current seq for lid %llu is %d\n", 
+		        cl2srv_->id(), seq, lid, l->seq_);
+			accepted = false;
+		} else {
+			assert(l->status() == Lock::ACQUIRING);
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+					"[%d] retry message for lid %llu seq %d\n", cl2srv_->id(), 
+					lid, seq);
+			l->can_retry_ = true;
+			accepted = true;
+			pthread_cond_signal(&l->retry_cv_);
+		}
 	} else {
 		DBG_LOG(DBG_WARNING, DBG_MODULE(client_lckmgr),
 		        "[%d] outdated retry %d, current seq for lid %llu is %d\n", 

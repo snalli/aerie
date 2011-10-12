@@ -188,7 +188,7 @@ SUITE(Lock)
 	}
 
 
-	// deadlock scenario. cancel request
+	// cancel request
 	TEST_THREAD_FIXTURE(LockFixture, TestLockCancel2, 2)
 	{
 		lock_protocol::Mode unused;
@@ -201,10 +201,11 @@ SUITE(Lock)
 				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 1: sync with thread C2:0
 				ut_barrier_wait(TEST_THREAD_LOCAL->barrier); 
 				CHECK(global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused) == lock_protocol::DEADLK);
-				sleep(10);
+				usleep(500000);
 			} else {
 				// cancel thread. cancels outstanding lock requests
 				ut_barrier_wait(TEST_THREAD_LOCAL->barrier); // wait till thread C1:0 starts the request
+				usleep(1000);
 				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 2: sync with thread C2:0
 				global_lckmgr->Cancel(b);
 				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 3: sync with thread C2:0

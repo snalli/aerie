@@ -342,6 +342,17 @@ LockManager::Subscribe(int clt, std::string id, int &unused)
 	return r;
 }
 
+struct RevokeMsg {
+	RevokeMsg(int clt, int seq, int revoke_type)
+		: clt_(clt),
+		  seq_(seq),
+		  revoke_type_(revoke_type)
+	{ }
+	
+	int clt_;
+	int seq_;
+	int revoke_type_;
+};
 
 
 /// This method is a continuous loop, that sends revoke messages to
@@ -354,6 +365,8 @@ LockManager::revoker()
 	lock_protocol::LockId                     lid;
 	int                                       clt;
 	int                                       revoke_type;
+	std::vector<struct RevokeMsg>             revoke_msgs;
+	std::vector<struct RevokeMsg>::iterator   itr_r;
 
 	while (true) {
 		pthread_mutex_lock(&mutex_);
@@ -366,10 +379,24 @@ LockManager::revoker()
 		Lock& l = locks_[lid];
 		ClientRecord& waiting_cr = l.waiting_list_.front();
 
+		// ISSUE: distributed deadlock
+		// doing RPC to the client while holding the global mutex may cause a 
+		// distributed deadlock if we block behind a client who is blocked 
+		// behind us (because its RPC request is blocked behind the mutex)
+		// in general we cannot trust the client so we should never block
+		// behind a client (use timeout to expire RPC request). 
+		// here we drop the mutex so that we can service other incoming RPC 
+		// requests. 
+		// Dropping the mutex is safe because the lock server imposes the 
+		// invariant that a revoke request is send when a competing client
+		// needs the lock, and all other requests for the particular lock 
+		// are queued behind that clients request. so we know that no other 
+		// clients will be added in the gtque that need to be dropped.
+		// make a local copy of the requests to be send and then release 
+		// the mutex.
 		for (itr_icr = l.gtque_.begin(); 
 		     itr_icr != l.gtque_.end(); itr_icr++) 
 		{
-			int           unused;
 			int           clt = (*itr_icr).first;
 			ClientRecord& cr = (*itr_icr).second;
 			rpcc*         cl = clients_[clt];
@@ -382,10 +409,17 @@ LockManager::revoker()
 				// the lock) 
 				continue;
 			}
+			revoke_msgs.push_back(RevokeMsg(clt, cr.seq_, revoke_type));
+		}
+		pthread_mutex_unlock(&mutex_);
+
+		for (itr_r = revoke_msgs.begin(); itr_r != revoke_msgs.end(); itr_r++) {
+			int           unused;
 			dbg_log(DBG_INFO, "revoke client %d lock %llu: \n", clt, lid, revoke_type);
 
+			rpcc*         cl = clients_[(*itr_r).clt_];
 			if (cl) {
-				if (cl->call(rlock_protocol::revoke, lid, cr.seq_, revoke_type, unused)
+				if (cl->call(rlock_protocol::revoke, lid, (*itr_r).seq_, (*itr_r).revoke_type_, unused)
 					!= rlock_protocol::OK) 
 				{
 					dbg_log(DBG_ERROR, "failed to send revoke\n");
@@ -394,7 +428,7 @@ LockManager::revoker()
 				dbg_log(DBG_ERROR, "client %d didn't subscribe\n", clt);
 			}
 		}
-		pthread_mutex_unlock(&mutex_);
+
 		usleep(500);
 	}
 }
@@ -431,14 +465,24 @@ LockManager::retryer()
 		pthread_mutex_unlock(&mutex_);
 
 		if (cr) {
-			int cur_seq;
+			int accepted;
 			// TODO place a time limit on the retry for this client
 			if (clients_[cr->id()]->call(rlock_protocol::retry, lid, cr->seq_,
-				cur_seq) == rlock_protocol::OK) 
+				accepted) == rlock_protocol::OK) 
 			{
 				dbg_log(DBG_INFO,
 				        "successfully sent a retry to clt %d seq %d for lck %llu\n",
 				        cr->id(), cr->seq_, lid); 
+				// client ignored retry. make the lock available for the next waiting
+				// client
+				if (!accepted) {
+					pthread_mutex_lock(&mutex_);
+					l.expected_clt_ = -1;
+					if (!wq.empty()) {
+						available_locks_.push_back(lid);
+					}
+					pthread_mutex_unlock(&mutex_);
+				}
 			} else {
 				dbg_log(DBG_ERROR,
 				        "failed to tell client %d to retry lock %llu\n", 
