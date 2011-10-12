@@ -843,8 +843,6 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	old_public_mode = hlock->lock_->public_mode_;
 	hlock->lock_->public_mode_ = new_mode;
 
-					printf("mode: %s\n", hlock->mode_.String().c_str());
-					printf("newmode: %s\n", new_mode.String().c_str());
 	// check whether new_mode covers lock's private mode
 	if (new_mode > hlock->mode_ || new_mode == hlock->mode_) 
 	{

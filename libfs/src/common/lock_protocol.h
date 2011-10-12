@@ -109,24 +109,25 @@ public:
 	///         0, if mode1 not-ordered-with mode2
 	static int PartialOrder(lock_protocol::Mode mode1, lock_protocol::Mode mode2) 
 	{
-		if (mode1 == Mode(lock_protocol::Mode::IX) && 
-		    mode2 == Mode(lock_protocol::Mode::IXSL)) 
-		{
-			return -1;
-		} else if (mode1 == Mode(lock_protocol::Mode::IXSL) && 
-		           mode2 == Mode(lock_protocol::Mode::IX)) 
-		{
+		int s1 = severity_table_[mode1.value_];
+		int s2 = severity_table_[mode2.value_];
+		
+		if (s1 > s2) {
 			return 1;
-		} else {
-			int s1 = severity_table_[mode1.value_];
-			int s2 = severity_table_[mode2.value_];
-			if (s1 > s2) {
+		} else if (s1 < s2) {
+			return -1;
+		} else { /* s1 == s2 */
+			if (mode1 == Mode(lock_protocol::Mode::XL) && 
+				mode2 == Mode(lock_protocol::Mode::IXSL)) 
+			{
 				return 1;
-			} else if (s1 < s2) {
+			} else if (mode1 == Mode(lock_protocol::Mode::IXSL) && 
+					   mode2 == Mode(lock_protocol::Mode::XL)) 
+			{
 				return -1;
-			} 
+			}
+			return 0; // no ordering
 		}
-		return 0; // no ordering
 	}
 
 

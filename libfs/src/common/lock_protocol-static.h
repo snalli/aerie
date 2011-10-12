@@ -24,11 +24,12 @@ bool lock_protocol::Mode::compatibility_table_[][lock_protocol::Mode::CARDINALIT
 
 // partial order lattice:
 //
-//                    +--> IX -- IXSL --+   
-//                    |                 |   
-// NL --> IS -- SL -->+-----> XL -------+--> XR
-//                    |                 |   
-//                    +-----> SR -------+   
+//             +--> SL --+     +--> IXSL -- XL --+   
+//             |         |     |                 |   
+// NL --> IS --+         +-->--+                 +--> XR
+//             |         |     |                 |   
+//             +--> IX --+     +-----> SR -------+   
+
 
 // restrictiveness (or severity) of each mode. higher severity means
 // more restrictive. 
@@ -39,7 +40,7 @@ int lock_protocol::Mode::severity_table_[] = {
 	/* SL   */  2,
 	/* SR   */  3,
 	/* IS   */  1,
-	/* IX   */  3,
+	/* IX   */  2,
 	/* XL   */  3,
 	/* XR   */  4,
 	/* IXSL */  3
