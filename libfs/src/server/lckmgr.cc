@@ -76,8 +76,6 @@ Lock::~Lock()
 }
 
 
-
-
 static void *
 revokethread(void *x)
 {

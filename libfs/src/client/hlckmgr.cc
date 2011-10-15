@@ -149,7 +149,6 @@ HLock::BeginConverting(bool lock)
 	if (lock) {
 		pthread_mutex_lock(&mutex_);
 	}
-	printf("lid=%d, status=%d\n", lid_, status_);
 	while (!(status_ == HLock::FREE || 
 	         status_ == HLock::LOCKED)) 
 	{
@@ -165,6 +164,7 @@ HLock::BeginConverting(bool lock)
 	}
 	return 0;
 }
+
 
 int
 HLock::EndConverting(bool lock) 
@@ -182,6 +182,7 @@ HLock::EndConverting(bool lock)
 	}
 	return 0;
 }
+
 
 // \brief waits the lock to reach status old_status and then changes lock
 // to new_status
