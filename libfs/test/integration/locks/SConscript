@@ -10,48 +10,57 @@ Import('mainEnv', 'testEnv')
 myTestEnv = testEnv.Clone()
 
 Import('fscLibrary')
+Import('fssLibrary')
 Import('mfsLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('rpcLibrary')
-Import('serverProgram')
 depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
+serverDepLibs = [fssLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
+lockServerProgram = myTestEnv.Program('smain', source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
+hlockServerProgram = myTestEnv.Program('smain-hlock', source = myTestEnv['HLOCK_SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
-testProgramAbspath = os.path.join(os.getcwd(), str(testProgram[0]))
-serverProgramAbspath = str(serverProgram[0])
 
+
+def addIntegrationTest(env, suite_str, test_list, server_program, test_program):
+	test_program_abspath = os.path.join(os.getcwd(), str(test_program[0]))
+	server_program_abspath = os.path.join(os.getcwd(), str(server_program[0]))
+	for test in test_list:
+		test_str = test[0]
+		num_clients = test[1]
+		test_obj = testfw.integration_test.IntegrationTest(suite_str, test_str, timeout=5000)
+		test_obj.setPreTest(test_program_abspath, '-T,-init,-numclients=%d' % (num_clients), {})
+		test_obj.addTest(None, 'S', server_program_abspath, '-p 10000', {}, False)
+		for i in range(num_clients):
+			test_obj.addTest(None, 'C%d' % (i+1), test_program_abspath, '-T,-suite=%s,-test=%s,-host=10000' % (suite_str, test_str), {})
+		env.addIntegrationTest(test_obj)
 
 # Integration tests
 
-test_list = [
-             ('Lock', 'TestLockUnlockSingleClient1', 1),
-             ('Lock', 'TestLockUnlockSingleClient2', 1),
-             ('Lock', 'TestLockUnlockConcurrentClients1', 2),
-             ('Lock', 'TestLockUnlockConcurrentClients2', 2),
-             ('Lock', 'TestLockUnlockConcurrentClients3', 2),
-             ('Lock', 'TestLockUnlockConcurrentClients4', 2),
-             ('Lock', 'TestLockConvert1', 2),
-             ('Lock', 'TestLockConvert2', 2),
-             ('Lock', 'TestLockCancel1', 2),
-             ('Lock', 'TestLockCancel2', 2),
-             ('Lock', 'TestSharedLockUnlockConcurrentClients1', 2),
-             ('Lock', 'TestSharedLockUnlockConcurrentClients2', 2),
-             ('HLock', 'TestLockUnlockSingleClient1', 1),
-             ('HLock', 'TestLockUnlockConcurrentClient1', 2),
-             ('HLock', 'TestLockUnlockConcurrentClient2', 2),
-	    ]
+lock_test_list = [
+                  ('TestLockUnlockSingleClient1', 1),
+                  ('TestLockUnlockSingleClient2', 1),
+                  ('TestLockUnlockConcurrentClients1', 2),
+                  ('TestLockUnlockConcurrentClients2', 2),
+                  ('TestLockUnlockConcurrentClients3', 2),
+                  ('TestLockUnlockConcurrentClients4', 2),
+                  ('TestLockConvert1', 2),
+                  ('TestLockConvert2', 2),
+                  ('TestLockCancel1', 2),
+                  ('TestLockCancel2', 2),
+                  ('TestSharedLockUnlockConcurrentClients1', 2),
+                  ('TestSharedLockUnlockConcurrentClients2', 2),
+	         ]
+
+hlock_test_list = [
+                   ('TestLockUnlockSingleClient1', 1),
+                   ('TestLockUnlockConcurrentClient1', 2),
+                   ('TestLockUnlockConcurrentClient2', 2),
+	          ]
 
 
-for test in test_list:
-	suiteStr = test[0]
-	testStr = test[1]
-	numClients = test[2]
-	test_obj = testfw.integration_test.IntegrationTest(suiteStr, testStr, timeout=5000)
-	test_obj.setPreTest(testProgramAbspath, '-T,-init,-numclients=%d' % (numClients), {})
-	test_obj.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
-	for i in range(numClients):
-		test_obj.addTest(None, 'C%d' % (i+1), testProgramAbspath, '-T,-suite=%s,-test=%s,-host=10000' % (suiteStr, testStr), {})
-	myTestEnv.addIntegrationTest(test_obj)
+addIntegrationTest(myTestEnv, 'Lock', lock_test_list, lockServerProgram, testProgram)
+addIntegrationTest(myTestEnv, 'HLock', hlock_test_list, hlockServerProgram, testProgram)

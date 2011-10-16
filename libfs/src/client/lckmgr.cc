@@ -110,7 +110,6 @@ LockManager::LockManager(rpcc* rpc_client,
 	  srv2cl_(rpc_server),
 	  id_(id)
 {
-	pthread_t    th;
 	int          unused;
 	int          r;
 
@@ -126,7 +125,7 @@ LockManager::LockManager(rpcc* rpc_client,
 	// register client's lock manager RPC handlers with srv2cl_
 	srv2cl_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
 	srv2cl_->reg(rlock_protocol::retry, this, &LockManager::retry);
-	r = pthread_create(&th, NULL, &releasethread, (void *) this);
+	r = pthread_create(&releasethread_th_, NULL, &releasethread, (void *) this);
 	assert (r == 0);
 
 	// contact the server and tell him my rpc address to subscribe 
@@ -146,11 +145,23 @@ LockManager::~LockManager()
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] Shut down LockManager\n", cl2srv_->id());
 
+	// shutdown releaser thread
+	pthread_mutex_lock(&mutex_);
+	std::map<lock_protocol::lock_protocol::LockId, int>::iterator itri;
+	for (itri = revoke_map_.begin(); itri != revoke_map_.end(); itri++) {
+		ReleaseInternal(0, locks_[itri->first], false);
+	}
+	running_ = false;
+	pthread_cond_signal(&revoke_cv);
+	pthread_mutex_unlock(&mutex_);
+	pthread_join(releasethread_th_, NULL);
+
+	// release any held locks
 	pthread_mutex_lock(&mutex_);
 	google::dense_hash_map<lock_protocol::LockId, Lock*>::iterator itr;
 	for (itr = locks_.begin(); itr != locks_.end(); ++itr) {
 		if (itr->second->status() == Lock::FREE) {
-			do_release(itr->second);
+			do_release(itr->second, 0);
 		} else if (itr->second->status() == Lock::LOCKED) {
 			ReleaseInternal(0, itr->second, true);
 		}
@@ -245,8 +256,12 @@ LockManager::Releaser()
 	running_ = true;
 	while (running_) {
 		pthread_mutex_lock(&mutex_);
-		while (revoke_map_.empty()) {
+		while (running_ && revoke_map_.empty()) {
 			pthread_cond_wait(&revoke_cv, &mutex_);
+		}
+		if (!running_ && revoke_map_.empty()) {
+			pthread_mutex_unlock(&mutex_);
+			return;
 		}
 		std::map<lock_protocol::lock_protocol::LockId, int>::iterator itr = revoke_map_.begin();
 		lock_protocol::LockId lid = itr->first;
@@ -268,6 +283,7 @@ LockManager::Releaser()
 			// wait until this lock is used at least once
 			pthread_cond_wait(&l->used_cv_, &mutex_);
 		}
+		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), "releaser: 3\n");
 
 		// if there is a user manager registered with us then make a 
 		// synchronous call to revoke the lock. 
@@ -295,7 +311,7 @@ LockManager::Releaser()
 				if (l->status() == Lock::FREE) {
 					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 							"[%d] calling release RPC for lock %llu\n", cl2srv_->id(), lid);
-					if (do_release(l) == lock_protocol::OK) {
+					if (do_release(l, 0) == lock_protocol::OK) {
 						// we set the lock's status to none instead of erasing it
 						l->set_status(Lock::NONE);
 						revoke_map_.erase(lid);
@@ -361,7 +377,8 @@ LockManager::AcquireInternal(unsigned long tid,
                              Lock* l, 
                              lock_protocol::Mode::Set mode_set, 
                              int flags, 
-                             std::vector<unsigned long long> argv,
+                             int argc, 
+                             void** argv,
                              lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::status r;
@@ -447,7 +464,7 @@ check_state:
 			dbg_log(DBG_INFO, "[%d:%lu] lock %llu not available; acquiring now\n",
 			        cl2srv_->id(), tid, lid);
 			l->set_status(Lock::ACQUIRING);
-			while ((r = do_acquire(l, mode_set, flags & Lock::FLG_NOBLK, argv, mode_granted)) 
+			while ((r = do_acquire(l, mode_set, flags & Lock::FLG_NOBLK, argc, argv, mode_granted)) 
 			       == lock_protocol::RETRY) 
 			{	
 				while (!(l->can_retry_ || l->cancel_)) {
@@ -480,13 +497,14 @@ lock_protocol::status
 LockManager::Acquire(Lock* lock, 
                      lock_protocol::Mode::Set mode_set, 
                      int flags, 
-                     std::vector<unsigned long long> argv,
+                     int argc,
+                     void** argv,
                      lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::status r;
 
 	pthread_mutex_lock(&mutex_);
-	r = AcquireInternal(0, lock, mode_set, flags, argv, mode_granted);
+	r = AcquireInternal(0, lock, mode_set, flags, argc, argv, mode_granted);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
@@ -498,9 +516,7 @@ LockManager::Acquire(Lock* lock,
                      int flags,
                      lock_protocol::Mode& mode_granted)
 {
-	std::vector<unsigned long long> argv;
-
-	return Acquire(lock, mode_set, flags, argv, mode_granted);
+	return Acquire(lock, mode_set, flags, 0, 0, mode_granted);
 }
 
 
@@ -508,7 +524,8 @@ lock_protocol::status
 LockManager::Acquire(lock_protocol::LockId lid, 
                      lock_protocol::Mode::Set mode_set, 
                      int flags,
-                     std::vector<unsigned long long> argv,
+					 int argc,
+                     void** argv,
                      lock_protocol::Mode& mode_granted)
 {
 	Lock*                 lock;
@@ -516,7 +533,7 @@ LockManager::Acquire(lock_protocol::LockId lid,
 
 	pthread_mutex_lock(&mutex_);
 	lock = FindOrCreateLockInternal(lid);
-	r = AcquireInternal(0, lock, mode_set, flags, argv, mode_granted);
+	r = AcquireInternal(0, lock, mode_set, flags, argc, argv, mode_granted);
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
@@ -528,9 +545,7 @@ LockManager::Acquire(lock_protocol::LockId lid,
                      int flags,
                      lock_protocol::Mode& mode_granted)
 {
-	std::vector<unsigned long long> argv;
-
-	return Acquire(lid, mode_set, flags, argv, mode_granted);
+	return Acquire(lid, mode_set, flags, 0, 0, mode_granted);
 }
 
 
@@ -665,7 +680,7 @@ LockManager::ReleaseInternal(unsigned long tid, Lock* l, bool synchronous)
 	if (synchronous && (l->status() == Lock::FREE)) {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 				"[%d] calling release RPC for lock %llu\n", cl2srv_->id(), l->lid_);
-		if (do_release(l) == lock_protocol::OK) {
+		if (do_release(l, 0) == lock_protocol::OK) {
 			// we set the lock's status to none instead of erasing it
 			l->set_status(Lock::NONE);
 			revoke_map_.erase(l->lid_);
@@ -815,19 +830,26 @@ int
 LockManager::do_acquire(Lock* l, 
                         lock_protocol::Mode::Set mode_set, 
                         int flags, 
-                        std::vector<unsigned long long> argv,
+						int argc,
+                        void** argv,
                         lock_protocol::Mode& mode_granted)
 {
 	int                        r;
 	int                        retval;
 	int                        rpc_flags=0;
-
+	unsigned long long         arg = 0;
+	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] calling acquire rpc for lck %llu id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_, cl2srv_->id(), last_seq_+1);
+
+	assert(argc <= 1);
+	if (argc > 0) {
+		arg = (unsigned long long) argv[0];
+	}
 	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
 	r = cl2srv_->call(lock_protocol::acquire, cl2srv_->id(), ++last_seq_, l->lid_, 
-	                  mode_set.value(), rpc_flags, argv, retval);
+	                  mode_set.value(), rpc_flags, arg, retval);
 	l->seq_ = last_seq_;
 	if (r == lock_protocol::OK) {
 		// great! we have the lock
@@ -911,7 +933,7 @@ LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 
 
 int
-LockManager::do_release(Lock* l)
+LockManager::do_release(Lock* l, int flags)
 {
 	int r;
 	int unused;
@@ -923,7 +945,7 @@ LockManager::do_release(Lock* l)
 		lu_->OnRelease(l);
 	}
 	r = cl2srv_->call(lock_protocol::release, cl2srv_->id(), l->seq_, l->lid_, 
-	                  unused);
+	                  flags, unused);
 	return r;
 }
 

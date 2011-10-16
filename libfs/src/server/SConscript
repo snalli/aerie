@@ -5,18 +5,23 @@ Import('lockservLibrary')
 Import('commonLibrary')
 
 localBuildEnv = buildEnv.Clone()
+libLocalBuildEnv = buildEnv.Clone()
 
-sources = [
-           'lckmgr.cc',
-           'main.cc',
-           'namespace.cc'
-          ]
+lib_target = 'fss'
+lib_sources = [
+               'hlckmgr.cc',
+               'handler.cc',
+               'lckmgr.cc',
+               'namespace.cc'
+              ]
 
+fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+localBuildEnv.Append(LIBS = fssLibrary)
 localBuildEnv.Append(LIBS = rpcLibrary)
 localBuildEnv.Append(LIBS = chunkstoreLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program('fsserver', ['main.cc']) 
 
-serverProgram = localBuildEnv.Program('fsserver', sources) 
-
-Return('serverProgram')
+Return('fssLibrary')

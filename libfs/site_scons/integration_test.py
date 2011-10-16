@@ -10,7 +10,6 @@ def addIntegrationTest(env, integration_test):
     env.Append(INTEGRATION_TESTS = [integration_test])
 
 
-
 def runIntegrationTests(source, target, env):
     all_results = []
     testfw.integration_test.setAlarmHandler()
@@ -35,6 +34,12 @@ def runIntegrationTests(source, target, env):
                 # BUG: we want to be able to parse stderr in interactive mode
                 if env['TEST_STDERR'] == 'interactive':
                     continue
+                if test.status and test.status != 9:
+                    print "TEST UBNORMAL TERMINATION: ", test_name, " status=", test.status  >> 8
+                    failed_itests.append(itest)
+                    if test.p.stderr:
+                        print test.p.stderr.readlines()
+                    return
                 test.stderr_file.seek(0)
                 lines = test.stderr_file.readlines()
                 if len(lines) > 0:
@@ -50,15 +55,15 @@ def runIntegrationTests(source, target, env):
                                     itest_has_failure = True
                                 test_list.append((child.attrib["suite"], child.attrib["name"], child.attrib["time"], failure_list))
                             itest_results.extend(test_list)
-                else:
-                    # if the process is not a process we killed (signal 9) then
-                    # something really bad happen, fail immediately 
-                    if test.status and test.status != 9:
-                        print "TEST UBNORMAL TERMINATION: ", test_name, " status=", test.status  >> 8
-                        failed_itests.append(itest)
-                        if test.p.stderr:
-                            print test.p.stderr.readlines()
-                        return
+                #else:
+                #    # if the process is not a process we killed (signal 9) then
+                #    # something really bad happen, fail immediately 
+                #    if test.status and test.status != 9:
+                #        print "TEST UBNORMAL TERMINATION: ", test_name, " status=", test.status  >> 8
+                #        failed_itests.append(itest)
+                #        if test.p.stderr:
+                #            print test.p.stderr.readlines()
+                #        return
         if itest_has_failure:
             failed_itests.append(itest)
 

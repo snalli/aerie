@@ -9,18 +9,20 @@ Import('mainEnv', 'testEnv')
 myTestEnv = testEnv.Clone()
 
 Import('fscLibrary')
+Import('fssLibrary')
 Import('mfsLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('rpcLibrary')
-Import('serverProgram')
 depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
+serverDepLibs = [fssLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
+serverProgram = myTestEnv.Program('smain', source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 testProgramAbspath = os.path.join(os.getcwd(), str(testProgram[0]))
-serverProgramAbspath = str(serverProgram[0])
+serverProgramAbspath = os.path.join(os.getcwd(), str(serverProgram[0]))
 
 
 # Integration tests
@@ -30,4 +32,3 @@ test.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
 test.addTest(None, 'C1', testProgramAbspath, '-T,-test=TestServerIsAlive,-host=10000', {})
 test.addTest(None, 'C2', testProgramAbspath, '-T,-test=TestServerIsAlive,-host=10000', {})
 myTestEnv.addIntegrationTest(test)
-

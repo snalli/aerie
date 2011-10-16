@@ -13,6 +13,8 @@ testEnv['INTEGRATION_TESTS'] = []
 
 objects = [testEnv.Object('cmain.cc')]
 testEnv['OBJECTS'] = objects
+testEnv['SERVER_OBJECTS'] = [testEnv.Object('smain.cc')]
+testEnv['HLOCK_SERVER_OBJECTS'] = [testEnv.Object('smain-hlock.o', 'smain.cc', CPPDEFINES=['_HLOCKMANAGER'])]
 
 Export('testEnv')
 

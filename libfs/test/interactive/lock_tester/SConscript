@@ -11,7 +11,6 @@ Import('mfsLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('rpcLibrary')
-Import('serverProgram')
 depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 
 myTestEnv.Program('lock_tester', source = [Glob('*.cc')], LIBS=['pthread', 'rt']+depLibs)

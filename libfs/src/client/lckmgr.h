@@ -113,7 +113,7 @@ public:
 	};
 
 	enum Flag {
-		FLG_NOBLK = 0x1, // don't block if can't grant lock
+		FLG_NOBLK = lock_protocol::FLG_NOQUE, // don't block if can't grant lock
 	};
 
 	Lock(lock_protocol::LockId);
@@ -177,9 +177,9 @@ public:
 	~LockManager();
 	Lock* FindLock(lock_protocol::LockId lid);
 	Lock* FindOrCreateLock(lock_protocol::LockId lid);
-	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
+	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
+	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Convert(Lock* lock, lock_protocol::Mode new_mode, bool synchronous = false);
 	lock_protocol::status Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode, bool synchronous = false);
@@ -199,13 +199,13 @@ public:
 	int id() { return cl2srv_->id(); }
 
 private:
-	int do_acquire(Lock* l, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
+	int do_acquire(Lock* l, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
 	int do_acquirev(std::vector<Lock*> lv, std::vector<lock_protocol::Mode> modev, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
 	int do_convert(Lock* l, lock_protocol::Mode mode, int flags);
-	int do_release(Lock* l);
+	int do_release(Lock* l, int flags);
 	Lock* FindLockInternal(lock_protocol::LockId lid);
 	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
-	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, lock_protocol::Mode& mode_granted);
+	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode, bool synchronous);
 	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e, bool synchronous);
 	lock_protocol::Mode SelectMode(Lock* l, lock_protocol::Mode::Set mode_set);
@@ -232,6 +232,7 @@ private:
 	// controls access to the revoke_map
 	pthread_mutex_t                                      revoke_mutex_;
 	pthread_cond_t                                       revoke_cv;
+	pthread_t                                            releasethread_th_;
 };
 
 

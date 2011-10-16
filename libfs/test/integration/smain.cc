@@ -13,6 +13,7 @@
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
 #include "server/lckmgr.h"
+#include "server/hlckmgr.h"
 
 using namespace server;
 
@@ -22,6 +23,7 @@ pthread_attr_t  attr;
 ChunkServer*    chunk_server;
 RegistryServer* registry;
 LockManager*    lm;
+HLockManager*   hlm;
 
 void register_handlers(rpcs* serverp);
 
@@ -36,7 +38,11 @@ void startserver()
 	registry->Init();
 
 	register_handlers(serverp);
+#ifdef	_HLOCKMANAGER
+	hlm = new HLockManager(serverp);
+#else
 	lm = new LockManager(serverp);
+#endif
 }
 
 int

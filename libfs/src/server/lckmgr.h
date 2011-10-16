@@ -72,13 +72,14 @@ struct Lock {
 
 class LockManager {
 public:
-	LockManager();
+	LockManager(rpcs* rpc_server = NULL);
 	~LockManager();
+	int Init(rpcs* rpc_server);
 	lock_protocol::status Stat(lock_protocol::LockId, int&);
-	lock_protocol::status Acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, std::vector<unsigned long long> argv, int& mode_granted);
+	lock_protocol::status Acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, unsigned long long arg, int& mode_granted);
 	lock_protocol::status AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, std::vector<int> modeiv, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
 	lock_protocol::status Convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
-	lock_protocol::status Release(int clt, int seq, lock_protocol::LockId lid, int& unused);
+	lock_protocol::status Release(int clt, int seq, lock_protocol::LockId lid, int flags, int& unused);
 	lock_protocol::Mode  SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set);
 
 	// subscribe for future notifications by telling the server the RPC addr
@@ -87,7 +88,7 @@ public:
 	void retryer();
 
 private:
-	lock_protocol::status AcquireInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, std::vector<unsigned long long> argv, int& mode_granted);
+	lock_protocol::status AcquireInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, int& mode_granted);
 	lock_protocol::status ConvertInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, int& unused);
 
 	std::map<int, rpcc*>                    clients_;
@@ -100,6 +101,7 @@ private:
 	/// Contains any locks that become available after a release or have being
 	/// acquired in shared mode (and thus waiting clients can grab them)
 	std::deque<lock_protocol::LockId>       available_locks_; 
+	class LockUser*                         lu_;
 };
 
 

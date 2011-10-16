@@ -136,7 +136,6 @@ class IntegrationTest:
             self.timed_out = True
         except None:
             print "CRITICAL FAILURE"
-            
         # now kill all the remaining processes 
         for test in wait_list + nowait_list:
             test.kill()

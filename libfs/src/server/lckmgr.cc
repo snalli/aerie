@@ -94,7 +94,14 @@ retrythread(void *x)
 }
 
 
-LockManager::LockManager()
+LockManager::LockManager(rpcs* rpc_server)
+{
+	assert(Init(rpc_server) == 0);
+}
+
+
+int
+LockManager::Init(rpcs* rpc_server)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_cond_init(&revoke_cv_, NULL);
@@ -105,13 +112,24 @@ LockManager::LockManager()
 	assert (r == 0);
 	r = pthread_create(&th, NULL, &retrythread, (void *) this);
 	assert (r == 0);
+	
+	if (rpc_server) {
+		rpc_server->reg(lock_protocol::stat, this, &LockManager::Stat);
+		rpc_server->reg(lock_protocol::acquire, this, &LockManager::Acquire);
+		rpc_server->reg(lock_protocol::acquirev, this, &LockManager::AcquireVector);
+		rpc_server->reg(lock_protocol::release, this, &LockManager::Release);
+		rpc_server->reg(lock_protocol::convert, this, &LockManager::Convert);
+		rpc_server->reg(lock_protocol::subscribe, this, &LockManager::Subscribe);
+	}
+	return 0;
 }
 
 
 LockManager::~LockManager()
 {
-	pthread_mutex_lock(&mutex_);
 	std::map<int, rpcc*>::iterator itr;
+
+	pthread_mutex_lock(&mutex_);
 	for (itr = clients_.begin(); itr != clients_.end(); ++itr) {
 		delete itr->second;
 	}
@@ -141,7 +159,7 @@ LockManager::SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set)
 lock_protocol::status
 LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid, 
                              lock_protocol::Mode::Set mode_set, int flags, 
-                             std::vector<unsigned long long> argv, int& mode_granted)
+                             int& mode_granted)
 {
 	char                  statestr[128];
 	uint32_t              next_state;
@@ -156,7 +174,6 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 	mode = SelectMode(l, mode_set);
 	wq_len = l.waiting_list_.size();
 	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", lid, wq_len);
-
 	if ((wq_len == 0 || (wq_len > 0 && l.expected_clt_ == clt)) &&
 		l.gtque_.CanGrant(mode)) 
 	{
@@ -216,10 +233,10 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 lock_protocol::status
 LockManager::Acquire(int clt, int seq, lock_protocol::LockId lid, 
                      int mode_set, int flags, 
-                     std::vector<unsigned long long> argv, int& mode_granted)
+                     unsigned long long arg, int& mode_granted)
 {
 	return AcquireInternal(clt, seq, lid, lock_protocol::Mode::Set(mode_set), 
-	                       flags, argv, mode_granted);
+	                       flags, mode_granted);
 }
 
 
@@ -318,25 +335,27 @@ LockManager::Convert(int clt, int seq, lock_protocol::LockId lid,
 	return ConvertInternal(clt, seq, lid, lock_protocol::Mode(enum_new_mode), flags, unused);
 }
 
+
 lock_protocol::status
-LockManager::Release(int clt, int seq, lock_protocol::LockId lid, int& unused)
+LockManager::Release(int clt, int seq, lock_protocol::LockId lid, int flags, int& unused)
 {
 	dbg_log(DBG_INFO, "clt %d release lck %llu at seq %d\n", 
 	        clt, lid, seq);
-	return ConvertInternal(clt, seq, lid, lock_protocol::Mode(lock_protocol::Mode::NL), 0, unused);
+	return ConvertInternal(clt, seq, lid, lock_protocol::Mode(lock_protocol::Mode::NL), flags, unused);
 }
 
 
 lock_protocol::status
-LockManager::Stat(lock_protocol::LockId lid, int &r)
+LockManager::Stat(lock_protocol::LockId lid, int& r)
 {
 	lock_protocol::status ret = lock_protocol::OK;
 	r = 0;
 	return ret;
 }
 
+
 lock_protocol::status
-LockManager::Subscribe(int clt, std::string id, int &unused)
+LockManager::Subscribe(int clt, std::string id, int& unused)
 {
 	sockaddr_in           dstsock;
 	rpcc*                 cl;
@@ -353,6 +372,7 @@ LockManager::Subscribe(int clt, std::string id, int &unused)
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
+
 
 struct RevokeMsg {
 	RevokeMsg(int clt, int seq, int revoke_type)
