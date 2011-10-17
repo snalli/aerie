@@ -25,7 +25,7 @@ SUITE(HLock)
 	TEST_FIXTURE(HLockFixture, TestLockUnlockSingleClient1)
 	{
 		lock_protocol::Mode unused;
-		global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IX, 0);
+		global_hlckmgr->Acquire(root, lock_protocol::Mode::IX, 0);
 		global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XR, 0);
 		CHECK(check_grant_x(region_, a) == 0);
 		global_hlckmgr->Release(a);
@@ -36,9 +36,9 @@ SUITE(HLock)
 	{
 		lock_protocol::Mode unused;
 		ut_barrier_wait(&region_->barrier); 
-		global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IX, 0);
+		CHECK(global_hlckmgr->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
 		ut_barrier_wait(&region_->barrier); 
-		global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XL, 0);
+		CHECK(global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
 		CHECK(check_grant_x(region_, a) == 0);
 		global_hlckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
@@ -48,7 +48,7 @@ SUITE(HLock)
 	{
 		lock_protocol::Mode unused;
 		ut_barrier_wait(&region_->barrier); 
-		global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IS, 0);
+		global_hlckmgr->Acquire(root, lock_protocol::Mode::IS, 0);
 		global_hlckmgr->Acquire(a, root, lock_protocol::Mode::SL, 0);
 		ut_barrier_wait(&region_->barrier); 
 		global_hlckmgr->Release(a);

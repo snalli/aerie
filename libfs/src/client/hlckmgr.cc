@@ -287,6 +287,18 @@ HLockManager::FindOrCreateLock(lock_protocol::LockId lid,
 }
 
 
+HLock*
+HLockManager::FindOrCreateLock(lock_protocol::LockId lid)
+{
+	HLock* hlock;
+
+	pthread_mutex_lock(&mutex_);
+	hlock = FindOrCreateLockInternal(lid, NULL);
+	pthread_mutex_unlock(&mutex_);
+	return hlock;
+}
+
+
 /// \brief Acquires and attaches a base lock on a hierarchical lock using
 //  a capability
 /// 
@@ -309,7 +321,7 @@ HLockManager::AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode,
 	mode_set.Insert(mode);
 	mode_set.Insert(mode.LeastRecursiveMode());
 
-	r = lm_->Acquire(lid, mode_set, 0, mode_granted);
+	r = lm_->Acquire(lid, mode_set, lock_protocol::FLG_CAPABILITY, mode_granted);
 
 	if (r == lock_protocol::OK) {
 		if (mode_granted == lock_protocol::Mode(lock_protocol::Mode::XR) || 
@@ -343,6 +355,7 @@ HLockManager::AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, int flags
 	Lock*                    lock;
 	HLock*                   phlock = hlock->parent_;
 	lock_protocol::LockId    lid = hlock->lid_;
+	lock_protocol::LockId    plid;
 	lock_protocol::Mode::Set mode_set;
 	lock_protocol::Mode      mode_granted;
 	int                      r;
@@ -354,13 +367,14 @@ HLockManager::AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, int flags
 	mode_set.Insert(mode);
 	mode_set.Insert(mode.LeastRecursiveMode());
 
-	if (phlock) {
+	if (phlock && phlock->status() != NONE) {
 		if (!(flags & FLG_HAVEPARENT)) {
 			assert (phlock->BeginConverting(true) == 0);
 		}
 		if (phlock->lock_) {
 			if (lock_protocol::Mode::AbidesHierarchyRule(mode, phlock->lock_->public_mode_)) {
-				if ((r = lm_->Acquire(lid, mode_set, 0, mode_granted)) != 
+				plid = (unsigned long long) phlock->lock_->lid_;
+				if ((r = lm_->Acquire(lid, mode_set, 0, 1, (void**) &plid, mode_granted)) != 
 				    lock_protocol::OK)
 				{
 					if (r == lock_protocol::DEADLK) {
@@ -425,6 +439,7 @@ HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, in
 	HLock*                         hl;
 	HLock*                         old_hl;
 	lock_protocol::LockId          lid = hlock->lid_;
+	lock_protocol::LockId          plid;
 	lock_protocol::Mode::Set       mode_set;
 	lock_protocol::Mode            mode_granted;
 	int                            r;
@@ -462,7 +477,9 @@ HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, in
 	for (hlv_itr = hlv.end()-1; hlv_itr >= hlv.begin(); hlv_itr--) {
 		hl = *hlv_itr;
 		lid = hl->lid_;
-		r = lm_->Acquire(lid, hl->mode_, 0, mode_granted);
+		assert(hl->parent_ && hl->parent_->lock_);
+		plid = (unsigned long long) hl->parent_->lock_->lid_;
+		r = lm_->Acquire(lid, hl->mode_, 0, 1, (void**) &plid, mode_granted);
 		pthread_mutex_lock(&hl->mutex_);
 		hl->lock_ = lm_->FindLock(lid);
 		hl->lock_->payload_ = static_cast<void*>(hl);
@@ -473,7 +490,9 @@ HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, in
 		pthread_mutex_unlock(&hl->mutex_);
 	}
 	// attach public lock to the lock
-	r = lm_->Acquire(hlock->lid_, mode, 0, mode_granted);
+	assert(hlock->parent_ && hlock->parent_->lock_);
+	plid = (unsigned long long) hlock->parent_->lock_->lid_;
+	r = lm_->Acquire(hlock->lid_, mode, 0, 1, (void**) plid, mode_granted);
 	hlock->lock_ = lm_->FindLock(lid);
 	hlock->lock_->payload_ = static_cast<void*>(hlock);
 	
@@ -616,7 +635,7 @@ check_state:
 					}
 				}
 			} else {
-				//FIXME: instead of checking the acnestor_recursive_mode, we check 
+				//FIXME: instead of checking the ancestor_recursive_mode, we check 
 				// whether we are covered by our most recent acnestor. otherwise, we 
 				// follow up the parent chain to find the ancestor that covers us. 
 				// invariant: the lock has not been dropped so there must be an ancestor
@@ -696,6 +715,8 @@ check_state:
 						hlock->mode_ = mode;
 						hlock->owner_ = tid;
 						hlock->set_status(HLock::LOCKED);
+					} else {
+						hlock->set_status(HLock::NONE);
 					}
 				} else {	
 					phlock->AddChild(hlock);
@@ -712,6 +733,8 @@ check_state:
 					hlock->mode_ = mode;
 					hlock->owner_ = tid;
 					hlock->set_status(HLock::LOCKED);
+				} else {
+					hlock->set_status(HLock::NONE);
 				}
 			}
 			break;
@@ -745,6 +768,20 @@ HLockManager::Acquire(lock_protocol::LockId lid, lock_protocol::LockId plid,
 
 	hlock = FindOrCreateLock(lid, plid);
 	r = AcquireInternal(pthread_self(), hlock, mode, flags);
+	return r;
+}
+
+
+lock_protocol::status
+HLockManager::Acquire(lock_protocol::LockId lid, 
+                      lock_protocol::Mode mode, int flags)
+{
+	lock_protocol::status r;
+	HLock*                hlock;
+
+	hlock = FindOrCreateLock(lid);
+	r = AcquireInternal(pthread_self(), hlock, mode, flags);
+	return r;
 }
 
 

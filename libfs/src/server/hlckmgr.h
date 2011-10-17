@@ -5,6 +5,7 @@
 #ifndef _SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
 #define _SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
 
+#include <pthread.h>
 #include "server/lckmgr.h"
 #include "rpc/rpc.h"
 
@@ -23,8 +24,8 @@ public:
 	lock_protocol::status Subscribe(int, std::string, int&);
 
 private:
-	LockManager* lm_;
-
+	LockManager*    lm_;
+	pthread_mutex_t mutex_;
 };
 
 

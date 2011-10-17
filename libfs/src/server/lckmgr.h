@@ -3,6 +3,9 @@
 
 #include "server/lckmgr.h"
 #include <string>
+#include <google/sparsehash/sparseconfig.h>
+#include <google/dense_hash_map>
+#include <google/dense_hash_set>
 #include <deque>
 #include <set>
 #include <vector>
@@ -50,7 +53,7 @@ struct Lock {
 	};
 
 
-	Lock();
+	Lock(lock_protocol::LockId lid);
 	~Lock();
 
 	bool IsModeCompatibleInternal(int, int);
@@ -67,41 +70,46 @@ struct Lock {
 	bool                         retry_responded_;
 	bool                         revoke_sent_;
 	pthread_cond_t               retry_responded_cv_;
+	lock_protocol::LockId        lid_;
 };
 
 
 class LockManager {
 public:
-	LockManager(rpcs* rpc_server = NULL);
+	LockManager(rpcs* rpc_server = NULL, pthread_mutex_t* mutex = NULL);
 	~LockManager();
 	int Init(rpcs* rpc_server);
+	Lock* FindLock(lock_protocol::LockId lid);
+	Lock* FindOrCreateLock(lock_protocol::LockId lid);
 	lock_protocol::status Stat(lock_protocol::LockId, int&);
 	lock_protocol::status Acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, unsigned long long arg, int& mode_granted);
 	lock_protocol::status AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, std::vector<int> modeiv, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
 	lock_protocol::status Convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
 	lock_protocol::status Release(int clt, int seq, lock_protocol::LockId lid, int flags, int& unused);
-	lock_protocol::Mode  SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set);
+	lock_protocol::Mode  SelectMode(Lock* lock, lock_protocol::Mode::Set mode_set);
 
 	// subscribe for future notifications by telling the server the RPC addr
 	lock_protocol::status Subscribe(int, std::string, int&);
 	void revoker();
 	void retryer();
 
+	Lock* FindLockInternal(lock_protocol::LockId lid);
+	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
+	lock_protocol::status AcquireInternal(int clt, int seq, Lock* l, lock_protocol::Mode::Set mode_set, int flags, int& mode_granted);
+	lock_protocol::status ConvertInternal(int clt, int seq, Lock* l, lock_protocol::Mode mode, int flags, int& unused);
+
 private:
-	lock_protocol::status AcquireInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, int& mode_granted);
-	lock_protocol::status ConvertInternal(int clt, int seq, lock_protocol::LockId lid, lock_protocol::Mode mode, int flags, int& unused);
+	std::map<int, rpcc*>                                 clients_;
+	google::dense_hash_map<lock_protocol::LockId, Lock*> locks_;
+	std::set<lock_protocol::LockId>                      revoke_set_;
 
-	std::map<int, rpcc*>                    clients_;
-	std::map<lock_protocol::LockId, Lock>   locks_;
-	std::set<lock_protocol::LockId>         revoke_set_;
-
-	pthread_mutex_t                         mutex_;
-	pthread_cond_t                          available_cv_;
-	pthread_cond_t                          revoke_cv_;
+	pthread_mutex_t*                                     mutex_;
+	pthread_cond_t                                       available_cv_;
+	pthread_cond_t                                       revoke_cv_;
 	/// Contains any locks that become available after a release or have being
 	/// acquired in shared mode (and thus waiting clients can grab them)
-	std::deque<lock_protocol::LockId>       available_locks_; 
-	class LockUser*                         lu_;
+	std::deque<lock_protocol::LockId>                    available_locks_; 
+	class LockUser*                                      lu_;
 };
 
 

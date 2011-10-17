@@ -271,6 +271,11 @@ public:
 	{
 		value_ = (~(1 << mode.value_)) & value_;
 	}
+	
+	bool Empty()
+	{
+		return value_ == 0;
+	}
 
 	void Clear()
 	{

@@ -114,6 +114,7 @@ public:
 
 	enum Flag {
 		FLG_NOBLK = lock_protocol::FLG_NOQUE, // don't block if can't grant lock
+		FLG_CAPABILITY = lock_protocol::FLG_CAPABILITY
 	};
 
 	Lock(lock_protocol::LockId);

@@ -1,5 +1,6 @@
 #include "server/hlckmgr.h"
 #include "rpc/rpc.h"
+#include "common/debug.h"
 #include "common/lock_protocol.h"
 #include "server/lckmgr.h"
 
@@ -12,7 +13,9 @@ namespace server {
 
 HLockManager::HLockManager(rpcs* rpc_server)
 {
-	lm_ = new LockManager();
+	pthread_mutex_init(&mutex_, NULL);
+
+	lm_ = new LockManager(NULL, &mutex_);
 
 	if (rpc_server) {
 		rpc_server->reg(lock_protocol::stat, this, &HLockManager::Stat);
@@ -33,10 +36,53 @@ HLockManager::~HLockManager()
 
 lock_protocol::status
 HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid, 
-                      int mode_set, int flags, 
+                      int mode_seti, int flags, 
                       unsigned long long arg, int& mode_granted)
 {
-	return lm_->Acquire(clt, seq, lid, mode_set, flags, arg, mode_granted);
+	lock_protocol::status              r;
+	lock_protocol::LockId              plid = (lock_protocol::LockId) arg;
+	Lock*                              lock;
+	Lock*                              plock;
+	lock_protocol::Mode                plock_mode = lock_protocol::Mode::NL;
+	lock_protocol::Mode::Set           mode_set = lock_protocol::Mode::Set(mode_seti);
+	lock_protocol::Mode::Set::Iterator itr;
+	ClientRecord*                      cr;
+
+	pthread_mutex_lock(&mutex_);
+	lock = lm_->FindOrCreateLockInternal(lid);
+
+	if (flags & lock_protocol::FLG_CAPABILITY) {
+		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %llu (%s)"
+					" using capability\n", clt, seq, lid, 
+					mode_set.String().c_str());
+		//TODO verify capability or get capability from the table
+	} else {
+		if ((plock = lm_->FindOrCreateLockInternal(plid)) &&
+			(cr = plock->gtque_.Find(clt))) 
+		{
+			plock_mode = cr->mode();
+		} else {
+			r = lock_protocol::HRERR;
+			goto done;
+		}
+		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %llu (%s)"
+				" under hierarchical lock %llu (%s)\n", clt, seq, lid, 
+				mode_set.String().c_str(), plid, plock_mode.String().c_str());
+		for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
+			if (!lock_protocol::Mode::AbidesHierarchyRule((*itr), plock_mode)) {
+				mode_set.Remove((*itr));
+			}
+		}
+		if (mode_set.Empty()) {
+			r = lock_protocol::HRERR;
+			goto done;
+		}
+	}
+	r = lm_->AcquireInternal(clt, seq, lock, lock_protocol::Mode::Set(mode_set), 
+							 flags, mode_granted);
+done:
+	pthread_mutex_unlock(&mutex_);
+	return r;
 }
 
 

@@ -23,7 +23,7 @@
 //    starve other clients.
 //
 // Locks are ordered by time of expiration. A thread periodically checks
-// if there any expired locks and collects such locks. 
+// if there are any expired locks and collects such locks. 
 
 
 
@@ -60,8 +60,9 @@ ClientRecord::ClientRecord(ClientRecord::id_t clt, int seq, ClientRecord::Mode m
 { }
 
 
-Lock::Lock()
-	: expected_clt_(-1), 
+Lock::Lock(lock_protocol::LockId lid)
+	: lid_(lid),
+	  expected_clt_(-1), 
 	  retry_responded_(false), 
 	  revoke_sent_(false),
 	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode(lock_protocol::Mode::NL))
@@ -93,8 +94,14 @@ retrythread(void *x)
 	return 0;
 }
 
-
-LockManager::LockManager(rpcs* rpc_server)
+// ISSUE: Bad software engineering: 
+// We want to be able to use LockManager as a building block
+// for other lock managers such as hierarchical lock manager.
+// That's why we need to construct some of the components of
+// the lock manager such as the global mutex.
+// this however breaks encapsulation.
+LockManager::LockManager(rpcs* rpc_server, pthread_mutex_t* mutex)
+	: mutex_(mutex)
 {
 	assert(Init(rpc_server) == 0);
 }
@@ -103,12 +110,17 @@ LockManager::LockManager(rpcs* rpc_server)
 int
 LockManager::Init(rpcs* rpc_server)
 {
-	pthread_mutex_init(&mutex_, NULL);
+	pthread_t th;
+	int       r;
+
+	if (!mutex_) {
+		mutex_ = new pthread_mutex_t;
+		pthread_mutex_init(mutex_, NULL);
+	}
 	pthread_cond_init(&revoke_cv_, NULL);
 	pthread_cond_init(&available_cv_, NULL);
-
-	pthread_t th;
-	int r = pthread_create(&th, NULL, &revokethread, (void *) this);
+	locks_.set_empty_key(-1);
+	r = pthread_create(&th, NULL, &revokethread, (void *) this);
 	assert (r == 0);
 	r = pthread_create(&th, NULL, &retrythread, (void *) this);
 	assert (r == 0);
@@ -129,25 +141,94 @@ LockManager::~LockManager()
 {
 	std::map<int, rpcc*>::iterator itr;
 
-	pthread_mutex_lock(&mutex_);
+	pthread_mutex_lock(mutex_);
 	for (itr = clients_.begin(); itr != clients_.end(); ++itr) {
 		delete itr->second;
 	}
-	pthread_mutex_unlock(&mutex_);
-	pthread_mutex_destroy(&mutex_);
+	pthread_mutex_unlock(mutex_);
+	//pthread_mutex_destroy(mutex_);
 	pthread_cond_destroy(&revoke_cv_);
 	pthread_cond_destroy(&available_cv_);
 }
 
 
+/// \brief Returns the lock lid if it exists, otherwise it returns NULL
+/// Assumes caller has the mutex LockManager::mutex_
+inline Lock*
+LockManager::FindLockInternal(lock_protocol::LockId lid)
+{
+	Lock* lp;
+
+	// if lid does not exist then the initial value of the slot is 0 (NULL)
+	lp = locks_[lid];
+	return lp;
+}
+
+
+/// \brief Returns the lock lid. If the lock does not exist, it first creates 
+/// the lock.
+/// Assumes caller has the mutex LockManager::mutex_
+inline Lock*
+LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
+{
+	Lock* lp;
+
+	lp = locks_[lid];
+	if (lp == NULL) {
+		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+		        "Creating lock %llu\n", lid);
+		lp = new Lock(lid);
+		locks_[lid] = lp;
+	}	
+	return lp;
+}
+
+
+/// \brief Finds the lock identified by lid. 
+///
+/// \param lid lock identifier. 
+/// \return a reference (pointer) to the lock.
+///
+/// Does no reference counting.
+Lock*
+LockManager::FindLock(lock_protocol::LockId lid)
+{
+	Lock* l;
+
+	pthread_mutex_lock(mutex_);
+	l = FindLockInternal(lid);
+	pthread_mutex_unlock(mutex_);
+	return l;
+}
+
+
+/// \brief Finds the lock identified by lid. If the lock lid does not exist 
+/// it first creates the lock.
+///
+/// \param lid lock identifier. 
+/// \return a reference (pointer) to the lock.
+///
+/// Does no reference counting.
+Lock*
+LockManager::FindOrCreateLock(lock_protocol::LockId lid)
+{
+	Lock* l;
+
+	pthread_mutex_lock(mutex_);
+	l = FindOrCreateLockInternal(lid);
+	pthread_mutex_unlock(mutex_);
+	return l;
+}
+
+
 lock_protocol::Mode
-LockManager::SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set)
+LockManager::SelectMode(Lock* lock, lock_protocol::Mode::Set mode_set)
 {
 	/* Pick the most severe that can be granted instantly, or
 	 * wait for the least severe */
 	
 	lock_protocol::Mode mode = mode_set.MostSevere(lock_protocol::Mode::NL);
-	if (!lock.gtque_.CanGrant(mode)) {
+	if (!lock->gtque_.CanGrant(mode)) {
 		mode = mode_set.LeastSevere();
 	}
 	dbg_log(DBG_INFO, "selecting mode %s out of modes {%s}\n",  
@@ -155,9 +236,9 @@ LockManager::SelectMode(Lock& lock, lock_protocol::Mode::Set mode_set)
 	return mode;
 }
 
-
+/// assumption: caller has mutex_
 lock_protocol::status
-LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid, 
+LockManager::AcquireInternal(int clt, int seq, Lock* l, 
                              lock_protocol::Mode::Set mode_set, int flags, 
                              int& mode_granted)
 {
@@ -167,21 +248,19 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 	lock_protocol::status r;
 	lock_protocol::Mode   mode;
 	
-	pthread_mutex_lock(&mutex_);
-	Lock& l = locks_[lid];
 	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
-	        lid, mode_set.String().c_str());
+	        l->lid_, mode_set.String().c_str());
 	mode = SelectMode(l, mode_set);
-	wq_len = l.waiting_list_.size();
-	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", lid, wq_len);
-	if ((wq_len == 0 || (wq_len > 0 && l.expected_clt_ == clt)) &&
-		l.gtque_.CanGrant(mode)) 
+	wq_len = l->waiting_list_.size();
+	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", l->lid_, wq_len);
+	if ((wq_len == 0 || (wq_len > 0 && l->expected_clt_ == clt)) &&
+		l->gtque_.CanGrant(mode)) 
 	{
 		dbg_log(DBG_INFO, "lock %llu is compatible; granting to clt %d\n", 
-		        lid, clt);
+		        l->lid_, clt);
 		r = lock_protocol::OK;
-		l.gtque_.Add(ClientRecord(clt, seq, mode));
-		l.expected_clt_ = -1;
+		l->gtque_.Add(ClientRecord(clt, seq, mode));
+		l->expected_clt_ = -1;
 		if (wq_len != 0) {
 			// Since there are clients waiting, we have two options. If the 
 			// request of the next client in line is:
@@ -189,19 +268,19 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 			//    msg to the waiting client.
 			// 2) incompatible with the just serviced request, we add the lock
 			//    in the revoke set to get it back.
-			std::deque<ClientRecord>& wq = l.waiting_list_;
+			std::deque<ClientRecord>& wq = l->waiting_list_;
 			ClientRecord&             cr = wq.front();
-			if (l.gtque_.CanGrant(cr.mode())) {
-				available_locks_.push_back(lid);
+			if (l->gtque_.CanGrant(cr.mode())) {
+				available_locks_.push_back(l->lid_);
 				pthread_cond_signal(&available_cv_);
 			} else {
-				revoke_set_.insert(lid);
-				l.revoke_sent_ = true;
+				revoke_set_.insert(l->lid_);
+				l->revoke_sent_ = true;
 				pthread_cond_signal(&revoke_cv_);
 			}
 		} else {
 			// a brand new lock
-			l.revoke_sent_ = false;
+			l->revoke_sent_ = false;
 		}
 		mode_granted = mode.value();
 	} else {
@@ -210,22 +289,21 @@ LockManager::AcquireInternal(int clt, int seq, lock_protocol::LockId lid,
 				// Note that we don't need to add lid to revoke_set_ here, because we
 				// already did so for the head of the queue
 				dbg_log(DBG_INFO, "clt %d not expected for lock %llu; queued\n",
-						clt, lid);
+						clt, l->lid_);
 			} else {
 				dbg_log(DBG_INFO, "queuing clt %d seq %d for lock %llu\n", 
-						clt, seq, lid);
+						clt, seq, l->lid_);
 				// i will be the head of the waiting list
-				if (!l.revoke_sent_) {
-					revoke_set_.insert(lid);
-					l.revoke_sent_ = true;
+				if (!l->revoke_sent_) {
+					revoke_set_.insert(l->lid_);
+					l->revoke_sent_ = true;
 					pthread_cond_signal(&revoke_cv_);
 				}
 			}
-			l.waiting_list_.push_back(ClientRecord(clt, seq, mode));
+			l->waiting_list_.push_back(ClientRecord(clt, seq, mode));
 		}
 		r = lock_protocol::RETRY;
 	}
-	pthread_mutex_unlock(&mutex_);
 	return r;
 }
 
@@ -235,8 +313,15 @@ LockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
                      int mode_set, int flags, 
                      unsigned long long arg, int& mode_granted)
 {
-	return AcquireInternal(clt, seq, lid, lock_protocol::Mode::Set(mode_set), 
-	                       flags, mode_granted);
+	lock_protocol::status r;
+	Lock*                 lock;
+
+	pthread_mutex_lock(mutex_);
+	lock = FindOrCreateLockInternal(lid);
+	r = AcquireInternal(clt, seq, lock, lock_protocol::Mode::Set(mode_set), 
+	                    flags, mode_granted);
+	pthread_mutex_unlock(mutex_);
+	return r;
 }
 
 
@@ -266,7 +351,7 @@ LockManager::AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> 
 
 // convert does not block to avoid any deadlocks.
 lock_protocol::status
-LockManager::ConvertInternal(int clt, int seq, lock_protocol::LockId lid, 
+LockManager::ConvertInternal(int clt, int seq, Lock* l, 
                              lock_protocol::Mode new_mode, 
                              int flags, int& unused)
 {
@@ -274,14 +359,11 @@ LockManager::ConvertInternal(int clt, int seq, lock_protocol::LockId lid,
 	lock_protocol::status                 r = lock_protocol::NOENT;
 	int                                   next_status;
 
-	pthread_mutex_lock(&mutex_);
-	if (locks_.find(lid) != locks_.end() && 
-		locks_[lid].gtque_.Exists(clt))
+	if (locks_.find(l->lid_) != locks_.end() && locks_[l->lid_]->gtque_.Exists(clt))
 	{
-		Lock&         l = locks_[lid];
-		ClientRecord* cr = l.gtque_.Find(clt);
+		ClientRecord* cr = l->gtque_.Find(clt);
 		dbg_log(DBG_INFO, "clt %d convert lck %llu at seq %d (%s --> %s)\n", 
-		        clt, lid, seq, cr->mode().String().c_str(), 
+		        clt, l->lid_, seq, cr->mode().String().c_str(), 
 				new_mode.String().c_str());
 		assert(cr->seq_ == seq);
 		// if there is an outstanding revoke request then 
@@ -290,16 +372,16 @@ LockManager::ConvertInternal(int clt, int seq, lock_protocol::LockId lid,
 		// requested by revoke.
 		// We only grant the conversion if it does not 
 		// upgrade the current mode.
-		if (l.revoke_sent_ &&
-		    !l.gtque_.IsModeSet(new_mode) &&
-			l.gtque_.PartialOrder(new_mode) >= 0)
+		if (l->revoke_sent_ &&
+		    !l->gtque_.IsModeSet(new_mode) &&
+			l->gtque_.PartialOrder(new_mode) >= 0)
 		{
 			r = lock_protocol::RETRY;
 			goto out;
 		}
 		// if requested mode cannot be granted immediately then don't
 		// block-wait to avoid deadlock
-		if (l.gtque_.ConvertInPlace(clt, new_mode) < 0) {
+		if (l->gtque_.ConvertInPlace(clt, new_mode) < 0) {
 			r = lock_protocol::RETRY;
 			goto out;
 		}
@@ -307,12 +389,12 @@ LockManager::ConvertInternal(int clt, int seq, lock_protocol::LockId lid,
 		// But first ensure there is no outstanding acquire which has been woken
 		// up to acquire the lock (expected_clt == -1), otherwise we could end  
 		// up making the lock available to a second client. 
-		if (l.expected_clt_ == -1) {
-			std::deque<ClientRecord>& wq = l.waiting_list_;
+		if (l->expected_clt_ == -1) {
+			std::deque<ClientRecord>& wq = l->waiting_list_;
 			if (!wq.empty()) {
 				ClientRecord& wcr = wq.front();
-				if (l.gtque_.CanGrant(wcr.mode())) {
-					available_locks_.push_back(lid);
+				if (l->gtque_.CanGrant(wcr.mode())) {
+					available_locks_.push_back(l->lid_);
 					pthread_cond_signal(&available_cv_);
 				}
 			}
@@ -321,7 +403,6 @@ LockManager::ConvertInternal(int clt, int seq, lock_protocol::LockId lid,
 	}
 
 out:
-	pthread_mutex_unlock(&mutex_);
 	return r;
 }
 
@@ -331,17 +412,32 @@ lock_protocol::status
 LockManager::Convert(int clt, int seq, lock_protocol::LockId lid, 
                      int new_mode, int flags, int& unused)
 {
+	lock_protocol::status r;
+	Lock*                 lock;
+
+	pthread_mutex_lock(mutex_);
+	lock = FindOrCreateLockInternal(lid);
 	lock_protocol::Mode::Enum enum_new_mode = static_cast<lock_protocol::Mode::Enum>(new_mode);
-	return ConvertInternal(clt, seq, lid, lock_protocol::Mode(enum_new_mode), flags, unused);
+	r = ConvertInternal(clt, seq, lock, lock_protocol::Mode(enum_new_mode), flags, unused);
+	pthread_mutex_unlock(mutex_);
+	return r;
 }
 
 
 lock_protocol::status
 LockManager::Release(int clt, int seq, lock_protocol::LockId lid, int flags, int& unused)
 {
+	lock_protocol::status r;
+	Lock*                 lock;
+
 	dbg_log(DBG_INFO, "clt %d release lck %llu at seq %d\n", 
 	        clt, lid, seq);
-	return ConvertInternal(clt, seq, lid, lock_protocol::Mode(lock_protocol::Mode::NL), flags, unused);
+
+	pthread_mutex_lock(mutex_);
+	lock = FindOrCreateLockInternal(lid);
+	r = ConvertInternal(clt, seq, lock, lock_protocol::Mode(lock_protocol::Mode::NL), flags, unused);
+	pthread_mutex_unlock(mutex_);
+	return r;
 }
 
 
@@ -361,7 +457,7 @@ LockManager::Subscribe(int clt, std::string id, int& unused)
 	rpcc*                 cl;
 	lock_protocol::status r = lock_protocol::OK;
 
-	pthread_mutex_lock(&mutex_);
+	pthread_mutex_lock(mutex_);
 	make_sockaddr(id.c_str(), &dstsock);
 	cl = new rpcc(dstsock);
 	if (cl->bind() == 0) {
@@ -369,7 +465,7 @@ LockManager::Subscribe(int clt, std::string id, int& unused)
 	} else {
 		printf("failed to bind to clt %d\n", clt);
 	}
-	pthread_mutex_unlock(&mutex_);
+	pthread_mutex_unlock(mutex_);
 	return r;
 }
 
@@ -401,15 +497,15 @@ LockManager::revoker()
 	std::vector<struct RevokeMsg>::iterator   itr_r;
 
 	while (true) {
-		pthread_mutex_lock(&mutex_);
+		pthread_mutex_lock(mutex_);
 		while (revoke_set_.empty()) {
-			pthread_cond_wait(&revoke_cv_, &mutex_);
+			pthread_cond_wait(&revoke_cv_, mutex_);
 		}
 		itr_l = revoke_set_.begin();
 		lid = *itr_l;
 		revoke_set_.erase(lid);
-		Lock& l = locks_[lid];
-		ClientRecord& waiting_cr = l.waiting_list_.front();
+		Lock* l = locks_[lid];
+		ClientRecord& waiting_cr = l->waiting_list_.front();
 
 		// ISSUE: distributed deadlock
 		// doing RPC to the client while holding the global mutex may cause a 
@@ -426,8 +522,8 @@ LockManager::revoker()
 		// clients will be added in the gtque that need to be dropped.
 		// make a local copy of the requests to be send and then release 
 		// the mutex.
-		for (itr_icr = l.gtque_.begin(); 
-		     itr_icr != l.gtque_.end(); itr_icr++) 
+		for (itr_icr = l->gtque_.begin(); 
+		     itr_icr != l->gtque_.end(); itr_icr++) 
 		{
 			int           clt = (*itr_icr).first;
 			ClientRecord& cr = (*itr_icr).second;
@@ -443,7 +539,7 @@ LockManager::revoker()
 			}
 			revoke_msgs.push_back(RevokeMsg(clt, cr.seq_, revoke_type));
 		}
-		pthread_mutex_unlock(&mutex_);
+		pthread_mutex_unlock(mutex_);
 
 		for (itr_r = revoke_msgs.begin(); itr_r != revoke_msgs.end(); itr_r++) {
 			int           unused;
@@ -473,28 +569,28 @@ LockManager::retryer()
 {
 
 	while (true) {
-		pthread_mutex_lock(&mutex_);
+		pthread_mutex_lock(mutex_);
 		while (available_locks_.empty()) {
-			pthread_cond_wait(&available_cv_, &mutex_);
+			pthread_cond_wait(&available_cv_, mutex_);
 		}
 		lock_protocol::LockId lid = available_locks_.front();
 		// XXX warning: this is not fault-tolerant
 		available_locks_.pop_front();
-		Lock& l = locks_[lid];
-		std::deque<ClientRecord>& wq = l.waiting_list_;
+		Lock* l = locks_[lid];
+		std::deque<ClientRecord>& wq = l->waiting_list_;
 		ClientRecord* cr = NULL;
 		if (!wq.empty()) {
 			// Verify the next waiting client can indeed grab the lock,
 			// that is we don't have any false alarm arising from a race.
 			cr = &wq.front();
-			if (l.gtque_.CanGrant(cr->mode())) {
-				l.expected_clt_ = cr->id();
+			if (l->gtque_.CanGrant(cr->mode())) {
+				l->expected_clt_ = cr->id();
 				wq.pop_front();
 			} else {
 				cr = NULL;
 			}
 		}
-		pthread_mutex_unlock(&mutex_);
+		pthread_mutex_unlock(mutex_);
 
 		if (cr) {
 			int accepted;
@@ -508,12 +604,12 @@ LockManager::retryer()
 				// client ignored retry. make the lock available for the next waiting
 				// client
 				if (!accepted) {
-					pthread_mutex_lock(&mutex_);
-					l.expected_clt_ = -1;
+					pthread_mutex_lock(mutex_);
+					l->expected_clt_ = -1;
 					if (!wq.empty()) {
 						available_locks_.push_back(lid);
 					}
-					pthread_mutex_unlock(&mutex_);
+					pthread_mutex_unlock(mutex_);
 				}
 			} else {
 				dbg_log(DBG_ERROR,

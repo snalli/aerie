@@ -99,6 +99,7 @@ uint32_t lock_protocol::Mode::hierarchy_rule_bitmaps_[] = {
 	            BITMAP_SET(lock_protocol::Mode::IX),
 
 	/* XL   */  BITMAP_SET(lock_protocol::Mode::IX) | 
+	            BITMAP_SET(lock_protocol::Mode::XL) |
 	            BITMAP_SET(lock_protocol::Mode::XR) |
 	            BITMAP_SET(lock_protocol::Mode::IXSL),
 	

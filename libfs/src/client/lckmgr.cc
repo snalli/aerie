@@ -402,7 +402,7 @@ check_state:
 				// lock cannot be granted locally. we need to communicate with the server.
 				// grant the most severe lock
 				mode = mode_set.MostSevere(lock_protocol::Mode::NL);
-				if ((r = do_convert(l, mode, flags & Lock::FLG_NOBLK)) 
+				if ((r = do_convert(l, mode, flags | Lock::FLG_NOBLK)) 
 				    == lock_protocol::OK) 
 				{
 					l->public_mode_ = mode;
@@ -464,7 +464,7 @@ check_state:
 			dbg_log(DBG_INFO, "[%d:%lu] lock %llu not available; acquiring now\n",
 			        cl2srv_->id(), tid, lid);
 			l->set_status(Lock::ACQUIRING);
-			while ((r = do_acquire(l, mode_set, flags & Lock::FLG_NOBLK, argc, argv, mode_granted)) 
+			while ((r = do_acquire(l, mode_set, flags, argc, argv, mode_granted)) 
 			       == lock_protocol::RETRY) 
 			{	
 				while (!(l->can_retry_ || l->cancel_)) {
@@ -484,7 +484,9 @@ check_state:
 				l->public_mode_ = mode_granted;
 				l->gtque_.Add(ThreadRecord(tid, mode_granted));
 				l->set_status(Lock::LOCKED);
-			}
+			} else {
+				l->set_status(Lock::NONE);
+			} 
 			break;
 		default:
 			break;
@@ -847,7 +849,7 @@ LockManager::do_acquire(Lock* l,
 	if (argc > 0) {
 		arg = (unsigned long long) argv[0];
 	}
-	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
+	rpc_flags = flags & (lock_protocol::FLG_NOQUE | lock_protocol::FLG_CAPABILITY);
 	r = cl2srv_->call(lock_protocol::acquire, cl2srv_->id(), ++last_seq_, l->lid_, 
 	                  mode_set.value(), rpc_flags, arg, retval);
 	l->seq_ = last_seq_;
@@ -891,7 +893,7 @@ LockManager::do_acquirev(std::vector<Lock*> lv,
 	for (mode_itr = modev.begin(); mode_itr != modev.end(); mode_itr++) {
 		modeiv.push_back((*mode_itr).value());
 	}
-	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
+	rpc_flags = flags & (lock_protocol::FLG_NOQUE | lock_protocol::FLG_CAPABILITY);
 	r = cl2srv_->call(lock_protocol::acquirev, cl2srv_->id(), ++last_seq_, lidv, 
 	                  modeiv, rpc_flags, argv, num_locks_granted);
 	for (lock_itr = lv.begin(); lock_itr != lv.end(); lock_itr++) {
@@ -925,7 +927,7 @@ LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 	if (lu_) {
 		lu_->OnConvert(l);
 	}
-	rpc_flags |= (flags & Lock::FLG_NOBLK) ? lock_protocol::FLG_NOQUE : 0;
+	rpc_flags = flags & (lock_protocol::FLG_NOQUE | lock_protocol::FLG_CAPABILITY);
 	r = cl2srv_->call(lock_protocol::convert, cl2srv_->id(), l->seq_, l->lid_, 
 	                  mode.value(), rpc_flags, unused);
 	return r;
