@@ -1,0 +1,13 @@
+# First rule - delete all
+-D
+
+# -a exit,always -F arch=b64 -F success=1 -S clone
+
+-a exit,always -F arch=b64 -F success=1 -S open
+-a exit,always -F arch=b64 -F success=1 -S close
+-a exit,always -F arch=b64 -F success=1 -S unlink
+-a exit,always -F arch=b64 -F success=1 -S link
+-a exit,always -F arch=b64 -F success=1 -S rename
+
+-e 1
+-l

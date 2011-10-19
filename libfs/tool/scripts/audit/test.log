@@ -1,0 +1,31 @@
+type=SYSCALL msg=audit(1316466925.839:110787): arch=c000003e syscall=2 success=yes exit=3 a0=4006a8 a1=2 a2=7fffffffdf48 a3=7fffffffd9d0 items=1 ppid=2059 pid=2531 auid=500 uid=500 gid=500 euid=500 suid=500 fsuid=500 egid=500 sgid=500 fsgid=500 tty=pts16 ses=14552 comm="foo" exe="/home/hvolos/tmp/tmp/foo" key=(null)
+type=CWD msg=audit(1316466925.839:110787):  cwd="/home/hvolos/tmp/tmp"
+type=PATH msg=audit(1316466925.839:110787): item=0 name="bar" inode=929567 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=SYSCALL msg=audit(1316466926.839:110787): arch=c000003e syscall=2 success=yes exit=3 a0=4006a8 a1=2 a2=7fffffffdf48 a3=7fffffffd9d0 items=1 ppid=2059 pid=2532 auid=500 uid=500 gid=500 euid=500 suid=500 fsuid=500 egid=500 sgid=500 fsgid=500 tty=pts16 ses=14552 comm="foo" exe="/home/hvolos/tmp/tmp/foo" key=(null)
+type=CWD msg=audit(1316466926.839:110787):  cwd="/home/hvolos/tmp/tmp"
+type=PATH msg=audit(1316466926.839:110787): item=0 name="bar" inode=929567 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=SYSCALL msg=audit(1316466956.839:110787): arch=c000003e syscall=2 success=yes exit=4 a0=4006a8 a1=2 a2=7fffffffdf48 a3=7fffffffd9d0 items=1 ppid=2059 pid=2532 auid=500 uid=500 gid=500 euid=500 suid=500 fsuid=500 egid=500 sgid=500 fsgid=500 tty=pts16 ses=14552 comm="foo" exe="/home/hvolos/tmp/tmp/foo" key=(null)
+type=CWD msg=audit(1316466956.839:110787):  cwd="/home/hvolos/tmp/tmp"
+type=PATH msg=audit(1316466956.839:110787): item=0 name="bar" inode=929567 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=SYSCALL msg=audit(1316467555.000:102843): arch=c000003e syscall=3 success=yes exit=0 a0=3 a1=1 a2=607280 a3=3831343233343932 items=0 ppid=1 pid=2531 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="irqbalance" exe="/usr/sbin/irqbalance" key=(null)
+type=SYSCALL msg=audit(1316468956.839:110787): arch=c000003e syscall=2 success=yes exit=5 a0=4006a8 a1=2 a2=7fffffffdf48 a3=7fffffffd9d0 items=1 ppid=2059 pid=2532 auid=500 uid=500 gid=500 euid=500 suid=500 fsuid=500 egid=500 sgid=500 fsgid=500 tty=pts16 ses=14552 comm="foo" exe="/home/hvolos/tmp/tmp/foo" key=(null)
+type=CWD msg=audit(1316468956.839:110787):  cwd="/home/hvolos/tmp/tmp"
+type=PATH msg=audit(1316468956.839:110787): item=0 name="bar" inode=929567 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=SYSCALL msg=audit(1318945206.003:170752): arch=c000003e syscall=82 success=yes exit=0 a0=7fffffffe1d4 a1=7fffffffe1d9 a2=0 a3=2 items=4 ppid=16504 pid=7218 auid=500 uid=500 gid=500 euid=500 suid=500 fsuid=500 egid=500 sgid=500 fsgid=500 tty=pts12 ses=19366 comm="mv" exe="/bin/mv" key=(null)
+type=CWD msg=audit(1318945206.003:170752):  cwd="/home/hvolos/workspace/muses/scripts"
+type=PATH msg=audit(1318945206.003:170752): item=0 name="/home/hvolos/workspace/muses/scripts" inode=7209711 dev=fd:00 mode=040775 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318945206.003:170752): item=1 name="/home/hvolos/workspace/muses/scripts" inode=7209711 dev=fd:00 mode=040775 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318945206.003:170752): item=2 name="beef" inode=7208995 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318945206.003:170752): item=3 name="dead" inode=7208995 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=SYSCALL msg=audit(1318945306.003:170752): arch=c000003e syscall=82 success=yes exit=0 a0=7fffffffe1d4 a1=7fffffffe1d9 a2=0 a3=2 items=4 ppid=16504 pid=7219 auid=500 uid=500 gid=500 euid=500 suid=500 fsuid=500 egid=500 sgid=500 fsgid=500 tty=pts12 ses=19366 comm="mv" exe="/bin/mv" key=(null)
+type=CWD msg=audit(1318945306.003:170752):  cwd="/home/hvolos/workspace/muses/scripts"
+type=PATH msg=audit(1318945306.003:170752): item=0 name="/home/hvolos/workspace/muses/scripts" inode=7209711 dev=fd:00 mode=040775 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318945306.003:170752): item=1 name="/home/hvolos/workspace/muses/scripts" inode=7209711 dev=fd:00 mode=040775 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318945306.003:170752): item=2 name="beef" inode=7208995 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318945306.003:170752): item=3 name="dead" inode=7208995 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=SYSCALL msg=audit(1318946306.003:170752): arch=c000003e syscall=82 success=yes exit=0 a0=7fffffffe1d4 a1=7fffffffe1d9 a2=0 a3=2 items=4 ppid=16504 pid=7220 auid=500 uid=500 gid=500 euid=500 suid=500 fsuid=500 egid=500 sgid=500 fsgid=500 tty=pts12 ses=19366 comm="mv" exe="/bin/mv" key=(null)
+type=CWD msg=audit(1318946306.003:170752):  cwd="/home/hvolos/workspace/muses/scripts"
+type=PATH msg=audit(1318946306.003:170752): item=0 name="/home/hvolos/workspace/muses/scripts" inode=7209711 dev=fd:00 mode=040775 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318946306.003:170752): item=1 name="/home/hvolos/workspace/muses/scripts" inode=7209711 dev=fd:00 mode=040775 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318946306.003:170752): item=2 name="beef" inode=7208995 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
+type=PATH msg=audit(1318946306.003:170752): item=3 name="dead" inode=7208995 dev=fd:00 mode=0100664 ouid=500 ogid=500 rdev=00:00
