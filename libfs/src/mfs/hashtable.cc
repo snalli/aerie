@@ -25,8 +25,9 @@ inline uint64_t lgl2lnr (uint64_t logical_addr)
 
 
 // If no space available then -E_NOMEM is returned 
-template<class T>
-int Page::Insert(T* desc, const char* key, int key_size, const char* val, int val_size)
+int 
+Page::Insert(Context* ctx, const char* key, int key_size, 
+             const char* val, int val_size)
 {
 	int      i;
 	int      step;
@@ -65,14 +66,16 @@ int Page::Insert(T* desc, const char* key, int key_size, const char* val, int va
 
 
 // If no space available then -E_NOMEM is returned 
-int Page::Insert(const char* key, int key_size, uint64_t val)
+int 
+Page::Insert(Context* ctx, const char* key, int key_size, uint64_t val)
 {
-	return Insert(key, key_size, (char*) &val, sizeof(val));
+	return Insert(ctx, key, key_size, (char*) &val, sizeof(val));
 }
 
 
 int 
-Page::Search(const char *key, int key_size, char** valp, int* val_sizep)
+Page::Search(Context* ctx, const char *key, int key_size, char** valp, 
+             int* val_sizep)
 {
 	int    i;
 	int    step;
@@ -107,14 +110,16 @@ Page::Search(const char *key, int key_size, char** valp, int* val_sizep)
 }
 
 
-int Page::Search(const char *key, int key_size, uint64_t* val)
+int 
+Page::Search(Context* ctx, const char *key, int key_size, uint64_t* val)
 {
 	int val_size;
-	return Search(key, key_size, (char**) &val, &val_size);
+	return Search(ctx, key, key_size, (char**) &val, &val_size);
 }
 
 
-int Page::Delete(Entry* entry, Entry* prev_entry, Entry* next_entry)
+int 
+Page::Delete(Context* ctx, Entry* entry, Entry* prev_entry, Entry* next_entry)
 {
 	int size;
 
@@ -134,7 +139,8 @@ int Page::Delete(Entry* entry, Entry* prev_entry, Entry* next_entry)
 }
 
 
-int Page::Delete(char *key, int key_size)
+int 
+Page::Delete(Context* ctx, char *key, int key_size)
 {
 	int    i;
 	int    step;
@@ -157,7 +163,7 @@ int Page::Delete(char *key, int key_size)
 				} else {
 					next_entry = NULL;
 				}
-				return Delete(entry, prev_entry, next_entry);
+				return Delete(ctx, entry, prev_entry, next_entry);
 			}
 		}
 		prev_entry = entry;
@@ -173,7 +179,8 @@ int Page::Delete(char *key, int key_size)
 //
 // If provided bucket page overflows, then remaining entries stay in the 
 // current bucket page and error -E_NOMEM is returned 
-int Page::SplitHalf(Page* splitover_page)
+int 
+Page::SplitHalf(Context* ctx, Page* splitover_page)
 {
 	int      ret;
 	int      i;
@@ -219,14 +226,14 @@ int Page::SplitHalf(Page* splitover_page)
 				//of inserts and deletes as reads are not bypassed through buffered 
 				//writes. 
 				val = *((uint64_t*) entry->get_val());
-				if ((ret = splitover_page->Insert(entry->get_key(), 
-				                              entry->get_keysize(), val))!=0) 
+				if ((ret = splitover_page->Insert(ctx, entry->get_key(), 
+				                                  entry->get_keysize(), val))!=0) 
 				{
 					return ret;
 				}
 				// It's safe to delete entries while iterating as tags
 				// of follow up entries are untouched
-				assert(Delete(entry, prev_entry, next_entry) == 0);
+				assert(Delete(ctx, entry, prev_entry, next_entry) == 0);
 			}
 		}	
 		prev_entry = entry;
@@ -243,7 +250,9 @@ int Page::SplitHalf(Page* splitover_page)
 //
 // If provided bucket page overflows, then remaining entries stay in the 
 // current bucket page and error -E_NOMEM is returned 
-int Page::Split(Page* splitover_page, SplitFunction split_function, void* uargs)
+int 
+Page::Split(Context* ctx, Page* splitover_page, SplitFunction split_function, 
+            void* uargs)
 {
 	int      ret;
 	int      i;
@@ -269,17 +278,17 @@ int Page::Split(Page* splitover_page, SplitFunction split_function, void* uargs)
 			}
 			key = entry->get_key();
 			keysize = entry->get_keysize();
-			if (split_function(key, keysize, uargs)) {
+			if (split_function(ctx, key, keysize, uargs)) {
 				//FIXME: when journaling, we need to be careful about ordering and overlap
 				//of inserts and deletes as reads are not bypassed through buffered 
 				//writes. 
 				val = *((uint64_t*) entry->get_val());
-				if ((ret = splitover_page->Insert(key, keysize, val)) != 0) {
+				if ((ret = splitover_page->Insert(ctx, key, keysize, val)) != 0) {
 					return ret;
 				}
 				// It's safe to delete entries while iterating as tags
 				// of follow up entries are untouched
-				assert(Delete(entry, prev_entry, next_entry) == 0);
+				assert(Delete(ctx, entry, prev_entry, next_entry) == 0);
 			}
 		}	
 		prev_entry = entry;
@@ -293,7 +302,8 @@ int Page::Split(Page* splitover_page, SplitFunction split_function, void* uargs)
 //
 // If current bucket page overflows, then remaining entries stay in the 
 // provided bucket page and error -E_NOMEM is returned 
-int Page::Merge(Page* other_page)
+int 
+Page::Merge(Context* ctx, Page* other_page)
 {
 	int      ret;
 	int      i;
@@ -319,14 +329,14 @@ int Page::Merge(Page* other_page)
 			//of inserts and deletes as reads are not bypassed through buffered 
 			//writes. 
 			val = *((uint64_t*) entry->get_val());
-			if ((ret = Insert(entry->get_key(), 
+			if ((ret = Insert(ctx, entry->get_key(), 
 			                  entry->get_keysize(), val)) != 0) 
 			{
 				return ret;
 			}
 			// It's safe to delete entries while iterating as tags
 			// of follow up entries are untouched
-			assert(other_page->Delete(entry, prev_entry, next_entry) == 0);
+			assert(other_page->Delete(ctx, entry, prev_entry, next_entry) == 0);
 		}	
 		prev_entry = entry;
 	}
@@ -360,7 +370,9 @@ void Page::Print()
 //
 //////////////////////////////////////////////////////////////////////////////
 
-int Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
+int 
+Bucket::Insert(Context* ctx, const char* key, int key_size, const char* val, 
+               int val_size)
 {
 	int   ret;
 	Page* page;
@@ -371,7 +383,7 @@ int Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
 	for (page=&page_; page != 0x0; page=page->Next()) {
 		// FIXME: should we trigger re-hash when inserting in an 
 		// existing overflow page???
-		if ((ret=page->Insert(key, key_size, val, val_size)) == 0) {
+		if ((ret=page->Insert(ctx, key, key_size, val, val_size)) == 0) {
 			return 0;
 		}
 		last_page = page;
@@ -382,7 +394,7 @@ int Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
 	
 	//FIXME: allocate from chunk allocator instead, not new/malloc
 	page = new(client::global_smgr) Page;
-	page->Insert(key, key_size, val, val_size);
+	page->Insert(ctx, key, key_size, val, val_size);
 	last_page->set_next(page);
 
 	//TODO: trigger re-hash 
@@ -391,19 +403,22 @@ int Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
 }
 
 
-int Bucket::Insert(const char* key, int key_size, uint64_t val)
+int 
+Bucket::Insert(Context* ctx, const char* key, int key_size, uint64_t val)
 {
-	return Insert(key, key_size, (char*) &val, sizeof(val));
+	return Insert(ctx, key, key_size, (char*) &val, sizeof(val));
 }
 
 
-int Bucket::Search(const char *key, int key_size, char** valp, int* val_sizep)
+int 
+Bucket::Search(Context* ctx, const char *key, int key_size, char** valp, 
+               int* val_sizep)
 {
 	int   ret;
 	Page* page;
 
 	for (page=&page_; page != 0x0; page=page->Next()) {
-		if ((ret=page->Search(key, key_size, valp, val_sizep)) == 0) {
+		if ((ret=page->Search(ctx, key, key_size, valp, val_sizep)) == 0) {
 			return ret;
 		}
 	}
@@ -412,21 +427,24 @@ int Bucket::Search(const char *key, int key_size, char** valp, int* val_sizep)
 }
 
 
-int Bucket::Search(const char* key, int key_size, uint64_t* val)
+int 
+Bucket::Search(Context* ctx, const char* key, int key_size, uint64_t* val)
 {
 	int val_size;
-	return Search(key, key_size, (char**) &val, &val_size);
+	return Search(ctx, key, key_size, (char**) &val, &val_size);
 }
 
 
-int Bucket::Delete(char* key, int key_size)
+int 
+Bucket::Delete(Context* ctx, char* key, int key_size)
 {
 
 }
 
 
 int 
-Bucket::Split(Bucket* splitover_bucket, SplitFunction split_function, void* uargs)
+Bucket::Split(Context* ctx, Bucket* splitover_bucket, 
+              SplitFunction split_function, void* uargs)
 {
 	int   ret;
 	Page* page;
@@ -436,7 +454,7 @@ Bucket::Split(Bucket* splitover_bucket, SplitFunction split_function, void* uarg
 	for (page=&page_; page != 0x0; page=page->Next()) {
 		splitover_page = &splitover_bucket->page_;
 dosplit:
-		ret=page->Split(splitover_page, split_function, uargs);
+		ret=page->Split(ctx, splitover_page, split_function, uargs);
 		if (ret==-E_NOMEM) {
 			if ((new_page=splitover_page->Next()) == 0x0) {
 				//FIXME: allocate new page from chunk descriptor, not new/malloc
@@ -492,7 +510,7 @@ typedef struct {
 } split_function_args;
 
 
-static int split_function(const char* key, int key_size, void* uargs)
+static int split_function(Context* ctx, const char* key, int key_size, void* uargs)
 {
 	uint32_t             curidx;
 	uint32_t             newidx;
@@ -511,7 +529,7 @@ static int split_function(const char* key, int key_size, void* uargs)
 
 
 inline uint32_t 
-HashTable::Index(const char* key, int key_size)
+HashTable::Index(Context* ctx, const char* key, int key_size)
 {
 	uint32_t idx;
 	uint32_t fh;
@@ -527,7 +545,8 @@ HashTable::Index(const char* key, int key_size)
 
 
 int 
-HashTable::Insert(const char* key, int key_size, const char* val, int val_size)
+HashTable::Insert(Context* ctx, const char* key, int key_size, 
+                  const char* val, int val_size)
 {
 	uint32_t idx;
 	Bucket*  bucket;
@@ -536,9 +555,9 @@ HashTable::Insert(const char* key, int key_size, const char* val, int val_size)
 
 	printf("HashTable::Insert key=%s\n", key);
 
-	idx = Index(key, key_size);
+	idx = Index(ctx, key, key_size);
 	bucket = &buckets_[idx];
-	if ((ret=bucket->Insert(key, key_size, val, val_size))==0) {
+	if ((ret=bucket->Insert(ctx, key, key_size, val, val_size))==0) {
 		return 0;
 	}
 	if (ret == HT_REHASH) {
@@ -546,7 +565,7 @@ HashTable::Insert(const char* key, int key_size, const char* val, int val_size)
 		args.size_log2_ = size_log2_;
 		bucket = &buckets_[split_idx_];
 		splitover_bucket = &buckets_[split_idx_+(1<<size_log2_)];
-		bucket->Split(splitover_bucket, split_function, (void*) &args);
+		bucket->Split(ctx, splitover_bucket, split_function, (void*) &args);
 		split_idx_++;
 		if (split_idx_ == (1 << size_log2_)) {
 			split_idx_ = 0;
@@ -558,32 +577,33 @@ HashTable::Insert(const char* key, int key_size, const char* val, int val_size)
 
 
 int 
-HashTable::Insert(const char* key, int key_size, uint64_t val)
+HashTable::Insert(Context* ctx, const char* key, int key_size, uint64_t val)
 {
-	return Insert(key, key_size, (char*) &val, sizeof(val));
+	return Insert(ctx, key, key_size, (char*) &val, sizeof(val));
 }
 
 
 int 
-HashTable::Search(const char *key, int key_size, char** valp, int* val_sizep)
+HashTable::Search(Context* ctx, const char *key, int key_size, char** valp, 
+                  int* val_sizep)
 {
 	uint32_t idx;
 	Bucket*  bucket;
 
 	printf("HashTable::Search key=%s\n", key);
 
-	idx = Index(key, key_size);
+	idx = Index(ctx, key, key_size);
 	bucket = &buckets_[idx];
-	return bucket->Search(key, key_size, valp, val_sizep);
+	return bucket->Search(ctx, key, key_size, valp, val_sizep);
 }
 
 
 int 
-HashTable::Search(const char* key, int key_size, uint64_t* val)
+HashTable::Search(Context* ctx, const char* key, int key_size, uint64_t* val)
 {
 	int val_size;
 
-	return Search(key, key_size, (char**) &val, &val_size);
+	return Search(ctx, key, key_size, (char**) &val, &val_size);
 }
 
 

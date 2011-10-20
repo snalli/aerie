@@ -9,7 +9,11 @@
 #include "common/debug.h"
 
 
-typedef int (*SplitFunction)(const char* key, int keysize, void* uargs); 
+class Context {
+
+};
+
+typedef int (*SplitFunction)(Context* ctx, const char* key, int keysize, void* uargs); 
 
 const int PAGE_SIZE = 128;
 const int TAG_SIZE = 1;
@@ -76,37 +80,37 @@ public:
 		new_entry->set_free(new_payload_size);
 		return new_entry;
 	}
-	inline int Init(bool free, int payload_size) {
+	int Init(bool free, int payload_size) {
 		assert(payload_size < (TAG_SIZE << 7));
 		char   tag_alloc_bit = (free==true) ? 0x00 : 0x80;
 		tag_[0] = tag_alloc_bit | payload_size;
 		return 0;
 	}
-	inline bool IsFree() {
+	bool IsFree() {
 		return (tag_[0] & 0x80 ? false : true);
 	}
-	inline void set_free() {
+	void set_free() {
 		tag_[0] &= 0x7F;
 	}
-	inline void set_free(int payload_size) {
+	void set_free(int payload_size) {
 		assert(payload_size < (TAG_SIZE << 7)); 
 		tag_[0] = payload_size;
 	}
-	inline int get_size() { 
+	int get_size() { 
 		return (tag_[0] & 0x7F) + TAG_SIZE; 
 	}
-	inline int get_payload_size() { 
+	int get_payload_size() { 
 		return tag_[0] & 0x7F; 
 	}
-	inline void set_size(int size) { 
+	void set_size(int size) { 
 		assert(size-TAG_SIZE < (TAG_SIZE << 7)); 
 		tag_[0] = (tag_[0] & 0x80) | (size-TAG_SIZE); 
 	}
-	inline void set_payload_size(int size) { 
+	void set_payload_size(int size) { 
 		assert(size < (TAG_SIZE << 7)); 
 		tag_[0] = (tag_[0] & 0x80) | size; 
 	}
-	inline int set_kv(const char* key, int key_size, const char* val, int val_size) {
+	int set_kv(const char* key, int key_size, const char* val, int val_size) {
 		int payload_size = key_size + val_size;
 		int max_payload_size = get_payload_size();
 		
@@ -121,19 +125,19 @@ public:
 		tag_[0] = 0x80 | payload_size; // mark as allocated and set size in a single op
 		return 0;
 	}
-	inline char* get_key() { 
+	char* get_key() { 
 		return (char*) payload_; 
 	}
-	inline int get_keysize() { 
+	int get_keysize() { 
 		return get_payload_size() - VAL_SIZE; 
 	}
-	inline char* get_val() { 
+	char* get_val() { 
 		return (char*) &payload_[get_keysize()];
 	}
-	inline int get_valsize() {
+	int get_valsize() {
 		return VAL_SIZE;
 	}
-	inline char get_tag() {
+	char get_tag() {
 		return tag_[0];
 	}
 
@@ -176,38 +180,38 @@ public:
 	}
 
 
-	static inline Page* MakePage(char* b) {
+	Page* MakePage(char* b) {
 		Page* page = (Page*) b;
 		return page;
 	}
 
-	inline Entry* GetEntry(int pos) {
+	Entry* GetEntry(int pos) {
 		return Entry::MakeEntry(&b_[pos]);
 	}
 	
-	inline bool IsEmpty() {
+	bool IsEmpty() {
 		Entry* entry = Entry::MakeEntry(&b_[0]);
 		return (entry->get_size() == PAGE_SIZE - sizeof(next_) 
 		        ? true : false);
 	}
 
-	inline Page* Next() {
+	Page* Next() {
 		return (Page*) next_;
 	}
 
-	inline void set_next(Page* next) {
+	void set_next(Page* next) {
 		next_ = (uint64_t) next;
 	}
 
 
-	int Insert(const char* key, int key_size, uint64_t val);
-	int Insert(const char* key, int key_size, const char* val, int val_size);
-	int Search(const char* key, int key_size, uint64_t* val);
-	int Search(const char* key, int key_size, char** val, int* val_size);
-	int Delete(char* key, int key_size);
-	int SplitHalf(Page* splitover_page);
-	int Split(Page* splitover_page, SplitFunction split_function, void* uargs);
-	int Merge(Page* other_page);
+	int Insert(Context* ctx, const char* key, int key_size, uint64_t val);
+	int Insert(Context* ctx, const char* key, int key_size, const char* val, int val_size);
+	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
+	int Search(Context* ctx, const char* key, int key_size, char** val, int* val_size);
+	int Delete(Context* ctx, char* key, int key_size);
+	int SplitHalf(Context* ctx, Page* splitover_page);
+	int Split(Context* ctx, Page* splitover_page, SplitFunction split_function, void* uargs);
+	int Merge(Context* ctx, Page* other_page);
 	void Print();
 
 private:
@@ -219,7 +223,7 @@ private:
 		volatile char b_[PAGE_SIZE];
 	};
 
-	int Delete(Entry* entry, Entry* prev_entry, Entry* next_entry);
+	int Delete(Context* ctx, Entry* entry, Entry* prev_entry, Entry* next_entry);
 };
 
 
@@ -243,19 +247,19 @@ public:
 
 	}
 
-	int Insert(const char* key, int key_size, uint64_t val);
-	int Insert(const char* key, int key_size, const char* val, int val_size);
-	int Search(const char* key, int key_size, uint64_t* val);
-	int Search(const char* key, int key_size, char** val, int* val_size);
-	int Delete(char* key, int key_size);
-	int Split(Bucket* new_bucket, SplitFunction split_function, void* uargs);
-	int Merge(Bucket*);
+	int Insert(Context* ctx, const char* key, int key_size, uint64_t val);
+	int Insert(Context* ctx, const char* key, int key_size, const char* val, int val_size);
+	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
+	int Search(Context* ctx, const char* key, int key_size, char** val, int* val_size);
+	int Delete(Context* ctx, char* key, int key_size);
+	int Split(Context* ctx, Bucket* new_bucket, SplitFunction split_function, void* uargs);
+	int Merge(Context* ctx, Bucket*);
 	void Print();
 
 private:
 	Page page_;
 
-	int Delete(Entry* entry, Entry* prev_entry, Entry* next_entry);
+	int Delete(Context* ctx, Entry* entry, Entry* prev_entry, Entry* next_entry);
 };
 
 
@@ -285,15 +289,15 @@ public:
 
 	int Init();
 
-	int Insert(const char* key, int key_size, const char* val, int val_size);
-	int Insert(const char* key, int key_size, uint64_t val);
-	int Search(const char *key, int key_size, char** valp, int* val_sizep);
-	int Search(const char* key, int key_size, uint64_t* val);
-	int Delete(char* key, int key_size);
+	int Insert(Context* ctx, const char* key, int key_size, const char* val, int val_size);
+	int Insert(Context* ctx, const char* key, int key_size, uint64_t val);
+	int Search(Context* ctx, const char *key, int key_size, char** valp, int* val_sizep);
+	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
+	int Delete(Context* ctx, char* key, int key_size);
 	void Print();
 
 private:
-	inline uint32_t Index(const char* key, int key_size);
+	inline uint32_t Index(Context* ctx, const char* key, int key_size);
 
 	uint32_t size_log2_;    // log2 of size 
 	uint32_t split_idx_;
