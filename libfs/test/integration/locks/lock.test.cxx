@@ -8,8 +8,8 @@
 #include "common/lock_protocol.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
-#include "lock.fixture.hxx"
-#include "checklock.hxx"
+#include "lock.fixture.h"
+#include "checklock.h"
 
 using namespace client;
 

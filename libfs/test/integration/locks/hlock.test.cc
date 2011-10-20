@@ -9,8 +9,8 @@
 #include "client/client_i.h"
 #include "client/libfs.h"
 #include "client/hlckmgr.h"
-#include "hlock.fixture.hxx"
-#include "checklock.hxx"
+#include "hlock.fixture.h"
+#include "checklock.h"
 
 using namespace client;
 

@@ -30,7 +30,7 @@ Import('chunkstoreLibrary')
 Import('rpcLibrary')
 depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 
-source = [Glob('*/*.test.cxx'), Glob('*/*.fixture.cxx'), Glob('*/*.helper.cxx'), 'main.cxx']
+source = [Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), 'main.cc']
 test = testEnv.Program('test', source, LIBS=['pthread', 'rt', 'UnitTest++']+depLibs)
 
 if testEnv['TEST_FILTER']:

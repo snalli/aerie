@@ -21,7 +21,7 @@ objects = myTestEnv['OBJECTS']
 
 lockServerProgram = myTestEnv.Program('smain', source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 hlockServerProgram = myTestEnv.Program('smain-hlock', source = myTestEnv['HLOCK_SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
-testProgram = myTestEnv.Program('test', source = [Glob('*.test.cxx'), Glob('*.fixture.cxx'), Glob('*.helper.cxx'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
+testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 
 

@@ -3,7 +3,7 @@
 #include "rpc/rpc.h"
 #include "tool/testfw/integrationtest.h"
 #include "client/client_i.h"
-#include "rpc.fixture.hxx"
+#include "rpc.fixture.h"
 
 using namespace client;
 

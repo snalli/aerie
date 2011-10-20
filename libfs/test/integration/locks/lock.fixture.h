@@ -7,7 +7,7 @@
 #include "client/libfs.h"
 #include "client/config.h"
 #include "client/client_i.h"
-#include "rpc.fixture.hxx"
+#include "rpc.fixture.h"
 
 using namespace client;
 
