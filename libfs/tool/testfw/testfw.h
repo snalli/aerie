@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 #include <unittest++/UnitTest++.h>

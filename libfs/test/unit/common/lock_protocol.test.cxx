@@ -42,7 +42,7 @@ SUITE(LockProtocolMode)
 	{
 		CHECK(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::XR, lock_protocol::Mode::XL) > 0 );
 		CHECK(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::IS, lock_protocol::Mode::XL) < 0);
-		CHECK(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::IXSL, lock_protocol::Mode::XL) == 0);
+		CHECK(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::IXSL, lock_protocol::Mode::XL) < 0);
 		
 		CHECK(lock_protocol::Mode(lock_protocol::Mode::IXSL) < lock_protocol::Mode(lock_protocol::Mode::XR));
 		CHECK(lock_protocol::Mode(lock_protocol::Mode::IX) < lock_protocol::Mode(lock_protocol::Mode::IXSL));
@@ -52,7 +52,7 @@ SUITE(LockProtocolMode)
 	TEST(TestSupremum1)
 	{
 		CHECK(lock_protocol::Mode::Supremum(lock_protocol::Mode(lock_protocol::Mode::IXSL), lock_protocol::Mode(lock_protocol::Mode::XL)) 
-		      == lock_protocol::Mode::XR);
+		      == lock_protocol::Mode::XL);
 	}
 
 	TEST(TestSupremum2)
@@ -152,7 +152,7 @@ SUITE(LockProtocolMode)
 		mode_set.Insert(lock_protocol::Mode::XR);
 		CHECK(mode_set.Exists(lock_protocol::Mode::XR));
 		CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) == lock_protocol::Mode(lock_protocol::Mode::XR));
-		CHECK(mode_set.MostSevere(lock_protocol::Mode::SL) == lock_protocol::Mode(lock_protocol::Mode::IX));
+		CHECK(mode_set.MostSevere(lock_protocol::Mode::SL) == lock_protocol::Mode(lock_protocol::Mode::SL));
 		CHECK(mode_set.MostSevere(lock_protocol::Mode::SR) == lock_protocol::Mode(lock_protocol::Mode::SL));
 	}
 }

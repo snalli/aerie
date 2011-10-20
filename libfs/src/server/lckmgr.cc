@@ -154,7 +154,7 @@ LockManager::~LockManager()
 
 /// \brief Returns the lock lid if it exists, otherwise it returns NULL
 /// Assumes caller has the mutex LockManager::mutex_
-inline Lock*
+Lock*
 LockManager::FindLockInternal(lock_protocol::LockId lid)
 {
 	Lock* lp;
@@ -168,7 +168,7 @@ LockManager::FindLockInternal(lock_protocol::LockId lid)
 /// \brief Returns the lock lid. If the lock does not exist, it first creates 
 /// the lock.
 /// Assumes caller has the mutex LockManager::mutex_
-inline Lock*
+Lock*
 LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 {
 	Lock* lp;

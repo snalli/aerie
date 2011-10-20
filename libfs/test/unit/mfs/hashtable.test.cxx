@@ -6,7 +6,7 @@
 #include "mfs/hashtable.h"
 #include "common/errno.h"
 
-SUITE(SuiteHashTableEntry)
+SUITE(HashTableEntry)
 {
 	const int buffer_size = 128;
 
@@ -62,7 +62,7 @@ SUITE(SuiteHashTableEntry)
 }
 
 
-SUITE(SuiteHashTablePage)
+SUITE(HashTablePage)
 {
 	TEST(TestInsert1)
 	{
@@ -417,7 +417,7 @@ std::string gen_rand_str(const int minlen, const int maxlen) {
 }
 
 
-SUITE(SuiteHashTable)
+SUITE(HashTable)
 {
 	TEST(TestInsert)
 	{

@@ -25,7 +25,8 @@ inline uint64_t lgl2lnr (uint64_t logical_addr)
 
 
 // If no space available then -E_NOMEM is returned 
-int Page::Insert(const char* key, int key_size, const char* val, int val_size)
+template<class T>
+int Page::Insert(T* desc, const char* key, int key_size, const char* val, int val_size)
 {
 	int      i;
 	int      step;
@@ -359,8 +360,7 @@ void Page::Print()
 //
 //////////////////////////////////////////////////////////////////////////////
 
-int 
-Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
+int Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
 {
 	int   ret;
 	Page* page;
@@ -391,15 +391,13 @@ Bucket::Insert(const char* key, int key_size, const char* val, int val_size)
 }
 
 
-int 
-Bucket::Insert(const char* key, int key_size, uint64_t val)
+int Bucket::Insert(const char* key, int key_size, uint64_t val)
 {
 	return Insert(key, key_size, (char*) &val, sizeof(val));
 }
 
 
-int 
-Bucket::Search(const char *key, int key_size, char** valp, int* val_sizep)
+int Bucket::Search(const char *key, int key_size, char** valp, int* val_sizep)
 {
 	int   ret;
 	Page* page;
@@ -414,16 +412,14 @@ Bucket::Search(const char *key, int key_size, char** valp, int* val_sizep)
 }
 
 
-int 
-Bucket::Search(const char* key, int key_size, uint64_t* val)
+int Bucket::Search(const char* key, int key_size, uint64_t* val)
 {
 	int val_size;
 	return Search(key, key_size, (char**) &val, &val_size);
 }
 
 
-int 
-Bucket::Delete(char* key, int key_size)
+int Bucket::Delete(char* key, int key_size)
 {
 
 }
@@ -444,7 +440,8 @@ dosplit:
 		if (ret==-E_NOMEM) {
 			if ((new_page=splitover_page->Next()) == 0x0) {
 				//FIXME: allocate new page from chunk descriptor, not new/malloc
-				//FIXME: protect against cycle-loop 
+				//FIXME: protect against cycle-loop resulting from infinite splits. 
+				//       is this possible? shouldn't splits converge?
 				new_page = new(client::global_smgr) Page;
 				splitover_page->set_next(new_page);
 			}

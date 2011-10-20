@@ -71,8 +71,7 @@ Lock::~Lock()
 
 
 // assume the thread holds the mutex mutex_
-void
-Lock::set_status(LockStatus sts)
+void Lock::set_status(LockStatus sts)
 {
 	if (status_ != sts) {
 		if (sts == LOCKED) {
@@ -91,8 +90,7 @@ Lock::set_status(LockStatus sts)
 }
 
 
-static void*
-releasethread(void* x)
+static void* releasethread(void* x)
 {
 	LockManager* lm = (LockManager*) x;
 	lm->Releaser();
@@ -174,8 +172,7 @@ LockManager::~LockManager()
 
 /// \brief Returns the lock lid if it exists, otherwise it returns NULL
 /// Assumes caller has the mutex LockManager::mutex_
-inline Lock*
-LockManager::FindLockInternal(lock_protocol::LockId lid)
+inline Lock* LockManager::FindLockInternal(lock_protocol::LockId lid)
 {
 	Lock* lp;
 
@@ -188,8 +185,7 @@ LockManager::FindLockInternal(lock_protocol::LockId lid)
 /// \brief Returns the lock lid. If the lock does not exist, it first creates 
 /// the lock.
 /// Assumes caller has the mutex LockManager::mutex_
-inline Lock*
-LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
+inline Lock* LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 {
 	Lock* lp;
 
@@ -229,8 +225,7 @@ LockManager::FindLock(lock_protocol::LockId lid)
 /// \return a reference (pointer) to the lock.
 ///
 /// Does no reference counting.
-Lock*
-LockManager::FindOrCreateLock(lock_protocol::LockId lid)
+Lock* LockManager::FindOrCreateLock(lock_protocol::LockId lid)
 {
 	Lock* l;
 
@@ -250,8 +245,7 @@ LockManager::FindOrCreateLock(lock_protocol::LockId lid)
 ///    This is okay as the releaser checks whether the lock is compatible
 ///    with the requested mode and in such a case he ignores the revoke
 ///    request. 
-void
-LockManager::Releaser()
+void LockManager::Releaser()
 {
 	running_ = true;
 	while (running_) {
@@ -341,8 +335,7 @@ LockManager::Releaser()
 }
 
 
-lock_protocol::Mode
-LockManager::SelectMode(Lock* l, lock_protocol::Mode::Set mode_set)
+lock_protocol::Mode LockManager::SelectMode(Lock* l, lock_protocol::Mode::Set mode_set)
 {
 	// policy: pick the most severe mode that can be granted locally
 	
@@ -372,14 +365,13 @@ LockManager::SelectMode(Lock* l, lock_protocol::Mode::Set mode_set)
 /// release the mutex_ while waiting on certain condition varaibles.
 /// for this reason, we need an ACQUIRING status to tell other threads 
 /// that an acquisition is in progress.
-lock_protocol::status
-LockManager::AcquireInternal(unsigned long tid, 
-                             Lock* l, 
-                             lock_protocol::Mode::Set mode_set, 
-                             int flags, 
-                             int argc, 
-                             void** argv,
-                             lock_protocol::Mode& mode_granted)
+lock_protocol::status LockManager::AcquireInternal(unsigned long tid, 
+                                                   Lock* l, 
+                                                   lock_protocol::Mode::Set mode_set, 
+                                                   int flags, 
+                                                   int argc, 
+                                                   void** argv,
+                                                   lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::status r;
 	lock_protocol::LockId lid = l->lid_;
@@ -495,13 +487,12 @@ check_state:
 }
 
 
-lock_protocol::status
-LockManager::Acquire(Lock* lock, 
-                     lock_protocol::Mode::Set mode_set, 
-                     int flags, 
-                     int argc,
-                     void** argv,
-                     lock_protocol::Mode& mode_granted)
+lock_protocol::status LockManager::Acquire(Lock* lock, 
+                                           lock_protocol::Mode::Set mode_set, 
+                                           int flags, 
+                                           int argc,
+                                           void** argv,
+                                           lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::status r;
 
@@ -512,11 +503,10 @@ LockManager::Acquire(Lock* lock,
 }
 
 
-lock_protocol::status
-LockManager::Acquire(Lock* lock, 
-                     lock_protocol::Mode::Set mode_set, 
-                     int flags,
-                     lock_protocol::Mode& mode_granted)
+lock_protocol::status LockManager::Acquire(Lock* lock, 
+                                           lock_protocol::Mode::Set mode_set, 
+                                           int flags,
+                                           lock_protocol::Mode& mode_granted)
 {
 	return Acquire(lock, mode_set, flags, 0, 0, mode_granted);
 }
@@ -541,20 +531,20 @@ LockManager::Acquire(lock_protocol::LockId lid,
 }
 
 
-lock_protocol::status
-LockManager::Acquire(lock_protocol::LockId lid, 
-                     lock_protocol::Mode::Set mode_set, 
-                     int flags,
-                     lock_protocol::Mode& mode_granted)
+lock_protocol::status LockManager::Acquire(lock_protocol::LockId lid, 
+                                           lock_protocol::Mode::Set mode_set, 
+                                           int flags,
+                                           lock_protocol::Mode& mode_granted)
 {
 	return Acquire(lid, mode_set, flags, 0, 0, mode_granted);
 }
 
 
 // this method never blocks and is never queued in the server
-inline lock_protocol::status
-LockManager::ConvertInternal(unsigned long tid, Lock* l, 
-                             lock_protocol::Mode new_mode, bool synchronous)
+lock_protocol::status LockManager::ConvertInternal(unsigned long tid, 
+                                                   Lock* l, 
+                                                   lock_protocol::Mode new_mode, 
+                                                   bool synchronous)
 {
 	lock_protocol::status r = lock_protocol::OK;
 	lock_protocol::LockId lid = l->lid_;
@@ -638,8 +628,9 @@ LockManager::Convert(Lock* lock, lock_protocol::Mode new_mode, bool synchronous)
 
 
 // release() is an atomic operation
-lock_protocol::status
-LockManager::Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode, bool synchronous)
+lock_protocol::status LockManager::Convert(lock_protocol::LockId lid, 
+                                           lock_protocol::Mode new_mode, 
+                                           bool synchronous)
 {
 	lock_protocol::status r;
 	Lock*                 lock;
@@ -653,8 +644,9 @@ LockManager::Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode, bo
 }
 
 
-lock_protocol::status
-LockManager::ReleaseInternal(unsigned long tid, Lock* l, bool synchronous)
+lock_protocol::status LockManager::ReleaseInternal(unsigned long tid, 
+                                                   Lock* l, 
+                                                   bool synchronous)
 {
 	lock_protocol::status r = lock_protocol::OK;
 	
@@ -694,8 +686,7 @@ LockManager::ReleaseInternal(unsigned long tid, Lock* l, bool synchronous)
 
 
 // release() is an atomic operation
-lock_protocol::status
-LockManager::Release(Lock* lock, bool synchronous)
+lock_protocol::status LockManager::Release(Lock* lock, bool synchronous)
 {
 	lock_protocol::status r;
 
@@ -707,8 +698,7 @@ LockManager::Release(Lock* lock, bool synchronous)
 
 
 // release() is an atomic operation
-lock_protocol::status
-LockManager::Release(lock_protocol::LockId lid, bool synchronous)
+lock_protocol::status LockManager::Release(lock_protocol::LockId lid, bool synchronous)
 {
 	lock_protocol::status r;
 	Lock*                 lock;
@@ -721,8 +711,7 @@ LockManager::Release(lock_protocol::LockId lid, bool synchronous)
 }
 
 
-lock_protocol::status
-LockManager::CancelLockRequestInternal(Lock* l)
+lock_protocol::status LockManager::CancelLockRequestInternal(Lock* l)
 {
 	dbg_log(DBG_INFO, "[%d] Cancel lock %llu\n", cl2srv_->id(), l->lid_);
 	
@@ -733,8 +722,7 @@ LockManager::CancelLockRequestInternal(Lock* l)
 }
 
 
-lock_protocol::status
-LockManager::Cancel(Lock* l)
+lock_protocol::status LockManager::Cancel(Lock* l)
 {
 	lock_protocol::status r;
 
@@ -745,8 +733,7 @@ LockManager::Cancel(Lock* l)
 }
 
 
-lock_protocol::status
-LockManager::Cancel(lock_protocol::LockId lid)
+lock_protocol::status LockManager::Cancel(lock_protocol::LockId lid)
 {
 	Lock*                 lock;
 	lock_protocol::status r;
@@ -759,8 +746,7 @@ LockManager::Cancel(lock_protocol::LockId lid)
 }
 
 
-rlock_protocol::status
-LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &unused)
+rlock_protocol::status LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &unused)
 {
 	rlock_protocol::status r = rlock_protocol::OK;
 	Lock*                  l;
@@ -785,10 +771,9 @@ LockManager::revoke(lock_protocol::LockId lid, int seq, int revoke_type, int &un
 }
 
 
-rlock_protocol::status
-LockManager::retry(lock_protocol::LockId lid, 
-                   int seq,
-                   int& accepted)
+rlock_protocol::status LockManager::retry(lock_protocol::LockId lid, 
+                                          int seq,
+                                          int& accepted)
 {
 	rlock_protocol::status r = rlock_protocol::OK;
 	Lock*                  l;
@@ -828,13 +813,12 @@ LockManager::retry(lock_protocol::LockId lid,
 
 
 // assumes the current thread holds the mutex_
-int
-LockManager::do_acquire(Lock* l, 
-                        lock_protocol::Mode::Set mode_set, 
-                        int flags, 
-						int argc,
-                        void** argv,
-                        lock_protocol::Mode& mode_granted)
+int LockManager::do_acquire(Lock* l, 
+                            lock_protocol::Mode::Set mode_set, 
+                            int flags, 
+                            int argc,
+                            void** argv,
+                            lock_protocol::Mode& mode_granted)
 {
 	int                        r;
 	int                        retval;
@@ -868,12 +852,11 @@ LockManager::do_acquire(Lock* l,
 
 
 // assumes the current thread holds the mutex_
-int
-LockManager::do_acquirev(std::vector<Lock*> lv, 
-                         std::vector<lock_protocol::Mode> modev, 
-                         int flags, 
-                         std::vector<unsigned long long> argv,
-                         int& num_locks_granted)
+int LockManager::do_acquirev(std::vector<Lock*> lv, 
+                             std::vector<lock_protocol::Mode> modev, 
+                             int flags, 
+                             std::vector<unsigned long long> argv,
+                             int& num_locks_granted)
 {
 	Lock*                                      l;
 	int                                        r;
@@ -914,8 +897,7 @@ LockManager::do_acquirev(std::vector<Lock*> lv,
 }
 
 
-int
-LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
+int LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 {
 	int r;
 	int unused;
@@ -934,8 +916,7 @@ LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 }
 
 
-int
-LockManager::do_release(Lock* l, int flags)
+int LockManager::do_release(Lock* l, int flags)
 {
 	int r;
 	int unused;
@@ -952,8 +933,7 @@ LockManager::do_release(Lock* l, int flags)
 }
 
 
-int
-LockManager::stat(lock_protocol::LockId lid)
+int LockManager::stat(lock_protocol::LockId lid)
 {
 	int r;
 	int ret = cl2srv_->call(lock_protocol::stat, cl2srv_->id(), lid, r);
