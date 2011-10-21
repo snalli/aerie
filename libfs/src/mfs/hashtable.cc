@@ -251,8 +251,7 @@ Page::SplitHalf(Context* ctx, Page* splitover_page)
 // If provided bucket page overflows, then remaining entries stay in the 
 // current bucket page and error -E_NOMEM is returned 
 int 
-Page::Split(Context* ctx, Page* splitover_page, SplitFunction split_function, 
-            void* uargs)
+Page::Split(Context* ctx, Page* splitover_page, const SplitPredicate& split_predicate)
 {
 	int      ret;
 	int      i;
@@ -278,7 +277,7 @@ Page::Split(Context* ctx, Page* splitover_page, SplitFunction split_function,
 			}
 			key = entry->get_key();
 			keysize = entry->get_keysize();
-			if (split_function(ctx, key, keysize, uargs)) {
+			if (split_predicate(key, keysize)) {
 				//FIXME: when journaling, we need to be careful about ordering and overlap
 				//of inserts and deletes as reads are not bypassed through buffered 
 				//writes. 
@@ -392,8 +391,7 @@ Bucket::Insert(Context* ctx, const char* key, int key_size, const char* val,
 
 	// No page had space. Insert the KV pair in a new page.
 	
-	//FIXME: allocate from chunk allocator instead, not new/malloc
-	page = new(client::global_smgr) Page;
+	page = new(ctx) Page;
 	page->Insert(ctx, key, key_size, val, val_size);
 	last_page->set_next(page);
 
@@ -443,8 +441,7 @@ Bucket::Delete(Context* ctx, char* key, int key_size)
 
 
 int 
-Bucket::Split(Context* ctx, Bucket* splitover_bucket, 
-              SplitFunction split_function, void* uargs)
+Bucket::Split(Context* ctx, Bucket* splitover_bucket, const SplitPredicate& split_predicate)
 {
 	int   ret;
 	Page* page;
@@ -454,13 +451,13 @@ Bucket::Split(Context* ctx, Bucket* splitover_bucket,
 	for (page=&page_; page != 0x0; page=page->Next()) {
 		splitover_page = &splitover_bucket->page_;
 dosplit:
-		ret=page->Split(ctx, splitover_page, split_function, uargs);
+		ret=page->Split(ctx, splitover_page, split_predicate);
 		if (ret==-E_NOMEM) {
 			if ((new_page=splitover_page->Next()) == 0x0) {
 				//FIXME: allocate new page from chunk descriptor, not new/malloc
 				//FIXME: protect against cycle-loop resulting from infinite splits. 
 				//       is this possible? shouldn't splits converge?
-				new_page = new(client::global_smgr) Page;
+				new_page = new(ctx) Page;
 				splitover_page->set_next(new_page);
 			}
 			splitover_page = new_page;
@@ -490,6 +487,29 @@ void Bucket::Print()
 //////////////////////////////////////////////////////////////////////////////
 
 
+class HashTable::LinearSplit: public SplitPredicate {
+public:
+	LinearSplit(uint32_t size_log2)
+		: size_log2_(size_log2)
+	{ }
+
+	bool operator() (const char* key, int key_size) const 
+	{
+		uint32_t             curidx;
+		uint32_t             newidx;
+		uint32_t             fh;
+
+		fh = hashlittle(key, key_size, 0);
+		curidx = ModHash(fh, size_log2_, 0);
+		newidx = ModHash(fh, size_log2_, 1);
+		return (newidx != curidx) ? true: false;
+	}
+
+private:
+	uint32_t size_log2_;
+};
+
+
 int
 HashTable::Init()
 {
@@ -498,48 +518,16 @@ HashTable::Init()
 }
 
 
-static inline uint32_t Hash(uint32_t fh, int size_log2_, int shift) 
-{
-	uint32_t mask = (1 << (size_log2_ + shift)) - 1;
-	return fh & mask;
-}
-
-
-typedef struct {
-	uint32_t size_log2_;
-} split_function_args;
-
-
-static int split_function(Context* ctx, const char* key, int key_size, void* uargs)
-{
-	uint32_t             curidx;
-	uint32_t             newidx;
-	uint32_t             fh;
-	split_function_args* args = (split_function_args*) uargs;
-
-	fh = hashlittle(key, key_size, 0);
-
-	curidx = Hash(fh, args->size_log2_, 0);
-	newidx = Hash(fh, args->size_log2_, 1);
-	if (newidx != curidx) {
-		return 1;
-	}
-	return 0;
-}
-
-
-inline uint32_t 
+uint32_t 
 HashTable::Index(Context* ctx, const char* key, int key_size)
 {
 	uint32_t idx;
 	uint32_t fh;
 
 	fh = hashlittle(key, key_size, 0);
-	
-	if ((idx = Hash(fh, size_log2_, 0)) < split_idx_ ) {
-		idx = Hash(fh, size_log2_, 1);
+	if ((idx = ModHash(fh, size_log2_, 0)) < split_idx_ ) {
+		idx = ModHash(fh, size_log2_, 1);
 	}
-	
 	return idx;
 }
 
@@ -561,11 +549,9 @@ HashTable::Insert(Context* ctx, const char* key, int key_size,
 		return 0;
 	}
 	if (ret == HT_REHASH) {
-		split_function_args args;
-		args.size_log2_ = size_log2_;
 		bucket = &buckets_[split_idx_];
 		splitover_bucket = &buckets_[split_idx_+(1<<size_log2_)];
-		bucket->Split(ctx, splitover_bucket, split_function, (void*) &args);
+		bucket->Split(ctx, splitover_bucket, LinearSplit(size_log2_));
 		split_idx_++;
 		if (split_idx_ == (1 << size_log2_)) {
 			split_idx_ = 0;

@@ -9,11 +9,10 @@
 #include "common/debug.h"
 
 
-class Context {
-
+class SplitPredicate {
+public:
+	virtual bool operator() (const char* key, int key_size) const = 0;
 };
-
-typedef int (*SplitFunction)(Context* ctx, const char* key, int keysize, void* uargs); 
 
 const int PAGE_SIZE = 128;
 const int TAG_SIZE = 1;
@@ -152,9 +151,7 @@ private:
 
 
 class Page {
-
 public:
-
 	Page()
 	{
 		Init();
@@ -168,17 +165,15 @@ public:
 		return entry->Init(true, payload_size);
 	}	
 
-	void* operator new( size_t nbytes, client::StorageManager* sm)
+	void* operator new(size_t nbytes, Context* ctx)
 	{
 		void* ptr;
-		int   ret;
-
-		if ((ret = sm->Alloc(nbytes, typeid(Page), &ptr)) < 0) {
+		
+		if (ctx->sm->Alloc(ctx, nbytes, typeid(HashPage), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
 	}
-
 
 	Page* MakePage(char* b) {
 		Page* page = (Page*) b;
@@ -203,14 +198,13 @@ public:
 		next_ = (uint64_t) next;
 	}
 
-
 	int Insert(Context* ctx, const char* key, int key_size, uint64_t val);
 	int Insert(Context* ctx, const char* key, int key_size, const char* val, int val_size);
 	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
 	int Search(Context* ctx, const char* key, int key_size, char** val, int* val_size);
 	int Delete(Context* ctx, char* key, int key_size);
 	int SplitHalf(Context* ctx, Page* splitover_page);
-	int Split(Context* ctx, Page* splitover_page, SplitFunction split_function, void* uargs);
+	int Split(Context* ctx, Page* splitover_page, const SplitPredicate& split_predicate);
 	int Merge(Context* ctx, Page* other_page);
 	void Print();
 
@@ -252,7 +246,7 @@ public:
 	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
 	int Search(Context* ctx, const char* key, int key_size, char** val, int* val_size);
 	int Delete(Context* ctx, char* key, int key_size);
-	int Split(Context* ctx, Bucket* new_bucket, SplitFunction split_function, void* uargs);
+	int Split(Context* ctx, Bucket* new_bucket, const SplitPredicate& split_predicate);
 	int Merge(Context* ctx, Bucket*);
 	void Print();
 
@@ -263,29 +257,22 @@ private:
 };
 
 
-
-
-
-
 class HashTable {
-
 public:
 	HashTable()
 		: split_idx_(0),
 		  size_log2_(5)
 	{ }
 
-	void* operator new( size_t nbytes, client::StorageManager* sm)
+	void* operator new(size_t nbytes, Context* ctx)
 	{
 		void* ptr;
-		int   ret;
-
-		if ((ret = sm->Alloc(nbytes, typeid(HashTable), &ptr)) < 0) {
+		
+		if (ctx->sm->Alloc(ctx, nbytes, typeid(HashTable), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
 	}
-
 
 	int Init();
 
@@ -297,12 +284,18 @@ public:
 	void Print();
 
 private:
-	inline uint32_t Index(Context* ctx, const char* key, int key_size);
+	class LinearSplit;
 
+	inline uint32_t Index(Context* ctx, const char* key, int key_size);
+	static uint32_t ModHash(uint32_t fh, int size_log2_, int shift) 
+	{
+		uint32_t mask = (1 << (size_log2_ + shift)) - 1;
+		return fh & mask;
+	}
+	
 	uint32_t size_log2_;    // log2 of size 
 	uint32_t split_idx_;
-	
-	Bucket buckets_[NUM_BUCKETS];
+	Bucket   buckets_[NUM_BUCKETS];
 };
 
 

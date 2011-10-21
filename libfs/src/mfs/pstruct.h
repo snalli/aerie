@@ -129,6 +129,7 @@ DirPnode::Lookup(char* name, uint64_t* ino)
 inline int 
 DirPnode::Link(char* name, uint64_t ino)
 {
+	Context* ctx; //FIXME this should be parameter
 	if (name[0] == '\0') {
 		return -1;
 	}	
@@ -148,7 +149,7 @@ DirPnode::Link(char* name, uint64_t ino)
 
 	
 	if (!ht_) {
-		ht_ = new(client::global_smgr) HashTable(); 
+		ht_ = new(ctx) HashTable(); 
 		if (!ht_) {
 			return -1;
 		}	
