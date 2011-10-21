@@ -1,6 +1,8 @@
 #include "client/smgr.h"
 #include <stdlib.h>
 #include <typeinfo>
+#include "client/context.h"
+
 
 namespace client {
 
@@ -18,6 +20,20 @@ namespace client {
 
 int 
 StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
+{
+	ChunkDescriptor* achunkdsc[16];
+
+	chunk_store.CreateChunk(8192, CHUNK_TYPE_INODE, &achunkdsc[0]);
+	//chunk_store.AccessChunkList(achunkdsc, 1, PROT_READ|PROT_WRITE);
+	*ptr = achunkdsc[0]->chunk_;
+	//*ptr = malloc(nbytes);
+
+	return 0;
+}
+
+
+int 
+StorageManager::Alloc(ClientContext* ctx, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	ChunkDescriptor* achunkdsc[16];
 

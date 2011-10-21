@@ -6,14 +6,31 @@
 #include "mfs/hashtable.h"
 #include "common/errno.h"
 
-	struct ContextFixture 
+class Context;
+
+class StorageManager {
+public:
+	int Alloc(Context* ctx, size_t nbytes, std::type_info const& typid, void** ptr)
 	{
-		ContextFixture() 
-			: ctx(NULL)
-		{ }
-		
-		Context* ctx;
-	};
+		*ptr = malloc(nbytes);
+		return E_SUCCESS;
+	}
+};
+
+
+class Context {
+public:
+	StorageManager* sm;
+};
+
+struct ContextFixture 
+{
+	ContextFixture() 
+		: ctx(NULL)
+	{ }
+	
+	Context* ctx;
+};
 
 
 
@@ -23,27 +40,27 @@ SUITE(HashTableEntry)
 
 	TEST_FIXTURE(ContextFixture, TestMakeEntry1)
 	{
-		char   b[buffer_size];
-		Entry* entry; 
+		char            b[buffer_size];
+		Entry<Context>* entry; 
 
-		entry = Entry::MakeEntry(b);
+		entry = Entry<Context>::MakeEntry(b);
 		CHECK(entry->Init(true, buffer_size-TAG_SIZE) == 0);
 		CHECK(entry->IsFree() == true);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry = Entry::MakeEntry(b);
+		entry = Entry<Context>::MakeEntry(b);
 		CHECK(entry->IsFree() == true);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry = Entry::MakeEntry(b);
+		entry = Entry<Context>::MakeEntry(b);
 		CHECK(entry->Init(false, buffer_size-TAG_SIZE) == 0);
 		CHECK(entry->IsFree() == false);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry = Entry::MakeEntry(b);
+		entry = Entry<Context>::MakeEntry(b);
 		CHECK(entry->IsFree() == false);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
@@ -52,19 +69,19 @@ SUITE(HashTableEntry)
 
 	TEST_FIXTURE(ContextFixture, TestMakeEntry2)
 	{
-		char   b[buffer_size];
-		Entry* entry; 
-		Entry* entry2; 
+		char            b[buffer_size];
+		Entry<Context>* entry; 
+		Entry<Context>* entry2; 
 
-		entry = Entry::MakeEntry(b);
+		entry = Entry<Context>::MakeEntry(b);
 		CHECK(entry->Init(true, buffer_size-TAG_SIZE) == 0);
 		CHECK(entry->IsFree() == true);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry2 = Entry::MakeEntry(entry, buffer_size-TAG_SIZE+1);
+		entry2 = Entry<Context>::MakeEntry(entry, buffer_size-TAG_SIZE+1);
 		CHECK(entry2==NULL);
-		entry2 = Entry::MakeEntry(entry, 18);
+		entry2 = Entry<Context>::MakeEntry(entry, 18);
 		CHECK(entry2!=NULL);
 		CHECK(entry2->IsFree() == true);
 		CHECK(entry2->get_size() == (entry->get_size() - 18));
@@ -77,9 +94,9 @@ SUITE(HashTablePage)
 {
 	TEST_FIXTURE(ContextFixture, TestInsert1)
 	{
-		char*    key1 = (char*) "key1";
-		uint64_t val;
-		Page   page;
+		char*         key1 = (char*) "key1";
+		uint64_t      val;
+		Page<Context> page;
 
 		CHECK(page.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page.Search(ctx, key1, strlen(key1)+1, &val) == 0);
@@ -88,11 +105,11 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestInsert2)
 	{
-		char*    key1 = (char*) "key1";
-		char*    key2 = (char*) "key2";
-		char*    key3 = (char*) "key3";
-		uint64_t val;
-		Page     page;
+		char*         key1 = (char*) "key1";
+		char*         key2 = (char*) "key2";
+		char*         key3 = (char*) "key3";
+		uint64_t      val;
+		Page<Context> page;
 
 		CHECK(page.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -107,12 +124,12 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestInsert3)
 	{
-		char*    key1 = (char*) "key1";
-		char*    key2 = (char*) "key2";
-		char     longkey3[PAGE_SIZE];
-		int      longkey3_size = PAGE_SIZE - 18;
-		uint64_t val;
-		Page     page;
+		char*         key1 = (char*) "key1";
+		char*         key2 = (char*) "key2";
+		char          longkey3[PAGE_SIZE];
+		int           longkey3_size = PAGE_SIZE - 18;
+		uint64_t      val;
+		Page<Context> page;
 
 		CHECK(page.Insert(ctx, longkey3, longkey3_size, 0xFB1) == 0);
 		CHECK(page.Search(ctx, longkey3, longkey3_size, &val) == 0);
@@ -122,12 +139,12 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestInsert4)
 	{
-		char*    key1 = (char*) "key1";
-		char*    key2 = (char*) "key2";
-		char     longkey3[PAGE_SIZE];
-		int      longkey3_size = PAGE_SIZE - 18;
-		uint64_t val;
-		Page     page;
+		char*         key1 = (char*) "key1";
+		char*         key2 = (char*) "key2";
+		char          longkey3[PAGE_SIZE];
+		int           longkey3_size = PAGE_SIZE - 18;
+		uint64_t      val;
+		Page<Context> page;
 
 		CHECK(page.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -142,12 +159,12 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestInsert5)
 	{
-		char*    key1 = (char*) "key1";
-		char*    key2 = (char*) "key2";
-		char     longkey3[PAGE_SIZE];
-		int      longkey3_size = PAGE_SIZE - 18;
-		uint64_t val;
-		Page     page;
+		char*         key1 = (char*) "key1";
+		char*         key2 = (char*) "key2";
+		char          longkey3[PAGE_SIZE];
+		int           longkey3_size = PAGE_SIZE - 18;
+		uint64_t      val;
+		Page<Context> page;
 
 		CHECK(page.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -162,16 +179,16 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestInsert6)
 	{
-		char*    key1 = (char*) "key1";
-		char*    key2 = (char*) "key2";
-		char*    key3 = (char*) "key3";
-		char*    key4 = (char*) "key3";
-		int      key1_size = (PAGE_SIZE-5*sizeof(uint64_t))/3;
-		int      key2_size = (PAGE_SIZE-5*sizeof(uint64_t))/3;
-		int      key3_size = (PAGE_SIZE-5*sizeof(uint64_t))/3;
-		int      key4_size = 2*key1_size-10;
-		uint64_t val;
-		Page     page;
+		char*         key1 = (char*) "key1";
+		char*         key2 = (char*) "key2";
+		char*         key3 = (char*) "key3";
+		char*         key4 = (char*) "key3";
+		int           key1_size = (PAGE_SIZE-5*sizeof(uint64_t))/3;
+		int           key2_size = (PAGE_SIZE-5*sizeof(uint64_t))/3;
+		int           key3_size = (PAGE_SIZE-5*sizeof(uint64_t))/3;
+		int           key4_size = 2*key1_size-10;
+		uint64_t      val;
+		Page<Context> page;
 
 		CHECK(page.Insert(ctx, key1, key1_size, 0xCAFE) == 0);
 		CHECK(page.Insert(ctx, key2, key2_size, 0xC1A) == 0);
@@ -198,12 +215,12 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestDelete1)
 	{
-		char*    key1 = (char*) "key1";
-		char*    key2 = (char*) "key2";
-		char*    key3 = (char*) "key3";
-		char*    key4 = (char*) "key4";
-		uint64_t val;
-		Page     page;
+		char*         key1 = (char*) "key1";
+		char*         key2 = (char*) "key2";
+		char*         key3 = (char*) "key3";
+		char*         key4 = (char*) "key4";
+		uint64_t      val;
+		Page<Context> page;
 
 		CHECK(page.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -233,13 +250,13 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestSplitHalf1)
 	{
-		char*    key1 = (char*) "key1_xxxx_";
-		char*    key2 = (char*) "key2_xxxx_";
-		char*    key3 = (char*) "key3_xxxx_";
-		char*    key4 = (char*) "key4_xxxx_";
-		uint64_t val;
-		Page     page;
-		Page     newpage;
+		char*         key1 = (char*) "key1_xxxx_";
+		char*         key2 = (char*) "key2_xxxx_";
+		char*         key3 = (char*) "key3_xxxx_";
+		char*         key4 = (char*) "key4_xxxx_";
+		uint64_t      val;
+		Page<Context> page;
+		Page<Context> newpage;
 
 		CHECK(page.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -273,14 +290,14 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestSplitHalf2)
 	{
-		char*      key1 = (char*) "key1_xxxx_";
-		char*      key2 = (char*) "key2_xxxx_";
-		char*      key3 = (char*) "key3_xxxx_";
-		char*      key4 = (char*) "key4_xxxx_";
-		char*      key5 = (char*) "key5_xxxx_";
-		uint64_t   val;
-		Page page;
-		Page newpage;
+		char*         key1 = (char*) "key1_xxxx_";
+		char*         key2 = (char*) "key2_xxxx_";
+		char*         key3 = (char*) "key3_xxxx_";
+		char*         key4 = (char*) "key4_xxxx_";
+		char*         key5 = (char*) "key5_xxxx_";
+		uint64_t      val;
+		Page<Context> page;
+		Page<Context> newpage;
 
 		CHECK(page.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -319,14 +336,14 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestMerge1)
 	{
-		char*    key1 = (char*) "key1_xxxx_";
-		char*    key2 = (char*) "key2_xxxx_";
-		char*    key3 = (char*) "key3_xxxx_";
-		char*    key4 = (char*) "key4_xxxx_";
-		char*    key5 = (char*) "key5_xxxx_";
-		uint64_t val;
-		Page     page1;
-		Page     page2;
+		char*         key1 = (char*) "key1_xxxx_";
+		char*         key2 = (char*) "key2_xxxx_";
+		char*         key3 = (char*) "key3_xxxx_";
+		char*         key4 = (char*) "key4_xxxx_";
+		char*         key5 = (char*) "key5_xxxx_";
+		uint64_t      val;
+		Page<Context> page1;
+		Page<Context> page2;
 
 		CHECK(page1.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page1.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -362,14 +379,14 @@ SUITE(HashTablePage)
 
 	TEST_FIXTURE(ContextFixture, TestMergeOverflow)
 	{
-		char*    key1 = (char*) "key1_0000_1111_2222";
-		char*    key2 = (char*) "key2_0000_1111_2222";
-		char*    key3 = (char*) "key3_0000_1111_2222";
-		char*    key4 = (char*) "key4_0000_1111_2222";
-		char*    key5 = (char*) "key5_0000_1111_2222";
-		uint64_t val;
-		Page     page1;
-		Page     page2;
+		char*         key1 = (char*) "key1_0000_1111_2222";
+		char*         key2 = (char*) "key2_0000_1111_2222";
+		char*         key3 = (char*) "key3_0000_1111_2222";
+		char*         key4 = (char*) "key4_0000_1111_2222";
+		char*         key5 = (char*) "key5_0000_1111_2222";
+		uint64_t      val;
+		Page<Context> page1;
+		Page<Context> page2;
 
 		CHECK(page1.Insert(ctx, key1, strlen(key1)+1, 0xCAFE) == 0);
 		CHECK(page1.Insert(ctx, key2, strlen(key2)+1, 0xC1A) == 0);
@@ -436,7 +453,7 @@ SUITE(HashTable)
 	TEST_FIXTURE(ContextFixture, TestInsert)
 	{
 		int                                                        i;
-		HashTable                                                  ht;
+		HashTable<Context>                                         ht;
 		std::map<std::string, uint64_t>                            kvmap;
 		std::map<std::string, uint64_t>::iterator                  it;
 		std::pair<std::map<std::string, uint64_t>::iterator, bool> ret;

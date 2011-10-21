@@ -4,7 +4,7 @@ Import('commonLibrary')
 localBuildEnv = buildEnv.Clone()
 
 lib_target = 'mfs'
-lib_sources = ['radixtree.cc', 'hashtable.cc', 'finode.cc', 'mfs.cc', 'pinode.cc', 'sb.cc']
+lib_sources = ['radixtree.cc', 'finode.cc', 'mfs.cc', 'pinode.cc', 'sb.cc']
 lib_sources += ['dinode.cc']
 
 mfsLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)

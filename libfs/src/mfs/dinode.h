@@ -13,11 +13,11 @@ class DirInodeImmutable: public client::Inode {
 public:
 
 	DirInodeImmutable(Pnode* pnode)
-		: pnode_(static_cast<DirPnode*>(pnode))
+		: pnode_(static_cast<DirPnode<ClientContext>*>(pnode))
 	{ }
 
 	int Init(uint64_t ino) {
-		pnode_ = DirPnode::Load(ino);
+		pnode_ = DirPnode<ClientContext>::Load(ino);
 		return 0;
 	}
 	
@@ -42,8 +42,8 @@ public:
 	}
 	
 private:
-	DirPnode*           pnode_;
-	client::SuperBlock* sb_;            // file system superblock
+	DirPnode<ClientContext>* pnode_;
+	client::SuperBlock*      sb_;            // file system superblock
 
 };
 
@@ -107,7 +107,7 @@ DirInodeImmutable::Load(InodeImmutable* inode)
 class DirInodeMutable: public client::Inode {
 public:
 	DirInodeMutable(client::SuperBlock* sb, Pnode* pnode)
-		: pnode_(static_cast<DirPnode*>(pnode)),
+		: pnode_(static_cast<DirPnode<ClientContext>*>(pnode)),
 		  sb_(sb)
 	{ printf("DirInodeMutable: pnode=%p\n", pnode);
 		ino_ = (uint64_t) pnode;
@@ -115,13 +115,13 @@ public:
 	}
 
 	DirInodeMutable(Pnode* pnode)
-		: pnode_(static_cast<DirPnode*>(pnode))
+		: pnode_(static_cast<DirPnode<ClientContext>*>(pnode))
 	{ assert(0); }
 
 
 	int Init(uint64_t ino) {
 		ino_ = ino;
-		pnode_ = DirPnode::Load(ino);
+		pnode_ = DirPnode<ClientContext>::Load(ino);
 		printf("DirInodeMutable: ino=%p\n", ino);
 		printf("DirInodeMutable: pnode_=%p\n", pnode_);
 		return 0;
@@ -139,8 +139,8 @@ public:
 
 	int Link(char* name, client::Inode* ip, bool overwrite);
 private:
-	DirPnode*           pnode_;
-	client::SuperBlock* sb_;            // file system superblock
+	DirPnode<ClientContext>*   pnode_;
+	client::SuperBlock*        sb_;            // file system superblock
 	//FIXME: pointer to new directory entries
 };
 

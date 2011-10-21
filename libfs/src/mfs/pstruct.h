@@ -17,6 +17,7 @@
 
 namespace mfs {
 
+template<typename Context>
 class DirPnode;
 
 class PSuperBlock {
@@ -64,6 +65,7 @@ public:
 };
 
 
+template<typename Context>
 class DirPnode: public Pnode {
 public:
 	static DirPnode* Load(uint64_t ino) {
@@ -76,30 +78,29 @@ public:
 		  parent_(0)
 	{ }
 
-	void* operator new( size_t nbytes, client::StorageManager* sm)
+	void* operator new(size_t nbytes, Context* ctx)
 	{
 		void* ptr;
-		int   ret;
-
-		if ((ret = sm->Alloc(nbytes, typeid(DirPnode), &ptr)) < 0) {
+		
+		if (ctx->sm->Alloc(ctx, nbytes, typeid(DirPnode<Context>), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
 	}
 
 	int Lookup(char* name, uint64_t* ino);
-
 	int Link(char* name, uint64_t ino);
 
 //private:
-	uint64_t   self_;    // entry '.'
-	uint64_t   parent_;  // entry '..'
-	HashTable* ht_;      // entries
+	uint64_t            self_;    // entry '.'
+	uint64_t            parent_;  // entry '..'
+	HashTable<Context>* ht_;      // entries
 };
 
 
+template<typename Context>
 inline int 
-DirPnode::Lookup(char* name, uint64_t* ino)
+DirPnode<Context>::Lookup(char* name, uint64_t* ino)
 {
 	if (name[0] == '\0') {
 		return -1;
@@ -126,8 +127,9 @@ DirPnode::Lookup(char* name, uint64_t* ino)
 }
 
 
+template<typename Context>
 inline int 
-DirPnode::Link(char* name, uint64_t ino)
+DirPnode<Context>::Link(char* name, uint64_t ino)
 {
 	Context* ctx; //FIXME this should be parameter
 	if (name[0] == '\0') {
@@ -146,10 +148,9 @@ DirPnode::Link(char* name, uint64_t ino)
 			return 0;
 		} 
 	}
-
 	
 	if (!ht_) {
-		ht_ = new(ctx) HashTable(); 
+		ht_ = new(ctx) HashTable<Context>(); 
 		if (!ht_) {
 			return -1;
 		}	
@@ -158,9 +159,6 @@ DirPnode::Link(char* name, uint64_t ino)
 
 	return 0;
 }
-
-
-
 
 
 class FilePnode: public Pnode {

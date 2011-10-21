@@ -23,9 +23,10 @@ SuperBlock::CreateImmutableInode(int t)
 int
 SuperBlock::AllocInode(int type, client::Inode** ipp)
 {
-	client::Inode* ip;
-	DirPnode*      dpnode;
-
+	client::Inode*            ip;
+	DirPnode<ClientContext>*  dpnode;
+	ClientContext*            ctx;
+	
 	printf("mfs::SuperBlock::AllocInode\n");
 	
 	switch (type) {
@@ -33,7 +34,7 @@ SuperBlock::AllocInode(int type, client::Inode** ipp)
 			//ip = new 	
 			break;
 		case client::type::kDirInode:
-			dpnode = new(client::global_smgr) DirPnode;
+			dpnode = new(ctx) DirPnode<ClientContext>;
 			ip = new DirInodeMutable(this, dpnode);
 			break;
 	}
