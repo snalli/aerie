@@ -69,7 +69,7 @@ const int NUM_BUCKETS = 128;
 
 
 
-template<typename Context>
+template<typename Session>
 class Entry {
 public:
 	static inline Entry* MakeEntry(volatile char* b) {
@@ -162,7 +162,7 @@ private:
 };
 
 
-template<typename Context>
+template<typename Session>
 class Page {
 public:
 	Page()
@@ -171,18 +171,18 @@ public:
 	}
 
 	int Init() {
-		Entry<Context>* entry = Entry<Context>::MakeEntry(&b_[0]);
+		Entry<Session>* entry = Entry<Session>::MakeEntry(&b_[0]);
 		int             payload_size = PAGE_SIZE - sizeof(next_) - TAG_SIZE;
 
 		next_ = 0x0;
 		return entry->Init(true, payload_size);
 	}	
 
-	void* operator new(size_t nbytes, Context* ctx)
+	void* operator new(size_t nbytes, Session* session)
 	{
 		void* ptr;
 		
-		if (ctx->sm->Alloc(ctx, nbytes, typeid(Page), &ptr) < 0) {
+		if (session->sm->Alloc(session, nbytes, typeid(Page), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
@@ -193,12 +193,12 @@ public:
 		return page;
 	}
 
-	Entry<Context>* GetEntry(int pos) {
-		return Entry<Context>::MakeEntry(&b_[pos]);
+	Entry<Session>* GetEntry(int pos) {
+		return Entry<Session>::MakeEntry(&b_[pos]);
 	}
 	
 	bool IsEmpty() {
-		Entry<Context>* entry = Entry<Context>::MakeEntry(&b_[0]);
+		Entry<Session>* entry = Entry<Session>::MakeEntry(&b_[0]);
 		return (entry->get_size() == PAGE_SIZE - sizeof(next_) 
 		        ? true : false);
 	}
@@ -211,14 +211,14 @@ public:
 		next_ = (uint64_t) next;
 	}
 
-	int Insert(Context* ctx, const char* key, int key_size, uint64_t val);
-	int Insert(Context* ctx, const char* key, int key_size, const char* val, int val_size);
-	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
-	int Search(Context* ctx, const char* key, int key_size, char** val, int* val_size);
-	int Delete(Context* ctx, char* key, int key_size);
-	int SplitHalf(Context* ctx, Page* splitover_page);
-	int Split(Context* ctx, Page* splitover_page, const SplitPredicate& split_predicate);
-	int Merge(Context* ctx, Page* other_page);
+	int Insert(Session* session, const char* key, int key_size, uint64_t val);
+	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
+	int Search(Session* session, const char* key, int key_size, uint64_t* val);
+	int Search(Session* session, const char* key, int key_size, char** val, int* val_size);
+	int Delete(Session* session, char* key, int key_size);
+	int SplitHalf(Session* session, Page* splitover_page);
+	int Split(Session* session, Page* splitover_page, const SplitPredicate& split_predicate);
+	int Merge(Session* session, Page* other_page);
 	void Print();
 
 private:
@@ -230,13 +230,13 @@ private:
 		volatile char b_[PAGE_SIZE];
 	};
 
-	int Delete(Context* ctx, Entry<Context>* entry, Entry<Context>* prev_entry, Entry<Context>* next_entry);
+	int Delete(Session* session, Entry<Session>* entry, Entry<Session>* prev_entry, Entry<Session>* next_entry);
 };
 
 
 
 // Class Bucket encapsulates the primary bucket page
-template<typename Context>
+template<typename Session>
 class Bucket {
 public:
 	Bucket()
@@ -252,23 +252,23 @@ public:
 
 	}
 
-	int Insert(Context* ctx, const char* key, int key_size, uint64_t val);
-	int Insert(Context* ctx, const char* key, int key_size, const char* val, int val_size);
-	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
-	int Search(Context* ctx, const char* key, int key_size, char** val, int* val_size);
-	int Delete(Context* ctx, char* key, int key_size);
-	int Split(Context* ctx, Bucket* new_bucket, const SplitPredicate& split_predicate);
-	int Merge(Context* ctx, Bucket*);
+	int Insert(Session* session, const char* key, int key_size, uint64_t val);
+	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
+	int Search(Session* session, const char* key, int key_size, uint64_t* val);
+	int Search(Session* session, const char* key, int key_size, char** val, int* val_size);
+	int Delete(Session* session, char* key, int key_size);
+	int Split(Session* session, Bucket* new_bucket, const SplitPredicate& split_predicate);
+	int Merge(Session* session, Bucket*);
 	void Print();
 
 private:
-	Page<Context> page_;
+	Page<Session> page_;
 
-	int Delete(Context* ctx, Entry<Context>* entry, Entry<Context>* prev_entry, Entry<Context>* next_entry);
+	int Delete(Session* session, Entry<Session>* entry, Entry<Session>* prev_entry, Entry<Session>* next_entry);
 };
 
 
-template<typename Context>
+template<typename Session>
 class HashTable {
 public:
 	HashTable()
@@ -276,11 +276,11 @@ public:
 		  size_log2_(5)
 	{ }
 
-	void* operator new(size_t nbytes, Context* ctx)
+	void* operator new(size_t nbytes, Session* session)
 	{
 		void* ptr;
 		
-		if (ctx->sm->Alloc(ctx, nbytes, typeid(HashTable), &ptr) < 0) {
+		if (session->sm->Alloc(session, nbytes, typeid(HashTable), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
@@ -288,17 +288,17 @@ public:
 
 	int Init();
 
-	int Insert(Context* ctx, const char* key, int key_size, const char* val, int val_size);
-	int Insert(Context* ctx, const char* key, int key_size, uint64_t val);
-	int Search(Context* ctx, const char *key, int key_size, char** valp, int* val_sizep);
-	int Search(Context* ctx, const char* key, int key_size, uint64_t* val);
-	int Delete(Context* ctx, char* key, int key_size);
+	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
+	int Insert(Session* session, const char* key, int key_size, uint64_t val);
+	int Search(Session* session, const char *key, int key_size, char** valp, int* val_sizep);
+	int Search(Session* session, const char* key, int key_size, uint64_t* val);
+	int Delete(Session* session, char* key, int key_size);
 	void Print();
 
 private:
 	class LinearSplit;
 
-	inline uint32_t Index(Context* ctx, const char* key, int key_size);
+	inline uint32_t Index(Session* session, const char* key, int key_size);
 	static uint32_t ModHash(uint32_t fh, int size_log2_, int shift) 
 	{
 		uint32_t mask = (1 << (size_log2_ + shift)) - 1;
@@ -307,7 +307,7 @@ private:
 	
 	uint32_t         size_log2_;    // log2 of size 
 	uint32_t         split_idx_;
-	Bucket<Context>  buckets_[NUM_BUCKETS];
+	Bucket<Session>  buckets_[NUM_BUCKETS];
 };
 
 
@@ -320,13 +320,13 @@ private:
 
 
 // If no space available then -E_NOMEM is returned 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Insert(Context* ctx, const char* key, int key_size, 
+Page<Session>::Insert(Session* session, const char* key, int key_size, 
                       const char* val, int val_size)
 {
-	Entry<Context>*  entry;
-	Entry<Context>*  free_entry=NULL;
+	Entry<Session>*  entry;
+	Entry<Session>*  free_entry=NULL;
 	int              payload_size = key_size + val_size;
 	int              i;
 	int              step;
@@ -349,7 +349,7 @@ Page<Context>::Insert(Context* ctx, const char* key, int key_size,
 		// free entry
 		int max_payload_size = free_entry->get_payload_size();
 		if (max_payload_size - payload_size - TAG_SIZE >= 0) {
-			Entry<Context>::MakeEntry(free_entry, TAG_SIZE+payload_size);
+			Entry<Session>::MakeEntry(free_entry, TAG_SIZE+payload_size);
 		}
 
 		uval = *((uint64_t*) val);
@@ -362,22 +362,22 @@ Page<Context>::Insert(Context* ctx, const char* key, int key_size,
 
 
 // If no space available then -E_NOMEM is returned 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Insert(Context* ctx, const char* key, int key_size, uint64_t val)
+Page<Session>::Insert(Session* session, const char* key, int key_size, uint64_t val)
 {
-	return Insert(ctx, key, key_size, (char*) &val, sizeof(val));
+	return Insert(session, key, key_size, (char*) &val, sizeof(val));
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Search(Context* ctx, const char *key, int key_size, char** valp, 
+Page<Session>::Search(Session* session, const char *key, int key_size, char** valp, 
                       int* val_sizep)
 {
 	int             i;
 	int             step;
-	Entry<Context>* entry;
+	Entry<Session>* entry;
 	int             val_size;
 
 	if (IsEmpty() == true) {
@@ -408,18 +408,18 @@ Page<Context>::Search(Context* ctx, const char *key, int key_size, char** valp,
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Search(Context* ctx, const char *key, int key_size, uint64_t* val)
+Page<Session>::Search(Session* session, const char *key, int key_size, uint64_t* val)
 {
 	int val_size;
-	return Search(ctx, key, key_size, (char**) &val, &val_size);
+	return Search(session, key, key_size, (char**) &val, &val_size);
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Delete(Context* ctx, Entry<Context>* entry, Entry<Context>* prev_entry, Entry<Context>* next_entry)
+Page<Session>::Delete(Session* session, Entry<Session>* entry, Entry<Session>* prev_entry, Entry<Session>* next_entry)
 {
 	int size;
 
@@ -439,16 +439,16 @@ Page<Context>::Delete(Context* ctx, Entry<Context>* entry, Entry<Context>* prev_
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Delete(Context* ctx, char *key, int key_size)
+Page<Session>::Delete(Session* session, char *key, int key_size)
 {
 	int             i;
 	int             step;
 	int             size;
-	Entry<Context>* entry;
-	Entry<Context>* prev_entry = NULL;
-	Entry<Context>* next_entry;
+	Entry<Session>* entry;
+	Entry<Session>* prev_entry = NULL;
+	Entry<Session>* next_entry;
 
 	for (i=0; i < PAGE_SIZE - sizeof(next_); i+=step)
 	{
@@ -464,7 +464,7 @@ Page<Context>::Delete(Context* ctx, char *key, int key_size)
 				} else {
 					next_entry = NULL;
 				}
-				return Delete(ctx, entry, prev_entry, next_entry);
+				return Delete(session, entry, prev_entry, next_entry);
 			}
 		}
 		prev_entry = entry;
@@ -480,16 +480,16 @@ Page<Context>::Delete(Context* ctx, char *key, int key_size)
 //
 // If provided bucket page overflows, then remaining entries stay in the 
 // current bucket page and error -E_NOMEM is returned 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::SplitHalf(Context* ctx, Page* splitover_page)
+Page<Session>::SplitHalf(Session* session, Page* splitover_page)
 {
 	int              ret;
 	int              i;
 	int              size;
-	Entry<Context>*  entry;
-	Entry<Context>*  prev_entry = NULL;
-	Entry<Context>*  next_entry;
+	Entry<Session>*  entry;
+	Entry<Session>*  prev_entry = NULL;
+	Entry<Session>*  next_entry;
 	int              count;
 	int              split_count;
 	uint64_t         val;
@@ -528,14 +528,14 @@ Page<Context>::SplitHalf(Context* ctx, Page* splitover_page)
 				//of inserts and deletes as reads are not bypassed through buffered 
 				//writes. 
 				val = *((uint64_t*) entry->get_val());
-				if ((ret = splitover_page->Insert(ctx, entry->get_key(), 
+				if ((ret = splitover_page->Insert(session, entry->get_key(), 
 				                                  entry->get_keysize(), val))!=0) 
 				{
 					return ret;
 				}
 				// It's safe to delete entries while iterating as tags
 				// of follow up entries are untouched
-				assert(Delete(ctx, entry, prev_entry, next_entry) == 0);
+				assert(Delete(session, entry, prev_entry, next_entry) == 0);
 			}
 		}	
 		prev_entry = entry;
@@ -552,16 +552,16 @@ Page<Context>::SplitHalf(Context* ctx, Page* splitover_page)
 //
 // If provided bucket page overflows, then remaining entries stay in the 
 // current bucket page and error -E_NOMEM is returned 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Split(Context* ctx, Page* splitover_page, const SplitPredicate& split_predicate)
+Page<Session>::Split(Session* session, Page* splitover_page, const SplitPredicate& split_predicate)
 {
 	int             ret;
 	int             i;
 	int             size;
-	Entry<Context>* entry;
-	Entry<Context>* prev_entry = NULL;
-	Entry<Context>* next_entry;
+	Entry<Session>* entry;
+	Entry<Session>* prev_entry = NULL;
+	Entry<Session>* next_entry;
 	uint64_t        val;
 	char*           key;
 	int             keysize;
@@ -584,12 +584,12 @@ Page<Context>::Split(Context* ctx, Page* splitover_page, const SplitPredicate& s
 				//of inserts and deletes as reads are not bypassed through buffered 
 				//writes. 
 				val = *((uint64_t*) entry->get_val());
-				if ((ret = splitover_page->Insert(ctx, key, keysize, val)) != 0) {
+				if ((ret = splitover_page->Insert(session, key, keysize, val)) != 0) {
 					return ret;
 				}
 				// It's safe to delete entries while iterating as tags
 				// of follow up entries are untouched
-				assert(Delete(ctx, entry, prev_entry, next_entry) == 0);
+				assert(Delete(session, entry, prev_entry, next_entry) == 0);
 			}
 		}	
 		prev_entry = entry;
@@ -603,16 +603,16 @@ Page<Context>::Split(Context* ctx, Page* splitover_page, const SplitPredicate& s
 //
 // If current bucket page overflows, then remaining entries stay in the 
 // provided bucket page and error -E_NOMEM is returned 
-template<typename Context>
+template<typename Session>
 int 
-Page<Context>::Merge(Context* ctx, Page* other_page)
+Page<Session>::Merge(Session* session, Page* other_page)
 {
 	int             ret;
 	int             i;
 	int             size;
-	Entry<Context>* entry;
-	Entry<Context>* prev_entry = NULL;
-	Entry<Context>* next_entry;
+	Entry<Session>* entry;
+	Entry<Session>* prev_entry = NULL;
+	Entry<Session>* next_entry;
 	int             count;
 	uint64_t        val;
 
@@ -631,14 +631,14 @@ Page<Context>::Merge(Context* ctx, Page* other_page)
 			//of inserts and deletes as reads are not bypassed through buffered 
 			//writes. 
 			val = *((uint64_t*) entry->get_val());
-			if ((ret = Insert(ctx, entry->get_key(), 
+			if ((ret = Insert(session, entry->get_key(), 
 			                  entry->get_keysize(), val)) != 0) 
 			{
 				return ret;
 			}
 			// It's safe to delete entries while iterating as tags
 			// of follow up entries are untouched
-			assert(other_page->Delete(ctx, entry, prev_entry, next_entry) == 0);
+			assert(other_page->Delete(session, entry, prev_entry, next_entry) == 0);
 		}	
 		prev_entry = entry;
 	}
@@ -647,14 +647,14 @@ Page<Context>::Merge(Context* ctx, Page* other_page)
 }
 
 
-template<typename Context>
+template<typename Session>
 void 
-Page<Context>::Print()
+Page<Session>::Print()
 {
 	int             i;
 	uint64_t        val;
 	int             size;
-	Entry<Context>* entry;
+	Entry<Session>* entry;
 
 	for (i=0; i < PAGE_SIZE - sizeof(next_); i+=size)
 	{
@@ -674,21 +674,21 @@ Page<Context>::Print()
 //
 //////////////////////////////////////////////////////////////////////////////
 
-template<typename Context>
+template<typename Session>
 int 
-Bucket<Context>::Insert(Context* ctx, const char* key, int key_size, 
+Bucket<Session>::Insert(Session* session, const char* key, int key_size, 
                         const char* val, int val_size)
 {
 	int            ret;
-	Page<Context>* page;
-	Page<Context>* last_page=0x0;
+	Page<Session>* page;
+	Page<Session>* last_page=0x0;
 
 	// try inserting into the primary page first and otherwise
 	// into an overflow page if such a page exists
 	for (page=&page_; page != 0x0; page=page->Next()) {
 		// FIXME: should we trigger re-hash when inserting in an 
 		// existing overflow page???
-		if ((ret=page->Insert(ctx, key, key_size, val, val_size)) == 0) {
+		if ((ret=page->Insert(session, key, key_size, val, val_size)) == 0) {
 			return 0;
 		}
 		last_page = page;
@@ -697,8 +697,8 @@ Bucket<Context>::Insert(Context* ctx, const char* key, int key_size,
 
 	// No page had space. Insert the KV pair in a new page.
 	
-	page = new(ctx) Page<Context>;
-	page->Insert(ctx, key, key_size, val, val_size);
+	page = new(session) Page<Session>;
+	page->Insert(session, key, key_size, val, val_size);
 	last_page->set_next(page);
 
 	//TODO: trigger re-hash 
@@ -707,24 +707,24 @@ Bucket<Context>::Insert(Context* ctx, const char* key, int key_size,
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Bucket<Context>::Insert(Context* ctx, const char* key, int key_size, uint64_t val)
+Bucket<Session>::Insert(Session* session, const char* key, int key_size, uint64_t val)
 {
-	return Insert(ctx, key, key_size, (char*) &val, sizeof(val));
+	return Insert(session, key, key_size, (char*) &val, sizeof(val));
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Bucket<Context>::Search(Context* ctx, const char *key, int key_size, char** valp, 
+Bucket<Session>::Search(Session* session, const char *key, int key_size, char** valp, 
                         int* val_sizep)
 {
 	int            ret;
-	Page<Context>* page;
+	Page<Session>* page;
 
 	for (page=&page_; page != 0x0; page=page->Next()) {
-		if ((ret=page->Search(ctx, key, key_size, valp, val_sizep)) == 0) {
+		if ((ret=page->Search(session, key, key_size, valp, val_sizep)) == 0) {
 			return ret;
 		}
 	}
@@ -733,43 +733,43 @@ Bucket<Context>::Search(Context* ctx, const char *key, int key_size, char** valp
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Bucket<Context>::Search(Context* ctx, const char* key, int key_size, uint64_t* val)
+Bucket<Session>::Search(Session* session, const char* key, int key_size, uint64_t* val)
 {
 	int val_size;
-	return Search(ctx, key, key_size, (char**) &val, &val_size);
+	return Search(session, key, key_size, (char**) &val, &val_size);
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Bucket<Context>::Delete(Context* ctx, char* key, int key_size)
+Bucket<Session>::Delete(Session* session, char* key, int key_size)
 {
 
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-Bucket<Context>::Split(Context* ctx, Bucket* splitover_bucket, 
+Bucket<Session>::Split(Session* session, Bucket* splitover_bucket, 
                        const SplitPredicate& split_predicate)
 {
 	int            ret;
-	Page<Context>* page;
-	Page<Context>* new_page;
-	Page<Context>* splitover_page;
+	Page<Session>* page;
+	Page<Session>* new_page;
+	Page<Session>* splitover_page;
 
 	for (page=&page_; page != 0x0; page=page->Next()) {
 		splitover_page = &splitover_bucket->page_;
 dosplit:
-		ret=page->Split(ctx, splitover_page, split_predicate);
+		ret=page->Split(session, splitover_page, split_predicate);
 		if (ret==-E_NOMEM) {
 			if ((new_page=splitover_page->Next()) == 0x0) {
 				//FIXME: allocate new page from chunk descriptor, not new/malloc
 				//FIXME: protect against cycle-loop resulting from infinite splits. 
 				//       is this possible? shouldn't splits converge?
-				new_page = new(ctx) Page<Context>;
+				new_page = new(session) Page<Session>;
 				splitover_page->set_next(new_page);
 			}
 			splitover_page = new_page;
@@ -780,10 +780,10 @@ dosplit:
 }
 
 
-template<typename Context>
-void Bucket<Context>::Print()
+template<typename Session>
+void Bucket<Session>::Print()
 {
-	Page<Context>* page;
+	Page<Session>* page;
 
 	for (page=&page_; page != 0x0; page=page->Next()) {
 		printf("Page: %p = {\n", page);
@@ -800,8 +800,8 @@ void Bucket<Context>::Print()
 //////////////////////////////////////////////////////////////////////////////
 
 
-template<typename Context>
-class HashTable<Context>::LinearSplit: public SplitPredicate {
+template<typename Session>
+class HashTable<Session>::LinearSplit: public SplitPredicate {
 public:
 	LinearSplit(uint32_t size_log2)
 		: size_log2_(size_log2)
@@ -824,18 +824,18 @@ private:
 };
 
 
-template<typename Context>
+template<typename Session>
 int
-HashTable<Context>::Init()
+HashTable<Session>::Init()
 {
 	split_idx_ = 0;
 	size_log2_ = 5;
 }
 
 
-template<typename Context>
+template<typename Session>
 uint32_t 
-HashTable<Context>::Index(Context* ctx, const char* key, int key_size)
+HashTable<Session>::Index(Session* session, const char* key, int key_size)
 {
 	uint32_t idx;
 	uint32_t fh;
@@ -848,27 +848,27 @@ HashTable<Context>::Index(Context* ctx, const char* key, int key_size)
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-HashTable<Context>::Insert(Context* ctx, const char* key, int key_size, 
+HashTable<Session>::Insert(Session* session, const char* key, int key_size, 
                            const char* val, int val_size)
 {
 	uint32_t         idx;
-	Bucket<Context>* bucket;
-	Bucket<Context>* splitover_bucket;
+	Bucket<Session>* bucket;
+	Bucket<Session>* splitover_bucket;
 	int              ret;
 
 	printf("HashTable::Insert key=%s\n", key);
 
-	idx = Index(ctx, key, key_size);
+	idx = Index(session, key, key_size);
 	bucket = &buckets_[idx];
-	if ((ret=bucket->Insert(ctx, key, key_size, val, val_size))==0) {
+	if ((ret=bucket->Insert(session, key, key_size, val, val_size))==0) {
 		return 0;
 	}
 	if (ret == HT_REHASH) {
 		bucket = &buckets_[split_idx_];
 		splitover_bucket = &buckets_[split_idx_+(1<<size_log2_)];
-		bucket->Split(ctx, splitover_bucket, LinearSplit(size_log2_));
+		bucket->Split(session, splitover_bucket, LinearSplit(size_log2_));
 		split_idx_++;
 		if (split_idx_ == (1 << size_log2_)) {
 			split_idx_ = 0;
@@ -879,48 +879,48 @@ HashTable<Context>::Insert(Context* ctx, const char* key, int key_size,
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-HashTable<Context>::Insert(Context* ctx, const char* key, int key_size, uint64_t val)
+HashTable<Session>::Insert(Session* session, const char* key, int key_size, uint64_t val)
 {
-	return Insert(ctx, key, key_size, (char*) &val, sizeof(val));
+	return Insert(session, key, key_size, (char*) &val, sizeof(val));
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-HashTable<Context>::Search(Context* ctx, const char *key, int key_size, char** valp, 
+HashTable<Session>::Search(Session* session, const char *key, int key_size, char** valp, 
                            int* val_sizep)
 {
 	uint32_t         idx;
-	Bucket<Context>* bucket;
+	Bucket<Session>* bucket;
 
 	printf("HashTable::Search key=%s\n", key);
 
-	idx = Index(ctx, key, key_size);
+	idx = Index(session, key, key_size);
 	bucket = &buckets_[idx];
-	return bucket->Search(ctx, key, key_size, valp, val_sizep);
+	return bucket->Search(session, key, key_size, valp, val_sizep);
 }
 
 
-template<typename Context>
+template<typename Session>
 int 
-HashTable<Context>::Search(Context* ctx, const char* key, int key_size, 
+HashTable<Session>::Search(Session* session, const char* key, int key_size, 
                            uint64_t* val)
 {
 	int val_size;
 
-	return Search(ctx, key, key_size, (char**) &val, &val_size);
+	return Search(session, key, key_size, (char**) &val, &val_size);
 }
 
 
-template<typename Context>
+template<typename Session>
 void 
-HashTable<Context>::Print()
+HashTable<Session>::Print()
 {
 	int              i;
 	uint32_t         idx;
-	Bucket<Context>* bucket;
+	Bucket<Session>* bucket;
 
 	for (i=0; i<(1<<size_log2_)+split_idx_; i++) {
 		bucket = &buckets_[i];

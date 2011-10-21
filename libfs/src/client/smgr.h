@@ -9,7 +9,7 @@
 //FIXME: The Storage Manager should use the kernel storage API instead of the 
 //chunkstore server when this facility becomes available.
 
-class ClientContext;
+class ClientSession;
 
 namespace client {
 
@@ -23,7 +23,7 @@ public:
 		chunk_store.Init();
 	}		  
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
-	int Alloc(ClientContext* ctx, size_t nbytes, std::type_info const& typid, void** ptr);
+	int Alloc(ClientSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
 
 private:
 	rpcc*        client_;

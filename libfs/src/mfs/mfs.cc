@@ -8,7 +8,7 @@ namespace mfs {
 
 client::SuperBlock* CreateSuperBlock(void* ptr) {
 	client::SuperBlock* sb;
-	ClientContext*      ctx; //FIXME this should be passed as parameter
+	ClientSession*      session; //FIXME this should be passed as parameter
 
 	if (ptr) {
 		// load superblock
@@ -21,7 +21,7 @@ client::SuperBlock* CreateSuperBlock(void* ptr) {
 		}
 	} else {
 		// create file system superblock
-		DirPnode<ClientContext>* dpnode = new(ctx) DirPnode<ClientContext>;
+		DirPnode<ClientSession>* dpnode = new(session) DirPnode<ClientSession>;
 		PSuperBlock* psb = new(client::global_smgr) PSuperBlock;
 		psb->root_ = reinterpret_cast<uint64_t>(dpnode);
 		sb = new SuperBlock(psb);

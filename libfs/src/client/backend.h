@@ -5,7 +5,7 @@
 #define _CLIENT_BACKEND_H_EAF891
 
 #include "client/client_i.h"
-#include "client/context.h"
+#include "client/session.h"
 #include "client/sb.h"
 #include "client/imgr.h"
 #include "client/smgr.h"

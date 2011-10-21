@@ -24,8 +24,8 @@ int
 SuperBlock::AllocInode(int type, client::Inode** ipp)
 {
 	client::Inode*            ip;
-	DirPnode<ClientContext>*  dpnode;
-	ClientContext*            ctx;
+	DirPnode<ClientSession>*  dpnode;
+	ClientSession*            session; // FIXME this must be parameter
 	
 	printf("mfs::SuperBlock::AllocInode\n");
 	
@@ -34,7 +34,7 @@ SuperBlock::AllocInode(int type, client::Inode** ipp)
 			//ip = new 	
 			break;
 		case client::type::kDirInode:
-			dpnode = new(ctx) DirPnode<ClientContext>;
+			dpnode = new(session) DirPnode<ClientSession>;
 			ip = new DirInodeMutable(this, dpnode);
 			break;
 	}

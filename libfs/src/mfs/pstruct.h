@@ -17,7 +17,7 @@
 
 namespace mfs {
 
-template<typename Context>
+template<typename Session>
 class DirPnode;
 
 class PSuperBlock {
@@ -65,7 +65,7 @@ public:
 };
 
 
-template<typename Context>
+template<typename Session>
 class DirPnode: public Pnode {
 public:
 	static DirPnode* Load(uint64_t ino) {
@@ -78,11 +78,11 @@ public:
 		  parent_(0)
 	{ }
 
-	void* operator new(size_t nbytes, Context* ctx)
+	void* operator new(size_t nbytes, Session* session)
 	{
 		void* ptr;
 		
-		if (ctx->sm->Alloc(ctx, nbytes, typeid(DirPnode<Context>), &ptr) < 0) {
+		if (session->sm->Alloc(session, nbytes, typeid(DirPnode<Session>), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
@@ -94,13 +94,13 @@ public:
 //private:
 	uint64_t            self_;    // entry '.'
 	uint64_t            parent_;  // entry '..'
-	HashTable<Context>* ht_;      // entries
+	HashTable<Session>* ht_;      // entries
 };
 
 
-template<typename Context>
+template<typename Session>
 inline int 
-DirPnode<Context>::Lookup(char* name, uint64_t* ino)
+DirPnode<Session>::Lookup(char* name, uint64_t* ino)
 {
 	if (name[0] == '\0') {
 		return -1;
@@ -127,11 +127,11 @@ DirPnode<Context>::Lookup(char* name, uint64_t* ino)
 }
 
 
-template<typename Context>
+template<typename Session>
 inline int 
-DirPnode<Context>::Link(char* name, uint64_t ino)
+DirPnode<Session>::Link(char* name, uint64_t ino)
 {
-	Context* ctx; //FIXME this should be parameter
+	Session* session; //FIXME this should be parameter
 	if (name[0] == '\0') {
 		return -1;
 	}	
@@ -150,7 +150,7 @@ DirPnode<Context>::Link(char* name, uint64_t ino)
 	}
 	
 	if (!ht_) {
-		ht_ = new(ctx) HashTable<Context>(); 
+		ht_ = new(session) HashTable<Session>(); 
 		if (!ht_) {
 			return -1;
 		}	

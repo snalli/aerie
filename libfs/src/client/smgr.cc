@@ -1,7 +1,7 @@
 #include "client/smgr.h"
 #include <stdlib.h>
 #include <typeinfo>
-#include "client/context.h"
+#include "client/session.h"
 
 
 namespace client {
@@ -33,7 +33,7 @@ StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 
 int 
-StorageManager::Alloc(ClientContext* ctx, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageManager::Alloc(ClientSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	ChunkDescriptor* achunkdsc[16];
 
