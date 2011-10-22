@@ -39,12 +39,13 @@ static int strrep(char *target, char *source, char oldc, char newc)
 	return 0;
 }
 
+
 int dbg_init(int level, char* identifier)
 {
 	my_config_init(&dbg_cfg, "libfs.ini");
 
-	// if user hasn't provide a debugging level then try reading it from the 
-	// configuration
+	// if user hasn't provided a debugging level then get it from the 
+	// configuration env/file
 	if (level<0) {
 		my_config_lookup_int(&dbg_cfg, "debug_level", &dbg_level);
 	} else {
@@ -65,15 +66,33 @@ int dbg_init(int level, char* identifier)
 
 	// read per module debugging flags
 #define STR(name) #name
-#define ACTION(name)\
-	do { \
-		char dotstr[128]; \
-		strrep(dotstr, STR(debug_module_##name), '_', '.'); \
-		my_config_lookup_bool(&dbg_cfg, dotstr, &dbg_modules[dbg_module_##name]); \
+#define ACTION(name)                                                           \
+	do {                                                                       \
+		char dotstr[128];                                                      \
+		strrep(dotstr, STR(debug_module_##name), '_', '.');                    \
+		my_config_lookup_bool(&dbg_cfg, dotstr,                                \
+		                      &dbg_modules[dbg_module_##name]);                \
 	} while (0);
 
-	//	printf("%s=%d\n", STR(debug_module_##name), dbg_modules[dbg_module_##name]);
 	FOREACH_DEBUG_MODULE(ACTION)
 #undef ACTION
+}
 
+
+void
+dbg_backtrace (void)
+{
+	void *array[10];
+	size_t size;
+	char **strings;
+	size_t i;
+ 
+	size = backtrace (array, 10);
+	strings = backtrace_symbols (array, size);
+									      
+	printf ("Obtained %zd stack frames.\n", size);
+																	      
+	for (i = 0; i < size; i++)
+		printf ("%s\n", strings[i]);
+	free (strings);
 }

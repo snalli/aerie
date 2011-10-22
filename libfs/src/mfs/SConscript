@@ -9,23 +9,4 @@ lib_sources += ['dinode.cc']
 
 mfsLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
-#localBuildEnv.Program('main', ['main.cc', mfsLibrary, commonLibrary])
-
 Return('mfsLibrary')
-
-
-#C_SRC = Split("""
-#              bio.c
-#              file.c
-#              fs.c
-#              scm.c
-#              spinlock.c
-#	      sysfile.c
-#              util.c
-#              """)
-
-#scmalloc_obj = Object('scmalloc.c')
-#vistaheap_obj = Object('vistaheap.c')
-
-#StaticLibrary('fs', C_SRC+[scmalloc_obj+vistaheap_obj], CCFLAGS='-g -fno-omit-frame-pointer')
-#Program('main', ['main.c', 'libfs.a'], CCFLAGS='-g')

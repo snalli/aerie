@@ -1,13 +1,13 @@
 #ifndef _DEBUG_H_JKL896
 #define _DEBUG_H_JKL896
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define FOREACH_DEBUG_MODULE(ACTION)                        \
@@ -17,9 +17,9 @@ extern "C" {
 	ACTION(client_hlckmgr)  
 
 
-
-#define ACTION(name) \
+#define ACTION(name)                                        \
 	dbg_module_##name,
+
 enum {
 	FOREACH_DEBUG_MODULE(ACTION)
 	dbg_module_count
@@ -116,6 +116,7 @@ inline void Assert(int assertion, char* error)
 
 
 int dbg_init(int level, char* identifier);
+void dbg_backtrace (void);
 
 
 #ifdef __cplusplus
