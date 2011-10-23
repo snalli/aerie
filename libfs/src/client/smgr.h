@@ -9,9 +9,10 @@
 //FIXME: The Storage Manager should use the kernel storage API instead of the 
 //chunkstore server when this facility becomes available.
 
-class ClientSession;
 
 namespace client {
+
+class ClientSession; // forward declaration
 
 class StorageManager {
 public:

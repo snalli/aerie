@@ -11,18 +11,19 @@ extern LockManager* global_lckmgr;
 
 typedef uint64_t InodeNumber;
 
+class ClientSession;
 class SuperBlock;
 
 class Inode {
 public:
-	virtual int Init(InodeNumber ino) = 0;
-	virtual int Open(char* path, int flags) = 0;
-	virtual int Write(char* src, uint64_t off, uint64_t n) = 0;
-	virtual int Read(char* dst, uint64_t off, uint64_t n) = 0;
-	virtual int Lookup(char* name, Inode** inode) = 0;
-	virtual int LookupFast(char* name, Inode* inode) = 0;
-	virtual int Insert(char* name, Inode* inode) = 0;
-	virtual int Link(char* name, Inode* inode, bool overwrite) = 0;
+	virtual int Init(client::ClientSession* session, InodeNumber ino) = 0;
+	virtual int Open(client::ClientSession* session, char* path, int flags) = 0;
+	virtual int Write(client::ClientSession* session, char* src, uint64_t off, uint64_t n) = 0;
+	virtual int Read(client::ClientSession* session, char* dst, uint64_t off, uint64_t n) = 0;
+	virtual int Lookup(client::ClientSession* session, char* name, Inode** inode) = 0;
+	virtual int LookupFast(client::ClientSession* session, char* name, Inode* inode) = 0;
+	virtual int Insert(client::ClientSession* session, char* name, Inode* inode) = 0;
+	virtual int Link(client::ClientSession* session, char* name, Inode* inode, bool overwrite) = 0;
 
 	virtual client::SuperBlock* GetSuperBlock() = 0;
 	virtual void SetSuperBlock(client::SuperBlock* sb) = 0;

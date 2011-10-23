@@ -13,7 +13,7 @@ namespace client {
 // File implementation
 
 int 
-File::Write(const char* src, uint64_t n)
+File::Write(client::ClientSession* session, const char* src, uint64_t n)
 {
 	int ret;
 
@@ -23,7 +23,7 @@ File::Write(const char* src, uint64_t n)
 
 	pthread_mutex_lock(&mutex_);
 
-	if ((ret=ip_->Write(const_cast<char*>(src), off_, n)>0)) {
+	if ((ret=ip_->Write(session, const_cast<char*>(src), off_, n)>0)) {
 		off_+=ret;
 	}
 
@@ -34,7 +34,7 @@ File::Write(const char* src, uint64_t n)
 
 
 int
-File::Read(char* dst, uint64_t n)
+File::Read(client::ClientSession* session, char* dst, uint64_t n)
 {
 	int ret;
 
@@ -44,7 +44,7 @@ File::Read(char* dst, uint64_t n)
 
 	pthread_mutex_lock(&mutex_);
 
-	if ((ret=ip_->Read(dst, off_, n)>0)) {
+	if ((ret=ip_->Read(session, dst, off_, n)>0)) {
 		off_+=ret;
 	}
 

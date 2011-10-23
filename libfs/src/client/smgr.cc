@@ -21,14 +21,7 @@ namespace client {
 int 
 StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 {
-	ChunkDescriptor* achunkdsc[16];
-
-	chunk_store.CreateChunk(8192, CHUNK_TYPE_INODE, &achunkdsc[0]);
-	//chunk_store.AccessChunkList(achunkdsc, 1, PROT_READ|PROT_WRITE);
-	*ptr = achunkdsc[0]->chunk_;
-	//*ptr = malloc(nbytes);
-
-	return 0;
+	assert(0);
 }
 
 
@@ -36,11 +29,11 @@ int
 StorageManager::Alloc(ClientSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	ChunkDescriptor* achunkdsc[16];
+	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
 
-	chunk_store.CreateChunk(8192, CHUNK_TYPE_INODE, &achunkdsc[0]);
 	//chunk_store.AccessChunkList(achunkdsc, 1, PROT_READ|PROT_WRITE);
+	chunk_store.CreateChunk(roundup_bytes, CHUNK_TYPE_INODE, &achunkdsc[0]);
 	*ptr = achunkdsc[0]->chunk_;
-	//*ptr = malloc(nbytes);
 
 	return 0;
 }

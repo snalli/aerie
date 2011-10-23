@@ -20,6 +20,7 @@ namespace mfs {
 template<typename Session>
 class DirPnode;
 
+template<typename Session>
 class PSuperBlock {
 public:
 	PSuperBlock() 
@@ -36,12 +37,12 @@ public:
 		return NULL;
 	}
 
-	void* operator new( size_t nbytes, client::StorageManager* sm)
+	void* operator new(size_t nbytes, Session* session)
 	{
 		void* ptr;
 		int   ret;
 
-		if ((ret = sm->Alloc(nbytes, typeid(PSuperBlock), &ptr)) < 0) {
+		if ((ret = session->sm->Alloc(session, nbytes, typeid(PSuperBlock), &ptr)) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
@@ -88,8 +89,8 @@ public:
 		return ptr;
 	}
 
-	int Lookup(char* name, uint64_t* ino);
-	int Link(char* name, uint64_t ino);
+	int Lookup(Session* session, char* name, uint64_t* ino);
+	int Link(Session* session, char* name, uint64_t ino);
 
 //private:
 	uint64_t            self_;    // entry '.'
@@ -100,7 +101,7 @@ public:
 
 template<typename Session>
 inline int 
-DirPnode<Session>::Lookup(char* name, uint64_t* ino)
+DirPnode<Session>::Lookup(Session* session, char* name, uint64_t* ino)
 {
 	if (name[0] == '\0') {
 		return -1;
@@ -120,7 +121,7 @@ DirPnode<Session>::Lookup(char* name, uint64_t* ino)
 	}
 
 	if (ht_) {
-		return ht_->Search(NULL, name, strlen(name)+1, ino);
+		return ht_->Search(session, name, strlen(name)+1, ino);
 	}
 
 	return -1;
@@ -129,9 +130,8 @@ DirPnode<Session>::Lookup(char* name, uint64_t* ino)
 
 template<typename Session>
 inline int 
-DirPnode<Session>::Link(char* name, uint64_t ino)
+DirPnode<Session>::Link(Session* session, char* name, uint64_t ino)
 {
-	Session* session; //FIXME this should be parameter
 	if (name[0] == '\0') {
 		return -1;
 	}	
@@ -155,7 +155,7 @@ DirPnode<Session>::Link(char* name, uint64_t ino)
 			return -1;
 		}	
 	}
-	ht_->Insert(NULL, name, strlen(name)+1, ino);
+	ht_->Insert(session, name, strlen(name)+1, ino);
 
 	return 0;
 }

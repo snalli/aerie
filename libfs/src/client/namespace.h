@@ -8,20 +8,22 @@
 
 namespace client {
 
+class ClientSession;
+
 class NameSpace {
 public:
 	NameSpace(rpcc* c, unsigned int, const char*);
-	int Lookup(const char* name, void**);
-	int Link(const char* name, void*);
-	int Unlink(const char* name);
-	int Namei(const char* path, Inode**);
-	int Nameiparent(const char* path, char* name, Inode**);
-	int Mount(const char*, SuperBlock*);
-	int Unmount(char*);
-	int Init();
+	int Lookup(ClientSession* session, const char* name, void**);
+	int Link(ClientSession* session, const char* name, void*);
+	int Unlink(ClientSession* session, const char* name);
+	int Namei(ClientSession* session, const char* path, Inode**);
+	int Nameiparent(ClientSession* session, const char* path, char* name, Inode**);
+	int Mount(ClientSession* session, const char*, SuperBlock*);
+	int Unmount(ClientSession* session, char*);
+	int Init(ClientSession* session);
 
 private:
-	int Namex(const char* path, bool nameiparent, char* name, Inode**);
+	int Namex(ClientSession* session, const char* path, bool nameiparent, char* name, Inode**);
 
 	rpcc*        client_;
 	unsigned int principal_id_;

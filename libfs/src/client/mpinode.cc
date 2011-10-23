@@ -5,7 +5,7 @@
 
 using namespace client;
 
-int MPInode::Lookup(char* name, Inode** inode)
+int MPInode::Lookup(ClientSession* session, char* name, Inode** inode)
 {
 	int len;
 	int i;
@@ -41,7 +41,7 @@ int MPInode::Lookup(char* name, Inode** inode)
 
 // Assumes the caller has checked that the mounted file system does not 
 // contain the name
-int MPInode::Insert(char* name, Inode* inode)
+int MPInode::Insert(ClientSession* session, char* name, Inode* inode)
 {
 	int    len;
 	int    i;

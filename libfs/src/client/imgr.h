@@ -12,9 +12,9 @@ class InodeManager {
 public:
 
 	InodeManager() { }
-	int	AllocInode(SuperBlock* sb, int type, Inode** ipp);
-	int GetInode(SuperBlock* sb, InodeNumber ino, Inode** ipp);
-	int PutInode(SuperBlock* sb, Inode* ip);
+	int	AllocInode(ClientSession* session, SuperBlock* sb, int type, Inode** ipp);
+	int GetInode(ClientSession* session, SuperBlock* sb, InodeNumber ino, Inode** ipp);
+	int PutInode(ClientSession* session, SuperBlock* sb, Inode* ip);
 	
 };
 

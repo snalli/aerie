@@ -26,11 +26,12 @@ Registry*        registry;
 rpcc*            rpc_client;
 rpcs*            rpc_server;
 std::string      id;
+ClientSession*   global_session;
 
 // Known backend file system implementations
 struct KnownFS {
 	const char*         name;
-	client::SuperBlock* (*CreateSuperBlock)(void*);
+	client::SuperBlock* (*CreateSuperBlock)(ClientSession*, void*);
 } known_fs[] = {
 	{"mfs", mfs::CreateSuperBlock},
 	{NULL, NULL}
@@ -74,6 +75,7 @@ Client::Init(int principal_id, const char* xdst)
 	global_smgr = new StorageManager(rpc_client, principal_id);
 	global_lckmgr = new LockManager(rpc_client, rpc_server, id, 0);
 	global_hlckmgr = new HLockManager(global_lckmgr);
+	global_session = new ClientSession(global_smgr);
 
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
@@ -82,7 +84,7 @@ Client::Init(int principal_id, const char* xdst)
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
 								  
 	registry = new Registry(rpc_client, principal_id);
-	return global_namespace->Init();
+	return global_namespace->Init(global_session);
 }
 
 
@@ -117,13 +119,13 @@ Client::Mount(const char* source,
 			if (registry->Lookup(source, &ptr) < 0) {
 				return -1;
 			}
-			sb = known_fs[i].CreateSuperBlock(ptr);
+			sb = known_fs[i].CreateSuperBlock(global_session, ptr);
 			if (sb == NULL) {
 				return -1;
 			}
 			dbg_log (DBG_INFO, "Mount %s (%p) to %s\n", source, ptr, target);
 
-			return global_namespace->Mount(path, sb);
+			return global_namespace->Mount(global_session, path, sb);
 		}
 	}
 	return -1;
@@ -146,7 +148,7 @@ Client::Mkfs(const char* target,
 
 	for (i=0; known_fs[i].name != NULL; i++) {
 		if (strcmp(fstype, known_fs[i].name) == 0) {
-			sb = known_fs[i].CreateSuperBlock(NULL);
+			sb = known_fs[i].CreateSuperBlock(global_session, NULL);
 			if (sb == NULL) {
 				return -1;
 			}
@@ -172,13 +174,13 @@ create(const char* path, Inode** ipp, int mode, int type)
 	SuperBlock*   sb;
 	int           ret;
 
-	if ((ret = global_namespace->Nameiparent(path, name, &dp))<0) {
+	if ((ret = global_namespace->Nameiparent(global_session, path, name, &dp))<0) {
 		printf("create: path=%s, ret=%d, dp=%p\n", path, ret, dp);
 		return ret;
 	}
 	printf("create: path=%s, name=%s, ret=%d, dp=%p\n", path, name, ret, dp);
 
-	if ((ret = dp->Lookup(name, &ip)) == 0) {
+	if ((ret = dp->Lookup(global_session, name, &ip)) == 0) {
 		//TODO: handle collision; return error
 		//      and release directory inode and inode
 	}
@@ -188,18 +190,18 @@ create(const char* path, Inode** ipp, int mode, int type)
 	sb = dp->GetSuperBlock();
 
 	//FIXME: do it by type
-	if ((ret = global_imgr->AllocInode(sb, client::type::kDirInode, &ip)) < 0) {
+	if ((ret = global_imgr->AllocInode(global_session, sb, client::type::kDirInode, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 	}
 	
 	//FIXME: nlink count
 	printf("create: create links\n");
 	if (type == client::type::kDirInode) {
-		ip->Link(".", ip, true);
-		ip->Link("..", dp, true);
+		ip->Link(global_session, ".", ip, true);
+		ip->Link(global_session, "..", dp, true);
 	}
-	assert(dp->Link(name, ip, true) == 0);
-	assert(dp->Lookup(name, &ip) == 0); 
+	assert(dp->Link(global_session, name, ip, true) == 0);
+	assert(dp->Lookup(global_session, name, &ip) == 0); 
 	return 0;
 }
 
@@ -228,7 +230,7 @@ Client::Open(const char* path, int flags, int mode)
 			return ret;
 		}	
 	} else {
-		if((ret = global_namespace->Namei(path, &ip)) < 0) {
+		if((ret = global_namespace->Namei(global_session, path, &ip)) < 0) {
 			return ret;
 		}	
 		printf("do_open: path=%s, ret=%d, ip=%p\n", path, ret, ip);
@@ -296,7 +298,7 @@ Client::Write(int fd, const char* src, uint64_t n)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Write(src, n);
+	return fp->Write(global_session, src, n);
 }
 
 
@@ -309,7 +311,7 @@ Client::Read(int fd, char* dst, uint64_t n)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Read(dst, n);
+	return fp->Read(global_session, dst, n);
 }
 
 uint64_t 

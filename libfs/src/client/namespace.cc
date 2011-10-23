@@ -77,15 +77,15 @@ SkipElem(char *path, char *name)
 
 
 int
-NameSpace::Init() 
+NameSpace::Init(ClientSession* session) 
 {
 	root_ = new MPInode;
-	Mount("/", (SuperBlock*) KERNEL_SUPERBLOCK);
+	Mount(session, "/", (SuperBlock*) KERNEL_SUPERBLOCK);
 }
 
 
 int
-NameSpace::Lookup(const char* name, void** obj)
+NameSpace::Lookup(ClientSession* session, const char* name, void** obj)
 {
 	return 0;
 }
@@ -121,7 +121,7 @@ NameSpace::Unmount(const char* name)
 #else 
 
 int
-NameSpace::Mount(const char* const_path, SuperBlock* sb)
+NameSpace::Mount(ClientSession* session, const char* const_path, SuperBlock* sb)
 {
 	char     name[128];
 	MPInode* mpnode;
@@ -134,10 +134,10 @@ NameSpace::Mount(const char* const_path, SuperBlock* sb)
 	mpnode = root_;
 	while((path = SkipElem(path, name)) != 0) {
 		printf("NameSpace::Mount: elem=%s\n", name);
-		if ((ret = mpnode->Lookup(name, (Inode**) &mpnode_next)) < 0) {
+		if ((ret = mpnode->Lookup(session, name, (Inode**) &mpnode_next)) < 0) {
 			mpnode_next = new MPInode();
 			printf("mpnode_next=%p\n", mpnode_next);
-			assert(mpnode->Insert(name, mpnode_next) == 0);	
+			assert(mpnode->Insert(session, name, mpnode_next) == 0);	
 			mpnode = mpnode_next;
 			continue;
 		}
@@ -149,7 +149,7 @@ NameSpace::Mount(const char* const_path, SuperBlock* sb)
 }
 
 int
-NameSpace::Unmount(char* name)
+NameSpace::Unmount(ClientSession* session, char* name)
 {
 	return 0;
 }
@@ -162,7 +162,7 @@ NameSpace::Unmount(char* name)
 //TODO: Optimization: Use LookupFast API instead of Lookup and revert to 
 // Lookup only when the inode is mutated
 int
-NameSpace::Namex(const char *cpath, bool nameiparent, char* name, Inode** inodep)
+NameSpace::Namex(ClientSession* session, const char *cpath, bool nameiparent, char* name, Inode** inodep)
 {
 	char*       path = const_cast<char*>(cpath);
 	Inode*      inode;
@@ -185,7 +185,7 @@ retry:
 			//TODO: unlock inode after lookup and lock the next
 			// follow superblock's root inode if parent is mount point
 			if (typeid(*inode) == typeid(MPInode)) {
-				if ((ret = inode->Lookup(name, &inode_next)) == -2) {
+				if ((ret = inode->Lookup(session, name, &inode_next)) == -2) {
 					MPInode* mpnode = dynamic_cast<MPInode*>(inode);
 					sb = mpnode->GetSuperBlock();
 					if ((uint64_t) sb != KERNEL_SUPERBLOCK) {
@@ -198,7 +198,7 @@ retry:
 
 		//FIXME: Lock (latch) inode before looking up/then unlock (i.e. do spider locking)
 		//FIXME: Release inode when done 
-		if ((ret = inode->Lookup(name, &inode_next)) < 0) {
+		if ((ret = inode->Lookup(session, name, &inode_next)) < 0) {
 			printf("NameSpace::Namei(%s): Lookup: %s: ret=%d\n", cpath, name, ret);
 			if (ret == -2) {
 				MPInode* mpnode = dynamic_cast<MPInode*>(inode);
@@ -233,35 +233,35 @@ done:
 //TODO: optimization: when namex uses immutable for lookup, nameiparent should be able
 //to ask for a mutable inode
 int
-NameSpace::Nameiparent(const char* path, char* name, Inode** inodep)
+NameSpace::Nameiparent(ClientSession* session, const char* path, char* name, Inode** inodep)
 {
 	int ret; 
 
-	ret = Namex(path, true, name, inodep);
+	ret = Namex(session, path, true, name, inodep);
 	return ret;
 }
 
 
 int
-NameSpace::Namei(const char* path, Inode** inodep)
+NameSpace::Namei(ClientSession* session, const char* path, Inode** inodep)
 {
 	int  ret; 
 	char name[128];
 
-	ret = Namex(path, false, name, inodep);
+	ret = Namex(session, path, false, name, inodep);
 	return ret;
 }
 
 
 int
-NameSpace::Link(const char *name, void *obj)
+NameSpace::Link(ClientSession* session, const char *name, void *obj)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 }
 
 
 int
-NameSpace::Unlink(const char *name)
+NameSpace::Unlink(ClientSession* session, const char *name)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 /*
