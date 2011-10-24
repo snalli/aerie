@@ -19,6 +19,10 @@
 
 #include <typeinfo>
 
+
+//TODO: Optimization: When resolving a pathname (Namex), use LookupFast API 
+// instead of Lookup and revert to Lookup only when the inode is mutated
+
 using namespace client;
 
 const int NAMESIZ = 128;
@@ -32,18 +36,18 @@ NameSpace::NameSpace(rpcc* c, unsigned int principal_id, const char* namespace_n
 	strcpy(namespace_name_, namespace_name);
 }
 
-// Copy the next path element from path into name.
-// Return a pointer to the element following the copied one.
-// The returned path has no leading slashes,
-// so the caller can check *path=='\0' to see if the name is the last one.
-// If no name to remove, return 0.
+//! Copy the next path element from path into name.
+//! Return a pointer to the element following the copied one.
+//! The returned path has no leading slashes,
+//! so the caller can check *path=='\0' to see if the name is the last one.
+//! If no name to remove, return 0.
 //
-// Examples:
-//   skipelem("a/bb/c", name) = "bb/c", setting name = "a"
-//   skipelem("///a//bb", name) = "bb", setting name = "a"
-//   skipelem("a", name) = "", setting name = "a"
-//   skipelem("", name) = skipelem("////", name) = 0
-//
+//! Examples:
+//!   skipelem("a/bb/c", name) = "bb/c", setting name = "a"
+//!   skipelem("///a//bb", name) = "bb", setting name = "a"
+//!   skipelem("a", name) = "", setting name = "a"
+//!   skipelem("", name) = skipelem("////", name) = 0
+//!
 static char*
 SkipElem(char *path, char *name)
 {
@@ -159,8 +163,6 @@ NameSpace::Unmount(Session* session, char* name)
 #endif
 
 
-//TODO: Optimization: Use LookupFast API instead of Lookup and revert to 
-// Lookup only when the inode is mutated
 int
 NameSpace::Namex(Session* session, const char *cpath, bool nameiparent, char* name, Inode** inodep)
 {

@@ -35,10 +35,11 @@ InodeManager::GetInode(Session* session, SuperBlock* sb, InodeNumber ino, Inode*
 	return sb->GetInode(ino, ipp);
 }
 
+
 int
 InodeManager::PutInode(Session* session, SuperBlock* sb, Inode* ip)
 {
-	return 0;
+	return sb->PutInode(ip);
 }
 
 

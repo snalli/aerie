@@ -1,5 +1,5 @@
-#ifndef __FILE_INODE_CLIENT_H_AKE111
-#define __FILE_INODE_CLIENT_H_AKE111
+#ifndef __MFS_CLIENT_FILE_INODE_H_AKE111
+#define __MFS_CLIENT_FILE_INODE_H_AKE111
 
 #include <pthread.h>
 #include <stdint.h>
@@ -33,4 +33,4 @@ private:
 	uint64_t           size_;
 };
 
-#endif /* __FILE_INODE_H_AKE111 */
+#endif /* __MFS_CLIENT_FILE_INODE_H_AKE111 */

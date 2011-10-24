@@ -25,6 +25,7 @@ public:
 	int LookupFast(Session* session, const char* name, Inode* inode) { return 0; }
 	int Link(Session* session, const char* name, Inode* inode, bool overwrite) { return 0; }
 	int Insert(Session* session, const char* name, Inode* inode);
+	int Publish() { return 0; }
 	SuperBlock* GetSuperBlock() { return sb_; };
 	void SetSuperBlock(SuperBlock* sb) { sb_ = sb; };
 

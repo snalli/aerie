@@ -2,8 +2,8 @@
 /// 
 /// \brief Inode Map: maps inode number to inode descriptor
 
-#ifndef _INODE_MAP_H_AKL189
-#define _INODE_MAP_H_AKL189
+#ifndef __CLIENT_INODE_MAP_H_AKL189
+#define __CLIENT_INODE_MAP_H_AKL189
 
 #include "client/inode.h"
 #include <stdint.h>
@@ -79,4 +79,4 @@ InodeMap::Remove(InodeNumber ino)
 
 } // namespace client
 
-#endif
+#endif // __CLIENT_INODE_MAP_H_AKL189

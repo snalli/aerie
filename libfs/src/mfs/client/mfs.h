@@ -1,5 +1,5 @@
-#ifndef _MFS_MFS_H_AAF781
-#define _MFS_MFS_H_AAF781
+#ifndef _MFS_CLIENT_MFS_H_AAF781
+#define _MFS_CLIENT_MFS_H_AAF781
 
 #include "client/backend.h"
 //#include "mfs/sb.h"
@@ -11,4 +11,4 @@ client::SuperBlock* CreateSuperBlock(client::Session* session, void* ptr);
 } // namespace mfs
 
 
-#endif /* _MFS_MFS_H_AAF781 */
+#endif /* _MFS_CLIENT_MFS_H_AAF781 */

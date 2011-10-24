@@ -25,18 +25,31 @@ public:
 	virtual int Insert(client::Session* session, const char* name, Inode* inode) = 0;
 	virtual int Link(client::Session* session, const char* name, Inode* inode, bool overwrite) = 0;
 
+	virtual int Publish() = 0;
+
 	virtual client::SuperBlock* GetSuperBlock() = 0;
 	virtual void SetSuperBlock(client::SuperBlock* sb) = 0;
 
 	virtual InodeNumber GetInodeNumber() { return ino_; };
 	virtual void SetInodeNumber(InodeNumber ino) { ino_ = ino; };
 
+	int Get();
+	int Put();
 	int Lock(); 
 	int Unlock();
 
 protected:
-	InodeNumber    ino_;
-	client::Lock*  lock_;
+	//! process-wide mutex; used for synchronizing access to the
+	//! volatile inode metadata
+	pthread_mutex_t mutex_;
+	//! dynamic reference count; number of objects referencing the
+	//! volatile inode object
+	int             refcnt_; 
+	InodeNumber     ino_;
+	//! system-wide public lock; used for inter- and intra process 
+	//! synchronization to the persistent inode data structure
+	client::Lock*   lock_;  
+
 };
 
 
@@ -53,6 +66,25 @@ Inode::Unlock()
 {
 	//FIXME
 	//global_lckmgr->Release(lock_);
+}
+
+inline
+int Inode::Get() 
+{ 
+	pthread_mutex_lock(&mutex_);
+	refcnt_++; 
+	pthread_mutex_unlock(&mutex_);
+	return 0; 
+}
+
+inline
+int Inode::Put() 
+{ 
+	pthread_mutex_lock(&mutex_);
+	assert(refcnt_>0); 
+	refcnt_--; 
+	pthread_mutex_unlock(&mutex_);
+	return 0; 
 }
 
 

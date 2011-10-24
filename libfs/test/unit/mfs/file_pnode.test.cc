@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tool/testfw/unittest.h"
-#include "mfs/pinode.h"
+#include "mfs/file_pnode.h"
 #include "common/errno.h"
 
 
@@ -18,17 +18,17 @@ void fillbuf(char *buf, int n, unsigned int seed)
 }	
 
 
-SUITE(SuitePInode)
+SUITE(SuiteFilePnode)
 {
 	TEST(TestWriteReadBlock1)
 	{
-		PInode* pinode;
+		FilePnode* pinode;
 		char    src[BLOCK_SIZE];
 		char    dst[BLOCK_SIZE];
 
 		radix_tree_init_maxindex();
 
-		pinode = new PInode();
+		pinode = new FilePnode();
 
 		src[0] = 'a';
 		pinode->WriteBlock(src, 0, 0, BLOCK_SIZE);
@@ -40,13 +40,13 @@ SUITE(SuitePInode)
 
 	TEST(TestWriteReadBlock2)
 	{
-		PInode* pinode;
+		FilePnode* pinode;
 		char    src[BLOCK_SIZE];
 		char    dst[BLOCK_SIZE];
 
 		radix_tree_init_maxindex();
 
-		pinode = new PInode();
+		pinode = new FilePnode();
 
 		src[0] = 'a';
 		pinode->WriteBlock(src, 12, 0, BLOCK_SIZE);
@@ -76,7 +76,7 @@ SUITE(SuitePInode)
 
 	TEST(TestWriteReadBlock3)
 	{
-		PInode* pinode;
+		FilePnode* pinode;
 		char    src[BLOCK_SIZE];
 		char    dst[BLOCK_SIZE];
 		char    zeros[BLOCK_SIZE];
@@ -84,7 +84,7 @@ SUITE(SuitePInode)
 
 		radix_tree_init_maxindex();
 
-		pinode = new PInode();
+		pinode = new FilePnode();
 
 		memset(zeros, 0, BLOCK_SIZE);
 
@@ -118,9 +118,9 @@ SUITE(SuitePInode)
 
 	TEST(TestWriteRead4)
 	{
-		PInode*          pinode;
-		PInode::Iterator start;
-		PInode::Iterator iter;
+		FilePnode*          pinode;
+		FilePnode::Iterator start;
+		FilePnode::Iterator iter;
 		char             src[BLOCK_SIZE];
 		char             dst[BLOCK_SIZE];
 		char             zeros[BLOCK_SIZE];
@@ -129,7 +129,7 @@ SUITE(SuitePInode)
 
 		radix_tree_init_maxindex();
 
-		pinode = new PInode();
+		pinode = new FilePnode();
 		start.Init(pinode, 0);
 
 		memset(zeros, 0, BLOCK_SIZE);
@@ -157,7 +157,7 @@ SUITE(SuitePInode)
 
 	TEST(TestRegionWriteRead1)
 	{
-		PInode::Region* region;
+		FilePnode::Region* region;
 		char            src[BLOCK_SIZE];
 		char            dst[BLOCK_SIZE];
 		char            zeros[BLOCK_SIZE];
@@ -165,8 +165,8 @@ SUITE(SuitePInode)
 
 		radix_tree_init_maxindex();
 
-		//region = new PInode::Region(0, RADIX_TREE_MAP_SIZE);
-		region = new PInode::Region((uint64_t) 0, (uint64_t) 512);
+		//region = new FilePnode::Region(0, RADIX_TREE_MAP_SIZE);
+		region = new FilePnode::Region((uint64_t) 0, (uint64_t) 512);
 		memset(zeros, 0, BLOCK_SIZE);
 
 		fillbuf(src, BLOCK_SIZE, 0);
@@ -192,9 +192,9 @@ SUITE(SuitePInode)
 
 	TEST(TestInsertRegion1)
 	{
-		PInode*         pinode;
-		PInode::Region* new_region;
-		PInode::Region  region;
+		FilePnode*         pinode;
+		FilePnode::Region* new_region;
+		FilePnode::Region  region;
 		char            src[BLOCK_SIZE];
 		char            dst[BLOCK_SIZE];
 		char            zeros[BLOCK_SIZE];
@@ -202,12 +202,12 @@ SUITE(SuitePInode)
 
 		radix_tree_init_maxindex();
 
-		pinode = new PInode();
+		pinode = new FilePnode();
 		
 		fillbuf(src, BLOCK_SIZE, 300);
 		CHECK(pinode->WriteBlock(src, 300, 0, BLOCK_SIZE) >= 0);
 
-		new_region = new PInode::Region(pinode, 400);
+		new_region = new FilePnode::Region(pinode, 400);
 		fillbuf(src, BLOCK_SIZE, 400);
 		CHECK(new_region->WriteBlock(src, 400, 0, BLOCK_SIZE) >= 0);
 		
@@ -220,9 +220,9 @@ SUITE(SuitePInode)
 
 	TEST(TestExtendRegion1)
 	{
-		PInode*         pinode;
-		PInode::Region* new_region;
-		PInode::Region  region;
+		FilePnode*         pinode;
+		FilePnode::Region* new_region;
+		FilePnode::Region  region;
 		char            src[BLOCK_SIZE];
 		char            dst[BLOCK_SIZE];
 		char            zeros[BLOCK_SIZE];
@@ -230,9 +230,9 @@ SUITE(SuitePInode)
 
 		radix_tree_init_maxindex();
 
-		pinode = new PInode();
+		pinode = new FilePnode();
 		
-		new_region = new PInode::Region(pinode, 400);
+		new_region = new FilePnode::Region(pinode, 400);
 
 		fillbuf(src, BLOCK_SIZE, 400);
 		CHECK(new_region->WriteBlock(src, 400, 0, BLOCK_SIZE) >= 0);

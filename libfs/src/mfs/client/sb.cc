@@ -1,9 +1,19 @@
 #include "mfs/client/sb.h"
+#include <pthread.h>
 #include "client/backend.h"
 #include "mfs/psb.h"
 #include "mfs/client/dir_inode.h"
+#include "mfs/client/inode_factory.h"
 
 namespace mfs {
+
+// TODO:
+// most of the functionality is quite generic so it should really be provided by the inode manager. 
+// the superblock should only provide file-system functionality, that is construction of the 
+// inode. it should behave as a factory. that is, re-route the request to the local factory. 
+// Another approach would be for each file-system to define and register object factories
+// with the generic inode manager (and storage manager). 
+// The bottom line is that we need some form of polymorphism, either at the superblock or at the factory.
 
 client::Inode* 
 SuperBlock::CreateImmutableInode(int t)
@@ -23,7 +33,7 @@ SuperBlock::CreateImmutableInode(int t)
 int
 SuperBlock::AllocInode(client::Session* session, int type, client::Inode** ipp)
 {
-	client::Inode*            ip;
+	client::Inode*              ip;
 	DirPnode<client::Session>*  dpnode;
 	
 	printf("mfs::SuperBlock::AllocInode\n");
@@ -38,6 +48,10 @@ SuperBlock::AllocInode(client::Session* session, int type, client::Inode** ipp)
 			break;
 	}
 
+	pthread_mutex_lock(&mutex_);
+	imap_->Insert(ip);
+	ip->Get();
+	pthread_mutex_unlock(&mutex_);
 	*ipp = ip;
 	return 0;
 }
@@ -50,34 +64,33 @@ SuperBlock::GetInode(client::InodeNumber ino, client::Inode** ipp)
 	Pnode*         pnode;
 	int            ret;
 
+	pthread_mutex_lock(&mutex_);
 	if ((ret = imap_->Lookup(ino, &ip))==0) {
-		//FIXME: bump the inode's ref count???
-		*ipp = ip;
-		return 0;
+		ip->Get();
+		goto done;
 	}
 	
+	assert((ret = InodeFactory::Open(this, ino, &ip))==0);
 
-	pnode = Pnode::Load(ino);
-	//FIXME: persistent inode should have magic number identifying its type
-	/*
-	switch(pnode->magic_) {
-		case 1: // directory
-			minode = new mfs::DirInodeMutable(pnode);
-			break;
-
-		case 2: // file
-			//FIXME
-			//minode = new mfs::FileInodeMutable(pnode);
-			break;
-	}
-	*/
-	ip = new DirInodeMutable(this, pnode);
-
-	//FIXME: what should be the inode's ref count??? 1?
+	ip->Get();
 	imap_->Insert(ip);
-	*ipp = ip;
 
+done:
+	pthread_mutex_unlock(&mutex_);
+	*ipp = ip;
 	return 0;
+}
+
+
+int
+SuperBlock::PutInode(client::Inode* ip)
+{
+	pthread_mutex_lock(&mutex_);
+	ip->Put();
+	// TODO: if refcount == 0, do we remove inode from imap? 
+	// Only if inode does not have any updates that need to be published.
+	// Otherwise, we let the inode manager remove it when the inode is published.
+	pthread_mutex_unlock(&mutex_);
 }
 
 

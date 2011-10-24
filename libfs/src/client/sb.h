@@ -15,6 +15,7 @@ public:
 	virtual Inode* CreateImmutableInode(int type) = 0;
 	virtual int AllocInode(Session* session, int type, Inode** ipp) = 0;
 	virtual int GetInode(InodeNumber ino, Inode** ipp) = 0;
+	virtual int PutInode(Inode* ip) = 0;
 	virtual Inode* WrapInode() = 0;
 
 	virtual void* GetPSuperBlock() = 0;

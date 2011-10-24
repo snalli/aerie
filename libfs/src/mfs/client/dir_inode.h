@@ -1,5 +1,5 @@
-#ifndef __DIRECTORY_INODE_CLIENT_H_KAL178
-#define __DIRECTORY_INODE_CLIENT_H_KAL178
+#ifndef __MFS_CLIENT_DIRECTORY_INODE_H_KAL178
+#define __MFS_CLIENT_DIRECTORY_INODE_H_KAL178
 
 #include <stdint.h>
 #include "client/sb.h"
@@ -14,25 +14,29 @@ public:
 
 	DirInodeImmutable(Pnode* pnode)
 		: pnode_(static_cast<DirPnode<client::Session>*>(pnode))
-	{ }
+	{ 
+		pthread_mutex_init(&mutex_, NULL);
+	}
 
 	int Init(client::Session* session, uint64_t ino) {
+		pthread_mutex_init(&mutex_, NULL);
 		pnode_ = DirPnode<client::Session>::Load(ino);
 		return 0;
 	}
 	
-	//static DirInodeImmutable* Load(uint64_t ino);
-	//static DirInodeImmutable* Load(InodeImmutable* inode);
+	//DirInodeImmutable* Load(uint64_t ino) {	return DirInodeImmutable::Load(InodeImmutable::ino2obj(ino)); }
+	//DirInodeImmutable* Load(InodeImmutable* inode) { return reinterpret_cast<DirInodeImmutable*>(inode); }
 
-	int Open(client::Session* session, const char* path, int flags) { };
-	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
-	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
-	int Lookup(client::Session* session, const char* name, client::Inode** inode);
-	int LookupFast(client::Session* session, const char* name, client::Inode* inode);
-	int Insert(client::Session* session, const char* name, client::Inode* inode) { };
-	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite) { return 0; }
+	int Open(client::Session* session, const char* path, int flags) { assert(0); };
+	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { assert(0); }
+	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { assert(0); }
+	int Lookup(client::Session* session, const char* name, client::Inode** inode) { assert(0); }
+	int LookupFast(client::Session* session, const char* name, client::Inode* inode) { assert(0); }
+	int Insert(client::Session* session, const char* name, client::Inode* inode) { assert(0); }
+	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite) { assert(0); }
 	int Unlink(); // do nothing or don't expose this call
 	int Read(); 
+	int Publish() { assert(0); }
 
 	client::SuperBlock* GetSuperBlock() { return sb_;}
 	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
@@ -47,63 +51,7 @@ private:
 
 };
 
-/*
-DirInodeImmutable* 
-DirInodeImmutable::Load(uint64_t ino)
-{
-	InodeImmutable* inode = InodeImmutable::ino2obj(ino);
 
-	return DirInodeImmutable::Load(inode);
-}
-
-
-DirInodeImmutable* 
-DirInodeImmutable::Load(InodeImmutable* inode)
-{
-	return reinterpret_cast<DirInodeImmutable*>(inode);
-}
-*/
-
-//FIXME: directory needs a negative directory entry as well to
-// indicate the absence of the entry
-// if the entry is removed then the cache should reflect this
-// (in contrast to the DLNC in Solaris and FreeBSD, the 
-//  negative entry is necessary for correctness)
-
-
-//TODO: keep a volatile hashtable per directory that represents the 
-// up-to-date state of the directory???
-// OR keep directory entries in a global cache (hashtable) where 
-// each entry is indexed by (dirinode, ino)???
-// What operations you need to perform on the volatile dir representation?
-//  1) you need to quickly remove volatile entries of a directory inode (this is 
-//     needed when publishing a directory inode as the persistent immutable 
-//     inode becomes up-to-date and volatile entries are no-longer necessary)
-//  2) add a directory entry
-//  3) add a negative directory entry when removing a directory entry 
-//  4) find a  directory entry given a directory inode and a name
-//  5) Need to support listing all directory entries of a directory
-//     This requires coordinating with the immutable directory inode. Simply
-//     taking the union of the two inodes is not correct as some entries 
-//     that appear in the persistent inode may have been removed and appear
-//     as negative entries in the volatile cache. One way is for each entry 
-//     in the persistent inode to check whether there is a corresponding negative
-//     entry in the volatile cache. But this sounds like an overkill. 
-//     Perhaps we need a combination of a bloom filter of just the negative entries 
-//     and a counter of the negative entries. As deletes are rare, the bloom filter
-//     should quickly provide an answer.
-
-// TODO: perhaps it makes sense to cache persistent entries to avoid
-// the second lookup (persistent inode lookup) for entries that have
-// already been looked up in the past. But the benefit might not be much because
-// it further slows down lookups as we need to insert an entry in the cache. 
- 
-// Lookup algorithm
-// 1. Find whether there is a volatile directory inode or whether we should
-//    query the persistent inode directly 
-
-
-//class DirInodeMutable: public InodeMutable {
 class DirInodeMutable: public client::Inode {
 public:
 	DirInodeMutable(client::SuperBlock* sb, Pnode* pnode)
@@ -138,14 +86,15 @@ public:
 	int LookupFast(client::Session* session, const char* name, client::Inode* inode) { };
 
 	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite);
+	int Publish();
+
 private:
-	DirPnode<client::Session>*   pnode_;
-	client::SuperBlock*        sb_;            // file system superblock
+	DirPnode<client::Session>*  pnode_;         // immutable persistent inode structure
+	client::SuperBlock*         sb_;            // volatile file system superblock
 	//FIXME: pointer to new directory entries
 };
 
 
-
 } // namespace mfs
 
-#endif /* _DIRECTORY_INODE_CLIENT_H_KAL178 */
+#endif // __MFS_CLIENT_DIRECTORY_INODE_H_KAL178

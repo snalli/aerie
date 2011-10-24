@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tool/testfw/unittest.h"
-#include "mfs/pinode.h"
+#include "mfs/client/file_inode.h"
 #include "common/errno.h"
 
 	
