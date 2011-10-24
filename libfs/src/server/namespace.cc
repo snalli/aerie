@@ -64,7 +64,7 @@ SkipElem(char *path, char *name)
 
 
 void* 
-initfile(char* path, int flags, size_t hdrlen, size_t reclen, size_t reccnt)
+initfile(const char* path, int flags, size_t hdrlen, size_t reclen, size_t reccnt)
 {
 	int                 i;
 	int                 fd;

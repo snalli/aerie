@@ -1,5 +1,5 @@
-#ifndef __FILE_INODE_H_AKE111
-#define __FILE_INODE_H_AKE111
+#ifndef __FILE_INODE_CLIENT_H_AKE111
+#define __FILE_INODE_CLIENT_H_AKE111
 
 #include <pthread.h>
 #include <stdint.h>

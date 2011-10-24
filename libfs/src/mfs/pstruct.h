@@ -89,8 +89,8 @@ public:
 		return ptr;
 	}
 
-	int Lookup(Session* session, char* name, uint64_t* ino);
-	int Link(Session* session, char* name, uint64_t ino);
+	int Lookup(Session* session, const char* name, uint64_t* ino);
+	int Link(Session* session, const char* name, uint64_t ino);
 
 //private:
 	uint64_t            self_;    // entry '.'
@@ -101,7 +101,7 @@ public:
 
 template<typename Session>
 inline int 
-DirPnode<Session>::Lookup(Session* session, char* name, uint64_t* ino)
+DirPnode<Session>::Lookup(Session* session, const char* name, uint64_t* ino)
 {
 	if (name[0] == '\0') {
 		return -1;
@@ -130,7 +130,7 @@ DirPnode<Session>::Lookup(Session* session, char* name, uint64_t* ino)
 
 template<typename Session>
 inline int 
-DirPnode<Session>::Link(Session* session, char* name, uint64_t ino)
+DirPnode<Session>::Link(Session* session, const char* name, uint64_t ino)
 {
 	if (name[0] == '\0') {
 		return -1;

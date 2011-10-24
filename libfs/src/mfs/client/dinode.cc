@@ -1,11 +1,11 @@
-#include "mfs/dinode.h"
+#include "mfs/client/dinode.h"
 #include <stdint.h>
 #include "client/inode.h"
 
 using namespace mfs;
 
 int 
-DirInodeImmutable::Lookup(client::Session* session, char* name, client::Inode** inode)
+DirInodeImmutable::Lookup(client::Session* session, const char* name, client::Inode** inode)
 {
 	assert(0 && "TODO");
 }
@@ -16,14 +16,14 @@ DirInodeImmutable::Lookup(client::Session* session, char* name, client::Inode** 
 // If a mutable version of the mutable exists then this function
 // will fail and ask you to do the normal slow path lookup
 int 
-DirInodeImmutable::LookupFast(client::Session* session, char* name, client::Inode* inode)
+DirInodeImmutable::LookupFast(client::Session* session, const char* name, client::Inode* inode)
 {
 	assert(0 && "TODO");
 }
 
 
 int 
-DirInodeMutable::Lookup(client::Session* session, char* name, client::Inode** ipp)
+DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inode** ipp)
 {
 	int                   ret;
 	uint64_t              ino;
@@ -49,7 +49,7 @@ DirInodeMutable::Lookup(client::Session* session, char* name, client::Inode** ip
 // FIXME: include state to decide whether to do the change locally or remotely
 // or have introduce another class DirInodeMutableRemote to do the trick
 int 
-DirInodeMutable::Link(client::Session* session, char* name, client::Inode* ip, 
+DirInodeMutable::Link(client::Session* session, const char* name, client::Inode* ip, 
                       bool overwrite)
 {
 	uint64_t ino;

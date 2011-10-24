@@ -1,5 +1,5 @@
-#ifndef _DIRECTORY_INODE_H_KAL178
-#define _DIRECTORY_INODE_H_KAL178
+#ifndef __DIRECTORY_INODE_CLIENT_H_KAL178
+#define __DIRECTORY_INODE_CLIENT_H_KAL178
 
 #include <stdint.h>
 #include "client/sb.h"
@@ -24,13 +24,13 @@ public:
 	//static DirInodeImmutable* Load(uint64_t ino);
 	//static DirInodeImmutable* Load(InodeImmutable* inode);
 
-	int Open(client::Session* session, char* path, int flags) { };
+	int Open(client::Session* session, const char* path, int flags) { };
 	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
 	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
-	int Lookup(client::Session* session, char* name, client::Inode** inode);
-	int LookupFast(client::Session* session, char* name, client::Inode* inode);
-	int Insert(client::Session* session, char* name, client::Inode* inode) { };
-	int Link(client::Session* session, char* name, client::Inode* ip, bool overwrite) { return 0; }
+	int Lookup(client::Session* session, const char* name, client::Inode** inode);
+	int LookupFast(client::Session* session, const char* name, client::Inode* inode);
+	int Insert(client::Session* session, const char* name, client::Inode* inode) { };
+	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite) { return 0; }
 	int Unlink(); // do nothing or don't expose this call
 	int Read(); 
 
@@ -126,18 +126,18 @@ public:
 		printf("DirInodeMutable: pnode_=%p\n", pnode_);
 		return 0;
 	}
-	int Open(client::Session* session, char* path, int flags) { };
+	int Open(client::Session* session, const char* path, int flags) { };
 	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
-	int Insert(client::Session* session, char* name, client::Inode* inode) { };
+	int Insert(client::Session* session, const char* name, client::Inode* inode) { };
 
 	client::SuperBlock* GetSuperBlock() { return sb_;}
 	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
 	
-	int Lookup(client::Session* session, char* name, client::Inode** inode);
-	int LookupFast(client::Session* session, char* name, client::Inode* inode) { };
+	int Lookup(client::Session* session, const char* name, client::Inode** inode);
+	int LookupFast(client::Session* session, const char* name, client::Inode* inode) { };
 
-	int Link(client::Session* session, char* name, client::Inode* ip, bool overwrite);
+	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite);
 private:
 	DirPnode<client::Session>*   pnode_;
 	client::SuperBlock*        sb_;            // file system superblock
@@ -148,4 +148,4 @@ private:
 
 } // namespace mfs
 
-#endif /* _DIRECTORY_INODE_H_KAL178 */
+#endif /* _DIRECTORY_INODE_CLIENT_H_KAL178 */

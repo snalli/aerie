@@ -1,5 +1,6 @@
 #include "common/debug.h"
 #include <sys/types.h>
+#include <execinfo.h>
 #include <unistd.h>
 #include <stdio.h>
 #include "common/config.h"

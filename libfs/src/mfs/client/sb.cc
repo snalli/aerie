@@ -1,7 +1,7 @@
-#include "mfs/sb.h"
+#include "mfs/client/sb.h"
 #include "client/backend.h"
 #include "mfs/pstruct.h"
-#include "mfs/dinode.h"
+#include "mfs/client/dinode.h"
 
 namespace mfs {
 

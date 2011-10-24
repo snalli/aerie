@@ -367,7 +367,7 @@ HLockManager::AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, int flags
 	mode_set.Insert(mode);
 	mode_set.Insert(mode.LeastRecursiveMode());
 
-	if (phlock && phlock->status() != NONE) {
+	if (phlock && phlock->status() != HLock::NONE) {
 		if (!(flags & FLG_HAVEPARENT)) {
 			assert (phlock->BeginConverting(true) == 0);
 		}

@@ -12,7 +12,7 @@
 #include "client/hlckmgr.h"
 #include "chunkstore/registry.h"
 
-#include "mfs/mfs.h"
+#include "mfs/client/mfs.h"
 
 namespace client {
 

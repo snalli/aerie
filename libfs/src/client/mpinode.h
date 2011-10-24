@@ -18,13 +18,13 @@ class MPInode: public Inode {
 public:
 
 	int Init(Session* session, uint64_t ino) { return 0; }
-	int Open(Session* session, char* path, int flags) { return 0; }
+	int Open(Session* session, const char* path, int flags) { return 0; }
 	int Write(Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
 	int Read(Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
-	int Lookup(Session* session, char* name, Inode** inode);
-	int LookupFast(Session* session, char* name, Inode* inode) { return 0; }
-	int Link(Session* session, char* name, Inode* inode, bool overwrite) { return 0; }
-	int Insert(Session* session, char* name, Inode* inode);
+	int Lookup(Session* session, const char* name, Inode** inode);
+	int LookupFast(Session* session, const char* name, Inode* inode) { return 0; }
+	int Link(Session* session, const char* name, Inode* inode, bool overwrite) { return 0; }
+	int Insert(Session* session, const char* name, Inode* inode);
 	SuperBlock* GetSuperBlock() { return sb_; };
 	void SetSuperBlock(SuperBlock* sb) { sb_ = sb; };
 

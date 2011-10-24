@@ -11,8 +11,7 @@
 #include "client/libfs.h"
 #include "client/inode.h"
 #include "client/namespace.h"
-#include "mfs/pstruct.h"
-#include "mfs/sb.h"
+#include "mfs/client/sb.h"
 
 
 pthread_attr_t attr;

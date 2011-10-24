@@ -22,7 +22,7 @@ static lock_protocol::LockId e = 6;
 static lock_protocol::LockId f = 7;
 static lock_protocol::LockId g = 8;
 
-void test1(char* tag)
+void test1(const char* tag)
 {
 	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IX, 0);
 	global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XR, 0);
@@ -31,7 +31,7 @@ void test1(char* tag)
 }
 
 
-void test2(char* tag)
+void test2(const char* tag)
 {
 	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IX, 0);
 	global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XR, 0);
@@ -48,7 +48,7 @@ void test2(char* tag)
 
 }
 
-void test31(char* tag)
+void test31(const char* tag)
 {
 	printf("test31\n");
 	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IXSL, 0);
@@ -60,7 +60,7 @@ void test31(char* tag)
 	sleep(10);
 }
 
-void test32(char* tag)
+void test32(const char* tag)
 {
 	printf("test32\n");
 	sleep(1);
@@ -72,7 +72,7 @@ void test32(char* tag)
 }
 
 
-void test41(char* tag)
+void test41(const char* tag)
 {
 	printf("%s\n", __FUNCTION__);
 	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IXSL, 0);
@@ -94,7 +94,7 @@ void test41(char* tag)
 	sleep(1000);
 }
 
-void test42(char* tag)
+void test42(const char* tag)
 {
 	printf("%s\n", __FUNCTION__);
 	sleep(1);
@@ -110,7 +110,7 @@ void test42(char* tag)
 	printf("%s: DONE\n", __FUNCTION__);
 }
 
-void test51(char* tag)
+void test51(const char* tag)
 {
 	printf("%s\n", __FUNCTION__);
 	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::IXSL, 0);
@@ -122,7 +122,7 @@ void test51(char* tag)
 	sleep(1000);
 }
 
-void test52(char* tag)
+void test52(const char* tag)
 {
 	printf("%s\n", __FUNCTION__);
 	global_hlckmgr->Acquire(root, 0, lock_protocol::Mode::XL, 0);
@@ -130,7 +130,7 @@ void test52(char* tag)
 }
 
 
-void test(char* tag) {
+void test(const char* tag) {
 	if (strcmp(tag, "C1") == 0) {
 		test31(tag);
 	} else {

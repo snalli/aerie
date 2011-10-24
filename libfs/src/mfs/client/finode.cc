@@ -1,4 +1,4 @@
-#include "mfs/finode.h"
+#include "mfs/client/finode.h"
 #include <pthread.h>
 #include <stdint.h>
 #include <string.h>

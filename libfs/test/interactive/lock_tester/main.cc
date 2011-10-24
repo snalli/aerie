@@ -12,18 +12,18 @@
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
 
-void test(char*);
+void test(const char*);
 
 int
 main(int argc, char *argv[])
 {
-	pthread_attr_t attr;
+	pthread_attr_t    attr;
 	int               ret;
 	int               debug_level = 0;
 	uid_t             principal_id;
 	char              ch = 0;
 	char*             xdst=NULL;
-	char*             client_tag = "Client";	
+	const char*       client_tag = "Client";	
 	extern int        opterr;
 	
 	setvbuf(stdout, NULL, _IONBF, 0);

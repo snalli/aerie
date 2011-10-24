@@ -19,7 +19,7 @@ static lock_protocol::LockId f = 7;
 static lock_protocol::LockId g = 8;
 
 
-void test11(char* tag)
+void test11(const char* tag)
 {
 	printf("%s\n", __FUNCTION__);
 	libfs_mkfs("/superblock/A", "mfs", 0);
@@ -37,7 +37,7 @@ void test11(char* tag)
 	sleep(1000);
 }
 
-void test12(char* tag)
+void test12(const char* tag)
 {
 	printf("%s\n", __FUNCTION__);
 	sleep(3);
@@ -47,7 +47,7 @@ void test12(char* tag)
 }
 
 
-void test(char* tag) {
+void test(const char* tag) {
 	if (strcmp(tag, "C1") == 0) {
 		test11(tag);
 	} else {

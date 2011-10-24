@@ -58,6 +58,17 @@ mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')
 mainEnv.Append(CCFLAGS=' -g -O2')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
 
+if ARGUMENTS.get('VERBOSE') != "1":
+	mainEnv['CCCOMSTR']     = "(COMPILE)  $TARGET"
+	mainEnv['CXXCOMSTR']    = "(COMPILE)  $TARGET"
+	mainEnv['SHCCCOMSTR']   = "(COMPILE)  $TARGET"
+	mainEnv['SHCXXCOMSTR']  = "(COMPILE)  $TARGET"
+	mainEnv['ASPPCOMSTR']   = "(ASSEMBLE) $TARGET"
+	mainEnv['ARCOMSTR']     = "(BUILD)    $TARGET"
+	mainEnv['RANLIBCOMSTR'] = "(INDEX)    $TARGET"
+	mainEnv['LINKCOMSTR']   = "(LINK)     $TARGET"
+	mainEnv['SHLINKCOMSTR'] = "(LINK)     $TARGET"
+
 
 if mainEnv['GOOGLE_SPARSEHASH']:
 	mainEnv.Append(CPPPATH = [mainEnv['GOOGLE_SPARSEHASH']])

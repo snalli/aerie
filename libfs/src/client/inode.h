@@ -17,13 +17,13 @@ class SuperBlock;
 class Inode {
 public:
 	virtual int Init(client::Session* session, InodeNumber ino) = 0;
-	virtual int Open(client::Session* session, char* path, int flags) = 0;
+	virtual int Open(client::Session* session, const char* path, int flags) = 0;
 	virtual int Write(client::Session* session, char* src, uint64_t off, uint64_t n) = 0;
 	virtual int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) = 0;
-	virtual int Lookup(client::Session* session, char* name, Inode** inode) = 0;
-	virtual int LookupFast(client::Session* session, char* name, Inode* inode) = 0;
-	virtual int Insert(client::Session* session, char* name, Inode* inode) = 0;
-	virtual int Link(client::Session* session, char* name, Inode* inode, bool overwrite) = 0;
+	virtual int Lookup(client::Session* session, const char* name, Inode** inode) = 0;
+	virtual int LookupFast(client::Session* session, const char* name, Inode* inode) = 0;
+	virtual int Insert(client::Session* session, const char* name, Inode* inode) = 0;
+	virtual int Link(client::Session* session, const char* name, Inode* inode, bool overwrite) = 0;
 
 	virtual client::SuperBlock* GetSuperBlock() = 0;
 	virtual void SetSuperBlock(client::SuperBlock* sb) = 0;

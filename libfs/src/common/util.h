@@ -11,7 +11,7 @@ inline int num_pages(size_t size)
 }
 
 inline int 
-str_is_dot(char* str) 
+str_is_dot(const char* str) 
 {
 	if (str[1] == '\0') {
 		if (str[0] == '.') {

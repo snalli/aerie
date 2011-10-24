@@ -1,12 +1,19 @@
 Import('buildEnv')
 Import('commonLibrary')
 
-localBuildEnv = buildEnv.Clone()
+clientBuildEnv = buildEnv.Clone()
+serverBuildEnv = buildEnv.Clone()
 
-lib_target = 'mfs'
-lib_sources = ['radixtree.cc', 'finode.cc', 'mfs.cc', 'pinode.cc', 'sb.cc']
-lib_sources += ['dinode.cc']
+# client backend
 
-mfsLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+clt_lib_target = 'cltmfs'
+clt_lib_sources = ['radixtree.cc', 'pinode.cc']
+clt_lib_sources += ['client/dinode.cc', 'client/finode.cc', 'client/mfs.cc', 'client/sb.cc']
+
+mfsLibrary = clientBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources)
+
+
+# server backend
+
 
 Return('mfsLibrary')

@@ -19,7 +19,7 @@ PHeap::PHeap()
 
 
 int
-PHeap::Open(char* filename, size_t maxsize, size_t root_size, 
+PHeap::Open(const char* filename, size_t maxsize, size_t root_size, 
             size_t align, PHeap* allocatorp)
 {
 	int          do_vista_init = 0;
@@ -87,7 +87,7 @@ PHeap::Open(char* filename, size_t maxsize, size_t root_size,
 }
 
 int
-PHeap::Map(char* filename, size_t maxsize, int prot_flags)
+PHeap::Map(const char* filename, size_t maxsize, int prot_flags)
 {
 	int          vistaheap_fd;
 	int          mmap_flags;
