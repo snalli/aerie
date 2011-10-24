@@ -1,10 +1,10 @@
-#include "mfs/client/finode.h"
+#include "mfs/client/file_inode.h"
 #include <pthread.h>
 #include <stdint.h>
 #include <string.h>
 #include <bitset>
 #include <vector>
-#include "mfs/pinode.h"
+#include "mfs/file_pnode.h"
 #include "common/interval_tree.h"
 
 #define min(a,b) ((a) < (b)? (a) : (b))
@@ -27,7 +27,7 @@ public:
 		  high_(high)
 	{ }
 
-	InodeInterval(PInode::Slot& slot, const int low, const int size)
+	InodeInterval(FilePnode::Slot& slot, const int low, const int size)
 		: low_(low), 
 		  high_(low+size-1), 
 		  slot_(slot)
@@ -40,7 +40,7 @@ public:
 			region_ = NULL;
 		} else {
 			block_array_ = NULL;
-			region_ = new PInode::Region(slot);
+			region_ = new FilePnode::Region(slot);
 		}	
 
 		printf("interval: slot_base=%p slot_offset=%d, range=[%llu, %llu]\n", slot_.slot_base_, slot_.slot_offset_, low_, high_);
@@ -55,8 +55,8 @@ protected:
 	std::bitset<INTERVAL_MIN_SIZE> bitmap_;
 	uint64_t                       low_;
 	uint64_t                       high_;
-	PInode::Region*                region_;     
-	PInode::Slot                   slot_;       // needed when region_ is NULL
+	FilePnode::Region*                region_;     
+	FilePnode::Slot                   slot_;       // needed when region_ is NULL
 	char**                         block_array_;
 
 	int WriteBlockNoRegion(char*, uint64_t, int, int);
@@ -209,11 +209,11 @@ FileInode::FileInode()
 	  region_(NULL),
 	  size_(0)
 {
-	pinode_ = new PInode;
+	pinode_ = new FilePnode;
 }
 
 
-FileInode::FileInode(PInode* pinode)
+FileInode::FileInode(FilePnode* pinode)
 	: pinode_(pinode),
 	  pinodeism_(false),
 	  region_(NULL)
@@ -243,8 +243,8 @@ int FileInode::ReadImmutable(char* dst, uint64_t off, uint64_t n)
 	uint64_t         fbn; // first block number
 	uint64_t         bn;
 	uint64_t         base_bn;
-	PInode::Iterator start;
-	PInode::Iterator iter;
+	FilePnode::Iterator start;
+	FilePnode::Iterator iter;
 	int              ret;
 	int              f;
 	uint64_t         bcount;
@@ -383,7 +383,7 @@ int FileInode::WriteMutable(char* src, uint64_t off, uint64_t n)
 
 	dbg_log (DBG_DEBUG, "Mutable range = [%llu, %llu]\n", off, off+n-1);
 
-	// TODO: do we need to perform any journaling here? OR, does the PInode::Region
+	// TODO: do we need to perform any journaling here? OR, does the FilePnode::Region
 	// transparently perform any necessary journaling? 
 	// For example, do we need to journal
 	// 1) a swap operation to the new pinode if immutable pinode exists?
@@ -395,7 +395,7 @@ int FileInode::WriteMutable(char* src, uint64_t off, uint64_t n)
 	} else {
 		if (!region_) {
 			bn = off/BLOCK_SIZE;
-			region_ = new PInode::Region(pinode_, bn);
+			region_ = new FilePnode::Region(pinode_, bn);
 		}
 		return	region_->Write(src, off, n);
 	}
@@ -411,8 +411,8 @@ int FileInode::WriteImmutable(char* src, uint64_t off, uint64_t n)
 	uint64_t         fbn; // first block number
 	uint64_t         bn;
 	uint64_t         base_bn;
-	PInode::Iterator start;
-	PInode::Iterator iter;
+	FilePnode::Iterator start;
+	FilePnode::Iterator iter;
 	int              ret;
 	int              f;
 	uint64_t         bcount;

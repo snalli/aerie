@@ -7,8 +7,8 @@ serverBuildEnv = buildEnv.Clone()
 # client backend
 
 clt_lib_target = 'cltmfs'
-clt_lib_sources = ['radixtree.cc', 'pinode.cc']
-clt_lib_sources += ['client/dinode.cc', 'client/finode.cc', 'client/mfs.cc', 'client/sb.cc']
+clt_lib_sources = ['radixtree.cc', 'file_pnode.cc']
+clt_lib_sources += ['client/dir_inode.cc', 'client/file_inode.cc', 'client/mfs.cc', 'client/sb.cc']
 
 mfsLibrary = clientBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources)
 

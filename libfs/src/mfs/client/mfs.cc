@@ -1,7 +1,7 @@
 #include "client/backend.h"
 #include "mfs/mfs_i.h"
 #include "mfs/client/sb.h"
-#include "mfs/pstruct.h"
+#include "mfs/psb.h"
 
 namespace mfs {
 

@@ -1,5 +1,10 @@
-#ifndef __PINODE_H_AKE111
-#define __PINODE_H_AKE111
+//! \file
+//! Definition of the file persistent inode structure stored in 
+//! storage class memory.
+//!
+
+#ifndef __MFS_FILE_PERSISTENT_INODE_H_AKE111
+#define __MFS_FILE_PERSISTENT_INODE_H_AKE111
 
 #include <pthread.h>
 #include <stdio.h>
@@ -9,46 +14,48 @@
 #include "common/debug.h"
 
 
-//FIXME: rename PInode to FilePnode
-
 const int N_DIRECT = 8;
 
-// A PInode is logically composed of non-overlapping regions
-// A PInode is physically implemented using a radixtree that connects 
+// A FilePnode is logically composed of non-overlapping regions
+// A FilePnode is physically implemented using a radixtree that connects 
 // the logical regions which are physically implemented as subtrees 
 // or leafs (direct blocks) of the radix tree.
 
 
-// FIXME: Currently PInode is a wrapper around the persistent inode
-// so it does not keep any volatile state. However PInode::Region
-// and PInode::Slot have volatile state. It seems that this confuses
-// as what part of the PInode class is persistent and what is not
-// Consider reformatting the PInode to be a volatile object that 
-// has a pointer to the persistent state. In this case PInode 
+// FIXME: Currently FilePnode is a wrapper around the persistent inode
+// so it does not keep any volatile state. However FilePnode::Region
+// and FilePnode::Slot have volatile state. It seems that this confuses
+// as what part of the FilePnode class is persistent and what is not
+// Consider reformatting the FilePnode to be a volatile object that 
+// has a pointer to the persistent state. In this case FilePnode 
 // can contain volatile state which could be helpful to higher 
 // layers, such as Inode. Inode for example has to keep information
-// whether the PInode is mutable or not, or whether the PInode 
+// whether the FilePnode is mutable or not, or whether the FilePnode 
 // has been published or not. Also the Inode has to keep a journal 
-// that passed to the PInode whenever performing operations
-// It seems all this state should belong to the PInode. 
+// that passed to the FilePnode whenever performing operations
+// It seems all this state should belong to the FilePnode. 
 
 
-class PInode 
+class FilePnode 
 {
 public:
 	class Slot;
 	class Iterator;
 	class Region;
 
-	PInode();
+	FilePnode();
 	
+	static FilePnode* Load(uint64_t ino) {
+		return reinterpret_cast<FilePnode*>(ino);
+	}
+
 	// LookupSlot
 	// SlotBlock2Slot
 	// CompareAndSwapBlock? Verifies, and Slots new block to slot and returns old block
 	// SwapBlock? Slots new block to slot and returns old block
 	int LookupSlot(uint64_t, Slot*);
 	//SwapBlock
-	int PatchSlot(PInode::Slot& link);
+	int PatchSlot(FilePnode::Slot& link);
 	int InsertRegion(Region* region);
 	int AllocateRegion(uint64_t start_bn, uint64_t end_bn);
 
@@ -80,7 +87,7 @@ private:
 };
 
 
-class PInode::Slot {
+class FilePnode::Slot {
 public:
 
 	Slot()
@@ -88,7 +95,7 @@ public:
 		  slot_base_(NULL)
 	{ }
 
-	Slot(const PInode::Slot& copy)
+	Slot(const FilePnode::Slot& copy)
 		: pinode_(copy.pinode_),
 		  slot_base_(copy.slot_base_),
 		  slot_offset_(copy.slot_offset_),
@@ -98,13 +105,13 @@ public:
 
 
 
-	Slot(PInode* pinode, uint64_t base_bn)
+	Slot(FilePnode* pinode, uint64_t base_bn)
 	{
 		Init(pinode, base_bn);
 	}
 
 
-	int Init(PInode* pinode, 
+	int Init(FilePnode* pinode, 
 	         void** slot_base, 
 	         int slot_offset, 
 	         int slot_height)
@@ -118,7 +125,7 @@ public:
 	}
 
 
-	int Init(PInode* const pinode, uint64_t bn)
+	int Init(FilePnode* const pinode, uint64_t bn)
 	{
 		uint64_t       rbn;
 		RadixTreeNode* node;
@@ -155,7 +162,7 @@ public:
 	}
 
 
-	PInode::Slot& operator=(const PInode::Slot& other)
+	FilePnode::Slot& operator=(const FilePnode::Slot& other)
 	{
 		pinode_ = other.pinode_;
 		slot_base_ = other.slot_base_;
@@ -173,7 +180,7 @@ public:
 
 //private:
 	// physical information
-	PInode*        pinode_;
+	FilePnode*        pinode_;
 	void**         slot_base_;
 	int            slot_offset_;
 	int            slot_height_;
@@ -183,11 +190,11 @@ public:
 };
 
 
-// Region is logically a subregion of PInode 
+// Region is logically a subregion of FilePnode 
 // offsets and block numbers passed as arguments are relative to 
-// the start of PInode and not to the start of the region.
+// the start of FilePnode and not to the start of the region.
 
-class PInode::Region {
+class FilePnode::Region {
 public:
 	Region()
 		: maxbcount_(0),
@@ -195,10 +202,10 @@ public:
 		  size_(0)
 	{ }
 
-	Region(const PInode::Region& copy)
+	Region(const FilePnode::Region& copy)
 	{ }
 
-	Region(PInode* pinode, uint64_t base_bn) 
+	Region(FilePnode* pinode, uint64_t base_bn) 
 	{
 		assert(Init(pinode, base_bn) == 0);
 	}
@@ -227,7 +234,7 @@ public:
 	/// Initializes region to represent the region containing block BN of
 	/// persistent inode PINODE
 	///
-	int Init(PInode* pinode, uint64_t bn) 
+	int Init(FilePnode* pinode, uint64_t bn) 
 	{
 		slot_.Init(pinode, bn);
 
@@ -283,7 +290,7 @@ public:
 
 
 	// shallow copy (does not make a deep copy of radix tree)
-	PInode::Region& operator=(const PInode::Region& other)
+	FilePnode::Region& operator=(const FilePnode::Region& other)
 	{
 		slot_ = other.slot_;
 		base_bn_ = other.base_bn_;
@@ -317,20 +324,20 @@ public:
 
 
 
-class PInode::Iterator {
+class FilePnode::Iterator {
 public:
 	Iterator() { }
 
-	Iterator(PInode* pinode, uint64_t bn = 0)
+	Iterator(FilePnode* pinode, uint64_t bn = 0)
 	{
 		Init(pinode, bn);
 	}
 
-    Iterator(const PInode::Iterator& val)
+    Iterator(const FilePnode::Iterator& val)
     //  	start_(val.start_), current_(val.current_) {}
 	{}
 
-	int Init(PInode* pinode, uint64_t bn = 0)
+	int Init(FilePnode* pinode, uint64_t bn = 0)
 	{
 		assert(pinode);
 		current_.Init(pinode, bn);
@@ -388,17 +395,17 @@ public:
 		succ();
     }
 
-	PInode::Iterator &operator =(const PInode::Iterator &val) {
+	FilePnode::Iterator &operator =(const FilePnode::Iterator &val) {
 		current_ = val.current_;
 		return *this;
 	}
 
-	PInode::Slot& operator *() {
+	FilePnode::Slot& operator *() {
 		return current_;
 	}
 
 private:
-	PInode::Slot current_;
+	FilePnode::Slot current_;
 };
 
-#endif // __PINODE_H_AKE111
+#endif // __MFS_FILE_PERSISTENT_INODE_H_AKE111

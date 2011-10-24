@@ -2,8 +2,8 @@
 #define _MFS_SUPERBLOCK_H_KAJ911
 
 #include "client/backend.h"
-#include "mfs/client/dinode.h"
-#include "mfs/pstruct.h"
+#include "mfs/client/dir_inode.h"
+#include "mfs/psb.h"
 
 namespace mfs {
 

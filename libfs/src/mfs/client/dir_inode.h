@@ -5,7 +5,7 @@
 #include "client/sb.h"
 #include "client/inode.h"
 #include "mfs/hashtable.h"
-#include "mfs/pstruct.h"
+#include "mfs/dir_pnode.h"
 
 namespace mfs {
 

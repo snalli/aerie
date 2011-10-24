@@ -1,4 +1,4 @@
-#include "mfs/client/dinode.h"
+#include "mfs/client/dir_inode.h"
 #include <stdint.h>
 #include "client/inode.h"
 

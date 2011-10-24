@@ -1,4 +1,4 @@
-#include "mfs/pinode.h"
+#include "mfs/file_pnode.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,8 +7,6 @@
 
 #define min(a,b) ((a) < (b)? (a) : (b))
 
-
-//FIXME: rename PInode to FilePnode
 
 inline uint64_t 
 block_valid_data(int bn, uint64_t file_size)
@@ -70,13 +68,13 @@ int __Read(T* obj, char* dst, uint64_t off, uint64_t n)
 
 /////////////////////////////////////////////////////////////////////////////
 // 
-// PInode
+// FilePnode
 //
 /////////////////////////////////////////////////////////////////////////////
 
 
 
-PInode::PInode()
+FilePnode::FilePnode()
 {
 	for (int i=0; i<N_DIRECT; i++) {
 		daddrs_[i] = (void*)0;
@@ -86,7 +84,7 @@ PInode::PInode()
 
 // trusts the callee has already check that bn is out of range
 int 
-PInode::Region::Extend(uint64_t bn)
+FilePnode::Region::Extend(uint64_t bn)
 {
 	// can only extend a region if the region is not allocated to an 
 	// existing slot
@@ -100,15 +98,15 @@ PInode::Region::Extend(uint64_t bn)
 
 
 int 
-PInode::InsertRegion(Region* region)
+FilePnode::InsertRegion(Region* region)
 {
 	uint64_t newheight;
 	uint64_t bcount;
 
-	printf("PInode::InsertRegion region=%p\n", region);
-	printf("PInode::InsertRegion region->radixtree_.rnode_=%p\n", region->radixtree_.rnode_);
-	printf("PInode::InsertRegion region->base_bn_=%d\n", region->base_bn_);
-	printf("PInode::InsertRegion region->slot_.slot_base_=%p\n", region->slot_.slot_base_);
+	printf("FilePnode::InsertRegion region=%p\n", region);
+	printf("FilePnode::InsertRegion region->radixtree_.rnode_=%p\n", region->radixtree_.rnode_);
+	printf("FilePnode::InsertRegion region->base_bn_=%d\n", region->base_bn_);
+	printf("FilePnode::InsertRegion region->slot_.slot_base_=%p\n", region->slot_.slot_base_);
 
 	if (region->base_bn_ < N_DIRECT) {
 		// TODO: journal this update
@@ -168,7 +166,7 @@ PInode::InsertRegion(Region* region)
 
 // Physically link an extent to an inode slot.
 int 
-PInode::PatchSlot(PInode::Slot& link)
+FilePnode::PatchSlot(FilePnode::Slot& link)
 {
 	return 0;
 }
@@ -181,12 +179,12 @@ PInode::PatchSlot(PInode::Slot& link)
 // reference the blocks
 // Perhaps we should use some refcounting
 int 
-PInode::ReadBlock(char* dst, uint64_t bn, int off, int n)
+FilePnode::ReadBlock(char* dst, uint64_t bn, int off, int n)
 {
 	int l;
 	int rn;
 
-	printf("PInode::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
+	printf("FilePnode::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
 
 	l = min(BLOCK_SIZE, size_ - bn*BLOCK_SIZE);
 	if (l < off) {
@@ -210,7 +208,7 @@ PInode::ReadBlock(char* dst, uint64_t bn, int off, int n)
 // to the persistent storage it points to???
 // Perhaps we should use some refcounting
 int 
-PInode::WriteBlock(char* src, uint64_t bn, int off, int n)
+FilePnode::WriteBlock(char* src, uint64_t bn, int off, int n)
 {
 	uint64_t       rbn;
 	void**         slot;
@@ -220,18 +218,18 @@ PInode::WriteBlock(char* src, uint64_t bn, int off, int n)
 	int            ret;
 	char           buf[4096];
 
-	printf("PInode::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
+	printf("FilePnode::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
 	Region region(this, bn);
-	printf("PInode::WriteBlock region->radixtree_.rnode_=%p\n", region.radixtree_.rnode_);
+	printf("FilePnode::WriteBlock region->radixtree_.rnode_=%p\n", region.radixtree_.rnode_);
 	if ( (ret = region.WriteBlock(src, bn, off, n)) < 0) {
 		return ret;
 	}
 	
-	printf("PInode::WriteBlock region->radixtree_.rnode_=%p\n", region.radixtree_.rnode_);
+	printf("FilePnode::WriteBlock region->radixtree_.rnode_=%p\n", region.radixtree_.rnode_);
 	InsertRegion(&region);
 
-	printf("PInode::WriteBlock: DONE\n");
+	printf("FilePnode::WriteBlock: DONE\n");
 	if ( (bn*BLOCK_SIZE + n) > size_ ) {
 		size_ = bn*BLOCK_SIZE + n;
 	}
@@ -241,20 +239,20 @@ PInode::WriteBlock(char* src, uint64_t bn, int off, int n)
 
 
 
-int PInode::Write(char* src, uint64_t off, uint64_t n)
+int FilePnode::Write(char* src, uint64_t off, uint64_t n)
 {
-	return __Write<PInode> (this, src, off, n);
+	return __Write<FilePnode> (this, src, off, n);
 }
 
 
-int PInode::Read(char* dst, uint64_t off, uint64_t n)
+int FilePnode::Read(char* dst, uint64_t off, uint64_t n)
 {
-	return __Read<PInode> (this, dst, off, n);
+	return __Read<FilePnode> (this, dst, off, n);
 }
 
 
 int 
-PInode::LookupSlot(uint64_t bn, Slot* slot)
+FilePnode::LookupSlot(uint64_t bn, Slot* slot)
 {
 	uint64_t       rbn;
 	RadixTreeNode* node;
@@ -267,14 +265,14 @@ PInode::LookupSlot(uint64_t bn, Slot* slot)
 	if (!slot) {
 		return -E_INVAL;
 	}
-	//printf("PInode::LookupSlot (bn=%llu)\n", bn);
+	//printf("FilePnode::LookupSlot (bn=%llu)\n", bn);
 	return slot->Init(this, bn);
 }
 
 
 /////////////////////////////////////////////////////////////////////////////
 // 
-// PInode::Region
+// FilePnode::Region
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -282,7 +280,7 @@ PInode::LookupSlot(uint64_t bn, Slot* slot)
 
 // off is offset with respect to the block
 int 
-PInode::Region::WriteBlock(char* src, uint64_t bn, int off, int n)
+FilePnode::Region::WriteBlock(char* src, uint64_t bn, int off, int n)
 {
 	void**         slot;
 	char*          bp;
@@ -295,7 +293,7 @@ PInode::Region::WriteBlock(char* src, uint64_t bn, int off, int n)
 	assert(off < BLOCK_SIZE);
 	assert(off+n <= BLOCK_SIZE);
 
-	printf("PInode::Region::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
+	printf("FilePnode::Region::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
 	// check if block number out of range
 	if (base_bn_ > bn) {
@@ -323,7 +321,7 @@ PInode::Region::WriteBlock(char* src, uint64_t bn, int off, int n)
 		//journal allocation and assignment
 		*slot = malloc(BLOCK_SIZE);
 		bp = (char*) (*slot);
-		printf("PInode::Region::WriteBlock block=%p\n", *slot);
+		printf("FilePnode::Region::WriteBlock block=%p\n", *slot);
 		// TODO: Allocating and zeroing a chunk is done in other places in the 
 		// code as well. We should collapse this under a function that does the job
 		// (including any necessary journaling?)
@@ -341,16 +339,16 @@ PInode::Region::WriteBlock(char* src, uint64_t bn, int off, int n)
 }
 
 
-int PInode::Region::Write(char* src, uint64_t off, uint64_t n)
+int FilePnode::Region::Write(char* src, uint64_t off, uint64_t n)
 {
-	printf("PInode::Region::Write(src=%p, off=%llu, n=%llu)\n", src, off, n);
+	printf("FilePnode::Region::Write(src=%p, off=%llu, n=%llu)\n", src, off, n);
 
-	return __Write<PInode::Region> (this, src, off, n);
+	return __Write<FilePnode::Region> (this, src, off, n);
 }
 
 
 int 
-PInode::Region::ReadBlock(char* dst, uint64_t bn, int off, int n)
+FilePnode::Region::ReadBlock(char* dst, uint64_t bn, int off, int n)
 {
 	void**         slot;
 	char*          bp;
@@ -363,14 +361,14 @@ PInode::Region::ReadBlock(char* dst, uint64_t bn, int off, int n)
 	assert(off < BLOCK_SIZE);
 	assert(off+n <= BLOCK_SIZE);
 
-	printf("PInode::Region::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
+	printf("FilePnode::Region::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
 
 	if (base_bn_ > bn || base_bn_+maxbcount_ <= bn) {
 		// block number out of range
 		return -E_INVAL;
 	}
 
-	printf("PInode::Region::ReadBlock maxbcount_=%d\n", maxbcount_);
+	printf("FilePnode::Region::ReadBlock maxbcount_=%d\n", maxbcount_);
 
 	if (maxbcount_ == 1) {
 		slot = &dblock_;
@@ -393,7 +391,7 @@ PInode::Region::ReadBlock(char* dst, uint64_t bn, int off, int n)
 }
 
 
-int PInode::Region::Read(char* dst, uint64_t off, uint64_t n)
+int FilePnode::Region::Read(char* dst, uint64_t off, uint64_t n)
 {
-	return __Read<PInode::Region> (this, dst, off, n);
+	return __Read<FilePnode::Region> (this, dst, off, n);
 }
