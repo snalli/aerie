@@ -5,13 +5,15 @@
 
 namespace mfs {
 
-client::SuperBlock* CreateSuperBlock(client::ClientSession* session, void* ptr) {
+// FIXME: part of this code file should re-structured into an inode factory
+
+client::SuperBlock* CreateSuperBlock(client::Session* session, void* ptr) {
 	client::SuperBlock* sb;
 
 	if (ptr) {
 		// load superblock
 		uint64_t sbu = reinterpret_cast<uint64_t>(ptr);
-		PSuperBlock<client::ClientSession>* psb = PSuperBlock<client::ClientSession>::Load(sbu);
+		PSuperBlock<client::Session>* psb = PSuperBlock<client::Session>::Load(sbu);
 		if (psb) {
 			sb = new SuperBlock(session, psb);
 		} else {
@@ -19,8 +21,8 @@ client::SuperBlock* CreateSuperBlock(client::ClientSession* session, void* ptr) 
 		}
 	} else {
 		// create file system superblock
-		DirPnode<client::ClientSession>* dpnode = new(session) DirPnode<client::ClientSession>;
-		PSuperBlock<client::ClientSession>* psb = new(session) PSuperBlock<client::ClientSession>;
+		DirPnode<client::Session>* dpnode = new(session) DirPnode<client::Session>;
+		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
 		psb->root_ = reinterpret_cast<uint64_t>(dpnode);
 		sb = new SuperBlock(session, psb);
 	}

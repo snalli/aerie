@@ -26,7 +26,7 @@ StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 
 int 
-StorageManager::Alloc(ClientSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageManager::Alloc(Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	ChunkDescriptor* achunkdsc[16];
 	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;

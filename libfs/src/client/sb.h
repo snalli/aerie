@@ -5,7 +5,7 @@
 
 namespace client {
 
-class ClientSession; // forward declaration
+class Session; // forward declaration
 class InodeManager;  // forward declaration
 
 class SuperBlock {
@@ -13,7 +13,7 @@ public:
 	virtual Inode* GetRootInode() = 0;
 	//virtual void SetRootInode(Inode* inode) = 0;
 	virtual Inode* CreateImmutableInode(int type) = 0;
-	virtual int AllocInode(ClientSession* session, int type, Inode** ipp) = 0;
+	virtual int AllocInode(Session* session, int type, Inode** ipp) = 0;
 	virtual int GetInode(InodeNumber ino, Inode** ipp) = 0;
 	virtual Inode* WrapInode() = 0;
 

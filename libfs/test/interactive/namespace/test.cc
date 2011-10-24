@@ -40,9 +40,9 @@ void test11(char* tag)
 void test12(char* tag)
 {
 	printf("%s\n", __FUNCTION__);
-	sleep(1);
+	sleep(3);
 	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
-	//libfs_mkdir("/home/hvolos/dir", 0);
+	libfs_mkdir("/home/hvolos/dir", 0);
 	printf("%s: DONE\n", __FUNCTION__);
 }
 

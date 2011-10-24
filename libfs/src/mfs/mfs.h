@@ -6,7 +6,7 @@
 
 namespace mfs {
 
-client::SuperBlock* CreateSuperBlock(client::ClientSession* session, void* ptr);
+client::SuperBlock* CreateSuperBlock(client::Session* session, void* ptr);
 
 } // namespace mfs
 

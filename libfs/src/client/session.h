@@ -5,9 +5,9 @@
 
 namespace client {
 
-class ClientSession {
+class Session {
 public:
-	ClientSession(client::StorageManager* smgr)
+	Session(client::StorageManager* smgr)
 		: sm(smgr)
 	{ }
 

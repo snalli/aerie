@@ -77,7 +77,7 @@ SkipElem(char *path, char *name)
 
 
 int
-NameSpace::Init(ClientSession* session) 
+NameSpace::Init(Session* session) 
 {
 	root_ = new MPInode;
 	Mount(session, "/", (SuperBlock*) KERNEL_SUPERBLOCK);
@@ -85,7 +85,7 @@ NameSpace::Init(ClientSession* session)
 
 
 int
-NameSpace::Lookup(ClientSession* session, const char* name, void** obj)
+NameSpace::Lookup(Session* session, const char* name, void** obj)
 {
 	return 0;
 }
@@ -121,7 +121,7 @@ NameSpace::Unmount(const char* name)
 #else 
 
 int
-NameSpace::Mount(ClientSession* session, const char* const_path, SuperBlock* sb)
+NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 {
 	char     name[128];
 	MPInode* mpnode;
@@ -149,7 +149,7 @@ NameSpace::Mount(ClientSession* session, const char* const_path, SuperBlock* sb)
 }
 
 int
-NameSpace::Unmount(ClientSession* session, char* name)
+NameSpace::Unmount(Session* session, char* name)
 {
 	return 0;
 }
@@ -162,7 +162,7 @@ NameSpace::Unmount(ClientSession* session, char* name)
 //TODO: Optimization: Use LookupFast API instead of Lookup and revert to 
 // Lookup only when the inode is mutated
 int
-NameSpace::Namex(ClientSession* session, const char *cpath, bool nameiparent, char* name, Inode** inodep)
+NameSpace::Namex(Session* session, const char *cpath, bool nameiparent, char* name, Inode** inodep)
 {
 	char*       path = const_cast<char*>(cpath);
 	Inode*      inode;
@@ -233,7 +233,7 @@ done:
 //TODO: optimization: when namex uses immutable for lookup, nameiparent should be able
 //to ask for a mutable inode
 int
-NameSpace::Nameiparent(ClientSession* session, const char* path, char* name, Inode** inodep)
+NameSpace::Nameiparent(Session* session, const char* path, char* name, Inode** inodep)
 {
 	int ret; 
 
@@ -243,7 +243,7 @@ NameSpace::Nameiparent(ClientSession* session, const char* path, char* name, Ino
 
 
 int
-NameSpace::Namei(ClientSession* session, const char* path, Inode** inodep)
+NameSpace::Namei(Session* session, const char* path, Inode** inodep)
 {
 	int  ret; 
 	char name[128];
@@ -254,14 +254,14 @@ NameSpace::Namei(ClientSession* session, const char* path, Inode** inodep)
 
 
 int
-NameSpace::Link(ClientSession* session, const char *name, void *obj)
+NameSpace::Link(Session* session, const char *name, void *obj)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 }
 
 
 int
-NameSpace::Unlink(ClientSession* session, const char *name)
+NameSpace::Unlink(Session* session, const char *name)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 /*

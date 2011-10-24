@@ -13,7 +13,7 @@ namespace client {
 // File implementation
 
 int 
-File::Write(client::ClientSession* session, const char* src, uint64_t n)
+File::Write(client::Session* session, const char* src, uint64_t n)
 {
 	int ret;
 
@@ -34,7 +34,7 @@ File::Write(client::ClientSession* session, const char* src, uint64_t n)
 
 
 int
-File::Read(client::ClientSession* session, char* dst, uint64_t n)
+File::Read(client::Session* session, char* dst, uint64_t n)
 {
 	int ret;
 

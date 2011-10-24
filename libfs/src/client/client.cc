@@ -26,12 +26,12 @@ Registry*        registry;
 rpcc*            rpc_client;
 rpcs*            rpc_server;
 std::string      id;
-ClientSession*   global_session;
+Session*   global_session;
 
 // Known backend file system implementations
 struct KnownFS {
 	const char*         name;
-	client::SuperBlock* (*CreateSuperBlock)(ClientSession*, void*);
+	client::SuperBlock* (*CreateSuperBlock)(Session*, void*);
 } known_fs[] = {
 	{"mfs", mfs::CreateSuperBlock},
 	{NULL, NULL}
@@ -75,7 +75,7 @@ Client::Init(int principal_id, const char* xdst)
 	global_smgr = new StorageManager(rpc_client, principal_id);
 	global_lckmgr = new LockManager(rpc_client, rpc_server, id, 0);
 	global_hlckmgr = new HLockManager(global_lckmgr);
-	global_session = new ClientSession(global_smgr);
+	global_session = new Session(global_smgr);
 
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
@@ -181,6 +181,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 	printf("create: path=%s, name=%s, ret=%d, dp=%p\n", path, name, ret, dp);
 
 	if ((ret = dp->Lookup(global_session, name, &ip)) == 0) {
+		assert(0);
 		//TODO: handle collision; return error
 		//      and release directory inode and inode
 	}

@@ -12,19 +12,19 @@ namespace client {
 
 const int MAX_NUM_ENTRIES=2;
 
-class ClientSession;
+class Session;
 
 class MPInode: public Inode {
 public:
 
-	int Init(ClientSession* session, uint64_t ino) { return 0; }
-	int Open(ClientSession* session, char* path, int flags) { return 0; }
-	int Write(ClientSession* session, char* src, uint64_t off, uint64_t n) { return 0; }
-	int Read(ClientSession* session, char* dst, uint64_t off, uint64_t n) { return 0; }
-	int Lookup(ClientSession* session, char* name, Inode** inode);
-	int LookupFast(ClientSession* session, char* name, Inode* inode) { return 0; }
-	int Link(ClientSession* session, char* name, Inode* inode, bool overwrite) { return 0; }
-	int Insert(ClientSession* session, char* name, Inode* inode);
+	int Init(Session* session, uint64_t ino) { return 0; }
+	int Open(Session* session, char* path, int flags) { return 0; }
+	int Write(Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
+	int Read(Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
+	int Lookup(Session* session, char* name, Inode** inode);
+	int LookupFast(Session* session, char* name, Inode* inode) { return 0; }
+	int Link(Session* session, char* name, Inode* inode, bool overwrite) { return 0; }
+	int Insert(Session* session, char* name, Inode* inode);
 	SuperBlock* GetSuperBlock() { return sb_; };
 	void SetSuperBlock(SuperBlock* sb) { sb_ = sb; };
 

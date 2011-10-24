@@ -9,7 +9,7 @@
 
 namespace client {
 
-class ClientSession;
+class Session;
 class FileManager;
 
 class File {
@@ -25,8 +25,8 @@ public:
 		pthread_mutex_init(&mutex_, NULL);
 	}
 
-	int Write(ClientSession* session, const char* src, uint64_t n);
-	int Read(ClientSession* session, char* dst, uint64_t n);
+	int Write(Session* session, const char* src, uint64_t n);
+	int Read(Session* session, char* dst, uint64_t n);
 	int Release();
 
 private:

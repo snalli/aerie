@@ -10,12 +10,13 @@ namespace mfs {
 class SuperBlock: public client::SuperBlock {
 public:
 
-	SuperBlock(client::ClientSession* session, PSuperBlock<client::ClientSession>* psb)
+	SuperBlock(client::Session* session, PSuperBlock<client::Session>* psb)
 		: psb_(psb),
 		  root_(this, NULL)
 	{ 
 		root_.Init(session, psb->root_);
 		root_.SetSuperBlock(this);
+		imap_ = new client::InodeMap();
 		printf("Superblock: this=%p\n", this);
 		printf("Superblock: root_=%p\n", &root_);
 	}
@@ -26,15 +27,15 @@ public:
 
 	client::Inode* CreateImmutableInode(int t);
 	client::Inode* WrapInode();
-	int AllocInode(client::ClientSession* session, int type, client::Inode** ipp);
+	int AllocInode(client::Session* session, int type, client::Inode** ipp);
 	int GetInode(client::InodeNumber ino, client::Inode** ipp);
 
 	void* GetPSuperBlock() { return (void*) psb_; }
 
 private:
-	DirInodeMutable             root_;
-	PSuperBlock<client::ClientSession>* psb_;
-	client::InodeMap*           imap_;
+	DirInodeMutable               root_;
+	PSuperBlock<client::Session>* psb_;
+	client::InodeMap*             imap_;
 };
 
 

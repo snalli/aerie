@@ -13,24 +13,24 @@ class DirInodeImmutable: public client::Inode {
 public:
 
 	DirInodeImmutable(Pnode* pnode)
-		: pnode_(static_cast<DirPnode<client::ClientSession>*>(pnode))
+		: pnode_(static_cast<DirPnode<client::Session>*>(pnode))
 	{ }
 
-	int Init(client::ClientSession* session, uint64_t ino) {
-		pnode_ = DirPnode<client::ClientSession>::Load(ino);
+	int Init(client::Session* session, uint64_t ino) {
+		pnode_ = DirPnode<client::Session>::Load(ino);
 		return 0;
 	}
 	
 	//static DirInodeImmutable* Load(uint64_t ino);
 	//static DirInodeImmutable* Load(InodeImmutable* inode);
 
-	int Open(client::ClientSession* session, char* path, int flags) { };
-	int Write(client::ClientSession* session, char* src, uint64_t off, uint64_t n) { return 0; }
-	int Read(client::ClientSession* session, char* dst, uint64_t off, uint64_t n) { return 0; }
-	int Lookup(client::ClientSession* session, char* name, client::Inode** inode);
-	int LookupFast(client::ClientSession* session, char* name, client::Inode* inode);
-	int Insert(client::ClientSession* session, char* name, client::Inode* inode) { };
-	int Link(client::ClientSession* session, char* name, client::Inode* ip, bool overwrite) { return 0; }
+	int Open(client::Session* session, char* path, int flags) { };
+	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
+	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
+	int Lookup(client::Session* session, char* name, client::Inode** inode);
+	int LookupFast(client::Session* session, char* name, client::Inode* inode);
+	int Insert(client::Session* session, char* name, client::Inode* inode) { };
+	int Link(client::Session* session, char* name, client::Inode* ip, bool overwrite) { return 0; }
 	int Unlink(); // do nothing or don't expose this call
 	int Read(); 
 
@@ -42,8 +42,8 @@ public:
 	}
 	
 private:
-	DirPnode<client::ClientSession>* pnode_;
-	client::SuperBlock*      sb_;            // file system superblock
+	DirPnode<client::Session>* pnode_;
+	client::SuperBlock*        sb_;        // file system superblock
 
 };
 
@@ -107,7 +107,7 @@ DirInodeImmutable::Load(InodeImmutable* inode)
 class DirInodeMutable: public client::Inode {
 public:
 	DirInodeMutable(client::SuperBlock* sb, Pnode* pnode)
-		: pnode_(static_cast<DirPnode<client::ClientSession>*>(pnode)),
+		: pnode_(static_cast<DirPnode<client::Session>*>(pnode)),
 		  sb_(sb)
 	{ printf("DirInodeMutable: pnode=%p\n", pnode);
 		ino_ = (uint64_t) pnode;
@@ -115,31 +115,31 @@ public:
 	}
 
 	DirInodeMutable(Pnode* pnode)
-		: pnode_(static_cast<DirPnode<client::ClientSession>*>(pnode))
+		: pnode_(static_cast<DirPnode<client::Session>*>(pnode))
 	{ assert(0); }
 
 
-	int Init(client::ClientSession* session, uint64_t ino) {
+	int Init(client::Session* session, uint64_t ino) {
 		ino_ = ino;
-		pnode_ = DirPnode<client::ClientSession>::Load(ino);
+		pnode_ = DirPnode<client::Session>::Load(ino);
 		printf("DirInodeMutable: ino=%p\n", ino);
 		printf("DirInodeMutable: pnode_=%p\n", pnode_);
 		return 0;
 	}
-	int Open(client::ClientSession* session, char* path, int flags) { };
-	int Read(client::ClientSession* session, char* dst, uint64_t off, uint64_t n) { return 0; }
-	int Write(client::ClientSession* session, char* src, uint64_t off, uint64_t n) { return 0; }
-	int Insert(client::ClientSession* session, char* name, client::Inode* inode) { };
+	int Open(client::Session* session, char* path, int flags) { };
+	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
+	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
+	int Insert(client::Session* session, char* name, client::Inode* inode) { };
 
 	client::SuperBlock* GetSuperBlock() { return sb_;}
 	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
 	
-	int Lookup(client::ClientSession* session, char* name, client::Inode** inode);
-	int LookupFast(client::ClientSession* session, char* name, client::Inode* inode) { };
+	int Lookup(client::Session* session, char* name, client::Inode** inode);
+	int LookupFast(client::Session* session, char* name, client::Inode* inode) { };
 
-	int Link(client::ClientSession* session, char* name, client::Inode* ip, bool overwrite);
+	int Link(client::Session* session, char* name, client::Inode* ip, bool overwrite);
 private:
-	DirPnode<client::ClientSession>*   pnode_;
+	DirPnode<client::Session>*   pnode_;
 	client::SuperBlock*        sb_;            // file system superblock
 	//FIXME: pointer to new directory entries
 };

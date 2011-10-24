@@ -23,20 +23,20 @@ namespace client {
 
 
 int
-InodeManager::AllocInode(ClientSession* session, SuperBlock* sb, int type, Inode** ipp)
+InodeManager::AllocInode(Session* session, SuperBlock* sb, int type, Inode** ipp)
 {
 	return sb->AllocInode(session, type, ipp);
 }
 
 
 int
-InodeManager::GetInode(ClientSession* session, SuperBlock* sb, InodeNumber ino, Inode** ipp)
+InodeManager::GetInode(Session* session, SuperBlock* sb, InodeNumber ino, Inode** ipp)
 {
 	return sb->GetInode(ino, ipp);
 }
 
 int
-InodeManager::PutInode(ClientSession* session, SuperBlock* sb, Inode* ip)
+InodeManager::PutInode(Session* session, SuperBlock* sb, Inode* ip)
 {
 	return 0;
 }
