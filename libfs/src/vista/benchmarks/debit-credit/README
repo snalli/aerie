@@ -1,5 +1,0 @@
-
-bench.c - 	debit-credit benchmark using Vista with explicit logging
-bench-i.c -	debit-credit benchmark using Vista with implicit logging
-rvmbench.c -	debit-credit benchmark using RVM
-
