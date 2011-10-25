@@ -59,11 +59,11 @@ public:
 	int InsertRegion(Region* region);
 	int AllocateRegion(uint64_t start_bn, uint64_t end_bn);
 
-	int Write(char*, uint64_t, uint64_t);
-	int Read(char*, uint64_t, uint64_t);
+	int Write(char* src, uint64_t off, uint64_t n);
+	int Read(char* dst, uint64_t off, uint64_t n);
 
-	int ReadBlock(char*, uint64_t, int, int);
-	int WriteBlock(char*, uint64_t, int, int);
+	int ReadBlock(char* dst, uint64_t bn, int off, int n);
+	int WriteBlock(char* src, uint64_t bn, int off, int n);
 
 	// return maximum possible size in bytes
 	inline uint64_t get_maxsize() { return get_maxbcount() * BLOCK_SIZE; }

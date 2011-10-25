@@ -117,7 +117,7 @@ static struct RadixTreeNode*
 radix_tree_node_alloc(RadixTree* root)
 {
 	RadixTreeNode* node = new RadixTreeNode;
-
+	printf("radix_tree_node_alloc=%p\n", node);
 	return node;
 }
 

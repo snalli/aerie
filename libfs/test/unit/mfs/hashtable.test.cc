@@ -33,8 +33,7 @@ struct SessionFixture
 };
 
 
-
-SUITE(HashTableEntry)
+SUITE(MFSHashTableEntry)
 {
 	const int buffer_size = 128;
 
@@ -90,7 +89,7 @@ SUITE(HashTableEntry)
 }
 
 
-SUITE(HashTablePage)
+SUITE(MFSHashTablePage)
 {
 	TEST_FIXTURE(SessionFixture, TestInsert1)
 	{
@@ -448,7 +447,7 @@ class TestSession {
 
 };
 
-SUITE(HashTable)
+SUITE(MFSHashTable)
 {
 	TEST_FIXTURE(SessionFixture, TestInsert)
 	{

@@ -44,5 +44,4 @@ SUITE(FileDescriptor)
 		CHECK(my_fmgr->Put(1000)==0);
 		CHECK(my_fmgr->AllocFd(fp)==1000);
 	}
-
 }

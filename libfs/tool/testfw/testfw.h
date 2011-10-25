@@ -31,6 +31,7 @@ struct RunTestIfMatchFilter
 		int suite_filter_len;
 		int test_filter_len;
 		
+		//std::cout << "TEST: " << test->m_details.suiteName << "/" << test->m_details.testName << std::endl;
 		suite_filter_len = suite_filter_ ? strlen(suite_filter_): 0;
 		test_filter_len = test_filter_ ? strlen(test_filter_): 0;
 		if ((suite_filter_len == 0 || 

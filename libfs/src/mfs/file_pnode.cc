@@ -190,7 +190,7 @@ FilePnode::ReadBlock(char* dst, uint64_t bn, int off, int n)
 	if (l < off) {
 		return 0;
 	}
-	rn = min(n,l-off);
+	rn = min(n, l-off);
 
 	Region region(this, bn);
 	region.ReadBlock(dst, bn, off, rn);
@@ -221,12 +221,10 @@ FilePnode::WriteBlock(char* src, uint64_t bn, int off, int n)
 	printf("FilePnode::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
 	Region region(this, bn);
-	printf("FilePnode::WriteBlock region->radixtree_.rnode_=%p\n", region.radixtree_.rnode_);
 	if ( (ret = region.WriteBlock(src, bn, off, n)) < 0) {
 		return ret;
 	}
 	
-	printf("FilePnode::WriteBlock region->radixtree_.rnode_=%p\n", region.radixtree_.rnode_);
 	InsertRegion(&region);
 
 	printf("FilePnode::WriteBlock: DONE\n");

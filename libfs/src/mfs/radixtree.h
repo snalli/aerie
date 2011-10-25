@@ -1,7 +1,9 @@
 #ifndef _RADIX_TREE_H_GHA678
 #define _RADIX_TREE_H_GHA678
 
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "mfs/mfs_i.h"
 
 const int      BITS_PER_LONG         = 64;
@@ -29,13 +31,18 @@ static inline void *radix_tree_ptr_to_indirect(void *ptr)
 
 // NOTE: A RadixTreeNode has no count field. We made this design decision
 // so as to pack more slots in the node instead. I don't expect count to be 
-// useful because we rarely delete indirect nodes when using it as 
+// useful because we rarely delete indirect nodes when using radixtree as 
 // a representation for a file. Note that the existence of an indirect
 // block indicates the existence of at least one linked slot.
 
 class RadixTreeNode {
 public:
 	void*         slots[RADIX_TREE_MAP_SIZE];
+
+	RadixTreeNode()
+	{
+		memset(&slots, 0, RADIX_TREE_MAP_SIZE*sizeof(*slots));
+	}
 
 	inline int Link(int slot_index, RadixTreeNode* node)
 	{

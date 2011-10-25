@@ -5,7 +5,7 @@
 
 extern void radix_tree_init_maxindex(void);
 
-SUITE(SuiteRadixTree)
+SUITE(MFSSuiteRadixTree)
 {
 	TEST(TestInsert0)
 	{

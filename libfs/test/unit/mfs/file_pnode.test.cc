@@ -18,7 +18,7 @@ void fillbuf(char *buf, int n, unsigned int seed)
 }	
 
 
-SUITE(SuiteFilePnode)
+SUITE(MFSFilePnode)
 {
 	TEST(TestWriteReadBlock1)
 	{

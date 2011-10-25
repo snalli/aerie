@@ -5,7 +5,7 @@
 #include "common/errno.h"
 
 	
-SUITE(FileInode)
+SUITE(MFSFileInode)
 {
 	TEST(TestWriteReadBlock1)
 	{

@@ -32,5 +32,4 @@ SUITE(File)
 		CHECK(my_fmgr->Put(1000)==0);
 		CHECK(my_fmgr->Put(1001)==0);
 	}
-
 }
