@@ -30,7 +30,7 @@ static inline void * SafeMalloc(size_t size) {
     return(result);
   } else {
     dbg_log (DBG_CRITICAL, 
-	         "Exiting From SafeMalloc because malloc of size %i failed.\n", size);
+	         "Exiting From SafeMalloc because malloc of size %lu failed.\n", size);
     return(0);
   }
 }

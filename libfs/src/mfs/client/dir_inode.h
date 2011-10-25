@@ -59,7 +59,7 @@ public:
 		  sb_(sb)
 	{ printf("DirInodeMutable: pnode=%p\n", pnode);
 		ino_ = (uint64_t) pnode;
-		printf("DirInodeMutable: ino=%p\n", ino_);
+		printf("DirInodeMutable: ino=%lu\n", ino_);
 	}
 
 	DirInodeMutable(Pnode* pnode)
@@ -70,7 +70,7 @@ public:
 	int Init(client::Session* session, uint64_t ino) {
 		ino_ = ino;
 		pnode_ = DirPnode<client::Session>::Load(ino);
-		printf("DirInodeMutable: ino=%p\n", ino);
+		printf("DirInodeMutable: ino=%lu\n", ino);
 		printf("DirInodeMutable: pnode_=%p\n", pnode_);
 		return 0;
 	}

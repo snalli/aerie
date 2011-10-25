@@ -215,7 +215,7 @@ public:
 	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
 	int Search(Session* session, const char* key, int key_size, uint64_t* val);
 	int Search(Session* session, const char* key, int key_size, char** val, int* val_size);
-	int Delete(Session* session, char* key, int key_size);
+	int Delete(Session* session, const char* key, int key_size);
 	int SplitHalf(Session* session, Page* splitover_page);
 	int Split(Session* session, Page* splitover_page, const SplitPredicate& split_predicate);
 	int Merge(Session* session, Page* other_page);
@@ -256,7 +256,7 @@ public:
 	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
 	int Search(Session* session, const char* key, int key_size, uint64_t* val);
 	int Search(Session* session, const char* key, int key_size, char** val, int* val_size);
-	int Delete(Session* session, char* key, int key_size);
+	int Delete(Session* session, const char* key, int key_size);
 	int Split(Session* session, Bucket* new_bucket, const SplitPredicate& split_predicate);
 	int Merge(Session* session, Bucket*);
 	void Print();
@@ -292,7 +292,7 @@ public:
 	int Insert(Session* session, const char* key, int key_size, uint64_t val);
 	int Search(Session* session, const char *key, int key_size, char** valp, int* val_sizep);
 	int Search(Session* session, const char* key, int key_size, uint64_t* val);
-	int Delete(Session* session, char* key, int key_size);
+	int Delete(Session* session, const char* key, int key_size);
 	void Print();
 
 private:
@@ -441,7 +441,7 @@ Page<Session>::Delete(Session* session, Entry<Session>* entry, Entry<Session>* p
 
 template<typename Session>
 int 
-Page<Session>::Delete(Session* session, char *key, int key_size)
+Page<Session>::Delete(Session* session, const char *key, int key_size)
 {
 	int             i;
 	int             step;
@@ -744,9 +744,18 @@ Bucket<Session>::Search(Session* session, const char* key, int key_size, uint64_
 
 template<typename Session>
 int 
-Bucket<Session>::Delete(Session* session, char* key, int key_size)
+Bucket<Session>::Delete(Session* session, const char* key, int key_size)
 {
+	int            ret;
+	Page<Session>* page;
 
+	for (page=&page_; page != 0x0; page=page->Next()) {
+		if ((ret=page->Delete(session, key, key_size)) == 0) {
+			return ret;
+		}
+	}
+
+	return -1;
 }
 
 
@@ -858,8 +867,6 @@ HashTable<Session>::Insert(Session* session, const char* key, int key_size,
 	Bucket<Session>* splitover_bucket;
 	int              ret;
 
-	printf("HashTable::Insert key=%s\n", key);
-
 	idx = Index(session, key, key_size);
 	bucket = &buckets_[idx];
 	if ((ret=bucket->Insert(session, key, key_size, val, val_size))==0) {
@@ -889,8 +896,8 @@ HashTable<Session>::Insert(Session* session, const char* key, int key_size, uint
 
 template<typename Session>
 int 
-HashTable<Session>::Search(Session* session, const char *key, int key_size, char** valp, 
-                           int* val_sizep)
+HashTable<Session>::Search(Session* session, const char *key, int key_size, 
+                           char** valp, int* val_sizep)
 {
 	uint32_t         idx;
 	Bucket<Session>* bucket;
@@ -911,6 +918,19 @@ HashTable<Session>::Search(Session* session, const char* key, int key_size,
 	int val_size;
 
 	return Search(session, key, key_size, (char**) &val, &val_size);
+}
+
+
+template<typename Session>
+int 
+HashTable<Session>::Delete(Session* session, const char* key, int key_size)
+{
+	// TODO: trigger merge when number of entries drops below a threshold
+	//       check the literature of linear hashing of when this happens
+
+	uint32_t idx = Index(session, key, key_size);
+	Bucket<Session>* bucket = &buckets_[idx];
+	return bucket->Delete(session, key, key_size);
 }
 
 

@@ -1,6 +1,7 @@
 #include "mfs/client/file_inode.h"
 #include <pthread.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <string.h>
 #include <bitset>
 #include <vector>
@@ -9,7 +10,6 @@
 
 #define min(a,b) ((a) < (b)? (a) : (b))
 #define max(a,b) ((a) > (b)? (a) : (b))
-
 
 /////////////////////////////////////////////////////////////////////////////
 // 
@@ -43,7 +43,8 @@ public:
 			region_ = new FilePnode::Region(slot);
 		}	
 
-		printf("interval: slot_base=%p slot_offset=%d, range=[%llu, %llu]\n", slot_.slot_base_, slot_.slot_offset_, low_, high_);
+		printf("interval: slot_base=%p slot_offset=%d, range=[%" PRIu64 ", %" PRIu64 "]\n", 
+		       slot_.slot_base_, slot_.slot_offset_, low_, high_);
 	}
 	  
 	inline int GetLowPoint() const { return low_;}
@@ -74,7 +75,7 @@ InodeInterval::WriteBlockNoRegion(char* src, uint64_t bn, int off, int n)
 
 	assert(low_ <= bn && bn <= high_);
 
-	printf("InodeInterval::WriteBlock (src=%p, bn=%llu, off=%d, n=%d)\n",
+	printf("InodeInterval::WriteBlock (src=%p, bn=%" PRIu64 ", off=%d, n=%d)\n",
 	       src, bn, off, n);
 	
 	if (!(bp = block_array_[bn - low_])) {
@@ -131,7 +132,7 @@ InodeInterval::WriteNoRegion(char* src, uint64_t off, uint64_t n)
 int
 InodeInterval::Write(char* src, uint64_t off, uint64_t n)
 {
-	printf("Buffered Write [%llu, %llu], region=%p\n", off, off+n-1, region_);
+	printf("Buffered Write [%" PRIu64 ", %" PRIu64 "], region=%p\n", off, off+n-1, region_);
 
 	if (region_) {
 		return region_->Write(src, off, n);
@@ -148,7 +149,7 @@ InodeInterval::ReadBlockNoRegion(char* dst, uint64_t bn, int off, int n)
 
 	assert(low_ <= bn && bn <= high_);
 
-	printf("InodeInterval::ReadBlock (dst=%p, bn=%llu, off=%d, n=%d)\n",
+	printf("InodeInterval::ReadBlock (dst=%p, bn=%" PRIu64 ", off=%d, n=%d)\n",
 	       dst, bn, off, n);
 	
 	if (!(bp = block_array_[bn - low_])) {
@@ -186,7 +187,7 @@ InodeInterval::ReadNoRegion(char* dst, uint64_t off, uint64_t n)
 int
 InodeInterval::Read(char* dst, uint64_t off, uint64_t n)
 {
-	printf("Buffered Read [%llu, %llu], region=%p\n", off, off+n-1, region_);
+	printf("Buffered Read [%" PRIu64 ", %" PRIu64 "], region=%p\n", off, off+n-1, region_);
 
 	if (region_) {
 		return region_->Read(dst, off, n);
@@ -254,7 +255,7 @@ int FileInode::ReadImmutable(char* dst, uint64_t off, uint64_t n)
 	uint64_t         interval_low;
 	InodeInterval*   interval;
 
-	dbg_log (DBG_DEBUG, "Immutable range = [%llu, %llu] n=%llu\n", off, off+n-1, n);
+	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
 
 	fbn = off/BLOCK_SIZE;
 	start.Init(pinode_, fbn);
@@ -275,7 +276,7 @@ int FileInode::ReadImmutable(char* dst, uint64_t off, uint64_t n)
 
 		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
 
-		printf("bn=%llu, base_bn = %llu, block=%p R[%d, %d] A[%llu, %llu] size=%llu (%llu blocks)\n", 
+		printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
 		       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
 
 		if (!ptr) {
@@ -298,7 +299,7 @@ int FileInode::ReadImmutable(char* dst, uint64_t off, uint64_t n)
 			// pinode already points to a block, therefore we do an in-place write
 			assert(bcount == 1);
 
-			printf("Direct Read [%llu, %llu]\n", off, off+m-1);
+			printf("Direct Read [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
 
 			memmove(&dst[tot], &ptr[f], m);
 		}
@@ -319,7 +320,7 @@ int FileInode::ReadMutable(char* dst, uint64_t off, uint64_t n)
 {
 	int vn;
 
-	dbg_log (DBG_DEBUG, "Mutable range = [%llu, %llu]\n", off, off+n-1);
+	dbg_log (DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
 	if (off > size_) {
 		return 0;
@@ -381,7 +382,7 @@ int FileInode::WriteMutable(char* src, uint64_t off, uint64_t n)
 {
 	uint64_t bn;
 
-	dbg_log (DBG_DEBUG, "Mutable range = [%llu, %llu]\n", off, off+n-1);
+	dbg_log (DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
 	// TODO: do we need to perform any journaling here? OR, does the FilePnode::Region
 	// transparently perform any necessary journaling? 
@@ -422,7 +423,7 @@ int FileInode::WriteImmutable(char* src, uint64_t off, uint64_t n)
 	uint64_t         interval_low;
 	InodeInterval*   interval;
 
-	dbg_log (DBG_DEBUG, "Immutable range = [%llu, %llu] n=%llu\n", off, off+n-1, n);
+	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 " \n", off, off+n-1, n);
 
 	fbn = off/BLOCK_SIZE;
 	start.Init(pinode_, fbn);
@@ -443,7 +444,7 @@ int FileInode::WriteImmutable(char* src, uint64_t off, uint64_t n)
 
 		ptr = (char*) ((*iter).slot_base_[(*iter).slot_offset_]);
 
-		printf("bn=%llu, base_bn = %llu, block=%p R[%d, %d] A[%llu, %llu] size=%llu (%llu blocks)\n", 
+		printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
 		       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
 
 		if (!ptr) {
@@ -480,7 +481,7 @@ int FileInode::WriteImmutable(char* src, uint64_t off, uint64_t n)
 			// copy the old contents of the block if a partial copy is done
 			assert(bcount == 1);
 
-			printf("Direct Write [%llu, %llu]\n", off, off+m-1);
+			printf("Direct Write [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
 			memmove(&ptr[f], &src[tot], m);
 		}
 
@@ -500,7 +501,7 @@ int FileInode::Write(char* src, uint64_t off, uint64_t n)
 	int       ret2 = 0;
 	int       w;
 
-	dbg_log (DBG_DEBUG, "Write range = [%llu, %llu] n=%llu\n", off, off+n-1, n);
+	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 " \n", off, off+n-1, n);
 
 	immmaxsize = (!pinodeism_) ? pinode_->get_maxsize() : 0;
 

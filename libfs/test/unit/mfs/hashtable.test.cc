@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <map>
+#include <vector>
 #include <string>
 #include "tool/testfw/unittest.h"
 #include "mfs/hashtable.h"
@@ -454,4 +455,65 @@ SUITE(MFSHashTable)
 		}
 
 	}
+	
+	struct triple {
+		triple(std::string key, uint64_t val, bool exists)
+			: key_(key),
+			  val_(val),
+			  exists_(exists)
+		{ }
+
+		std::string key_;
+		uint64_t    val_;
+		bool        exists_;
+	};
+
+	TEST_FIXTURE(SessionFixture, TestDelete)
+	{
+		int                                i;
+		HashTable<Session>                 ht;
+		std::vector<triple>                kvvec;
+		std::vector<int>                   kvvec_todel;
+		std::vector<triple>::iterator      it;
+		std::vector<int>::iterator         it_vecint;
+		std::string                        key;
+		uint64_t                           val;
+		int                                rv;
+
+		srand(0);
+
+		for (i=0; i<128; i++) {
+			key=gen_rand_str(16, 16);
+			kvvec.push_back(triple(key, i, true));
+		}	
+
+		for (it=kvvec.begin(); it != kvvec.end(); it++) {
+			if ((*it).exists_) {
+				key = (*it).key_;
+				val = (*it).val_;
+				CHECK(ht.Insert(session, key.c_str(), strlen(key.c_str())+1, val) == 0);
+			}
+		}
+
+		kvvec_todel.push_back(1);
+		kvvec_todel.push_back(6);
+		kvvec_todel.push_back(17);
+		kvvec_todel.push_back(53);
+		kvvec_todel.push_back(112);
+		for (it_vecint=kvvec_todel.begin(); it_vecint != kvvec_todel.end(); it_vecint++) {
+			key = kvvec[(*it_vecint)].key_;
+			kvvec[(*it_vecint)].exists_ = false;
+			CHECK(ht.Delete(session, key.c_str(), strlen(key.c_str())+1) == 0);
+		}
+
+		for (it=kvvec.begin(); it != kvvec.end(); it++) {
+			if ((*it).exists_) {
+				key = (*it).key_;
+				CHECK(ht.Search(session, key.c_str(), strlen(key.c_str())+1, &val) == 0);
+				CHECK(val == (*it).val_);
+			}
+		}
+
+	}
+
 }

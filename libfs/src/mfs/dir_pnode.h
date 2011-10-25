@@ -42,6 +42,7 @@ public:
 
 	int Lookup(Session* session, const char* name, uint64_t* ino);
 	int Link(Session* session, const char* name, uint64_t ino);
+	int Unlink(Session* session, const char* name, uint64_t ino);
 
 //private:
 	uint64_t            self_;    // entry '.'
@@ -111,5 +112,39 @@ DirPnode<Session>::Link(Session* session, const char* name, uint64_t ino)
 	return 0;
 }
 
+
+template<typename Session>
+inline int 
+DirPnode<Session>::Unlink(Session* session, const char* name, uint64_t ino)
+{
+	if (name[0] == '\0') {
+		return -1;
+	}	
+
+	// handle special cases '.' and '..'
+	if (name[1] == '\0') {
+		if (name[0] == '.') {
+			self_ = ino;
+			return 0;
+		} 
+	} else if (name[2] == '\0') {
+		if (name[0] == '.' && name[1] == '.') {
+			parent_ = ino;
+			return 0;
+		} 
+	}
+	
+	if (!ht_) {
+		ht_ = new(session) HashTable<Session>(); 
+		if (!ht_) {
+			return -1;
+		}	
+	}
+	ht_->Insert(session, name, strlen(name)+1, ino);
+
+	return 0;
+}
+
 } // namespace mfs
+
 #endif // __MFS_DIRECTORY_PERSISTENT_INODE_H_JAK129

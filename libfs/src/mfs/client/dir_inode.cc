@@ -155,7 +155,7 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 	}
 
 	
-	printf("DirInodeMutable::Lookup (%s): pnode_=%p, ino=%p\n", name, pnode_, ino);
+	printf("DirInodeMutable::Lookup (%s): pnode_=%p, ino=%lu\n", name, pnode_, ino);
 
 	sb_->GetInode(ino, &ip);
 	*ipp = ip;
@@ -178,7 +178,7 @@ DirInodeMutable::Link(client::Session* session, const char* name, client::Inode*
 
 	ino = ip->GetInodeNumber();
 
-	printf("DirInodeMutable::Link (%s): pnode_=%p, ino=%p\n", name, pnode_, ino);
+	printf("DirInodeMutable::Link (%s): pnode_=%p, ino=%lu\n", name, pnode_, ino);
 	return pnode_->Link(session, name, ino);
 }
 
