@@ -5,33 +5,7 @@
 #include "tool/testfw/unittest.h"
 #include "mfs/hashtable.h"
 #include "common/errno.h"
-
-class Session;
-
-class StorageManager {
-public:
-	int Alloc(Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
-	{
-		*ptr = malloc(nbytes);
-		return E_SUCCESS;
-	}
-};
-
-
-class Session {
-public:
-	StorageManager* sm;
-};
-
-struct SessionFixture 
-{
-	SessionFixture() 
-		: session(NULL)
-	{ }
-	
-	Session* session;
-};
-
+#include "session.fixture.h"
 
 SUITE(MFSHashTableEntry)
 {
