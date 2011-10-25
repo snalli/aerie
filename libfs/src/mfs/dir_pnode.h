@@ -14,6 +14,7 @@
 #include "mfs/pnode.h"
 #include "mfs/hashtable.h"
 #include "common/debug.h"
+#include "common/util.h"
 
 namespace mfs {
 
@@ -42,7 +43,7 @@ public:
 
 	int Lookup(Session* session, const char* name, uint64_t* ino);
 	int Link(Session* session, const char* name, uint64_t ino);
-	int Unlink(Session* session, const char* name, uint64_t ino);
+	int Unlink(Session* session, const char* name);
 
 //private:
 	uint64_t            self_;    // entry '.'
@@ -52,7 +53,7 @@ public:
 
 
 template<typename Session>
-inline int 
+int 
 DirPnode<Session>::Lookup(Session* session, const char* name, uint64_t* ino)
 {
 	if (name[0] == '\0') {
@@ -60,16 +61,13 @@ DirPnode<Session>::Lookup(Session* session, const char* name, uint64_t* ino)
 	}	
 
 	// handle special cases '.' and '..'
-	if (name[1] == '\0') {
-		if (name[0] == '.') {
+	switch (str_is_dot(name)) {
+		case 1: // '.'
 			*ino = self_;
 			return 0;
-		} 
-	} else if (name[2] == '\0') {
-		if (name[0] == '.' && name[1] == '.') {
+		case 2: // '..'
 			*ino = parent_;
 			return 0;
-		} 
 	}
 
 	if (ht_) {
@@ -81,24 +79,21 @@ DirPnode<Session>::Lookup(Session* session, const char* name, uint64_t* ino)
 
 
 template<typename Session>
-inline int 
+int 
 DirPnode<Session>::Link(Session* session, const char* name, uint64_t ino)
 {
 	if (name[0] == '\0') {
 		return -1;
 	}	
-
+	
 	// handle special cases '.' and '..'
-	if (name[1] == '\0') {
-		if (name[0] == '.') {
+	switch (str_is_dot(name)) {
+		case 1: // '.'
 			self_ = ino;
 			return 0;
-		} 
-	} else if (name[2] == '\0') {
-		if (name[0] == '.' && name[1] == '.') {
+		case 2: // '..'
 			parent_ = ino;
 			return 0;
-		} 
 	}
 	
 	if (!ht_) {
@@ -114,35 +109,27 @@ DirPnode<Session>::Link(Session* session, const char* name, uint64_t ino)
 
 
 template<typename Session>
-inline int 
-DirPnode<Session>::Unlink(Session* session, const char* name, uint64_t ino)
+int 
+DirPnode<Session>::Unlink(Session* session, const char* name)
 {
 	if (name[0] == '\0') {
 		return -1;
 	}	
-
-	// handle special cases '.' and '..'
-	if (name[1] == '\0') {
-		if (name[0] == '.') {
-			self_ = ino;
-			return 0;
-		} 
-	} else if (name[2] == '\0') {
-		if (name[0] == '.' && name[1] == '.') {
-			parent_ = ino;
-			return 0;
-		} 
-	}
 	
-	if (!ht_) {
-		ht_ = new(session) HashTable<Session>(); 
-		if (!ht_) {
-			return -1;
-		}	
+	// handle special cases '.' and '..'
+	switch (str_is_dot(name)) {
+		case 1: // '.'
+			self_ = 0;
+			return 0;
+		case 2: // '..'
+			parent_ = 0;
+			return 0;
 	}
-	ht_->Insert(session, name, strlen(name)+1, ino);
 
-	return 0;
+	if (!ht_) {
+		return -1;
+	}
+	return ht_->Delete(session, name, strlen(name)+1);
 }
 
 } // namespace mfs

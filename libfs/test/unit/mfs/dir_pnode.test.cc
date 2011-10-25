@@ -5,38 +5,94 @@
 #include "common/errno.h"
 #include "session.fixture.h"
 
+using namespace mfs;
 	
 SUITE(MFSDirPnode)
 {
-	TEST(TestLookup)
+	TEST_FIXTURE(SessionFixture, TestLinkLookup)
 	{
-		/*
-		FileInode*       inode;
-		PInode*          pinode = new PInode;
-		PInode::Iterator start(pinode, 0);
-		PInode::Iterator iter;
-		int              i;
-		uint64_t         bn;
-		char*            src;
+		uint64_t           ino;
+		DirPnode<Session>* dirpnode = new(session) DirPnode<Session>;
+		
+		CHECK(dirpnode->Link(session, ".", 1) == 0);
+		CHECK(dirpnode->Link(session, "..", 0) == 0);
+		CHECK(dirpnode->Link(session, "foo", 3) == 0);
+		CHECK(dirpnode->Link(session, "bar", 4) == 0);
+		
+		CHECK(dirpnode->Lookup(session, ".", &ino) == 0);
+		CHECK(ino == 1);
+		CHECK(dirpnode->Lookup(session, "..", &ino) == 0);
+		CHECK(ino == 0);
+		CHECK(dirpnode->Lookup(session, "foo", &ino) == 0);
+		CHECK(ino == 3);
+		CHECK(dirpnode->Lookup(session, "bar", &ino) == 0);
+		CHECK(ino == 4);
+	}
 
-		dbg_set_level(DBG_DEBUG);
 
-		range(64, 60*4096);
+	TEST_FIXTURE(SessionFixture, TestUnlinkDot)
+	{
+		uint64_t           ino;
+		DirPnode<Session>* dirpnode = new(session) DirPnode<Session>;
+		
+		CHECK(dirpnode->Link(session, ".", 2) == 0);
+		CHECK(dirpnode->Link(session, "..", 1) == 0);
+		
+		CHECK(dirpnode->Lookup(session, ".", &ino) == 0);
+		CHECK(ino == 2);
+		CHECK(dirpnode->Lookup(session, "..", &ino) == 0);
+		CHECK(ino == 1);
+		
+		CHECK(dirpnode->Unlink(session, ".") == 0);
+		CHECK(dirpnode->Lookup(session, ".", &ino) == 0);
+		CHECK(ino == 0);
+	
+		CHECK(dirpnode->Unlink(session, "..") == 0);
+		CHECK(dirpnode->Lookup(session, "..", &ino) == 0);
+		CHECK(ino == 0);
+	}
 
-		src = new char[600*4096];
-
-		printf("base=%d, size=%d\n", (*start).base_bn_, 0);
-		pinode->WriteBlock(src, 0, 0, 4096);
-		//pinode->WriteBlock(src, 15, 0, 4096);
-		pinode->WriteBlock(src, 8+4*512*512LLU+3*512+16, 0, 4096);
-		//pinode->WriteBlock(src, 512+8, 0, 4096);
-
-		inode = new FileInode(pinode);
-		//inode->Write(src, 64, 4096*60);
-		//inode->Write(src, 16*4096+64, 4096*60);
-		inode->Write(src, (8+4*512*512LLU+512+2)*4096LLU, 4096*60);
-		inode->Write(src, (8+4*512*512LLU+3*512+8)*4096LLU, 4096*60);
-		inode->Read(src, (8+4*512*512LLU+3*512+8)*4096LLU, 4096*60);
-		*/
+	TEST_FIXTURE(SessionFixture, TestUnlink)
+	{
+		uint64_t           ino;
+		DirPnode<Session>* dirpnode = new(session) DirPnode<Session>;
+		
+		CHECK(dirpnode->Link(session, ".", 1) == 0);
+		CHECK(dirpnode->Link(session, "..", 0) == 0);
+		CHECK(dirpnode->Link(session, "foo", 3) == 0);
+		CHECK(dirpnode->Link(session, "bar", 4) == 0);
+		CHECK(dirpnode->Link(session, "doc", 12) == 0);
+		
+		CHECK(dirpnode->Lookup(session, ".", &ino) == 0);
+		CHECK(ino == 1);
+		CHECK(dirpnode->Lookup(session, "..", &ino) == 0);
+		CHECK(ino == 0);
+		CHECK(dirpnode->Lookup(session, "foo", &ino) == 0);
+		CHECK(ino == 3);
+		CHECK(dirpnode->Lookup(session, "bar", &ino) == 0);
+		CHECK(ino == 4);
+		CHECK(dirpnode->Lookup(session, "doc", &ino) == 0);
+		CHECK(ino == 12);
+	
+		CHECK(dirpnode->Unlink(session, "foo") == 0);
+		CHECK(dirpnode->Lookup(session, "foo", &ino) != 0);
+		
+		CHECK(dirpnode->Unlink(session, "bar") == 0);
+		CHECK(dirpnode->Lookup(session, "bar", &ino) != 0);
+	
+		CHECK(dirpnode->Link(session, "foo", 13) == 0);
+		CHECK(dirpnode->Lookup(session, "foo", &ino) == 0);
+		CHECK(ino == 13);
+		CHECK(dirpnode->Link(session, "bar", 14) == 0);
+		CHECK(dirpnode->Lookup(session, "bar", &ino) == 0);
+		CHECK(ino == 14);
+		
+		CHECK(dirpnode->Unlink(session, "doc") == 0);
+		CHECK(dirpnode->Lookup(session, "doc", &ino) != 0);
+	
+		CHECK(dirpnode->Unlink(session, "foo") == 0);
+		CHECK(dirpnode->Lookup(session, "foo", &ino) != 0);
+		CHECK(dirpnode->Unlink(session, "bar") == 0);
+		CHECK(dirpnode->Lookup(session, "bar", &ino) != 0);
 	}
 }
