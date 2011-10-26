@@ -5,11 +5,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
-#include "client/backend.h"
+#include <typeinfo>
 #include "common/debug.h"
 #include "common/errno.h"
 #include "common/hash.h"
-
 
 const int HT_REHASH = 1;
 

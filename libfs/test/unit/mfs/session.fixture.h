@@ -1,5 +1,5 @@
-#ifndef __SESSION_FIXTURE_H_JAL190
-#define __SESSION_FIXTURE_H_JAL190
+#ifndef __TEST_SESSION_FIXTURE_H_JAL190
+#define __TEST_SESSION_FIXTURE_H_JAL190
 
 class Session;
 
@@ -36,4 +36,4 @@ struct SessionFixture
 };
 
 
-#endif // __SESSION_FIXTURE_H_JAL190
+#endif // __TEST_SESSION_FIXTURE_H_JAL190

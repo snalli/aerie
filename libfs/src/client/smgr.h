@@ -1,5 +1,5 @@
-#ifndef _STORAGE_MANAGER_H_AKL783
-#define _STORAGE_MANAGER_H_AKL783
+#ifndef __CLIENT_STORAGE_MANAGER_H_AKL783
+#define __CLIENT_STORAGE_MANAGER_H_AKL783
 
 #include <stdlib.h>
 #include <typeinfo>
@@ -35,4 +35,4 @@ private:
 
 } // namespace client
 
-#endif /* _STORAGE_MANAGER_H_AKL783 */
+#endif /* __CLIENT_STORAGE_MANAGER_H_AKL783 */

@@ -164,7 +164,8 @@ NameSpace::Unmount(Session* session, char* name)
 
 
 int
-NameSpace::Namex(Session* session, const char *cpath, bool nameiparent, char* name, Inode** inodep)
+NameSpace::Namex(Session* session, const char *cpath, bool nameiparent, 
+                 char* name, Inode** inodep)
 {
 	char*       path = const_cast<char*>(cpath);
 	Inode*      inode;

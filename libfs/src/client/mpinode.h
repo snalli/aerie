@@ -24,8 +24,10 @@ public:
 	int Lookup(Session* session, const char* name, Inode** inode);
 	int LookupFast(Session* session, const char* name, Inode* inode) { return 0; }
 	int Link(Session* session, const char* name, Inode* inode, bool overwrite) { return 0; }
+	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
 	int Insert(Session* session, const char* name, Inode* inode);
-	int Publish() { return 0; }
+	int Unlink(client::Session* session, const char* name) { assert(0); }
+	int Publish(client::Session* session) { return 0; }
 	SuperBlock* GetSuperBlock() { return sb_; };
 	void SetSuperBlock(SuperBlock* sb) { sb_ = sb; };
 

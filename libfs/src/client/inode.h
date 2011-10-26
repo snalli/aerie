@@ -24,8 +24,10 @@ public:
 	virtual int LookupFast(client::Session* session, const char* name, Inode* inode) = 0;
 	virtual int Insert(client::Session* session, const char* name, Inode* inode) = 0;
 	virtual int Link(client::Session* session, const char* name, Inode* inode, bool overwrite) = 0;
+	virtual int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) = 0;
+	virtual int Unlink(client::Session* session, const char* name) = 0;
 
-	virtual int Publish() = 0;
+	virtual int Publish(client::Session* session) = 0;
 
 	virtual client::SuperBlock* GetSuperBlock() = 0;
 	virtual void SetSuperBlock(client::SuperBlock* sb) = 0;
@@ -71,6 +73,7 @@ Inode::Unlock()
 inline
 int Inode::Get() 
 { 
+	printf("Inode::Get mutex=%p\n", &mutex_);
 	pthread_mutex_lock(&mutex_);
 	refcnt_++; 
 	pthread_mutex_unlock(&mutex_);

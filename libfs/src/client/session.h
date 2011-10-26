@@ -1,9 +1,10 @@
 #ifndef _CLIENT_SESSION_H_AKU197
 #define _CLIENT_SESSION_H_AKU197
 
-#include "client/smgr.h"
 
 namespace client {
+
+class StorageManager;
 
 class Session {
 public:

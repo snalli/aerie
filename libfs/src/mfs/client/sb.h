@@ -23,6 +23,14 @@ public:
 		printf("Superblock: root_=%p\n", &root_);
 	}
 
+	SuperBlock(client::Session* session)
+		: root_(this, NULL)
+	{ 
+		imap_ = new client::InodeMap();
+		pthread_mutex_init(&mutex_, NULL);
+	}
+
+
 	client::Inode* GetRootInode() {
 		return &root_;
 	}

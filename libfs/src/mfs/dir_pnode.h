@@ -9,7 +9,6 @@
 
 #include <stdint.h>
 #include <typeinfo>
-#include "client/backend.h"
 #include "mfs/mfs_i.h"
 #include "mfs/pnode.h"
 #include "mfs/hashtable.h"
@@ -82,6 +81,8 @@ template<typename Session>
 int 
 DirPnode<Session>::Link(Session* session, const char* name, uint64_t ino)
 {
+	uint64_t lino;
+
 	if (name[0] == '\0') {
 		return -1;
 	}	
@@ -102,9 +103,10 @@ DirPnode<Session>::Link(Session* session, const char* name, uint64_t ino)
 			return -1;
 		}	
 	}
-	ht_->Insert(session, name, strlen(name)+1, ino);
-
-	return 0;
+	if (ht_->Search(session, name, strlen(name)+1, &lino)==0) {
+		return -E_EXIST;
+	}
+	return ht_->Insert(session, name, strlen(name)+1, ino);
 }
 
 

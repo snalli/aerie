@@ -95,4 +95,29 @@ SUITE(MFSDirPnode)
 		CHECK(dirpnode->Unlink(session, "bar") == 0);
 		CHECK(dirpnode->Lookup(session, "bar", &ino) != 0);
 	}
+
+
+	TEST_FIXTURE(SessionFixture, TestLinkOverwrite)
+	{
+		uint64_t           ino;
+		DirPnode<Session>* dirpnode = new(session) DirPnode<Session>;
+		
+		CHECK(dirpnode->Link(session, ".", 1) == 0);
+		CHECK(dirpnode->Link(session, "..", 0) == 0);
+		CHECK(dirpnode->Link(session, "foo", 3) == 0);
+		CHECK(dirpnode->Link(session, "bar", 4) == 0);
+		
+		CHECK(dirpnode->Lookup(session, ".", &ino) == 0);
+		CHECK(ino == 1);
+		CHECK(dirpnode->Lookup(session, "..", &ino) == 0);
+		CHECK(ino == 0);
+		CHECK(dirpnode->Lookup(session, "foo", &ino) == 0);
+		CHECK(ino == 3);
+		CHECK(dirpnode->Lookup(session, "bar", &ino) == 0);
+		CHECK(ino == 4);
+	
+		CHECK(dirpnode->Link(session, "foo", 13) != 0);
+	}
+
+
 }
