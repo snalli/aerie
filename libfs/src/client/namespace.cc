@@ -14,6 +14,7 @@
 #include "server/api.h"
 #include "client/client_i.h"
 #include "client/mpinode.h"
+#include "client/hlckmgr.h"
 #include "client/sb.h"
 #include "common/debug.h"
 
@@ -94,36 +95,8 @@ NameSpace::Lookup(Session* session, const char* name, void** obj)
 	return 0;
 }
 
-#if 0
-int
-NameSpace::Mount(const char* path, void* superblock)
-{
-	std::string        name_str;
-	unsigned long long val;
-	int                r;
-	int                intret;
 
-	name_str = std::string(path);
-	val = (unsigned long long) superblock;
-
-	intret = client_->call(RPC_NAMESPACE_MOUNT, principal_id_, name_str, val, r);
-	if (intret) {
-		return -intret;
-	}
-
-	return 0;
-}
-
-
-int
-NameSpace::Unmount(const char* name)
-{
-	return 0;
-}
-
-
-#else 
-
+//FIXME: Replace Insert with Link
 int
 NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 {
@@ -133,21 +106,21 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 	int      ret;
 	char*    path = const_cast<char*>(const_path);
 	
-	printf("NameSpace::Mount(%s)\n", path);
-
 	mpnode = root_;
 	while((path = SkipElem(path, name)) != 0) {
-		printf("NameSpace::Mount: elem=%s\n", name);
 		if ((ret = mpnode->Lookup(session, name, (Inode**) &mpnode_next)) < 0) {
-			mpnode_next = new MPInode();
-			printf("mpnode_next=%p\n", mpnode_next);
-			assert(mpnode->Insert(session, name, mpnode_next) == 0);	
-			mpnode = mpnode_next;
-			continue;
+			if (*path == '\0') {
+				// end of path name -- mount superblock
+				assert(mpnode->Insert(session, name, sb->GetRootInode()) == 0);	
+				break;
+			} else {
+				// create mount point component
+				mpnode_next = new MPInode();
+				assert(mpnode->Insert(session, name, mpnode_next) == 0);	
+			}
 		}
 		mpnode = mpnode_next;
 	}
-	mpnode->SetSuperBlock(sb);
 
 	return 0;
 }
@@ -159,10 +132,9 @@ NameSpace::Unmount(Session* session, char* name)
 }
 
 
-
-#endif
-
-
+// Look up and return the inode for a path name.
+// If parent != 0, return the inode for the parent and copy the final
+// path element into name, which must have room for DIRSIZ bytes.
 int
 NameSpace::Namex(Session* session, const char *cpath, bool nameiparent, 
                  char* name, Inode** inodep)
@@ -176,13 +148,15 @@ NameSpace::Namex(Session* session, const char *cpath, bool nameiparent,
 	printf("NameSpace::Namex(%s)\n", cpath);
 	
 	inode = root_;
+	inode->Lock(lock_protocol::Mode::IXSL);
 	while ((path = SkipElem(path, name)) != 0) {
 		printf("name=%s\n", name);
 retry:	
 		if (!inode) {
-			printf("NameSpace::Namei(%s): DONE 1\n", cpath);
+			printf("NameSpace::Namex(%s): DONE 1\n", cpath);
 			return -1;
 		}
+		/*
 		if (nameiparent && *path == '\0') {
 			// Stop one level early.
 			//TODO: unlock inode after lookup and lock the next
@@ -193,16 +167,25 @@ retry:
 					sb = mpnode->GetSuperBlock();
 					if ((uint64_t) sb != KERNEL_SUPERBLOCK) {
 						inode = sb->GetRootInode();
+						if (inode->ino_) {
+							global_hlckmgr->Acquire(inode->ino_, lock_protocol::Mode::IXSL, 0);
+						}
 					}
 				}
 			}
+			goto done;
+		}
+		*/
+		if (nameiparent && *path == '\0') {
+			// Stop one level early.
 			goto done;
 		}
 
 		//FIXME: Lock (latch) inode before looking up/then unlock (i.e. do spider locking)
 		//FIXME: Release inode when done 
 		if ((ret = inode->Lookup(session, name, &inode_next)) < 0) {
-			printf("NameSpace::Namei(%s): Lookup: %s: ret=%d\n", cpath, name, ret);
+			printf("NameSpace::Namex(%s): Lookup: %s: ret=%d\n", cpath, name, ret);
+			/*
 			if (ret == -2) {
 				MPInode* mpnode = dynamic_cast<MPInode*>(inode);
 				sb = mpnode->GetSuperBlock();
@@ -213,6 +196,9 @@ retry:
 					// follow superblock's root inode and lookup 'name' in the root inode
 					printf("NameSpace::Namex(%s): follow superblock root \n", cpath);
 					inode_next = sb->GetRootInode();
+					if (inode_next->ino_) {
+						global_hlckmgr->Acquire(inode_next->ino_, lock_protocol::Mode::IXSL, 0);
+					}
 					inode = inode_next;
 					goto retry;
 				}
@@ -220,8 +206,13 @@ retry:
 				//printf("NameSpace::Namei(%s): not found\n", cpath);
 				return ret;
 			}	
+			*/
+			return -E_KVFS;
 		}
 		printf("name=%s, inode_next=%p\n", name, inode_next);
+		// spider locking
+		inode_next->Lock(lock_protocol::Mode::IXSL);
+		inode->Unlock();
 		inode = inode_next;
 	}	
 	if (nameiparent) {
@@ -267,18 +258,4 @@ int
 NameSpace::Unlink(Session* session, const char *name)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-/*
-	std::string        name_str;
-	int                r;
-	int                intret;
-
-	name_str = std::string(name);
-
-	intret = client_->call(RPC_NAME_UNLINK, principal_id_, name_str, r);
-	if (intret) {
-		return -intret;
-	}
-
-	return 0;
-*/	
 }

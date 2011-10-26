@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "client/lckmgr.h"
+#include "client/hlckmgr.h"
 
 namespace client {
 
-extern LockManager* global_lckmgr;
+extern HLockManager* global_hlckmgr;
 
 typedef uint64_t InodeNumber;
 
@@ -37,10 +37,10 @@ public:
 
 	int Get();
 	int Put();
-	int Lock(); 
+	int Lock(lock_protocol::Mode mode); 
 	int Unlock();
 
-protected:
+//protected:
 	//! process-wide mutex; used for synchronizing access to the
 	//! volatile inode metadata
 	pthread_mutex_t mutex_;
@@ -55,19 +55,26 @@ protected:
 };
 
 
+//FIXME: when creating the inode, inode manager assigns a public lock if 
+// needed. if there is a public lock, then we acquire it otherwise we acquire the
+// private lock
 inline int
-Inode::Lock()
+Inode::Lock(lock_protocol::Mode mode)
 {
-	//FIXME
-	//global_lckmgr->Acquire(lock_);
+	if (ino_) {
+		return global_hlckmgr->Acquire(ino_, mode, 0);
+	}
+	return 0;
 }
 
 
 inline int
 Inode::Unlock()
 {
-	//FIXME
-	//global_lckmgr->Release(lock_);
+	if (ino_) {
+		return global_hlckmgr->Release(ino_);
+	}
+	return 0;
 }
 
 inline

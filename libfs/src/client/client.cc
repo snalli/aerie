@@ -190,19 +190,21 @@ create(const char* path, Inode** ipp, int mode, int type)
 	printf("dp->GetSuperBlock()=%p\n", dp->GetSuperBlock());
 	sb = dp->GetSuperBlock();
 
-	//FIXME: do it by type
-	if ((ret = global_imgr->AllocInode(global_session, sb, client::type::kDirInode, &ip)) < 0) {
+	if ((ret = global_imgr->AllocInode(global_session, sb, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 	}
 	
 	//FIXME: nlink count
 	printf("create: create links\n");
 	if (type == client::type::kDirInode) {
-		ip->Link(global_session, ".", ip, true);
-		ip->Link(global_session, "..", dp, true);
+		ip->Link(global_session, ".", ip, false);
+		ip->Link(global_session, "..", dp, false);
 	}
-	assert(dp->Link(global_session, name, ip, true) == 0);
+	assert(dp->Link(global_session, name, ip, false) == 0);
 	assert(dp->Lookup(global_session, name, &ip) == 0); 
+	if (dp->ino_) {
+		global_hlckmgr->Release(dp->ino_);
+	}
 	return 0;
 }
 
@@ -243,28 +245,6 @@ Client::Open(const char* path, int flags, int mode)
 	}	
 
 	return fd;
-/*
-
-	if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
-	if(f)
-	  fileclose(f);
-	iunlockput(ip);
-	return -1;
-	}
-	iunlock(ip);
-
-	f->type = FD_INODE;
-	f->ip = ip;
-	if(flags & O_APPEND){
-	f->off = ip->size;
-	} else {
-	f->off = 0;
-	}
-	f->readable = !(flags & O_WRONLY);
-	f->writable = (flags & O_WRONLY) || (flags & O_RDWR);
-	return fd;
-*/
-
 }
 
 
@@ -315,6 +295,7 @@ Client::Read(int fd, char* dst, uint64_t n)
 	return fp->Read(global_session, dst, n);
 }
 
+
 uint64_t 
 Client::Seek(int fd, uint64_t offset, int whence)
 {
@@ -323,7 +304,7 @@ Client::Seek(int fd, uint64_t offset, int whence)
 
 
 int
-Client::Mkdir(const char* path, int mode)
+Client::MakeDirectory(const char* path, int mode)
 {
 	int    ret;
 	Inode* ip;

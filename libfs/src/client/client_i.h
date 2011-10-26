@@ -40,7 +40,7 @@ public:
 	static int Duplicate(int oldfd, int newfd);
 	static int Write(int fd, const char* src, uint64_t n);
 	static int Read(int fd, char* dst, uint64_t n);
-	static int Mkdir(const char* path, int mode);
+	static int MakeDirectory(const char* path, int mode);
 	static int Rmdir(const char* path);
 	static uint64_t Seek(int fd, uint64_t offset, int whence);
 	static int TestServerIsAlive();

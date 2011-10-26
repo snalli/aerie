@@ -9,6 +9,5 @@ localBuildEnv.Append(CPPPATH = ['#src/common'])
 
 commonLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
-#localBuildEnv.Program('test', ['test.cc', commonLibrary], CCFLAGS='-g')
 
 Return('commonLibrary')

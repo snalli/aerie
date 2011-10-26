@@ -100,7 +100,7 @@ FRONTAPI(mkdir) (const char* path, int mode)
 {
 	int ret;
 
-	if ((ret = Client::Mkdir(path, mode)) == -E_KVFS) {
+	if ((ret = Client::MakeDirectory(path, mode)) == -E_KVFS) {
 		return mkdir(path, mode);
 	}
 	return ret;

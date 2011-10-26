@@ -28,7 +28,7 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 	client::Inode*        ip;
 	EntryCache::iterator  it;
 	
-	printf("DirInodeMutable::Lookup (%s) pnode_=%p\n", name, pnode_);
+	printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) pnode_);
 
 	if ((it = entries_.find(name)) != entries_.end()) {
 		if (it->second.first == true) {
@@ -42,12 +42,21 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 		}
 	}
 	
-	printf("DirInodeMutable::Lookup (%s): pnode_=%p, ino=%lu\n", name, pnode_, ino);
-
 	sb_->GetInode(ino, &ip);
 	*ipp = ip;
 
 	return E_SUCCESS;
+}
+
+
+int 
+DirInodeMutable::Link(client::Session* session, const char* name, client::Inode* ip, 
+                      bool overwrite)
+{
+	uint64_t ino = ip->GetInodeNumber();
+	
+	//FIXME: fix link count
+	return Link(session, name, ino, overwrite);
 }
 
 

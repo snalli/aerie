@@ -104,7 +104,7 @@ public:
 	int Lookup(client::Session* session, const char* name, client::Inode** inode);
 	int LookupFast(client::Session* session, const char* name, client::Inode* inode) { };
 
-	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite) { assert(0); }
+	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite);
 	int Publish(client::Session* session);
 

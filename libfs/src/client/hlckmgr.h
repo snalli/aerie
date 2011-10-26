@@ -95,7 +95,7 @@ class HLockManager: public LockUser {
 public:
 	enum Status {
 		NONE = 0,
-		ATTACHING=1,
+		ATTACHING = 1,
 		REVOKING
 	};
 

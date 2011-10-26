@@ -1,7 +1,19 @@
 -thread safety for MFS mutable directory inode
 -concurrent namespace operations (mkdir, rmdir, link, unlink, rename)
+-generic namemap: to be used by directory inodes and mount point pseudo-inodes
+  - parameterized using a hashfunction (functor)
+  - extend the hashtable interface to take the result of the hash-function as a hint 
+    and verify that the hash is correct. is it cheaper to verify?
 -readdir
 -factories and storage manager for persistent objects
 -factories for volatile objects
 -files
 -journal
+
+================
+-factory for superblock 
+   - create superblock given a persistent superblock
+-factory for inodes 
+   - create inodes given a persistent inode
+
+
