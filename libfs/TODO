@@ -1,0 +1,7 @@
+-thread safety for MFS mutable directory inode
+-concurrent namespace operations (mkdir, rmdir, link, unlink, rename)
+-readdir
+-factories and storage manager for persistent objects
+-factories for volatile objects
+-files
+-journal
