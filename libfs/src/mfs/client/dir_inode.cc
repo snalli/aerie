@@ -60,6 +60,7 @@ DirInodeMutable::Link(client::Session* session, const char* name, client::Inode*
 }
 
 
+// FIXME: How do we shadow . and ..??? In the EntryCache? It should work.
 int 
 DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino, 
                       bool overwrite)

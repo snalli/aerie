@@ -100,26 +100,36 @@ NameSpace::Lookup(Session* session, const char* name, void** obj)
 int
 NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 {
-	char     name[128];
-	MPInode* mpnode;
-	MPInode* mpnode_next;
-	int      ret;
-	char*    path = const_cast<char*>(const_path);
+	char   name[128];
+	Inode* inode;
+	Inode* inode_next;
+	int    ret;
+	char*  path = const_cast<char*>(const_path);
 	
-	mpnode = root_;
+	inode = root_;
 	while((path = SkipElem(path, name)) != 0) {
-		if ((ret = mpnode->Lookup(session, name, (Inode**) &mpnode_next)) < 0) {
+		if ((ret = inode->Lookup(session, name, (Inode**) &inode_next)) < 0) {
+			if (typeid(*inode) != typeid(client::MPInode)) {
+				// cannot mount a filesystem on non-mount-point pseudo-inode  
+				return -1;
+			}
 			if (*path == '\0') {
-				// end of path name -- mount superblock
-				assert(mpnode->Insert(session, name, sb->GetRootInode()) == 0);	
+				// reached end of path -- mount superblock
+				Inode* root_inode = sb->GetRootInode();
+				assert(inode->Insert(session, name, root_inode) == 0);	
+				if (root_inode->Link(session, "..", inode, false) != 0) {
+					return -1; // superblock already mounted
+				}
 				break;
 			} else {
 				// create mount point component
-				mpnode_next = new MPInode();
-				assert(mpnode->Insert(session, name, mpnode_next) == 0);	
+				inode_next = new MPInode();
+				assert(inode->Insert(session, name, inode_next) == 0);	
+				assert(inode_next->Insert(session, ".", inode_next) == 0);	
+				assert(inode_next->Insert(session, "..", inode) == 0);	
 			}
 		}
-		mpnode = mpnode_next;
+		inode = inode_next;
 	}
 
 	return 0;
@@ -135,6 +145,8 @@ NameSpace::Unmount(Session* session, char* name)
 // Look up and return the inode for a path name.
 // If parent != 0, return the inode for the parent and copy the final
 // path element into name, which must have room for DIRSIZ bytes.
+// FIXME: Release inode when done (putinode) 
+// FIXME: what locks do we hold when calling and when returning from this function???
 int
 NameSpace::Namex(Session* session, const char *cpath, bool nameiparent, 
                  char* name, Inode** inodep)
@@ -156,58 +168,15 @@ retry:
 			printf("NameSpace::Namex(%s): DONE 1\n", cpath);
 			return -1;
 		}
-		/*
 		if (nameiparent && *path == '\0') {
 			// Stop one level early.
-			//TODO: unlock inode after lookup and lock the next
-			// follow superblock's root inode if parent is mount point
-			if (typeid(*inode) == typeid(MPInode)) {
-				if ((ret = inode->Lookup(session, name, &inode_next)) == -2) {
-					MPInode* mpnode = dynamic_cast<MPInode*>(inode);
-					sb = mpnode->GetSuperBlock();
-					if ((uint64_t) sb != KERNEL_SUPERBLOCK) {
-						inode = sb->GetRootInode();
-						if (inode->ino_) {
-							global_hlckmgr->Acquire(inode->ino_, lock_protocol::Mode::IXSL, 0);
-						}
-					}
-				}
-			}
-			goto done;
-		}
-		*/
-		if (nameiparent && *path == '\0') {
-			// Stop one level early.
+			// FIXME: release lock?
 			goto done;
 		}
 
-		//FIXME: Lock (latch) inode before looking up/then unlock (i.e. do spider locking)
-		//FIXME: Release inode when done 
+		printf("NameSpace::Namex [%p].Lookup(%s)\n", inode, name);
 		if ((ret = inode->Lookup(session, name, &inode_next)) < 0) {
-			printf("NameSpace::Namex(%s): Lookup: %s: ret=%d\n", cpath, name, ret);
-			/*
-			if (ret == -2) {
-				MPInode* mpnode = dynamic_cast<MPInode*>(inode);
-				sb = mpnode->GetSuperBlock();
-				if ((uint64_t) sb == KERNEL_SUPERBLOCK) {
-					//printf("NameSpace::Namei(%s): DONE KERNEL_SUPERBLOCK\n", cpath);
-					return -E_KVFS;
-				} else {
-					// follow superblock's root inode and lookup 'name' in the root inode
-					printf("NameSpace::Namex(%s): follow superblock root \n", cpath);
-					inode_next = sb->GetRootInode();
-					if (inode_next->ino_) {
-						global_hlckmgr->Acquire(inode_next->ino_, lock_protocol::Mode::IXSL, 0);
-					}
-					inode = inode_next;
-					goto retry;
-				}
-			} else {
-				//printf("NameSpace::Namei(%s): not found\n", cpath);
-				return ret;
-			}	
-			*/
-			return -E_KVFS;
+			return ret;
 		}
 		printf("name=%s, inode_next=%p\n", name, inode_next);
 		// spider locking

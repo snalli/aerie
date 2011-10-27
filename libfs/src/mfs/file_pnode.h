@@ -276,7 +276,7 @@ public:
 			printf("Region::Init: slot_base=%p\n", slot_.slot_base_);
 			printf("Region::Init: slot_offset=%d\n", slot_.slot_offset_);
 			printf("Region::Init: slot_height=%d\n", slot_.slot_height_);
-			if (bcount > 1) {
+			if (maxbcount_ > 1) {
 				assert(slot_.slot_base_[slot_.slot_offset_] == NULL);
 				radixtree_.rnode_ = NULL;
 				radixtree_.Extend(maxbcount_-1);

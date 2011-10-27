@@ -15,16 +15,6 @@ int MPInode::Lookup(Session* session, const char* name, Inode** inode)
 		return -E_INVAL;
 	}
 
-	// handle special cases '.' and '..'
-	switch (str_is_dot(name)) {
-		case 1: // '.'
-			*inode = this;
-			return E_SUCCESS;
-		case 2: // '..'
-			*inode = parent_;
-			return E_SUCCESS;
-	}
-
 	// look up for mounted entries 
 	for (i=0; i<entries_count_; i++) {
 		if (strcmp(entries_[i].name_, name) == 0) {
@@ -33,7 +23,8 @@ int MPInode::Lookup(Session* session, const char* name, Inode** inode)
 		}
 	}
 
-	return -E_NOENT;
+	// if no mount-point found then the caller should check the OS file-system 
+	return -E_KVFS; 
 }
 
 // Assumes the caller has checked that the mounted file system does not 
@@ -42,14 +33,16 @@ int MPInode::Insert(Session* session, const char* name, Inode* inode)
 {
 	int    len;
 	int    i;
-	int    empty;
+	int    empty = entries_count_;
 	Inode* ip;
 
-	for (i=0, empty=0; i<entries_count_; i++) {
+	for (i=0; i<entries_count_; i++) {
 		if (strcmp(entries_[i].name_, name) == 0) {
 			return -1;
 		}
-		empty = i;
+		if (*entries_[i].name_ == '\0') {
+			empty = i;
+		}
 	}
 	if (empty<MAX_NUM_ENTRIES) {
 		entries_count_++;
@@ -58,4 +51,10 @@ int MPInode::Insert(Session* session, const char* name, Inode* inode)
 	}	
 
 	return 0;
+}
+
+
+int MPInode::Link(Session* session, const char* name, Inode* inode, bool overwrite)
+{
+	assert(0);
 }

@@ -14,6 +14,8 @@ typedef uint64_t InodeNumber;
 class Session;
 class SuperBlock;
 
+
+//FIXME: why do we have Insert and Link in the API???
 class Inode {
 public:
 	virtual int Init(client::Session* session, InodeNumber ino) = 0;
