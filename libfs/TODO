@@ -17,3 +17,10 @@
    - create inodes given a persistent inode
 
 
+factories for persistent structures
+ - to be used by the storage manager so we need a common interface
+   to the structures. 
+ - structures also need to use the same smgr interface to construct 
+   instances. 
+ 
+-

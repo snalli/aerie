@@ -40,8 +40,10 @@ public:
 	static int Duplicate(int oldfd, int newfd);
 	static int Write(int fd, const char* src, uint64_t n);
 	static int Read(int fd, char* dst, uint64_t n);
-	static int MakeDirectory(const char* path, int mode);
-	static int Rmdir(const char* path);
+	static int CreateDir(const char* path, int mode);
+	static int DeleteDir(const char* path);
+	static int SetCurWrkDir(const char* path);
+	static int GetCurWrkDir(const char* path, size_t size)
 	static uint64_t Seek(int fd, uint64_t offset, int whence);
 	static int TestServerIsAlive();
 };

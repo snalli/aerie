@@ -304,7 +304,7 @@ Client::Seek(int fd, uint64_t offset, int whence)
 
 
 int
-Client::MakeDirectory(const char* path, int mode)
+Client::CreateDir(const char* path, int mode)
 {
 	int    ret;
 	Inode* ip;
@@ -319,28 +319,30 @@ Client::MakeDirectory(const char* path, int mode)
 
 
 int
-Client::Rmdir(const char* path)
+Client::RemoveDir(const char* pathname)
 {
-
+	// how this differs from unlink?
 }
 
 
-/// Check whether we can communicate with the server
 int
-Client::TestServerIsAlive()
+Client::SetCurWrkDir(const char* path)
 {
-	int r;
 
-	rpc_client->call(RPC_SERVER_IS_ALIVE, 0, r);
-	return r;
 }
 
 
+int
+Client::GetCurWrkDir(const char* path, size_t size)
+{
+
+}
+
+
+int 
+Client::Link(const char* oldpath, const char* newpath)
+{
 /*
-// Create the path new as a link to the same inode as old.
-int
-sys_link(void)
-{
   char name[DIRSIZ], *new, *old;
   struct inode *dp, *ip;
 
@@ -378,7 +380,12 @@ bad:
 */
 
 
+}
 
+
+int 
+Client::Unlink(const char* pathname)
+{
 /*
 int
 libfs_unlink(char *path)
@@ -427,5 +434,20 @@ libfs_unlink(char *path)
   return 0;
 }
 */
+}
+
+
+/// Check whether we can communicate with the server
+int
+Client::TestServerIsAlive()
+{
+	int r;
+
+	rpc_client->call(RPC_SERVER_IS_ALIVE, 0, r);
+	return r;
+}
+
+
+
 
 } // namespace client

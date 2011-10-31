@@ -20,6 +20,11 @@
 
 #include <typeinfo>
 
+//TODO: pathname resolution against current working directory, chdir
+
+//TODO: extent the namei API to take as argument the type of lock on the resolved inode
+// or expose to the caller what locks are held when the call is returned, and what locks
+// the caller should acquire.
 
 //TODO: Optimization: When resolving a pathname (Namex), use LookupFast API 
 // instead of Lookup and revert to Lookup only when the inode is mutated

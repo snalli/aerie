@@ -24,6 +24,105 @@ FRONTAPI(shutdown) ()
 }
 
 
+
+int 
+FRONTAPI(mount) (const char* source, 
+                 const char* target, 
+                 const char* fstype, 
+                 uint32_t flags)
+{
+	return Client::Mount(source, target, fstype, flags);
+}
+
+
+int 
+FRONTAPI(umount) (const char* target)
+{
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
+}
+ 
+
+int 
+FRONTAPI(mkfs) (const char* target, 
+                const char* fstype, 
+                uint32_t flags)
+{
+	return Client::Mkfs(target, fstype, flags);
+}
+
+
+int 
+FRONTAPI(mkdir) (const char* path, int mode)
+{
+	int ret;
+
+	if ((ret = Client::CreateDir(path, mode)) == -E_KVFS) {
+		return mkdir(path, mode);
+	}
+	return ret;
+}
+
+
+int 
+FRONTAPI(rmdir) (const char* path)
+{
+	int ret;
+
+	if ((ret = Client::DeleteDir(path)) == -E_KVFS) {
+		return rmdir(path);
+	}
+	return ret;
+}
+
+
+int 
+FRONTAPI(link) (const char* oldpath, const char* newpath)
+{
+	int ret;
+
+	if ((ret = Client::Link(oldpath, newpath)) == -E_KVFS) {
+		return link(oldpath, newpath);
+	}
+	return ret;
+}
+
+
+int 
+FRONTAPI(unlink) (const char* pathname)
+{
+	int ret;
+
+	if ((ret = Client::Unlink(pathname)) == -E_KVFS) {
+		return unlink(pathname);
+	}
+	return ret;
+}
+
+
+int 
+FRONTAPI(chdir) (const char* path)
+{
+	int ret;
+
+	if ((ret = Client::SetCurWrkDir(path)) == -E_KVFS) {
+		return chdir(path);
+	}
+	return ret;
+}
+
+
+char* 
+FRONTAPI(getcwd) (char* path, size_t size)
+{
+	int ret;
+
+	if ((ret = Client::GetCurWrkDir(path, size)) == -E_KVFS) {
+		return getcwd(path, size);
+	}
+	return (ret == E_SUCCESS) ? path: NULL;
+}
+
+
 int 
 FRONTAPI(open) (const char* pathname, int flags)
 {
@@ -68,55 +167,6 @@ int FRONTAPI(dup2) (int oldfd, int newfd)
 	return ret;
 }
 
-
-int 
-FRONTAPI(mount) (const char* source, 
-                 const char* target, 
-                 const char* fstype, 
-                 uint32_t flags)
-{
-	return Client::Mount(source, target, fstype, flags);
-}
-
-
-int 
-FRONTAPI(umount) (const char* target)
-{
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
-}
- 
-
-int 
-FRONTAPI(mkfs) (const char* target, 
-                const char* fstype, 
-                uint32_t flags)
-{
-	return Client::Mkfs(target, fstype, flags);
-}
-
-
-int 
-FRONTAPI(mkdir) (const char* path, int mode)
-{
-	int ret;
-
-	if ((ret = Client::MakeDirectory(path, mode)) == -E_KVFS) {
-		return mkdir(path, mode);
-	}
-	return ret;
-}
-
-
-int 
-FRONTAPI(rmdir) (const char* path)
-{
-	int ret;
-
-	if ((ret = Client::Rmdir(path)) == -E_KVFS) {
-		return rmdir(path);
-	}
-	return ret;
-}
 
 
 ssize_t 

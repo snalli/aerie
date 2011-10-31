@@ -27,6 +27,8 @@ int FRONTAPI(mkfs) (const char* target, const char* fstype, uint32_t flags);
 
 int FRONTAPI(mkdir) (const char* path, int mode);
 int FRONTAPI(rmdir) (const char* path);
+int FRONTAPI(chdir) (const char* path);
+char* FRONTAPI(getcwd) (char* path, size_t size);
 
 ssize_t FRONTAPI(write) (int fd, const void *buf, size_t count);
 ssize_t FRONTAPI(read) (int fd, const void *buf, size_t count);
