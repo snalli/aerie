@@ -1,0 +1,14 @@
+Graph
+"Server"
+TaskGroup=['C1', 'C2']
+client1 = [('C1.T1': 'Suite1:Test1'), ('C1.T1': 'Suite1:Test1)]
+
+
+schedule = {
+	'C1.T1': ('L1', ['C1.T1.L1', 'C1.T2.L2']), ('L2', ['T1.L1', 'T2.L2'])
+}
+
+taskgraph.AddEdge(init_testfw, server)
+taskgraph.AddEdge(init_testfw, client1)
+taskgraph.AddEdge(init_testfw, client2)
+scheduler.add(taskgraph, schedule)
