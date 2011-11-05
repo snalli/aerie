@@ -68,15 +68,17 @@ class IntegrationTest:
                 str = str + "\t%s\n" % (t.__str__())
             return str
 
-    class EventTuple:
-        def __init__(self, source, sink):
-            self.source = source
-            self.sink = sink
+    class RendezvousPoint:
+        def __init__(self, events):
+            self.events = events
 
         def __str__(self):
-            return "%s -> %s" % (self.source, self.sink) 
+            str = ""
+            for e in self.events:
+                str = str + "%s " % e
+            return str
 
-    def __init__(self, name, testfw, server, clients, event_tuples):
+    def __init__(self, name, testfw, server, clients, rendezvous):
         (name_suite, name_test) = split_tuple(name)
         if not name_suite or not name_test:
             raise NameError('Test name %s is not well formatted. Please use this format:  <SUITE>:<TEST>' % name)
@@ -95,9 +97,9 @@ class IntegrationTest:
                 (suite, test) = split_tuple(t[1])
                 client.addThread("%s:%s" % (client_tag, t[0]), suite, test)
             self.clients.append(client)
-        self.event_tuples = []
-        for e in event_tuples:
-            self.event_tuples.append(IntegrationTest.EventTuple(e[0], e[1]))
+        self.rendezvous = []
+        for r in rendezvous:
+            self.rendezvous.append(IntegrationTest.RendezvousPoint(r))
         self.test_results = []
 
     def __str__(self):
@@ -106,7 +108,7 @@ class IntegrationTest:
         for c in self.clients:
             str = str + c.__str__()
         str = str + 'EVENTS\n'
-        for i, e in enumerate(self.event_tuples):
+        for i, e in enumerate(self.rendezvous):
             str = str + "(%d) %s\n" % (i, e.__str__())
         return str
 
@@ -130,9 +132,9 @@ class IntegrationTest:
             for t in c.threads:
                 strands.append(scheduler.createStrand(TestStrand, t.tag, "%s:%s" % (t.suite, t.test)))
             scheduler.createTask(TestTask, c.tag, c.cmd, c.args + args, testfw_task, False, strands) # None should be the Init test
-        # event restrictions
-        for e in self.event_tuples:
-            scheduler.createEventTuple(e.source, e.sink)
+        # rendezvous points
+        for r in self.rendezvous:
+            scheduler.createRendezvousPoint(r.events)
         scheduler.run(output)
         itest_has_failure = False
         if scheduler.status == Scheduler.SUCCESS:

@@ -39,39 +39,36 @@ def get_strand_tag(event_tag):
         return m.group(1)
     return None
  
-
-class EventTuple:
-    def __init__(self, source, sink):
+# A rendezvous is a point designated for meeting by several strands
+class RendezvousPoint:
+    def __init__(self, strand_action_pair_list):
         self.lock = threading.Lock() 
-        self.event = False
+        self.outstanding_strands = {}
+        for s in strand_action_pair_list:
+            self.outstanding_strands[s[0].tag] = s[1]
         self.wait_list = []
-        self.source = source # strand that triggers the event
-
-    def set(self):
-        self.lock.acquire()
-        self.event = True
-        for strand in self.wait_list:
-            strand.semaphore.release()
-        self.source.semaphore.release()
-        self.wait_list = []
-        self.lock.release()
-        
-
-    def wait(self, strand):
-        self.lock.acquire()
-        if self.event == True:
-            strand.semaphore.release()
-        else:
-            self.wait_list.append(strand)
-        self.lock.release()
 
     def trigger(self, strand):
-        print strand.tag
-        if self.source == strand:
-            self.set()
+        self.lock.acquire()
+        # if match remove myself from the outstanding strands dictionary
+        if strand.tag in self.outstanding_strands:
+            action = self.outstanding_strands[strand.tag]
+            del self.outstanding_strands[strand.tag]
         else:
-            self.wait(strand)
-
+            NameError("Unknown strand hit rendezvous point")
+        if action == 'block':
+            self.wait_list.append(strand)
+        else:
+            strand.semaphore.release()
+        # before I move on I check if I was the last one to hit 
+        # the rendezvous point and if I am then I wake all waiters
+        # including myself who is already in the list
+        if len(self.outstanding_strands) == 0:
+            for strand in self.wait_list:
+                strand.semaphore.release()
+            self.wait_list = []
+        self.lock.release()
+ 
 
 # a strand represents a control flow entity within a process which
 # we don't directly create but the process does
@@ -104,7 +101,7 @@ class StrandManager(threading.Thread):
         self.semaphore_list = []
         self.running = True
         self.tag2strand = {}
-        self.tag2eventpair = {}
+        self.tag2rendezvous = {}
     
     def __del__(self):
         if self.msgque:
@@ -131,8 +128,8 @@ class StrandManager(threading.Thread):
                 if not strand:
                     continue
                 event_pair = None
-                if self.tag2eventpair.has_key(event_tag):
-                    event_pair = self.tag2eventpair[event_tag]
+                if self.tag2rendezvous.has_key(event_tag):
+                    event_pair = self.tag2rendezvous[event_tag]
                 if event_pair:
                     event_pair.trigger(strand)
                 else:
@@ -154,7 +151,7 @@ class StrandManager(threading.Thread):
     
     def clear(self):
         self.tag2strand.clear()
-        self.tag2eventpair.clear()
+        self.tag2rendezvous.clear()
         for s in self.semaphore_list:
             try:
                 s.remove()
@@ -162,27 +159,34 @@ class StrandManager(threading.Thread):
                 pass
         self.sem_key_next = self.sem_key_base
 
-    def createEventTuple(self, source_event_tag, sink_event_tag):
-        # find source strand from tag
-        source_strand_tag = get_strand_tag(source_event_tag)
-        source_strand = None
-        if self.tag2strand.has_key(source_strand_tag): 
-            source_strand = self.tag2strand[source_strand_tag]
-        # find sink strand from tag
-        sink_strand_tag = get_strand_tag(sink_event_tag)
-        sink_strand = None
-        if self.tag2strand.has_key(sink_strand_tag): 
-            sink_strand = self.tag2strand[sink_strand_tag]
+    def createRendezvousPoint(self, event_list):
+        print event_list
+        strand_list = []
+        event_tag_list = []
+        for event in event_list:
+            m = re.search("(.+:.+:.+):(.*)", event)
+            if m:
+                event_tag = m.group(1)
+                event_action = m.group(2)
+            else:
+                m = re.search("(.+:.+:.+)", event)
+                if not m:
+                    raise NameError("Non well formatted event in rendezvous")
+                event_tag = m.group(1)
+                event_action = 'noblock'
+            event_tag_list.append(event_tag)
+            strand_tag = get_strand_tag(event_tag)
+            if self.tag2strand.has_key(strand_tag): 
+                strand_list.append((self.tag2strand[strand_tag], event_action))
+            else:
+                return 
 
-        if not source_strand or not sink_strand:
-            return None
+        # create rendezvous 
+        rendezvous = RendezvousPoint(strand_list)
+        for e in event_tag_list:
+            self.tag2rendezvous[e] = rendezvous
 
-        # create event
-        event_pair = EventTuple(source_strand, sink_strand)
-        self.tag2eventpair[source_event_tag] = event_pair
-        self.tag2eventpair[sink_event_tag] = event_pair
-
-        return event_pair
+        return rendezvous
  
 # A task represents a group of strands. A task is executed by the scheduler. 
 class Task:
@@ -346,8 +350,8 @@ class Scheduler:
     def createStrand(self, StrandConstructor, tag, *args):
         return self.sm.createStrand(StrandConstructor, tag, args)
 
-    def createEventTuple(self, source_event_tag, sink_event_tag):
-        return self.sm.createEventTuple(source_event_tag, sink_event_tag)
+    def createRendezvousPoint(self, event_list):
+        return self.sm.createRendezvousPoint(event_list)
 
     def createTask(self, TaskConstructor, tag, cmd, cmd_args, preds, daemon, *args):
         task = TaskConstructor(tag, cmd, cmd_args, preds, daemon, args)

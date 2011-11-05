@@ -62,7 +62,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
     },
-	event_tuples = []
+	rendezvous = []
 ))
 
 
@@ -73,7 +73,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
     },
-    event_tuples = [('C1:T1:E2', 'C2:T1:E1'), 
+    rendezvous = [('C1:T1:E2', 'C2:T1:E1'), 
                   ('C2:T1:E3', 'C1:T1:E3')]
 ))
 
@@ -85,5 +85,5 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
     },
-    event_tuples = [('C1:T1:E1', 'C2:T1:E1')]
+    rendezvous = [('C1:T1:E1:block', 'C2:T1:E1')]
 ))
