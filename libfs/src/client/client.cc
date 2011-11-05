@@ -319,7 +319,7 @@ Client::CreateDir(const char* path, int mode)
 
 
 int
-Client::RemoveDir(const char* pathname)
+Client::DeleteDir(const char* pathname)
 {
 	// how this differs from unlink?
 }

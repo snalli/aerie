@@ -42,8 +42,10 @@ public:
 	static int Read(int fd, char* dst, uint64_t n);
 	static int CreateDir(const char* path, int mode);
 	static int DeleteDir(const char* path);
+	static int Link(const char* oldpath, const char* newpath);
+	static int Unlink(const char* pathname);
 	static int SetCurWrkDir(const char* path);
-	static int GetCurWrkDir(const char* path, size_t size)
+	static int GetCurWrkDir(const char* path, size_t size);
 	static uint64_t Seek(int fd, uint64_t offset, int whence);
 	static int TestServerIsAlive();
 };

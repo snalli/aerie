@@ -1,27 +1,32 @@
 #ifndef _TESTFW_CMD_LINE_ARGS_H_AKL189
 #define _TESTFW_CMD_LINE_ARGS_H_AKL189
 
+#include <string>
 #include <assert.h>
 #include <unistd.h>
 #include <map>
+#include <ostream>
 
 namespace testfw {
 
 class ArgValMap {
 public:
-	ArgValMap(int, char**);
+	ArgValMap(std::string);
 	int ArgVal(std::string& key, std::string& val);
 	std::string* ArgVal(std::string key);
+	int Merge(ArgValMap& other, bool overwrite);
+	void Print(std::ostream& os);
 
 private:
-	int                                Init(int, char**);
+	int Init(std::string argstr);
+
 	std::map<std::string, std::string> argvmap_;
 };
 
-inline ArgValMap::ArgValMap(int argc, char** argv)
+
+inline ArgValMap::ArgValMap(std::string argstr)
 {
-	assert(Init(argc, argv)==0);
-	std::map<std::string, std::string>::iterator it;
+	assert(Init(argstr)==0);
 }
 
 
@@ -47,53 +52,57 @@ extract_kv(std::string& str, std::string& strk, std::string& strv)
 
 
 inline int 
-ArgValMap::Init(int argc, char** argv)
+ArgValMap::Init(std::string argstr)
 {
-	extern char  *optarg;
-	extern int   optind;
-	extern int   opterr;
-	char         ch;
-	
-	::optind = 1;
-	::opterr = 0;
-	while ((ch = getopt(argc, argv, "T:"))!=-1) {
-		switch (ch) {
-			case 'T':
-				{
-					std::string argstr(::optarg);
-					std::string substr;
-					std::string strk;
-					std::string strv;
-					size_t      p;
-					size_t      np;
+	char        ch;
+	std::string substr;
+	std::string strk;
+	std::string strv;
+	size_t      p;
+	size_t      np;
 
-					if (::optarg[0] == ',') {
-						p = 1;
-						for(;;) {
-							np = argstr.find(',', p);
-							if (np != std::string::npos) {
-								substr = argstr.substr(p, np-p);
-								extract_kv(substr, strk, strv);
-								if (!strk.empty()) {
-									argvmap_[strk] = strv;
-								}
-							} else {
-								substr = argstr.substr(p);
-								extract_kv(substr, strk, strv);
-								if (!strk.empty()) {
-									argvmap_[strk] = strv;
-								}
-								break;
-							}
-							p = np+1;
-						}
-					}
-				}
-				break;
+	p = 0;
+	for(;;) {
+		np = argstr.find(',', p);
+		if (np != std::string::npos) {
+			substr = argstr.substr(p, np-p);
+			extract_kv(substr, strk, strv);
+			if (!strk.empty()) {
+				argvmap_[strk] = strv;
+			}
+		} else {
+			substr = argstr.substr(p);
+			extract_kv(substr, strk, strv);
+			if (!strk.empty()) {
+				argvmap_[strk] = strv;
+			}
+			break;
+		}
+		p = np+1;
+	}
+	return 0;
+}
+
+
+inline int 
+ArgValMap::Merge(ArgValMap& other, bool overwrite)
+{
+	std::map<std::string, std::string>::iterator it;
+
+	for (it = other.argvmap_.begin(); it != other.argvmap_.end(); ++it) {
+		std::string key = it->first;
+		std::string val = it->second;
+		if (argvmap_.find(key) != argvmap_.end()) {
+			if (overwrite) {
+				argvmap_[key] = val;
+			}
+		} else {
+			argvmap_[key] = val;
 		}
 	}
 	return 0;
 }
+
 
 inline int 
 ArgValMap::ArgVal(std::string& key, std::string& val)
@@ -113,6 +122,20 @@ ArgValMap::ArgVal(std::string key)
 	}
 	return NULL;
 }
+
+
+inline void 
+ArgValMap::Print(std::ostream& os)
+{
+	std::map<std::string, std::string>::iterator it;
+
+	for (it = argvmap_.begin(); it != argvmap_.end(); ++it) {
+		std::string key = it->first;
+		std::string val = it->second;
+		os << key << ":" << val << std::endl;
+	}
+}
+
 
 
 }

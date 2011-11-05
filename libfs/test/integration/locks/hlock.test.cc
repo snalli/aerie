@@ -4,7 +4,6 @@
 #include "rpc/rpc.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
-#include "tool/testfw/ut_barrier.h"
 #include "common/lock_protocol.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
@@ -32,6 +31,7 @@ SUITE(HLock)
 		CHECK(check_release(region_, a) == 0);
 	}
 	
+/*	
 	TEST_FIXTURE(HLockFixture, TestLockUnlockConcurrentClient1)
 	{
 		lock_protocol::Mode unused;
@@ -54,5 +54,5 @@ SUITE(HLock)
 		global_hlckmgr->Release(a);
 		ut_barrier_wait(&region_->barrier); 
 	}
-
+*/
 }

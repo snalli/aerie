@@ -9,6 +9,6 @@
 
 int InitializeTest(testfw::TestFramework& test_fw)
 {
-	LockRegionFixture::InitRegion((void*) test_fw.numclients());
+	LockRegionFixture::InitRegion((void*) NULL);
 	return 0;
 }

@@ -4,7 +4,6 @@
 #include "rpc/rpc.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
-#include "tool/testfw/ut_barrier.h"
 #include "common/lock_protocol.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
@@ -20,45 +19,38 @@ static lock_protocol::LockId c = 3;
 
 SUITE(Lock)
 {
-	TEST_FIXTURE(LockFixture, TestLockUnlockSingleClient1)
+	TEST_FIXTURE(LockFixture, TestLockUnlock)
 	{
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
+		EVENT("E1");
 		global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		EVENT("E2");
 		CHECK(check_grant_x(region_, a) == 0);
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
+		EVENT("E3");
 	}
 
-	TEST_FIXTURE(LockFixture, TestLockUnlockSingleClient2)
+
+	TEST_FIXTURE(LockFixture, TestLockUnlockMultipleTimes)
 	{
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
-		global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
-		CHECK(check_grant_x(region_, a) == 0);
-		global_lckmgr->Release(a);
-		CHECK(check_release(region_, a) == 0);
+		//ut_barrier_wait(&region_->barrier); 
+		EVENT("E1");
+		for (int i=0; i<10; i++) {
+			global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+			CHECK(check_grant_x(region_, a) == 0);
+			global_lckmgr->Release(a);
+			CHECK(check_release(region_, a) == 0);
+		}
+		//ut_barrier_wait(&region_->barrier); 
 	}
 
-	TEST_FIXTURE(LockFixture, TestLockUnlockConcurrentClients1)
-	{
-		lock_protocol::Mode unused;
-		CHECK(Client::TestServerIsAlive() == 0);
-		ut_barrier_wait(&region_->barrier); 
-		if (strcmp(TESTFW->Tag(), "C2")==0) {
-			ut_barrier_wait(&region_->barrier); 
-		}
-		CHECK(global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused) == lock_protocol::OK);
-		CHECK(check_grant_x(region_, a) == 0);
-		if (strcmp(TESTFW->Tag(), "C1")==0) {
-			ut_barrier_wait(&region_->barrier); 
-			usleep(100);
-		}
-		CHECK(global_lckmgr->Release(a) == lock_protocol::OK);
-		CHECK(check_release(region_, a) == 0);
-		ut_barrier_wait(&region_->barrier); 
-	}
 
+
+/*
 	TEST_FIXTURE(LockFixture, TestLockUnlockConcurrentClients2)
 	{
 		lock_protocol::Mode unused;
@@ -220,6 +212,6 @@ SUITE(Lock)
 			}
 		}
 	}
-
+*/
 
 }

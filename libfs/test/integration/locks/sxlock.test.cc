@@ -4,7 +4,6 @@
 #include "rpc/rpc.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
-#include "tool/testfw/ut_barrier.h"
 #include "client/client_i.h"
 #include "common/lock_protocol.h"
 #include "client/libfs.h"

@@ -1,17 +1,21 @@
 #ifndef _TESTFW_UNITTEST_EXTENSION_H_AFS156
 #define _TESTFW_UNITTEST_EXTENSION_H_AFS156
 
-#include "tool/testfw/ut_barrier.h"
-
-//
-// Macros extending unittest++ functionality 
-//
-
-
 
 //
 // Macros for constructing multi-threaded unit tests
+// 
+// DEPRECATED: We deprecate the following macros for two reasons:
+// 1) These macros create threads inside a unittest. Since the 
+//    unittest++ library is not thread-safe, we suffer from races. 
+// 2) Threads and clients have to execute the same unit-test. We 
+//    prefer to be able to run different unittest under each thread/client
+//    so that we can combine unittests together
 //
+
+#if 0 // DEPRECATED
+
+#include "tool/testfw/ut_barrier.h"
 
 #define TEST_THREAD_FIXTURE_DECLARATION(Fixture, TestName, ThreadTestName)   \
 class Fixture##TestName##Helper;                                             \
@@ -65,6 +69,6 @@ do {                                                                         \
                                                                              \
   TEST_THREAD_FIXTURE_DEFINITION(Fixture, TestName, TestName##Thread)
 
-
+#endif 
 
 #endif /* _TESTFW_UNITTEST_EXTENSION_H_AFS156 */

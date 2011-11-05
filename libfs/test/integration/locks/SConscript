@@ -19,26 +19,20 @@ depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 serverDepLibs = [fssLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
-lockServerProgram = myTestEnv.Program('smain', source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
-hlockServerProgram = myTestEnv.Program('smain-hlock', source = myTestEnv['HLOCK_SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
-testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
+lockServerProgram = myTestEnv.Program('smain', \
+	source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
+hlockServerProgram = myTestEnv.Program('smain-hlock', \
+	source = myTestEnv['HLOCK_SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
+testProgram = myTestEnv.Program('test', \
+	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], \
+	LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 
 
-def addIntegrationTest(env, suite_str, test_list, server_program, test_program):
-	test_program_abspath = os.path.join(os.getcwd(), str(test_program[0]))
-	server_program_abspath = os.path.join(os.getcwd(), str(server_program[0]))
-	for test in test_list:
-		test_str = test[0]
-		num_clients = test[1]
-		test_obj = testfw.integration_test.IntegrationTest(suite_str, test_str, timeout=5000)
-		test_obj.setPreTest(test_program_abspath, '-T,-init,-numclients=%d' % (num_clients), {})
-		test_obj.addTest(None, 'S', server_program_abspath, '-p 10000', {}, False)
-		for i in range(num_clients):
-			test_obj.addTest(None, 'C%d' % (i+1), test_program_abspath, '-T,-suite=%s,-test=%s,-host=10000' % (suite_str, test_str), {})
-		env.addIntegrationTest(test_obj)
 
-# Integration tests
+###############################################################################
+# INTEGRATION TEST SCHEDULES
+############################################################################### 
 
 lock_test_list = [
                   ('TestLockUnlockSingleClient1', 1),
@@ -62,5 +56,34 @@ hlock_test_list = [
 	          ]
 
 
-addIntegrationTest(myTestEnv, 'Lock', lock_test_list, lockServerProgram, testProgram)
-addIntegrationTest(myTestEnv, 'HLock', hlock_test_list, hlockServerProgram, testProgram)
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockSingle',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
+    },
+	event_tuples = []
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockConcurrent1',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
+    },
+    event_tuples = [('C1:T1:E2', 'C2:T1:E1'), 
+                  ('C2:T1:E3', 'C1:T1:E3')]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockMultipleTimesConcurrent1',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
+    },
+    event_tuples = [('C1:T1:E1', 'C2:T1:E1')]
+))
