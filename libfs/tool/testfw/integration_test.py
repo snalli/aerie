@@ -126,13 +126,13 @@ class IntegrationTest:
         testfw_task = scheduler.createTask(Task, self.server.tag, self.testfw.cmd, self.testfw.args, None, False)
         # server
         scheduler.createTask(Task, self.server.tag, self.server.cmd, self.server.args + args, testfw_task, True)
-        # clients
+        # create clients
         for c in self.clients:
             strands = []
             for t in c.threads:
                 strands.append(scheduler.createStrand(TestStrand, t.tag, "%s:%s" % (t.suite, t.test)))
             scheduler.createTask(TestTask, c.tag, c.cmd, c.args + args, testfw_task, False, strands) # None should be the Init test
-        # rendezvous points
+        # create rendezvous points
         for r in self.rendezvous:
             scheduler.createRendezvousPoint(r.events)
         scheduler.run(output)

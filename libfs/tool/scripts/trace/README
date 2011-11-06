@@ -1,0 +1,3 @@
+process.stp     A systemtap script that reports when each process terminates
+audit.rules     Rules for auditctl
+test.audit.log  An example audit log

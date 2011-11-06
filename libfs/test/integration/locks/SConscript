@@ -85,5 +85,71 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
     },
-    rendezvous = [('C1:T1:E1:block', 'C2:T1:E1')]
+    rendezvous = [('C1:T1:E1:block', 'C2:T1:E1:block')]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockMultipleTimesConcurrent2',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
+    },
+    rendezvous = [
+                  ('C1:T1:E1:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E4:block', 'C2:T1:E4:block')
+    
+    ]
+))
+
+
+# checks that a client that grabs a cached lock is serialized
+# with respect to another client trying to acquire the same lock
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockMultipleTimesConcurrent3',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockTwoTimes')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E3:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E4:block', 'C2:T1:E3:block')
+    ]
+))
+
+
+# asynchronous conversion
+# a client acquires a lock in XL and then tries to convert it in SL
+# a second client tries to acquire the lock in SL between the two events 
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockConvert1',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSL')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockSL')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+# synchronous conversion
+# a client acquires a lock in XL and then tries to convert it in SL
+# a second client tries to acquire the lock in SL between the two events 
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockConvert2',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSLsynchronous')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockSL')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E2:block')
+    ]
 ))

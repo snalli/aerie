@@ -1,0 +1,8 @@
+#! /usr/bin/env stap
+/* 
+ */
+
+probe kprocess.exit
+{
+	printf("%u.%u %d\n",gettimeofday_s(), gettimeofday_ms() - gettimeofday_s()*1000, pid())
+}

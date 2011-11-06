@@ -40,30 +40,47 @@ def get_strand_tag(event_tag):
     return None
  
 # A rendezvous is a point designated for meeting by several strands
+#
+# implementation note: we allow multiple dynamic instances of a rendezvous.
+# there are two challenges:
+# 1) ensure that a strand that doesn't block lets others know that it 
+#    arrived at the rendezvous. we use the strand_arrivals dictionary
+#    to keep track of the arrival counts per strand.
+# 2) know who is waiting at each dynamic instant. we could keep a wait list
+#    per each instant but we don't need to as a single instance suffices.
+#    this is based on the observation that someone that didn't wait in a 
+#    an instant will not wait in the next instant either. 
 class RendezvousPoint:
     def __init__(self, strand_action_pair_list):
         self.lock = threading.Lock() 
-        self.outstanding_strands = {}
+        self.strand_arrivals = {}
+        self.strand_action = {}
         for s in strand_action_pair_list:
-            self.outstanding_strands[s[0].tag] = s[1]
+            self.strand_arrivals[s[0].tag] = 0
+            self.strand_action[s[0].tag] = s[1] # actions are 'block' or 'noblock'
         self.wait_list = []
 
     def trigger(self, strand):
         self.lock.acquire()
-        # if match remove myself from the outstanding strands dictionary
-        if strand.tag in self.outstanding_strands:
-            action = self.outstanding_strands[strand.tag]
-            del self.outstanding_strands[strand.tag]
+        if strand.tag in self.strand_action:
+            self.strand_arrivals[strand.tag] += 1 
+            action = self.strand_action[strand.tag]
         else:
             NameError("Unknown strand hit rendezvous point")
         if action == 'block':
             self.wait_list.append(strand)
         else:
             strand.semaphore.release()
-        # before I move on I check if I was the last one to hit 
-        # the rendezvous point and if I am then I wake all waiters
-        # including myself who is already in the list
-        if len(self.outstanding_strands) == 0:
+        # before I move on I check whether all others have arrived at
+        # the rendezvous point and if they had then I wake all waiters
+        # including myself (I should have already put myself in the list)
+        unblock = True
+        for stag, arcnt in self.strand_arrivals.iteritems():
+            if arcnt == 0:
+                unblock = False
+        if unblock:
+            for stag, arcnt in self.strand_arrivals.iteritems():
+                self.strand_arrivals[stag] -= 1
             for strand in self.wait_list:
                 strand.semaphore.release()
             self.wait_list = []
@@ -127,11 +144,11 @@ class StrandManager(threading.Thread):
                     strand = self.tag2strand[strand_tag]
                 if not strand:
                     continue
-                event_pair = None
+                rendezvous = None
                 if self.tag2rendezvous.has_key(event_tag):
-                    event_pair = self.tag2rendezvous[event_tag]
-                if event_pair:
-                    event_pair.trigger(strand)
+                    rendezvous = self.tag2rendezvous[event_tag]
+                if rendezvous:
+                    rendezvous.trigger(strand)
                 else:
                     strand.semaphore.release()
 
@@ -153,10 +170,8 @@ class StrandManager(threading.Thread):
         self.tag2strand.clear()
         self.tag2rendezvous.clear()
         for s in self.semaphore_list:
-            try:
-                s.remove()
-            except:
-                pass
+            s.remove()
+        self.semaphore_list = []
         self.sem_key_next = self.sem_key_base
 
     def createRendezvousPoint(self, event_list):
