@@ -19,37 +19,37 @@ static lock_protocol::LockId c = 3;
 
 SUITE(Lock)
 {
-/*
-	TEST_FIXTURE(LockFixture, TestSharedLockUnlockConcurrentClients1)
+	TEST_FIXTURE(LockFixture, TestSharedLockUnlock)
 	{
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 
+		EVENT("E1");
 		global_lckmgr->Acquire(a, lock_protocol::Mode::SL, 0, unused);
 		CHECK(check_grant_s(region_, a) == 0);
-		ut_barrier_wait(&region_->barrier); 
+		EVENT("E2");
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
+		EVENT("E3");
 	}
 
-	TEST_FIXTURE(LockFixture, TestSharedLockUnlockConcurrentClients2)
+	TEST_FIXTURE(LockFixture, TestSharedLockXLUnlockLockSLUnlock)
 	{
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 		
+		EVENT("E1");
 		global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		CHECK(check_grant_x(region_, a) == 0);
+		EVENT("E2");
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
-
-		ut_barrier_wait(&region_->barrier); 
-		
+		EVENT("E3");
 		global_lckmgr->Acquire(a, lock_protocol::Mode::SL, 0, unused);
 		CHECK(check_grant_s(region_, a) == 0);
-		
-		ut_barrier_wait(&region_->barrier); 
+		EVENT("E4");
 		global_lckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
+		EVENT("E5");
 	}
-*/
 }

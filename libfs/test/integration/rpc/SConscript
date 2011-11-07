@@ -21,14 +21,17 @@ objects = myTestEnv['OBJECTS']
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 serverProgram = myTestEnv.Program('smain', source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
-testProgramAbspath = os.path.join(os.getcwd(), str(testProgram[0]))
-serverProgramAbspath = os.path.join(os.getcwd(), str(serverProgram[0]))
 
 
-# Integration tests
+###############################################################################
+# INTEGRATION TEST SCHEDULES
+############################################################################### 
 
-#test = testfw.integration_test.IntegrationTest('RPC', 'rpc', timeout=3)
-#test.addTest(None, 'S', serverProgramAbspath, '-p 10000', {}, False)
-#test.addTest(None, 'C1', testProgramAbspath, '-T,-test=TestServerIsAlive,-host=10000', {})
-#test.addTest(None, 'C2', testProgramAbspath, '-T,-test=TestServerIsAlive,-host=10000', {})
-#myTestEnv.addIntegrationTest(test)
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'RPC:TestServerIsAlive',
+    testfw = testProgram, server = serverProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'RPC:TestServerIsAlive')])
+    },
+    rendezvous = []
+))

@@ -1,0 +1,5 @@
+WRITING INTEGRATION TESTS
+
+Each client/thread runs a unit-test function defined in the schedule.
+Unit-test functions are defined in the .cc files.
+Schedules are defined in the SConscript file 

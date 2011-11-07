@@ -34,27 +34,15 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 # INTEGRATION TEST SCHEDULES
 ############################################################################### 
 
-lock_test_list = [
-                  ('TestLockUnlockSingleClient1', 1),
-                  ('TestLockUnlockSingleClient2', 1),
-                  ('TestLockUnlockConcurrentClients1', 2),
-                  ('TestLockUnlockConcurrentClients2', 2),
-                  ('TestLockUnlockConcurrentClients3', 2),
-                  ('TestLockUnlockConcurrentClients4', 2),
-                  ('TestLockConvert1', 2),
-                  ('TestLockConvert2', 2),
-                  ('TestLockCancel1', 2),
-                  ('TestLockCancel2', 2),
-                  ('TestSharedLockUnlockConcurrentClients1', 2),
-                  ('TestSharedLockUnlockConcurrentClients2', 2),
-	         ]
-
 hlock_test_list = [
                    ('TestLockUnlockSingleClient1', 1),
                    ('TestLockUnlockConcurrentClient1', 2),
                    ('TestLockUnlockConcurrentClient2', 2),
 	          ]
 
+#
+# BASE LOCKS TESTS
+#
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockSingle',
@@ -62,7 +50,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
     },
-	rendezvous = []
+    rendezvous = []
 ))
 
 
@@ -151,5 +139,77 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     rendezvous = [
                   ('C1:T1:E2:block', 'C2:T1:E1:block'),
                   ('C1:T1:E3:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestSharedLockUnlock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestSharedLockUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestSharedLockXLUnlockLockSLUnlock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestSharedLockXLUnlockLockSLUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E3:block', 'C2:T1:E3:block'),
+                  ('C1:T1:E4:block', 'C2:T1:E4:block')
+    ]
+))
+
+
+#
+# HIERARCHICAL LOCK TESTS
+#
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestLockUnlockSingleClient',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXRUnlock')])
+    },
+    rendezvous = [
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestLockUnlockConcurrentClient1',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXLUnlock')]),
+        'C2': ( testProgram, [('T1', 'HLock:TestLockIXLockXLUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E1:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E2:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestLockUnlockConcurrentClient2',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockISLockSLUnlock')]),
+        'C2': ( testProgram, [('T1', 'HLock:TestLockISLockSLUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E1:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E2:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E3:block')
     ]
 ))

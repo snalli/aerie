@@ -14,14 +14,14 @@
 using namespace client;
 
 static lock_protocol::LockId root = 1;
-static lock_protocol::LockId a = 2;
-static lock_protocol::LockId b = 3;
-static lock_protocol::LockId c = 4;
+static lock_protocol::LockId a    = 2;
+static lock_protocol::LockId b    = 3;
+static lock_protocol::LockId c    = 4;
 
 
 SUITE(HLock)
 {
-	TEST_FIXTURE(HLockFixture, TestLockUnlockSingleClient1)
+	TEST_FIXTURE(HLockFixture, TestLockIXLockXRUnlock)
 	{
 		lock_protocol::Mode unused;
 		global_hlckmgr->Acquire(root, lock_protocol::Mode::IX, 0);
@@ -31,28 +31,27 @@ SUITE(HLock)
 		CHECK(check_release(region_, a) == 0);
 	}
 	
-/*	
-	TEST_FIXTURE(HLockFixture, TestLockUnlockConcurrentClient1)
+	TEST_FIXTURE(HLockFixture, TestLockIXLockXLUnlock)
 	{
 		lock_protocol::Mode unused;
-		ut_barrier_wait(&region_->barrier); 
+
+		EVENT("E1");
 		CHECK(global_hlckmgr->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
-		ut_barrier_wait(&region_->barrier); 
+		EVENT("E2");
 		CHECK(global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
 		CHECK(check_grant_x(region_, a) == 0);
 		global_hlckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
 	}
 
-	TEST_FIXTURE(HLockFixture, TestLockUnlockConcurrentClient2)
+	TEST_FIXTURE(HLockFixture, TestLockISLockSLUnlock)
 	{
 		lock_protocol::Mode unused;
-		ut_barrier_wait(&region_->barrier); 
+		EVENT("E1");
 		global_hlckmgr->Acquire(root, lock_protocol::Mode::IS, 0);
 		global_hlckmgr->Acquire(a, root, lock_protocol::Mode::SL, 0);
-		ut_barrier_wait(&region_->barrier); 
+		EVENT("E2");
 		global_hlckmgr->Release(a);
-		ut_barrier_wait(&region_->barrier); 
+		EVENT("E3");
 	}
-*/
 }
