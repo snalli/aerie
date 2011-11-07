@@ -21,5 +21,3 @@
 860 UID 0 PID 813 /sbin/syslogd A 1008288727.443280 open("/etc/nsswitch.conf", O_RDONLY, 1750) = 0
 916 UID 0 PID 813 /sbin/syslogd A 1008288727.443333 read(0, 4096) = 1750
 952 UID 0 PID 813 /sbin/syslogd A 1008288727.443468 read(0, 4096) = 0
-
-

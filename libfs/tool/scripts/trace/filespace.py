@@ -4,6 +4,7 @@ import os
 import collections
 import bisect
 import util
+import processmap
 
 # file instance 
 class File:
@@ -15,54 +16,6 @@ class File:
         self.rdwr = rdwr
         self.active = active
 
-
-class PidFd2FileMap:
-    def __init__(self):
-        self.dict = {}
-
-    def __find(self, pid, fd):
-        if not self.dict.has_key(pid):
-            return None
-        files = self.dict[pid]
-        if not files.has_key(fd):
-            return None
-        f = files[fd]
-        return f
-
-    def Insert(self, file):
-        pid = file.pid
-        fd = file.fd
-        if not self.dict.has_key(pid):
-            self.dict[pid] = {}
-        files = self.dict[pid]
-        files[fd] = file
-
-    def Find(self, pid, fd=None):
-        if fd == None:
-            if not self.dict.has_key(pid):
-                return None
-            return self.dict[pid]
-        else:
-            return self.__find(pid, fd)
-
-    def Remove(self, pid, fd):
-        f = self.__find(pid, fd)
-        if f:
-            del f
-
-    def RemovePid(self, pid):
-        if not self.dict.has_key(pid):
-            return None
-        files = self.dict[pid]
-        files.clear()
-        del self.dict[pid]
-    
-    def Remove(self, file):
-        pid = file.pid
-        fd = file.fd
-        f = self.__find(pid, fd)
-        if f:
-            del self.dict[pid][fd]
 
 
 class Inode2FileMap:
@@ -134,8 +87,9 @@ class InodeStatistic:
 
 # tracks accesses on files (inodes)
 class FileSpace:
-    def __init__(self, window_size):
+    def __init__(self, process_map, window_size):
         self.window = window_size
+        self.process_map = process_map
         self.pidfd2file_map = PidFd2FileMap()
         self.inode2file_map = Inode2FileMap()
         self.inode2stat_dict = collections.defaultdict(InodeStatistic)

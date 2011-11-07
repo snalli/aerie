@@ -9,6 +9,11 @@ import bisect
 import util
 
 
+# FIXME: replace os.join with our join. the problem is that 
+# os.join does not normalize path: dots may stay present. 
+# for example: os.join("/A/B", "./C") gives /A/B/./C
+# if we use the pathname to identify a file then /A/B/.C/ should be the same as /A/B/C
+
 # parses a syscall entry
 class Syscall:
 
@@ -24,16 +29,20 @@ class Syscall:
     SYS_FORK    = 'fork'
     SYS_EXIT    = 'exit'
     
-    O_RDWR = 2
-    O_WRONLY = 1
-    O_RDONLY = 0
+    O_RDWR    = 0x2
+    O_WRONLY  = 0x1
+    O_RDONLY  = 0x0
+    O_CREAT   = 0x0100
+    O_TRUNC   = 0x1000
+    O_APPEND  = 0x2000
 
-    flags = {
+    open_flags = {
         'O_RDWR': O_RDWR,
         'O_WRONLY': O_WRONLY,
         'O_RDONLY': O_RDONLY,
         'O_CREAT': O_CREAT,
-        'O_TRUNC': O_TRUNC
+        'O_TRUNC': O_TRUNC,
+        'O_APPEND': O_APPEND
     }
 
     def __init__(self):
@@ -43,13 +52,16 @@ class Syscall:
     # factory: parses a string and creates a Syscall object
     @staticmethod
     def Parse(line):
-        m = re.match("([0-9]+) UID ([0-9]+) PID ([0-9]+) (.+) ([A-Z]{1}) ([0-9]+.[0-9]+) ([a-z]+)\((.+)\) = ([-0-9]+)(.*)", line)
+        m = re.match("([0-9]+) UID ([0-9]+) PID ([0-9]+) (.+) ([A-Z]{1}) ([0-9]+.[0-9]+) ([0-9a-z]+)\((.+)\) = ([-0-9]+)(.*)", line)
         if not m:
             m = re.match("[0-9]+ RESTART", line)
             if m:
                 return None
             else:
-                NameError("Unknown SEER entry")
+                print line
+                m = re.match("([0-9]+) UID ([0-9]+) PID ([0-9]+) (.+) ([A-Z]{1}) ([0-9]+.[0-9]+)", line)
+                print m.group(7)
+                raise NameError("Unknown SEER entry: %s" % line)
         syscall_obj = Syscall()
         syscall_obj.offset = m.group(1)
         syscall_obj.uid = int(m.group(2))
@@ -65,13 +77,11 @@ class Syscall:
         args = map(lambda x: string.strip(x, '"'), args) # strip double quote
         if syscall_obj.identifier == Syscall.SYS_OPEN:
             flags = args[1].split('|')
-
-#TODO
-            print flags 
-
-            raise NameError("THIS IS THE POINT WHERE YOU LEFT")
-
-
+            flags_int = 0
+            for f in flags:
+                if f in Syscall.open_flags:
+                    flags_int |= Syscall.open_flags[f]
+            args[1] = flags_int       
         syscall_obj.args = args
         syscall_obj.exit = int(m.group(9))
         if syscall_obj.exit >= 0:
@@ -80,25 +90,39 @@ class Syscall:
             syscall_obj.success = False
         return syscall_obj
 
+    def __Path(self, pathname):
+        (pathname_dir, pathname_file) = os.path.split(pathname)
+        # seer format does not provide inode numbers so we use pathname to 
+        # identify the dir/file (accepting the fact of false negatives due
+        # to aliasing)
+        dir = (pathname_dir, pathname_dir)
+        file = (pathname_file, pathname_file)
+        return (dir, file)
+
     def srcPath(self):
         pathname = self.args[0]
-        (pathname_dir, pathname_file) = os.path.split(pathname)
+        return self.__Path(pathname)
 
-        # seer format does not provide inode numbers so we use pathname to 
-        # identify the dir/file (accepting the fact of false negatives due
-        # to aliasing)
-        dir = (pathname_dir, pathname_dir)
-        file = (pathname_file, pathname_file)
-        return (dir, file)
+    def srcAbsPath(self, cwd=None):
+        pathname = self.args[0]
+        # make path absolute
+        if pathname[0] != '/': 
+            if cwd == None:
+                return (None, None)
+            pathname = os.path.join(cwd, pathname)
+        return self.__Path(pathname)
 
-    def dstPath():
+    def dstPath(self):
         pathname = self.args[1]
-        (pathname_dir, pathname_file) = os.path.split(pathname)
+        return self.__Path(pathname)
 
-        # seer format does not provide inode numbers so we use pathname to 
-        # identify the dir/file (accepting the fact of false negatives due
-        # to aliasing)
-        dir = (pathname_dir, pathname_dir)
-        file = (pathname_file, pathname_file)
-        return (dir, file)
-    
+    def dstAbsPath(self, cwd=None):
+        pathname = self.args[1]
+        # make path absolute
+        if pathname[0] != '/': 
+            if cwd == None:
+                return (None, None)
+            pathname = os.path.join(cwd, pathname)
+        return self.__Path(pathname)
+
+   

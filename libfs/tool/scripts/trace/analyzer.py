@@ -5,6 +5,7 @@ import collections
 import bisect
 import filespace
 import namespace
+import processmap
 import util
 
 
@@ -23,24 +24,26 @@ O_WRONLY = 1
 O_RDONLY = 0
 
 
-
-
 class Analyzer:
     def __init__(self, syscall_class):
         self.syscall_class = syscall_class
-        self.filespace = filespace.FileSpace(FILESPACE_WINDOW)
-        #self.filespace = None
+        self.process_map = processmap.ProcessMap()
+        #self.filespace = filespace.FileSpace(self.process_map, FILESPACE_WINDOW)
+        self.filespace = None
         #self.namespace = namespace.NameSpace(NAMESPACE_WINDOW)
         self.namespace = None
 
     def SyscallOpen(self, syscall):
         fd = int(syscall.exit)
-        (src_dir, src_file) = syscall.srcPath()
+        pid = syscall.pid
+        process = self.process_map.Process(pid)
+        (src_dir, src_file) = syscall.srcAbsPath(process.cwd)
+        print src_dir, src_file
+        if not src_dir or not src_file:
+            return
         pathname = os.path.join(src_dir[0], src_file[0])
         inode = src_file[1]
-        pid = syscall.pid
         ts = syscall.ts
-        print pathname
         rdwr = syscall.args[1] & (O_RDWR | O_WRONLY)
         if self.filespace:
             self.filespace.Open(ts, pid, fd, inode, rdwr)
@@ -60,8 +63,10 @@ class Analyzer:
     def SyscallRename(self, syscall):
         ts = syscall.ts
         pid = syscall.pid
-        (src_dir, src_file) = syscall.srcPath()
-        (dst_dir, dst_file) = syscall.dstPath()
+        (src_dir, src_file) = syscall.srcAbsPath()
+        (dst_dir, dst_file) = syscall.dstAbsPath()
+        if not src_dir or not src_file or not dst_dir or not dst_file:
+            return
         if self.filespace:
             f = self.filespace.Access(ts, pid, src_dir[1], O_RDWR)
             if src_dir[1] != dst_dir[1]:
@@ -82,7 +87,9 @@ class Analyzer:
     def SyscallUnlink(self, syscall):
         ts = syscall.ts
         pid = syscall.pid
-        (src_dir, src_file) = syscall.srcPath()
+        (src_dir, src_file) = syscall.srcAbsPath()
+        if not src_dir or not src_file:
+            return
         if self.filespace:
             f = self.filespace.Access(ts, pid, src_dir[1], O_RDWR)
             f = self.filespace.Access(ts, pid, src_file[1], O_RDWR)
@@ -95,11 +102,18 @@ class Analyzer:
             self.namespace.DropOlderWindow(ts)
 
     def SyscallChdir(self, syscall):
-        print 'SyscallChdir'
-        pass
+        pid = syscall.pid
+        process = self.process_map.Process(pid)
+        (src_dir, src_file) = syscall.srcPath()
+        cwd = os.path.join(src_dir[0], src_file[0])
+        process.cwd = cwd
 
     def SyscallFork(self, syscall):
-        print 'SyscallChdir'
+        pid = syscall.pid
+        process = self.process_map.Process(pid)
+        ppid = int(syscall.args[0])
+        print ppid, 'forks', pid
+        self.process_map.SetParent(pid, ppid)
         pass
 
     def KillProcessOlderThan(self, process_log_lines, ts):
