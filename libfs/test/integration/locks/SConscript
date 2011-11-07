@@ -170,6 +170,44 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 ))
 
 
+# cancel request. deadlock scenario: two clients deadlock. one of the clients 
+# sends a cancel request to break the deadlock  
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockCancel1',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockBLockA')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E3:block', 'C1:T2:E1:block')
+    ]
+))
+
+
+# cancel request. non-deadlock scenario (false positive): client thinks has 
+# deadlocked and cancels the request. false positive.
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockCancel2',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockBUnlockB')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E3:block', 'C1:T2:E1:block'), # C1:T2 waits till C1:T1 starts the request
+                  ('C1:T2:E2:block', 'C2:T1:E3:block'), # C1:T2 makes sure C2:T1 has the lock 
+				                                        # before starting the cancel request
+                  ('C1:T2:E3:block', 'C2:T1:E4:block')  # C2:T1 releases the lock only after C1:T2
+				                                        # is done with the cancel request
+    ]
+))
+
+
+
+
 #
 # HIERARCHICAL LOCK TESTS
 #

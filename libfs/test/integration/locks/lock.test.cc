@@ -102,71 +102,53 @@ SUITE(Lock)
 	}
 
 
+	TEST_FIXTURE(LockFixture, TestLockBUnlockB)
+	{
+		lock_protocol::Mode unused;
+
+		EVENT("E1");
+		global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused);
+		EVENT("E2");
+		EVENT("E3");
+		EVENT("E4");
+		EVENT("E5");
+		global_lckmgr->Release(b);
+		EVENT("E6");
+	}
+
+
+	TEST_FIXTURE(LockFixture, TestLockALockB)
+	{
+		lock_protocol::Mode unused;
+
+		EVENT("E1");
+		global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		EVENT("E2");
+		EVENT("E3");
+		global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused);
+		EVENT("E4");
+	}
+
+	TEST_FIXTURE(LockFixture, TestLockBLockA)
+	{
+		lock_protocol::Mode unused;
+
+		EVENT("E1");
+		global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused);
+		EVENT("E2");
+		global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		EVENT("E3");
+	}
 	
-/*
-	// cancel request. deadlock scenario.
-	TEST_THREAD_FIXTURE(LockFixture, TestLockCancel1, 2)
+	TEST_FIXTURE(LockFixture, TestCancelLock)
 	{
 		lock_protocol::Mode unused;
 
-		if (strcmp(TESTFW->Tag(), "C1")==0) {
-			// client 1. runs two threads
-			if (TEST_THREAD_LOCAL->thread_id == 0) {
-				// lock thread. acquires locks
-				global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); 
-				ut_barrier_wait(TEST_THREAD_LOCAL->barrier); 
-				global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused);
-				//sleep(1000);
-			} else {
-				// cancel thread. cancels outstanding lock requests
-				ut_barrier_wait(TEST_THREAD_LOCAL->barrier); // wait till thread C1:0 stars the request
-				usleep(100000); // let thread C1:0 make the request
-				global_lckmgr->Cancel(b);
-			}
-		} else {
-			// client 2. runs single thread
-			if (TEST_THREAD_LOCAL->thread_id == 0) {
-				global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused);
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); 
-				global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
-			}
-		}
+		EVENT("E1");
+		usleep(100000); // give enough time for a competing thread to acquire the lock
+		              	// we would like to be able to express this in our schedule
+		EVENT("E2");
+		global_lckmgr->Cancel(b);
+		EVENT("E3");
 	}
-
-
-	// cancel request
-	TEST_THREAD_FIXTURE(LockFixture, TestLockCancel2, 2)
-	{
-		lock_protocol::Mode unused;
-		if (strcmp(TESTFW->Tag(), "C1")==0) {
-			// client 1 runs two threads
-			if (TEST_THREAD_LOCAL->thread_id == 0) {
-				// lock thread. acquires locks
-				global_lckmgr->Acquire(a, lock_protocol::Mode::XL, 0, unused);
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 1: sync with thread C2:0
-				ut_barrier_wait(TEST_THREAD_LOCAL->barrier); 
-				CHECK(global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused) == lock_protocol::DEADLK);
-				usleep(500000);
-			} else {
-				// cancel thread. cancels outstanding lock requests
-				ut_barrier_wait(TEST_THREAD_LOCAL->barrier); // wait till thread C1:0 starts the request
-				usleep(1000);
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 2: sync with thread C2:0
-				global_lckmgr->Cancel(b);
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 3: sync with thread C2:0
-			}
-		} else {
-			// client 2 runs single thread
-			if (TEST_THREAD_LOCAL->thread_id == 0) {
-				global_lckmgr->Acquire(b, lock_protocol::Mode::XL, 0, unused);
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 1
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 2
-				ut_barrier_wait(&TEST_THREAD_SHARED->region_->barrier); // point 3
-				global_lckmgr->Release(b);
-			}
-		}
-	}
-*/
-
 }
