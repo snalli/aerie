@@ -45,6 +45,9 @@ public:
 	int Unlink(client::Session* session, const char* name) { assert(0); }
 	int Publish(client::Session* session) { assert(0); }
 
+	int nlink() { assert(0 && "Not implemented by subclass"); };
+	int set_nlink(int nlink) { assert(0 && "Not implemented by subclass"); };
+	
 	client::SuperBlock* GetSuperBlock() { return sb_;}
 	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
 
@@ -107,6 +110,9 @@ public:
 	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite);
 	int Publish(client::Session* session);
+
+	int nlink();
+	int set_nlink(int nlink);
 
 private:
 	DirPnode<client::Session>*  pnode_;             // immutable persistent inode structure

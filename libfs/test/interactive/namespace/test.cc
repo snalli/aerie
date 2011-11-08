@@ -42,7 +42,7 @@ void test12(const char* tag)
 	printf("%s\n", __FUNCTION__);
 	sleep(3);
 	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
-	libfs_mkdir("/home/hvolos/dir", 0);
+	assert(libfs_rmdir("/home/hvolos/dir") == 0);
 	printf("%s: DONE\n", __FUNCTION__);
 }
 

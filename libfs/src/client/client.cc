@@ -165,6 +165,7 @@ Client::Mkfs(const char* target,
 // TODO: This must be parameterized by file system because it has to 
 // allocate an inode specific to the file system
 // One way would be to keep a pointer to the superblock in the inode 
+// TODO: Support O_EXCL with O_CREAT
 static inline int
 create(const char* path, Inode** ipp, int mode, int type)
 {
@@ -174,41 +175,56 @@ create(const char* path, Inode** ipp, int mode, int type)
 	SuperBlock*   sb;
 	int           ret;
 
-	if ((ret = global_namespace->Nameiparent(global_session, path, name, &dp))<0) {
-		printf("create: path=%s, ret=%d, dp=%p\n", path, ret, dp);
+	// we do spider locking; when Nameiparent returns successfully, dp is 
+	// locked for writing. we release the lock on dp after we get the lock
+	// on its child
+	if ((ret = global_namespace->Nameiparent(global_session, path, true, 
+	                                         name, &dp)) < 0) 
+	{
 		return ret;
 	}
-	printf("create: path=%s, name=%s, ret=%d, dp=%p\n", path, name, ret, dp);
 
-	if ((ret = dp->Lookup(global_session, name, &ip)) == 0) {
-		assert(0);
-		//TODO: handle collision; return error
-		//      and release directory inode and inode
-	}
-
-	printf("dp=%p\n", dp);
-	printf("dp->GetSuperBlock()=%p\n", dp->GetSuperBlock());
-	sb = dp->GetSuperBlock();
-
-	if ((ret = global_imgr->AllocInode(global_session, sb, type, &ip)) < 0) {
-		//TODO: handle error; release directory inode
+	if ((ret = dp->Lookup(global_session, name, &ip)) == E_SUCCESS) {
+		// FIXME: if we create a file, do we need XR?
+		ip->Lock(dp, lock_protocol::Mode::XR); 
+		if (type == client::type::kFileInode && 
+		    ip->type() == client::type::kFileInode) 
+		{
+			*ipp = ip;
+			dp->Put();
+			dp->Unlock();
+			return E_SUCCESS;
+		}
+		ip->Put();
+		ip->Unlock();
+		dp->Put();
+		dp->Unlock();
+		return -E_EXIST;
 	}
 	
-	//FIXME: nlink count
-	printf("create: create links\n");
+	printf("dp=%p\n", dp);
+	sb = dp->GetSuperBlock();
+
+	// allocated inode is write locked
+	if ((ret = global_imgr->AllocInode(global_session, sb, type, &ip)) < 0) {
+		//TODO: handle error; release directory inode
+		assert(0 && "PANIC");
+	}
+	
+	ip->set_nlink(1);
 	if (type == client::type::kDirInode) {
-		ip->Link(global_session, ".", ip, false);
-		ip->Link(global_session, "..", dp, false);
+		assert(dp->set_nlink(dp->nlink() + 1) == 0); // for child's ..
+		assert(ip->Link(global_session, ".", ip, false) == 0 );
+		assert(ip->Link(global_session, "..", dp, false) == 0);
 	}
 	assert(dp->Link(global_session, name, ip, false) == 0);
 	assert(dp->Lookup(global_session, name, &ip) == 0); 
-	if (dp->ino_) {
-		global_hlckmgr->Release(dp->ino_);
-	}
+	dp->Put();
+	dp->Unlock();
 	return 0;
 }
 
-
+// TODO: implement file open
 int 
 Client::Open(const char* path, int flags, int mode)
 {
@@ -216,6 +232,7 @@ Client::Open(const char* path, int flags, int mode)
 	int    ret;
 	int    fd;
 	File*  fp;
+	bool   write;
 
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
@@ -228,12 +245,12 @@ Client::Open(const char* path, int flags, int mode)
 	// TODO: Initialize file object 
 	return fd;
 
-	if (flags & O_CREATE) {
+	if (flags & O_CREAT) {
 		if((ret = create(path, &ip, mode, client::type::kFileInode)) < 0) {
 			return ret;
 		}	
 	} else {
-		if((ret = global_namespace->Namei(global_session, path, &ip)) < 0) {
+		if((ret = global_namespace->Namei(global_session, path, write, &ip)) < 0) {
 			return ret;
 		}	
 		printf("do_open: path=%s, ret=%d, ip=%p\n", path, ret, ip);
@@ -321,7 +338,7 @@ Client::CreateDir(const char* path, int mode)
 int
 Client::DeleteDir(const char* pathname)
 {
-	// how this differs from unlink?
+	return Client::Unlink(pathname);
 }
 
 
@@ -386,54 +403,64 @@ bad:
 int 
 Client::Unlink(const char* pathname)
 {
-/*
-int
-libfs_unlink(char *path)
-{
-  struct inode *ip, *dp;
-  struct dirent de;
-  char name[DIRSIZ];
-  uint off;
+	char          name[128];
+	Inode*        dp;
+	Inode*        ip;
+	SuperBlock*   sb;
+	int           ret;
 
-  if((dp = nameiparent(path, name)) == 0)
-    return -1;
-  ilock(dp);
 
-  // Cannot unlink "." or "..".
-  if(namecmp(name, ".") == 0 || namecmp(name, "..") == 0){
-    iunlockput(dp);
-    return -1;
-  }
+	// we do spider locking; when Nameiparent returns successfully, dp is 
+	// locked for writing. we release the lock on dp after we get the lock
+	// on its child
+	if ((ret = global_namespace->Nameiparent(global_session, pathname, true, 
+	                                         name, &dp)) < 0) 
+	{
+		return ret;
+	}
 
-  if((ip = dirlookup(dp, name, &off)) == 0){
-    iunlockput(dp);
-    return -1;
-  }
-  ilock(ip);
+	// Cannot unlink "." or "..".
+	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+		dp->Put();
+		dp->Unlock();
+		return -E_INVAL;
+	}
 
-  if(ip->nlink < 1)
-    panic("unlink: nlink < 1");
-  if(ip->type == T_DIR && !isdirempty(ip)){
-    iunlockput(ip);
-    iunlockput(dp);
-    return -1;
-  }
+	if ((ret = dp->Lookup(global_session, name, &ip)) != E_SUCCESS) {
+		dp->Put();
+		dp->Unlock();
+		printf("NO EXISTS\n");
+		return ret;
+	}
+	
+	// do we need recursive lock if file? 
+	ip->Lock(dp, lock_protocol::Mode::XR); 
+	assert(ip->nlink() > 0);
 
-  memset(&de, 0, sizeof(de));
-  if(writei(dp, (char*)&de, off, sizeof(de)) != sizeof(de))
-    panic("unlink: writei");
-  if(ip->type == T_DIR){
-    dp->nlink--;
-    iupdate(dp);
-  }
-  iunlockput(dp);
+	if (ip->type() == client::type::kDirInode) {
+		//TODO: make sure directory is empty
+		// dp->empty()
+		ip->Put();
+		ip->Unlock();
+		dp->Put();
+		dp->Unlock();
+	}
 
-  ip->nlink--;
-  iupdate(ip);
-  iunlockput(ip);
-  return 0;
-}
-*/
+	assert(dp->Unlink(global_session, name) == 0);
+	//FIXME: inode link/unlink should take care of the nlink
+	if (ip->type() == client::type::kDirInode) {
+		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's ..
+	}
+
+	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for child's ..
+	//FIXME: who deallocates the inode if nlink == 0 ???
+	
+	dp->Put();
+	dp->Unlock();
+	ip->Put();
+	ip->Unlock();
+
+	return E_SUCCESS;
 }
 
 

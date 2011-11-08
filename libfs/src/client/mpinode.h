@@ -19,7 +19,9 @@ public:
 
 	MPInode()
 		: entries_count_(0)
-	{ }
+	{ 
+		pthread_mutex_init(&mutex_, NULL);
+	}
 	
 	int Init(Session* session, uint64_t ino) { return 0; }
 	int Open(Session* session, const char* path, int flags) { return 0; }

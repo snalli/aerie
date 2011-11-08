@@ -19,6 +19,7 @@ int MPInode::Lookup(Session* session, const char* name, Inode** inode)
 	for (i=0; i<entries_count_; i++) {
 		if (strcmp(entries_[i].name_, name) == 0) {
 			*inode = entries_[i].inode_;
+			(*inode)->Get();
 			return E_SUCCESS;
 		}
 	}

@@ -22,6 +22,7 @@
 namespace client {
 
 
+// this returns the allocated inode as write locked
 int
 InodeManager::AllocInode(Session* session, SuperBlock* sb, int type, Inode** ipp)
 {

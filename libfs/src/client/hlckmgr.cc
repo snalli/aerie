@@ -291,7 +291,6 @@ HLock*
 HLockManager::FindOrCreateLock(lock_protocol::LockId lid)
 {
 	HLock* hlock;
-
 	pthread_mutex_lock(&mutex_);
 	hlock = FindOrCreateLockInternal(lid, NULL);
 	pthread_mutex_unlock(&mutex_);
@@ -919,6 +918,8 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 		for (itr = release_set.begin(); itr != release_set.end(); itr++) {
 			hl = *itr;
 			assert(0 && "TODO: drop lock subtree");
+			// must reset parents
+			// must set locks' status to NONE
 			hlock->EndConverting(true);
 		}
 	}
@@ -934,7 +935,7 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 		pthread_mutex_lock(&hlock->mutex_);
 		hlock->WaitStatus(HLock::CONVERTING);
 		pthread_mutex_unlock(&hlock->mutex_);
-		lm_->Release(lp, true);
+		assert(lm_->Release(lp, true) == lock_protocol::OK);
 		// what if release fails?
 	}
 	hlock->EndConverting(true);

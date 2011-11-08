@@ -1,19 +1,24 @@
 #ifndef _CONST_H_DGS189
 #define _CONST_H_DGS189
 
+#include <fcntl.h> // for open flags constant
 #include "common/errno.h"
-
-
-// global constants
-const int O_CREATE = 1;
-//const int O_WRONLY = 1;
-//const int O_RDONLY = 1;
-//const int O_RDWR = 1;
-//const int O_CREATE  = 0x200
-//const int O_APPEND  = 0x400
 
 // namespace scoped constants 
 namespace client {
+
+
+// global constants
+// PORTABILITY ISSUE: ensure that across platforms, open flags have the same 
+// values as the ones used by the kernel (in /usr/include/bits/fcntl.h)
+//const int O_RDONLY  = 0x0000;
+//const int O_WRONLY  = 0x0001;
+//const int O_RDWR    = 0x0002;
+//const int O_CREAT   = 0x0100;
+//const int O_EXCL    = 0x0200;
+//const int O_TRUNC   = 0x1000;
+//const int O_APPEND  = 0x2000;
+
 
 namespace limits {
 

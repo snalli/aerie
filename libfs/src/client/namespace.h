@@ -16,14 +16,14 @@ public:
 	int Lookup(Session* session, const char* name, void**);
 	int Link(Session* session, const char* name, void*);
 	int Unlink(Session* session, const char* name);
-	int Namei(Session* session, const char* path, Inode**);
-	int Nameiparent(Session* session, const char* path, char* name, Inode**);
+	int Namei(Session* session, const char* path, bool write, Inode**);
+	int Nameiparent(Session* session, const char* path, bool write, char* name, Inode**);
 	int Mount(Session* session, const char*, SuperBlock*);
 	int Unmount(Session* session, char*);
 	int Init(Session* session);
 
 private:
-	int Namex(Session* session, const char* path, bool nameiparent, char* name, Inode**);
+	int Namex(Session* session, const char* path, bool write, bool nameiparent, char* name, Inode**);
 
 	rpcc*        client_;
 	unsigned int principal_id_;

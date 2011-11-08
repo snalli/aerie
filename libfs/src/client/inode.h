@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "client/const.h"
 #include "client/hlckmgr.h"
 
 namespace client {
@@ -37,10 +38,19 @@ public:
 	virtual InodeNumber GetInodeNumber() { return ino_; };
 	virtual void SetInodeNumber(InodeNumber ino) { ino_ = ino; };
 
+	virtual int nlink() { assert(0 && "Not implemented by subclass"); };
+	virtual int set_nlink(int nlink) { assert(0 && "Not implemented by subclass"); };
+
 	int Get();
 	int Put();
+	int Lock(Inode* parent_inode, lock_protocol::Mode mode); 
 	int Lock(lock_protocol::Mode mode); 
 	int Unlock();
+
+	int type() {
+		//FIXME: where do we store the type?
+		return client::type::kDirInode;
+	}
 
 //protected:
 	//! process-wide mutex; used for synchronizing access to the
@@ -71,6 +81,24 @@ Inode::Lock(lock_protocol::Mode mode)
 
 
 inline int
+Inode::Lock(Inode* parent_inode, lock_protocol::Mode mode)
+{
+	InodeNumber pino = parent_inode->ino_;
+	printf("LOCK: inode=%p, parent_inode=%p, pino=%lu, ino_=%lu\n", this, parent_inode, pino, ino_);
+	if (ino_) {
+		if (pino) {
+			// root inode of the file system. 
+			// FIXME: need to pass a capability
+			return global_hlckmgr->Acquire(ino_, pino, mode, 0);
+		} else {
+			return global_hlckmgr->Acquire(ino_, mode, 0);
+		}
+	}
+	return 0;
+}
+
+
+inline int
 Inode::Unlock()
 {
 	if (ino_) {
@@ -82,7 +110,7 @@ Inode::Unlock()
 inline
 int Inode::Get() 
 { 
-	printf("Inode::Get mutex=%p\n", &mutex_);
+	printf("Inode(%p)::Get mutex=%p\n", this, &mutex_);
 	pthread_mutex_lock(&mutex_);
 	refcnt_++; 
 	pthread_mutex_unlock(&mutex_);
@@ -92,6 +120,7 @@ int Inode::Get()
 inline
 int Inode::Put() 
 { 
+	printf("Inode(%p)::Put mutex=%p\n", this, &mutex_);
 	pthread_mutex_lock(&mutex_);
 	assert(refcnt_>0); 
 	refcnt_--; 

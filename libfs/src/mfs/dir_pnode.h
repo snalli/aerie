@@ -6,7 +6,7 @@
 #ifndef __MFS_DIRECTORY_PERSISTENT_INODE_H_JAK129
 #define __MFS_DIRECTORY_PERSISTENT_INODE_H_JAK129
 
-
+#include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
 #include "mfs/mfs_i.h"
@@ -62,11 +62,17 @@ DirPnode<Session>::Lookup(Session* session, const char* name, uint64_t* ino)
 	// handle special cases '.' and '..'
 	switch (str_is_dot(name)) {
 		case 1: // '.'
+			if (self_ == 0) {
+				return -E_EXIST;
+			}
 			*ino = self_;
-			return 0;
+			return E_SUCCESS;
 		case 2: // '..'
+			if (self_ == 0) {
+				return -E_EXIST;
+			}
 			*ino = parent_;
-			return 0;
+			return E_SUCCESS;
 	}
 
 	if (ht_) {

@@ -19,7 +19,8 @@ namespace mfs {
 //    query the persistent inode directly 
 
 
-
+// If Lookup is successfull, it wraps the persistent inode with a volatile one
+// The inode is not locked. 
 int 
 DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inode** ipp)
 {
@@ -30,6 +31,9 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 	
 	printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) pnode_);
 
+	// FIXME: call Get to increment the refcount
+
+	// check the private copy first before looking up the global one
 	if ((it = entries_.find(name)) != entries_.end()) {
 		if (it->second.first == true) {
 			ino = it->second.second;
@@ -61,6 +65,8 @@ DirInodeMutable::Link(client::Session* session, const char* name, client::Inode*
 
 
 // FIXME: How do we shadow . and ..??? In the EntryCache? It should work.
+// FIXME: Should Link increment the link count as well? currently the caller 
+// must do a separate call but this breaks encapsulation. 
 int 
 DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino, 
                       bool overwrite)
@@ -88,7 +94,7 @@ DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino,
 			return E_SUCCESS;
 		}
 	}
-
+	
 	if ((ret = pnode_->Lookup(session, name, &ino)) == 0) {
 		// name exists in the persistent structure
 		return -E_EXIST;
@@ -135,6 +141,21 @@ DirInodeMutable::Unlink(client::Session* session, const char* name)
 	return E_SUCCESS;
 }
 
+
+int 
+DirInodeMutable::nlink() 
+{
+	// TODO
+	return 0;
+}
+
+int 
+DirInodeMutable::set_nlink(int nlink) 
+{
+	// TODO
+	return 0;
+}
+
 /*
 //  List all directory entries of a directory
 //     This requires coordinating with the immutable directory inode. Simply
@@ -157,7 +178,8 @@ DirInodeMutable::Readdir()
 int 
 DirInodeMutable::Publish(client::Session* session)
 {
-	// FIXME: This has to done via the trusted server using the journal 
+	// FIXME: Currently we publish by simply doing the updates in-place. 
+	// Normally this must be done via the trusted server using the journal 
 
 	EntryCache::iterator  it;
 	int                   ret;

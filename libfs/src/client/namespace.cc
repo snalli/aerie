@@ -28,6 +28,8 @@
 
 //TODO: Optimization: When resolving a pathname (Namex), use LookupFast API 
 // instead of Lookup and revert to Lookup only when the inode is mutated
+//TODO: optimization: when namex uses immutable for lookup, nameiparent should be able
+//to ask for a mutable inode
 
 using namespace client;
 
@@ -121,6 +123,7 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 			if (*path == '\0') {
 				// reached end of path -- mount superblock
 				Inode* root_inode = sb->GetRootInode();
+				printf("ROOT INODE: %p\n", root_inode);
 				assert(inode->Insert(session, name, root_inode) == 0);	
 				if (root_inode->Link(session, "..", inode, false) != 0) {
 					return -1; // superblock already mounted
@@ -152,8 +155,9 @@ NameSpace::Unmount(Session* session, char* name)
 // path element into name, which must have room for DIRSIZ bytes.
 // FIXME: Release inode when done (putinode) 
 // FIXME: what locks do we hold when calling and when returning from this function???
+// returns with inodep locked and referenced (refcnt++)
 int
-NameSpace::Namex(Session* session, const char *cpath, bool nameiparent, 
+NameSpace::Namex(Session* session, const char *cpath, bool write, bool nameiparent,
                  char* name, Inode** inodep)
 {
 	char*       path = const_cast<char*>(cpath);
@@ -163,9 +167,20 @@ NameSpace::Namex(Session* session, const char *cpath, bool nameiparent,
 	SuperBlock* sb;
 	
 	printf("NameSpace::Namex(%s)\n", cpath);
+
+	if (*path == '/') {
+		inode = root_;
+		inode->Lock(lock_protocol::Mode::IXSL);
+		inode->Get();
+	} else {
+		// how do you get locks on the chain of cwd??? 
+		// TODO enforce invariant: at some point we should had traversed the cwd 
+		//                         and get locks along the chain. 
+		// do we just get the lock on the inode???
+		//idup(cwd_inode)
+		assert(0 && "TODO");
+	}
 	
-	inode = root_;
-	inode->Lock(lock_protocol::Mode::IXSL);
 	while ((path = SkipElem(path, name)) != 0) {
 		printf("name=%s\n", name);
 retry:	
@@ -175,7 +190,6 @@ retry:
 		}
 		if (nameiparent && *path == '\0') {
 			// Stop one level early.
-			// FIXME: release lock?
 			goto done;
 		}
 
@@ -185,7 +199,8 @@ retry:
 		}
 		printf("name=%s, inode_next=%p\n", name, inode_next);
 		// spider locking
-		inode_next->Lock(lock_protocol::Mode::IXSL);
+		assert(inode_next->Lock(inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
+		inode->Put();
 		inode->Unlock();
 		inode = inode_next;
 	}	
@@ -198,25 +213,23 @@ done:
 }
 
 
-//TODO: optimization: when namex uses immutable for lookup, nameiparent should be able
-//to ask for a mutable inode
 int
-NameSpace::Nameiparent(Session* session, const char* path, char* name, Inode** inodep)
+NameSpace::Nameiparent(Session* session, const char* path, bool write, char* name, Inode** inodep)
 {
 	int ret; 
 
-	ret = Namex(session, path, true, name, inodep);
+	ret = Namex(session, path, write, true, name, inodep);
 	return ret;
 }
 
 
 int
-NameSpace::Namei(Session* session, const char* path, Inode** inodep)
+NameSpace::Namei(Session* session, const char* path, bool write, Inode** inodep)
 {
 	int  ret; 
 	char name[128];
 
-	ret = Namex(session, path, false, name, inodep);
+	ret = Namex(session, path, write, false, name, inodep);
 	return ret;
 }
 
