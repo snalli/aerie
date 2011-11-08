@@ -1,0 +1,23 @@
+0 RESTART (scratch) at 1008288727 Thu Dec 13 19:12:07 2001
+32 UID 0 PID 812 ?? B 1008288727.376532 execve("/sbin/syslogd") = 0
+76 UID 0 PID 812 /sbin/syslogd A 1008288727.437433 execve("") = 0
+104 UID 0 PID 812 /sbin/syslogd A 1008288727.437576 open("/etc/ld.so.preload", O_RDONLY, 0) = -1 (2)
+160 UID 0 PID 812 /sbin/syslogd A 1008288727.437633 open("/etc/ld.so.cache", O_RDONLY, 78748) = 3
+216 UID 0 PID 812 /sbin/syslogd B 1008288727.437650 close(3, 78748) = 0
+252 UID 0 PID 812 /sbin/syslogd A 1008288727.437706 open("/lib/i686/libc.so.6", O_RDONLY, 5772268) = 3
+308 UID 0 PID 812 /sbin/syslogd A 1008288727.437723 read(3, 1024) = 1024
+344 UID 0 PID 812 /sbin/syslogd B 1008288727.437844 close(3, 5772268) = 0
+380 UID 0 PID 812 /sbin/syslogd A 1008288727.439369 chdir("/") = 0
+412 UID 0 PID 812 /sbin/syslogd A 1008288727.439558 open("/var/run/syslogd.pid", O_RDONLY, 0) = -1 (2)
+472 UID 0 PID 813 /sbin/syslogd A 1008288727.439762 fork(812) = 0
+504 UID 0 PID 813 /sbin/syslogd A 1008288727.442123 open("/var/run/syslogd.pid", O_RDONLY, 0) = -1 (2)
+564 UID 0 PID 813 /sbin/syslogd A 1008288727.442205 open("/var/run/syslogd.pid", O_CREAT|O_RDWR, 0) = 0
+624 UID 0 PID 813 /sbin/syslogd A 1008288727.442593 write(0, 4) = 4
+660 UID 0 PID 813 /sbin/syslogd B 1008288727.442605 close(0, 4) = 0
+696 UID 0 PID 813 /sbin/syslogd A 1008288727.442911 open("/etc/resolv.conf", O_RDONLY, 94) = 0
+752 UID 0 PID 813 /sbin/syslogd A 1008288727.443008 read(0, 4096) = 94
+788 UID 0 PID 813 /sbin/syslogd A 1008288727.443057 read(0, 4096) = 0
+824 UID 0 PID 813 /sbin/syslogd B 1008288727.443077 close(0, 94) = 0
+860 UID 0 PID 813 /sbin/syslogd A 1008288727.443280 open("/etc/nsswitch.conf", O_RDONLY, 1750) = 0
+916 UID 0 PID 813 /sbin/syslogd A 1008288727.443333 read(0, 4096) = 1750
+952 UID 0 PID 813 /sbin/syslogd A 1008288727.443468 read(0, 4096) = 0

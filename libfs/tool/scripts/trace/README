@@ -1,3 +1,15 @@
-process.stp     A systemtap script that reports when each process terminates
-audit.rules     Rules for auditctl
-test.audit.log  An example audit log
+Scripts to analyze system call traces:
+-auditctl format
+-seer format
+
+Auditctl format (Linux's Kernel Audit System)
+=============================================
+audit.py           Analyzes an audit log file
+process.stp        A systemtap script that reports when each process terminates
+audit.rules        Rules for auditctl
+audit.example.log  An example audit log
+
+SEER format (http://www.lasr.cs.ucla.edu/seer/seer_traces.html)
+===============================================================
+seer.py           Analyzes a seer trace file
+seer.example.log  An example seer trace file
