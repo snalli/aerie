@@ -5,12 +5,12 @@ import string
 import collections
 import bisect
 import analyzer
-import seersyscall
+import seeranalyzer
 
 
 def main(argv):
 
-    al = analyzer.Analyzer(seersyscall.Syscall)
+    al = analyzer.Analyzer(seeranalyzer.SeerAnalyzer)
     audit_log = argv[0];
     af = open(audit_log, 'r')
     lines = af.readlines()
@@ -27,14 +27,10 @@ def main(argv):
         else:
             line = lines[i]
         print line
-        syscall_obj = seersyscall.Syscall.Parse(line)
+        syscall_obj = seeranalyzer.Syscall.Parse(al, line)
         if syscall_obj and syscall_obj.success:
             al.Syscall(syscall_obj)
-
-    if al.filespace:
-        al.filespace.Report()
-    if al.namespace:
-        al.namespace.List()        
+    al.Report()
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import os
 import collections
 import bisect
 import analyzer
-import auditsyscall
+import auditanalyzer
 
 
 def main(argv):
@@ -18,15 +18,12 @@ def main(argv):
         pf = open(process_log, 'r')
         pl = pf.readlines()
     for i in range(len(al)):
-        syscall_obj = auditsyscall.Syscall.Parse(al, i)
+        syscall_obj = auditanalyzer.Syscall.Parse(al, i)
         al.Syscall(syscall_obj)
         if syscall_obj:
             al.KillProcessOlderThan(pl, syscall_obj.ts)
 
-    if al.filespace:
-        al.filespace.Report()
-    if al.namespace:
-        al.namespace.List()        
+    al.Report()
 
 
 if __name__ == "__main__":

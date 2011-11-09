@@ -16,8 +16,8 @@ import util
 # identify process names that contribute to sharing
 
 
-FILESPACE_WINDOW = 1000000
-NAMESPACE_WINDOW = 1000000
+FILESPACE_WINDOW = 100000000 # usec 
+NAMESPACE_WINDOW = 100000000 # usec  
 
 O_RDWR = 2
 O_WRONLY = 1
@@ -25,20 +25,19 @@ O_RDONLY = 0
 
 
 class Analyzer:
-    def __init__(self, syscall_class):
-        self.syscall_class = syscall_class
+    def __init__(self, analyzer_subclass):
+        self.syscall_class = analyzer_subclass.syscall_class
         self.process_map = processmap.ProcessMap()
-        #self.filespace = filespace.FileSpace(self.process_map, FILESPACE_WINDOW)
-        self.filespace = None
+        self.inode_space = analyzer_subclass.inode_space
+        self.filespace = filespace.FileSpace(self.process_map, self.inode_space, FILESPACE_WINDOW)
+        #self.filespace = None
         #self.namespace = namespace.NameSpace(NAMESPACE_WINDOW)
         self.namespace = None
 
     def SyscallOpen(self, syscall):
         fd = int(syscall.exit)
         pid = syscall.pid
-        process = self.process_map.Process(pid)
-        (src_dir, src_file) = syscall.srcAbsPath(process.cwd)
-        print src_dir, src_file
+        (src_dir, src_file) = syscall.srcPath()
         if not src_dir or not src_file:
             return
         pathname = os.path.join(src_dir[0], src_file[0])
@@ -47,7 +46,7 @@ class Analyzer:
         rdwr = syscall.args[1] & (O_RDWR | O_WRONLY)
         if self.filespace:
             self.filespace.Open(ts, pid, fd, inode, rdwr)
-            self.filespace.CheckOverlap(ts, pid, inode)
+            self.filespace.CheckOverlap(ts, pid, inode, rdwr)
             self.filespace.DropOlderWindow(ts)
         if self.namespace:
             self.namespace.AccessPath(ts, pid, pathname, rdwr, O_RDONLY)
@@ -63,8 +62,8 @@ class Analyzer:
     def SyscallRename(self, syscall):
         ts = syscall.ts
         pid = syscall.pid
-        (src_dir, src_file) = syscall.srcAbsPath()
-        (dst_dir, dst_file) = syscall.dstAbsPath()
+        (src_dir, src_file) = syscall.srcPath()
+        (dst_dir, dst_file) = syscall.dstPath()
         if not src_dir or not src_file or not dst_dir or not dst_file:
             return
         if self.filespace:
@@ -72,9 +71,9 @@ class Analyzer:
             if src_dir[1] != dst_dir[1]:
                 f = self.filespace.Access(ts, pid, dst_dir[1], O_RDWR)
             f = self.filespace.Access(ts, pid, src_file[1], O_RDWR)
-            self.filespace.CheckOverlap(ts, pid, src_dir[1])
-            self.filespace.CheckOverlap(ts, pid, dst_dir[1])
-            self.filespace.CheckOverlap(ts, pid, src_file[1])
+            self.filespace.CheckOverlap(ts, pid, src_dir[1], O_RDWR)
+            self.filespace.CheckOverlap(ts, pid, dst_dir[1], O_RDWR)
+            self.filespace.CheckOverlap(ts, pid, src_file[1], O_RDWR)
             self.filespace.DropOlderWindow(ts)
         if self.namespace:
             node = self.namespace.AccessPath(ts, pid, src_dir[0], O_RDWR, O_RDONLY)
@@ -87,14 +86,14 @@ class Analyzer:
     def SyscallUnlink(self, syscall):
         ts = syscall.ts
         pid = syscall.pid
-        (src_dir, src_file) = syscall.srcAbsPath()
+        (src_dir, src_file) = syscall.srcPath()
         if not src_dir or not src_file:
             return
         if self.filespace:
             f = self.filespace.Access(ts, pid, src_dir[1], O_RDWR)
             f = self.filespace.Access(ts, pid, src_file[1], O_RDWR)
-            self.filespace.CheckOverlap(ts, pid, src_dir[1])
-            self.filespace.CheckOverlap(ts, pid, src_file[1])
+            self.filespace.CheckOverlap(ts, pid, src_dir[1], O_RDWR)
+            self.filespace.CheckOverlap(ts, pid, src_file[1], O_RDWR)
             self.filespace.DropOlderWindow(ts)
         if self.namespace:
             node = self.namespace.AccessPath(ts, pid, src_dir[0], O_RDWR, O_RDONLY)
@@ -103,14 +102,12 @@ class Analyzer:
 
     def SyscallChdir(self, syscall):
         pid = syscall.pid
-        process = self.process_map.Process(pid)
-        (src_dir, src_file) = syscall.srcPath()
-        cwd = os.path.join(src_dir[0], src_file[0])
-        process.cwd = cwd
+        process = self.process_map.Process(pid, True)
+        process.cwd = syscall.args[0]
 
     def SyscallFork(self, syscall):
         pid = syscall.pid
-        process = self.process_map.Process(pid)
+        process = self.process_map.Process(pid, True)
         ppid = int(syscall.args[0])
         print ppid, 'forks', pid
         self.process_map.SetParent(pid, ppid)
@@ -132,8 +129,11 @@ class Analyzer:
                 next = False
 
     def SyscallExit(self, syscall):
-        print 'SyscallExit'
-        pass
+        ts = syscall.ts
+        pid = syscall.pid
+        if self.filespace:
+            self.filespace.CloseFiles(ts, pid)
+        self.process_map.RemovePid(pid)
 
     def Syscall(self, syscall):
         if syscall == None:
@@ -150,4 +150,8 @@ class Analyzer:
         if options.has_key(syscall.identifier):
             options[syscall.identifier](syscall)
 
-
+    def Report(self):
+        if self.filespace:
+            self.filespace.Report()
+        if self.namespace:
+            self.namespace.List()        

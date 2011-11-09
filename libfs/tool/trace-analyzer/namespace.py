@@ -5,6 +5,8 @@ import collections
 import bisect
 import util
 
+# todo: rename
+
 class NameNode:
     def __init__(self, name):
         self.accesses = {} # pid      -> (ts, access_type)
@@ -21,7 +23,7 @@ class NameNode:
         cur_node.Access(ts, pid, type)
  
     def Remove(self, ts, pid):
-        if not self.children.has_key(pid):
+        if not self.accesses.has_key(pid):
             return
         del self.accesses[pid] 
 
@@ -102,7 +104,7 @@ class NameSpace:
         cur_node.Access(ts, pid, type)
         cur_node.CheckOverlap(ts, pid, self.window)
  
-    # access each name component of a full path name and returns
+    # accesses each name component of a full path name and returns
     # last NameNode
     def AccessPath(self, ts, pid, pathname, type, parent_type):
         cur_node = self.root
