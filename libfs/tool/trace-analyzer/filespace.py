@@ -225,7 +225,7 @@ class FileSpace:
         print 'total accesses      = ', total_accesses
         print 'concurrent accesses = ', concurrent_rr_accesses + concurrent_rw_ww_accesses
         print 'concurrent RR accesses = ', concurrent_rr_accesses
-        print 'concurrent RW/WW accesses = ', concurrent_rr_accesses
+        print 'concurrent RW/WW accesses = ', concurrent_rw_ww_accesses
         print 'seq RR accesses histogram    = ', histogram_seq_rr_accesses
         print 'seq RW/WW accesses histogram    = ', histogram_seq_rw_ww_accesses
 
