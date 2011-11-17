@@ -181,7 +181,7 @@ public:
 	{
 		void* ptr;
 		
-		if (session->sm->Alloc(session, nbytes, typeid(Page), &ptr) < 0) {
+		if (session->smgr_->Alloc(session, nbytes, typeid(Page), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;
@@ -279,7 +279,7 @@ public:
 	{
 		void* ptr;
 		
-		if (session->sm->Alloc(session, nbytes, typeid(HashTable), &ptr) < 0) {
+		if (session->smgr_->Alloc(session, nbytes, typeid(HashTable), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;

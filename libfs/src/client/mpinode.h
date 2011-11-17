@@ -28,10 +28,8 @@ public:
 	int Write(Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
 	int Read(Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Lookup(Session* session, const char* name, Inode** inode);
-	int LookupFast(Session* session, const char* name, Inode* inode) { return 0; }
 	int Link(Session* session, const char* name, Inode* inode, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
-	int Insert(Session* session, const char* name, Inode* inode);
 	int Unlink(client::Session* session, const char* name) { assert(0); }
 	int Publish(client::Session* session) { return 0; }
 	SuperBlock* GetSuperBlock() { return NULL; };

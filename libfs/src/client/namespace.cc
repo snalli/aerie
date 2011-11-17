@@ -26,11 +26,6 @@
 // or expose to the caller what locks are held when the call is returned, and what locks
 // the caller should acquire.
 
-//TODO: Optimization: When resolving a pathname (Namex), use LookupFast API 
-// instead of Lookup and revert to Lookup only when the inode is mutated
-//TODO: optimization: when namex uses immutable for lookup, nameiparent should be able
-//to ask for a mutable inode
-
 using namespace client;
 
 const int NAMESIZ = 128;
@@ -103,7 +98,6 @@ NameSpace::Lookup(Session* session, const char* name, void** obj)
 }
 
 
-//FIXME: Replace Insert with Link
 int
 NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 {
@@ -122,9 +116,9 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 			}
 			if (*path == '\0') {
 				// reached end of path -- mount superblock
-				Inode* root_inode = sb->GetRootInode();
+				Inode* root_inode = sb->RootInode();
 				printf("ROOT INODE: %p\n", root_inode);
-				assert(inode->Insert(session, name, root_inode) == 0);	
+				assert(inode->Link(session, name, root_inode, false) == 0);	
 				if (root_inode->Link(session, "..", inode, false) != 0) {
 					return -1; // superblock already mounted
 				}
@@ -132,9 +126,9 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 			} else {
 				// create mount point component
 				inode_next = new MPInode();
-				assert(inode->Insert(session, name, inode_next) == 0);	
-				assert(inode_next->Insert(session, ".", inode_next) == 0);	
-				assert(inode_next->Insert(session, "..", inode) == 0);	
+				assert(inode->Link(session, name, inode_next, false) == 0);	
+				assert(inode_next->Link(session, ".", inode_next, false) == 0);	
+				assert(inode_next->Link(session, "..", inode, false) == 0);	
 			}
 		}
 		inode = inode_next;

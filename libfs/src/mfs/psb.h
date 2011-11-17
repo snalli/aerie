@@ -42,7 +42,7 @@ public:
 		void* ptr;
 		int   ret;
 
-		if ((ret = session->sm->Alloc(session, nbytes, typeid(PSuperBlock), &ptr)) < 0) {
+		if ((ret = session->smgr_->Alloc(session, nbytes, typeid(PSuperBlock), &ptr)) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;

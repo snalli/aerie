@@ -4,7 +4,7 @@
 #include "common/util.h"
 #include "common/errno.h"
 
-using namespace client;
+namespace client {
 
 int MPInode::Lookup(Session* session, const char* name, Inode** inode)
 {
@@ -28,9 +28,11 @@ int MPInode::Lookup(Session* session, const char* name, Inode** inode)
 	return -E_KVFS; 
 }
 
+
 // Assumes the caller has checked that the mounted file system does not 
 // contain the name
-int MPInode::Insert(Session* session, const char* name, Inode* inode)
+int 
+MPInode::Link(Session* session, const char* name, Inode* inode, bool overwrite)
 {
 	int    len;
 	int    i;
@@ -54,8 +56,4 @@ int MPInode::Insert(Session* session, const char* name, Inode* inode)
 	return 0;
 }
 
-
-int MPInode::Link(Session* session, const char* name, Inode* inode, bool overwrite)
-{
-	assert(0);
-}
+} // namespace client

@@ -8,6 +8,7 @@
 #include "common/debug.h"
 #include "server/api.h"
 #include "client/config.h"
+#include "client/smgr.h"
 #include "client/lckmgr.h"
 #include "client/hlckmgr.h"
 #include "chunkstore/registry.h"
@@ -19,14 +20,13 @@ namespace client {
 FileManager*     global_fmgr;
 NameSpace*       global_namespace;
 StorageManager*  global_smgr;
-InodeManager*    global_imgr;
 LockManager*     global_lckmgr;
 HLockManager*    global_hlckmgr;
 Registry*        registry;
 rpcc*            rpc_client;
 rpcs*            rpc_server;
 std::string      id;
-Session*   global_session;
+Session*         global_session;
 
 // Known backend file system implementations
 struct KnownFS {
@@ -175,7 +175,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 	SuperBlock*   sb;
 	int           ret;
 
-	// we do spider locking; when Nameiparent returns successfully, dp is 
+	// when Nameiparent returns successfully, dp is 
 	// locked for writing. we release the lock on dp after we get the lock
 	// on its child
 	if ((ret = global_namespace->Nameiparent(global_session, path, true, 
@@ -206,7 +206,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 	sb = dp->GetSuperBlock();
 
 	// allocated inode is write locked
-	if ((ret = global_imgr->AllocInode(global_session, sb, type, &ip)) < 0) {
+	if ((ret = sb->AllocInode(global_session, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}

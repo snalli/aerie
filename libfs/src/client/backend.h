@@ -7,7 +7,6 @@
 #include "client/client_i.h"
 #include "client/session.h"
 #include "client/sb.h"
-#include "client/imgr.h"
 #include "client/smgr.h"
 #include "client/inode.h"
 #include "client/imap.h"

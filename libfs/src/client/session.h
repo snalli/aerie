@@ -9,10 +9,10 @@ class StorageManager;
 class Session {
 public:
 	Session(client::StorageManager* smgr)
-		: sm(smgr)
+		: smgr_(smgr)
 	{ }
 
-	client::StorageManager* sm;
+	client::StorageManager* smgr_;
 };
 
 } // namespace client

@@ -176,7 +176,7 @@ DirInodeMutable::Link(client::Session* session, const char* name, client::Inode*
 		return -1;
 	}
 
-	ino = ip->GetInodeNumber();
+	ino = ip->InodeNumber();
 
 	printf("DirInodeMutable::Link (%s): pnode_=%p, ino=%lu\n", name, pnode_, ino);
 	return pnode_->Link(session, name, ino);
@@ -195,7 +195,7 @@ DirInodeMutable::Unlink(client::Session* session, const char* name)
 		return -1;
 	}
 
-	ino = ip->GetInodeNumber();
+	ino = ip->InodeNumber();
 
 	printf("DirInodeMutable::Link (%s): pnode_=%p, ino=%lu\n", name, pnode_, ino);
 	return pnode_->Link(session, name, ino);

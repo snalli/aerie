@@ -3,23 +3,42 @@
 
 #include "client/inode.h"
 
+// The SuperBlock provides an indirection layer to the inodes of the 
+// filesystem.
+// We need indirection because a client cannot directly write to persistent 
+// inodes. Instead we wrap a persistent inode into a local/private one that
+// performs writes using copy-on-write (either logical or physical). 
+// The SuperBlock is responsible for keeping track the index of inode number 
+// to (volatile) inode. 
+
+
 namespace client {
 
 class Session; // forward declaration
-class InodeManager;  // forward declaration
+class InodeMap; // forward declaration
 
 class SuperBlock {
 public:
-	virtual Inode* GetRootInode() = 0;
-	//virtual void SetRootInode(Inode* inode) = 0;
-	virtual Inode* CreateImmutableInode(int type) = 0;
-	virtual int AllocInode(Session* session, int type, Inode** ipp) = 0;
-	virtual int GetInode(InodeNumber ino, Inode** ipp) = 0;
-	virtual int PutInode(Inode* ip) = 0;
-	virtual Inode* WrapInode() = 0;
-
+	SuperBlock(Session* session);
+	
 	virtual void* GetPSuperBlock() = 0;
+	int AllocInode(Session* session, int type, Inode** ipp);
+	int GetInode(InodeNumber ino, Inode** ipp);
+	int PutInode(Inode* ip);
+
+	inline client::Inode* RootInode() {	return root_; }
+
+protected:
+	pthread_mutex_t mutex_;
+	InodeMap*       imap_;
+	Inode*          root_;
+
+private:
+	// FIXME: this functions should really be replaced with an inode factory 
+	virtual int MakeInode(Session* session, int type, Inode** ipp) = 0;
+	virtual int LoadInode(client::InodeNumber ino, client::Inode** ipp) = 0;
 };
+
 
 
 } // namespace client

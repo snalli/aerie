@@ -31,8 +31,6 @@ public:
 	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { assert(0); }
 	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { assert(0); }
 	int Lookup(client::Session* session, const char* name, client::Inode** inode) { assert(0); }
-	int LookupFast(client::Session* session, const char* name, client::Inode* inode) { assert(0); }
-	int Insert(client::Session* session, const char* name, client::Inode* inode) { assert(0); }
 	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite) { assert(0); }
 	int Unlink(client::Session* session, const char* name)  
 	int Publish() { assert(0); }
@@ -76,13 +74,11 @@ public:
 	int Open(client::Session* session, const char* path, int flags) { };
 	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
-	int Insert(client::Session* session, const char* name, client::Inode* inode) { };
 
 	client::SuperBlock* GetSuperBlock() { return sb_;}
 	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
 	
 	int Lookup(client::Session* session, const char* name, client::Inode** inode);
-	int LookupFast(client::Session* session, const char* name, client::Inode* inode) { };
 
 	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite);
 	int Publish();

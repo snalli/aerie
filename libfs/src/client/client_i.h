@@ -6,7 +6,6 @@
 #include "client/const.h"
 #include "client/namespace.h"
 #include "client/smgr.h"
-#include "client/imgr.h"
 #include "client/file.h"
 
 
@@ -18,7 +17,6 @@ class HLockManager;
 extern NameSpace*        global_namespace;
 extern StorageManager*   global_smgr;
 extern FileManager*      global_fmgr;
-extern InodeManager*     global_imgr;
 extern LockManager*      global_lckmgr;
 extern HLockManager*     global_hlckmgr;
 

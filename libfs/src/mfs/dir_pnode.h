@@ -3,6 +3,9 @@
 //! storage class memory
 //!
 
+
+// TODO: move factory code into a separate class/file
+
 #ifndef __MFS_DIRECTORY_PERSISTENT_INODE_H_JAK129
 #define __MFS_DIRECTORY_PERSISTENT_INODE_H_JAK129
 
@@ -34,7 +37,7 @@ public:
 	{
 		void* ptr;
 		
-		if (session->sm->Alloc(session, nbytes, typeid(DirPnode<Session>), &ptr) < 0) {
+		if (session->smgr_->Alloc(session, nbytes, typeid(DirPnode<Session>), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;

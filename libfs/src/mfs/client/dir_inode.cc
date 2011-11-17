@@ -9,29 +9,16 @@ namespace mfs {
 //TODO thread safety: acquire/release mutex to protect volatile metadata/data structures
 //     persistent is protected by the lock. the caller should have already acquire the lock
 
-// TODO: perhaps it makes sense to cache persistent entries to avoid
-// the second lookup (persistent inode lookup) for entries that have
-// already been looked up in the past. But the benefit might not be much because
-// it further slows down lookups as we need to insert an entry in the cache. 
- 
-// Lookup algorithm
-// 1. Find whether there is a volatile directory inode or whether we should
-//    query the persistent inode directly 
 
-
-// If Lookup is successfull, it wraps the persistent inode with a volatile one
-// The inode is not locked. 
 int 
-DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inode** ipp)
+DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inode** ipp) 
 {
 	int                   ret;
-	uint64_t              ino;
+	client::InodeNumber   ino;
 	client::Inode*        ip;
 	EntryCache::iterator  it;
 	
 	printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) pnode_);
-
-	// FIXME: call Get to increment the refcount
 
 	// check the private copy first before looking up the global one
 	if ((it = entries_.find(name)) != entries_.end()) {
@@ -45,9 +32,9 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 			return ret;
 		}
 	}
-	
-	sb_->GetInode(ino, &ip);
-	*ipp = ip;
+
+    sb_->GetInode(ino, &ip);
+    *ipp = ip;
 
 	return E_SUCCESS;
 }
@@ -57,7 +44,7 @@ int
 DirInodeMutable::Link(client::Session* session, const char* name, client::Inode* ip, 
                       bool overwrite)
 {
-	uint64_t ino = ip->GetInodeNumber();
+	uint64_t ino = ip->ino();
 	
 	//FIXME: fix link count
 	return Link(session, name, ino, overwrite);
