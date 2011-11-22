@@ -26,6 +26,22 @@
 // or expose to the caller what locks are held when the call is returned, and what locks
 // the caller should acquire.
 
+// LOCK PROTOCOL
+// 
+// read-only file:
+//
+// need to locally lock each inode along the path at level SL. 
+// if the local lock has no parent lock then you need to 
+// acquire a base SR lock on the inode.
+// 
+// read-write file:
+//
+// need to locally lock each inode except the file inode at IXSL
+// if the local lock has no parent lock then you need to 
+// acquire a base XR lock on the inode. 
+// locally lock the file inode at XL
+//
+
 using namespace client;
 
 const int NAMESIZ = 128;
@@ -151,56 +167,94 @@ NameSpace::Unmount(Session* session, char* name)
 // FIXME: what locks do we hold when calling and when returning from this function???
 // returns with inodep locked and referenced (refcnt++)
 int
-NameSpace::Namex(Session* session, const char *cpath, bool write, bool nameiparent,
-                 char* name, Inode** inodep)
+NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_mode, 
+                 bool nameiparent, char* name, Inode** inodep)
 {
 	char*       path = const_cast<char*>(cpath);
 	Inode*      inode;
 	Inode*      inode_next;
+	Inode*      inode_prev = NULL;
 	int         ret;
 	SuperBlock* sb;
-	
-	printf("NameSpace::Namex(%s)\n", cpath);
+	char*       old_name;
 
+	
+	if (!path) {
+		return -E_INVAL;
+	}
+
+	printf("NameSpace::Namex(%s)\n", path);
+
+	// find whether absolute or relative path
 	if (*path == '/') {
 		inode = root_;
-		inode->Lock(lock_protocol::Mode::IXSL);
-		inode->Get();
 	} else {
-		// how do you get locks on the chain of cwd??? 
-		// TODO enforce invariant: at some point we should had traversed the cwd 
-		//                         and get locks along the chain. 
-		// do we just get the lock on the inode???
-		//idup(cwd_inode)
+		// TODO: if cwd is not assigned a lock then we need to re-acquire locks 
+		// on the chain along root to cwd. the lock manager should detect this
+		// case and bootstrap.
+		// idup(cwd_inode)
 		assert(0 && "TODO");
 	}
-	
-	while ((path = SkipElem(path, name)) != 0) {
-		printf("name=%s\n", name);
-retry:	
-		if (!inode) {
-			printf("NameSpace::Namex(%s): DONE 1\n", cpath);
-			return -1;
-		}
-		if (nameiparent && *path == '\0') {
-			// Stop one level early.
-			goto done;
-		}
 
-		printf("NameSpace::Namex [%p].Lookup(%s)\n", inode, name);
+	// boundary condition: get the lock on the first inode
+	path = SkipElem(path, name);
+	if (nameiparent && path != 0 && *path == '\0') {
+		inode->Lock(lock_mode);
+		inode->Get();
+		goto done;
+	} else {
+		inode->Lock(lock_protocol::Mode::IXSL);
+		inode->Get();
+	}
+	
+	// consume the rest of the path by acquiring a lock on each inode in a spider
+	// locking fashion. spider locking is necessary because acquiring an
+	// hierarchical lock on an inode requires having the parent locked.
+	// if we encounter a .. then we move up the hierarchy so we don't do spider 
+	// locking. the client may no longer own the lock on the .. though if another
+	// client asked the lock. this is okay, the lock-manager will bootstrap the 
+	// lock by acquiring locks along the chain from the root to the inode ..
+	while (path != 0) {
+		printf("Namex: inode=%p (ino=%lu), name=%s\n", inode, inode->ino(), name);
 		if ((ret = inode->Lookup(session, name, &inode_next)) < 0) {
+			inode->Put();
+			inode->Unlock();
 			return ret;
 		}
-		printf("name=%s, inode_next=%p\n", name, inode_next);
-		// spider locking
-		assert(inode_next->Lock(inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
-		inode->Put();
-		inode->Unlock();
-		inode = inode_next;
-	}	
-	if (nameiparent) {
-		return -1;
+		old_name = name;
+		path = SkipElem(path, name);
+		if (nameiparent && path != 0 && *path == '\0') {
+			if (str_is_dot(old_name) == 2) {
+				// encountered a ..
+				inode->Unlock();
+				assert(inode_next->Lock(lock_mode) == E_SUCCESS);
+			} else {
+				// spider locking
+				assert(inode_next->Lock(inode, lock_mode) == E_SUCCESS);
+				inode->Unlock();
+			}
+			inode->Put();
+			inode = inode_next;
+			printf("Namex(nameiparent=true): inode=%p\n", inode);
+			goto done;
+		} else {
+			if (str_is_dot(old_name) == 2) {
+				// encountered a ..
+				inode->Unlock();
+				assert(inode_next->Lock(lock_protocol::Mode::IXSL) == E_SUCCESS);
+			} else {
+				assert(inode_next->Lock(inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
+				inode->Unlock();
+			}
+			inode->Put();
+			inode = inode_next;
+		}
 	}
+	printf("Namex: inode=%p\n", inode);
+
+	//if (nameiparent) {
+	//	return -1;
+	//}
 done:
 	*inodep = inode;
 	return 0;
@@ -208,22 +262,22 @@ done:
 
 
 int
-NameSpace::Nameiparent(Session* session, const char* path, bool write, char* name, Inode** inodep)
+NameSpace::Nameiparent(Session* session, const char* path, lock_protocol::Mode lock_mode, char* name, Inode** inodep)
 {
 	int ret; 
 
-	ret = Namex(session, path, write, true, name, inodep);
+	ret = Namex(session, path, lock_mode, true, name, inodep);
 	return ret;
 }
 
 
 int
-NameSpace::Namei(Session* session, const char* path, bool write, Inode** inodep)
+NameSpace::Namei(Session* session, const char* path, lock_protocol::Mode lock_mode, Inode** inodep)
 {
 	int  ret; 
 	char name[128];
 
-	ret = Namex(session, path, write, false, name, inodep);
+	ret = Namex(session, path, lock_mode, false, name, inodep);
 	return ret;
 }
 

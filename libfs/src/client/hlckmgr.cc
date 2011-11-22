@@ -7,24 +7,9 @@
 
 namespace client {
 
-// Lock Protocol:
+// POLICIES
 //
-// 
-// read-only file:
-//
-// need to locally lock each inode along the path at level SL. 
-// if the local lock has no parent lock then you need to 
-// acquire a base SR lock on the inode.
-// 
-// read-write file:
-//
-// need to locally lock each inode except the file inode at IXSL
-// if the local lock has no parent lock then you need to 
-// acquire a base XR lock on the inode. 
-// locally lock the file inode at XL
-//
-//
-// Downgrade protocol:
+// Downgrade:
 //
 // SR --> SL 
 // upgrade each child's local SL lock to a base SR lock 
@@ -43,45 +28,40 @@ namespace client {
 // all other downgrades require releasing the subtree of locks
 //   e.g SR --> NL: release subtree
 //
-// Upgrade protocol:
+// Upgrade:
 //
 // if cannot upgrade base lock then release all locks
 //
 //
-// Enhancements:
-// - we probably need a name lock to fine grain synchronize accesses 
-//   in the same inode
 
 
-// Notes:
-// 1) Cannot change the state of a base lock attached to a hierarchical lock 
-//    without acquring the lock protecting the hierarchical lock.
-// 2) Hierarchical lock acts as mutex lock between threads, that is multiple 
-//    threads cannot acquire the lock even if the locked is held at a mode
-//    permitting multiple owners (e.g. SL). 
-//
+/
 // Invariants 
 //
 // 1) Base lock's mode cannot change without invoking the hierarchical lock 
 // manager so it's safe to check lock's state without going through the 
 // base lock manager.
+//    (Cannot change the state of a base lock attached to a hierarchical lock 
+//     without acquring the lock protecting the hierarchical lock.)
 //
 //
 // Locking protocol:
+// 
+// Recursive Rule: some ancestor has a public recursive lock. 
+//  - this rule enables us to acquire a private lock without invoking the server 
+//    lock manager. 
+//
+// Hierarchy Rule: there is an intention or recursive lock on the parent's
+// lock that is compatible. 
+//  - this rule guarantees we acquire locks hierarchically. 
+//
 //
 // 1) If we have a parent then try to acquire a private lock under the 
 //    parent. 
 //    we need to meet the recursive rule:
-//      recursive rule: some ancestor has a recursive lock 
-//      this rule enables us to acquire a local lock without 
-//      invoking the server lock manager. 
-//
+/
 //    if we fail the recursive rule then we acquire a public lock.
 //    we need to meet the hierarchy rule:
-//      hierarchy rule: there is an intention or recursive lock on 
-//      the parent's globally visible lock that is compatible.
-//      this rule guarantees we acquire globally visible locks 
-//      hierarchically. 
 //    e.g if SR and need IXSL, we violate the hierarchy rule
 //
 //    if we don't meet the hierarchy rule, then we report a hierarchy 
@@ -90,7 +70,13 @@ namespace client {
 // 2) If we don't have a parent then we need to have a capability, which 
 //    we provide to the server to get a globally visible lock.
 //
+//
+// Notes:
+// 1) Hierarchical lock acts as mutex lock between threads, that is multiple 
+//    threads cannot acquire the lock even if the locked is held at a mode
+//    permitting multiple owners (e.g. SL). 
 // 
+//
 // TOCTTOU RACE:
 //
 // The locking protocol does not protect against TOCTTOU races sush as 
@@ -371,9 +357,10 @@ HLockManager::AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, int flags
 			assert (phlock->BeginConverting(true) == 0);
 		}
 		if (phlock->lock_) {
+			// parent has ancestor lock: by induction, all ancestors have a public lock
 			if (lock_protocol::Mode::AbidesHierarchyRule(mode, phlock->lock_->public_mode_)) {
 				plid = (unsigned long long) phlock->lock_->lid_;
-				if ((r = lm_->Acquire(lid, mode_set, 0, 1, (void**) &plid, mode_granted)) != 
+				if ((r = lm_->Acquire(lid, mode_set, Lock::FLG_NOBLK, 1, (void**) &plid, mode_granted)) != 
 				    lock_protocol::OK)
 				{
 					if (r == lock_protocol::DEADLK) {
@@ -422,6 +409,9 @@ done:
 
 
 /// \brief Acquires and attaches public locks on a chain of hierarchical locks
+///
+/// Starting at hlock, it walks up the hierarchy till it finds a public lock
+/// acquiring a public lock at each node.
 /// 
 /// Assumes caller holds:
 ///   hlock's mutex or has the lock set at CONVERTING state
@@ -503,9 +493,9 @@ HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, in
 }
 
 
-/// \brief Acquires and attaches a public lock on a child hierarchical lock
+/// \brief Acquires and attaches a public lock on a child
 ///
-/// It propagates a parent lock by acquiring on a child a public lock 
+/// It propagates a parent lock by acquiring a public lock on a child
 /// of the same mode as the parent's. 
 /// If a child has already a public lock attached (e.g. by AttachPublicLockChainUp) 
 /// then we convert the public lock to the supremum mode.
@@ -536,10 +526,11 @@ HLockManager::AttachPublicLockChild(HLock* phlock, HLock* chlock, lock_protocol:
 			lock_protocol::RETRY) 
 		{
 			// I have the recursive lock but couldn't grab a public lock on my
-			// child? How is this possible? It should be possible only with a
-			// child that is reachable through multiple paths. I should check this
-			// TODO
-			assert(0 && "TODO");
+			// child. By invariant, this is only possible when a child is 
+			// reachable through multiple paths. I can safely ignore.
+			DBG_LOG(DBG_WARNING, DBG_MODULE(client_hlckmgr), 
+					"[%d] Cannot acquire public lock on child. "
+					"Child potentially reachable through multiple paths.\n", lm_->id());
 		}
 	}
 	return lock_protocol::OK;
@@ -779,6 +770,7 @@ HLockManager::Acquire(lock_protocol::LockId lid,
 	HLock*                hlock;
 
 	hlock = FindOrCreateLock(lid);
+	printf("Acquire: %lu, hlock=%p, hlock->lock_=%p\n", lid, hlock,  hlock->lock_);
 	r = AcquireInternal(pthread_self(), hlock, mode, flags);
 	return r;
 }
@@ -841,41 +833,14 @@ HLockManager::Release(lock_protocol::LockId lid)
 }
 
 
-
-int 
-HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
+int
+HLockManager::RevokeSubtree(HLock* hlock, lock_protocol::Mode new_mode)
 {
-	// FILEISSUE
-	// CHALLENGE: if you come here via a synchronous call from the base lock manager
-	// then you can't block when trying to upgrade the children's locks. 
-	// you either need to respond to the caller immediately and acquire locks 
-	// asynchronously in a different thread (i.e. context switch or user level thread package)
-	// or need to try to acquire locks without blocking. the lock protocol
-	// should guarantee whether you can acquire locks without blocking. for example,
-	// if you already have a recursive lock then you know that you can acquire a recursive 
-	// lock on the children as well. so there are several children upgrades which
-	// you know can happen. 
-	
 	HLockPtrSet::iterator itr;
 	HLockPtrSet           release_set;
-	HLock*                hlock;
-	HLock*                hl;
 	lock_protocol::Mode   old_public_mode;
+	HLock*                hl;
 
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d] Revoking lock %llu to %s\n", lm_->id(), lp->lid_, new_mode.String().c_str()); 
-	
-	// serialize self to other revocations and to other threads that try to 
-	// traverse the lock hierarchy such as anyone calling AttachPublicLockChainUp
-	pthread_mutex_lock(&mutex_);
-	while (status_ != NONE) {
-		pthread_cond_wait(&status_cv_, &mutex_);
-	}
-	status_ = REVOKING;
-	pthread_mutex_unlock(&mutex_);
-
-
-	hlock = static_cast<HLock*>(lp->payload_);
 	hlock->BeginConverting(true);
 	old_public_mode = hlock->lock_->public_mode_;
 	hlock->lock_->public_mode_ = new_mode;
@@ -884,8 +849,8 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	if (new_mode > hlock->mode_ || new_mode == hlock->mode_) 
 	{
 		// new_mode covers lock's private mode.
-		// just check whether we propagate a public recursive lock
-		// down to the children 
+		// check whether the public lock is a recursive lock
+		// as we need to propagate it down to the children 
 		if (old_public_mode == lock_protocol::Mode::XR ||
 		    old_public_mode == lock_protocol::Mode::SR) 
 		{
@@ -905,10 +870,22 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 		for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
 			hl = *itr;
 			assert(hl->BeginConverting(true) == 0);
-			if (!lock_protocol::Mode::AbidesHierarchyRule(hl->lock_->public_mode_, new_mode)) {
-				release_set.insert(hl);
+			if (hl->lock_) {
+				// child has a public lock
+				if(!lock_protocol::Mode::AbidesHierarchyRule(hl->lock_->public_mode_, new_mode)) 
+				{
+					release_set.insert(hl);
+				} else {
+					hl->EndConverting(true);
+				}
 			} else {
-				hl->EndConverting(true);
+				// child has a private lock
+				if(!lock_protocol::Mode::AbidesHierarchyRule(hl->mode_, new_mode)) 
+				{
+					release_set.insert(hl);
+				} else {
+					hl->EndConverting(true);
+				}
 			}
 		}
 	}
@@ -940,11 +917,57 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	}
 	hlock->EndConverting(true);
 
+	return 0;
+}
+
+
+
+
+int 
+HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
+{
+	// FILEISSUE
+	// CHALLENGE: if you come here via a synchronous call from the base lock manager
+	// then you can't block when trying to upgrade the children's locks. 
+	// you either need to respond to the caller immediately and acquire locks 
+	// asynchronously in a different thread (i.e. context switch or user level 
+	// thread package) or need to try to acquire locks without blocking. 
+	//
+	// The lock protocol should guarantee whether you can acquire locks without 
+	// blocking. for example, if you already have a recursive lock then you know 
+	// that you can acquire a recursive lock on the children as well. so there 
+	// are several children upgrades which you know can happen. 
+	// There is an exemption to the rule though: we can't guarantee non-blocking 
+	// acquisition of a child that is reachable through multiple paths as the 
+	// child might already be locked (publicly by another client). We don't need
+	// to propagate the recursive lock to that child. The reason is that the 
+	// recursive lock on the parent doesn't have any effect on the child as it was 
+	// not actually locked by us (if the chold is locked then it must have a public
+	// lock).
+	
+	HLock* hlock;
+	int    ret;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Revoking lock %llu to %s\n", lm_->id(), lp->lid_, new_mode.String().c_str()); 
+	
+	// serialize self to other revocations and to other threads that try to 
+	// traverse the lock hierarchy such as anyone calling AttachPublicLockChainUp
+	pthread_mutex_lock(&mutex_);
+	while (status_ != NONE) {
+		pthread_cond_wait(&status_cv_, &mutex_);
+	}
+	status_ = REVOKING;
+	pthread_mutex_unlock(&mutex_);
+
+	hlock = static_cast<HLock*>(lp->payload_);
+	ret = RevokeSubtree(hlock, new_mode);
+
 	pthread_mutex_lock(&mutex_);
 	status_ = NONE;
 	pthread_mutex_unlock(&mutex_);
 
-	return 0;
+	return ret;
 }
 
 } // namespace client

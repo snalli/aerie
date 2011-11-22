@@ -30,7 +30,7 @@ struct ClientFixture
 
 	~ClientFixture() 
 	{
-		delete session->sm;
+		delete session->smgr_;
 		delete session;
 	}
 	

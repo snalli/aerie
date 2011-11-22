@@ -88,6 +88,7 @@ DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino,
 	}
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(true, ino)));
 	assert(ret_pair.second == true);
+	printf("DirInodeMutable::Link (%s): DONE\n", name);
 	return 0;
 }
 

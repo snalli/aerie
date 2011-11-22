@@ -44,12 +44,10 @@ SUITE(MFSDirPnode)
 		CHECK(ino == 1);
 		
 		CHECK(dirpnode->Unlink(session, ".") == 0);
-		CHECK(dirpnode->Lookup(session, ".", &ino) == 0);
-		CHECK(ino == 0);
+		CHECK(dirpnode->Lookup(session, ".", &ino) == -E_EXIST);
 	
 		CHECK(dirpnode->Unlink(session, "..") == 0);
-		CHECK(dirpnode->Lookup(session, "..", &ino) == 0);
-		CHECK(ino == 0);
+		CHECK(dirpnode->Lookup(session, "..", &ino) == -E_EXIST);
 	}
 
 	TEST_FIXTURE(SessionFixture, TestUnlink)

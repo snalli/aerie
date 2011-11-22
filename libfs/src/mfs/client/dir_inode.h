@@ -25,8 +25,8 @@ public:
 		  pnode_(static_cast<DirPnode<client::Session>*>(pnode)),
 		  neg_entries_count_(0)
 	{ 
-		pthread_mutex_init(&mutex_, NULL);
 		entries_.set_empty_key("");
+		printf("DirInodeMutable: %p\n", this);
 		printf("DirInodeMutable: pnode=%p\n", pnode);
 		printf("DirInodeMutable: ino=%lu\n", ino_);
 	}

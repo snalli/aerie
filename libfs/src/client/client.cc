@@ -178,12 +178,13 @@ create(const char* path, Inode** ipp, int mode, int type)
 	// when Nameiparent returns successfully, dp is 
 	// locked for writing. we release the lock on dp after we get the lock
 	// on its child
-	if ((ret = global_namespace->Nameiparent(global_session, path, true, 
+	if ((ret = global_namespace->Nameiparent(global_session, path, 
+	                                         lock_protocol::Mode::XL, 
 	                                         name, &dp)) < 0) 
 	{
 		return ret;
 	}
-
+	printf("create: dp=%p\n", dp);
 	if ((ret = dp->Lookup(global_session, name, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
 		ip->Lock(dp, lock_protocol::Mode::XR); 
@@ -205,12 +206,12 @@ create(const char* path, Inode** ipp, int mode, int type)
 	printf("dp=%p\n", dp);
 	sb = dp->GetSuperBlock();
 
-	// allocated inode is write locked
+	// allocated inode is write locked and referenced (refcnt=1)
 	if ((ret = sb->AllocInode(global_session, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}
-	
+	printf("allocated inode\n");
 	ip->set_nlink(1);
 	if (type == client::type::kDirInode) {
 		assert(dp->set_nlink(dp->nlink() + 1) == 0); // for child's ..
@@ -218,9 +219,9 @@ create(const char* path, Inode** ipp, int mode, int type)
 		assert(ip->Link(global_session, "..", dp, false) == 0);
 	}
 	assert(dp->Link(global_session, name, ip, false) == 0);
-	assert(dp->Lookup(global_session, name, &ip) == 0); 
 	dp->Put();
 	dp->Unlock();
+	*ipp = ip;
 	return 0;
 }
 
@@ -232,7 +233,6 @@ Client::Open(const char* path, int flags, int mode)
 	int    ret;
 	int    fd;
 	File*  fp;
-	bool   write;
 
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
@@ -250,7 +250,9 @@ Client::Open(const char* path, int flags, int mode)
 			return ret;
 		}	
 	} else {
-		if((ret = global_namespace->Namei(global_session, path, write, &ip)) < 0) {
+		lock_protocol::Mode lock_mode; // FIXME: what lock_mode?
+
+		if((ret = global_namespace->Namei(global_session, path, lock_mode, &ip)) < 0) {
 			return ret;
 		}	
 		printf("do_open: path=%s, ret=%d, ip=%p\n", path, ret, ip);
@@ -329,6 +331,9 @@ Client::CreateDir(const char* path, int mode)
 	if ((ret = create(path, &ip, mode, client::type::kDirInode)) < 0) {
 		return ret;
 	}
+	printf("Client::CreateDir: %s -> %p\n", path, ip);
+	ip->Put();
+	ip->Unlock();
 	//TODO: unlock/release the inode?
   	// iunlockput(ip);
 	return 0;
@@ -413,7 +418,7 @@ Client::Unlink(const char* pathname)
 	// we do spider locking; when Nameiparent returns successfully, dp is 
 	// locked for writing. we release the lock on dp after we get the lock
 	// on its child
-	if ((ret = global_namespace->Nameiparent(global_session, pathname, true, 
+	if ((ret = global_namespace->Nameiparent(global_session, pathname, lock_protocol::Mode::XL, 
 	                                         name, &dp)) < 0) 
 	{
 		return ret;

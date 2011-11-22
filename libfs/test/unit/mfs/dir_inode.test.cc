@@ -29,11 +29,16 @@ SUITE(MFSDirInode)
 
 	TEST_FIXTURE(ClientFixture, TestLink)
 	{
-		client::Inode*             inode;
-		SuperBlock*                sb = new SuperBlock(session);
-		DirPnode<client::Session>* dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>* child;
+		client::Inode*                inode;
+		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
+		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
+		SuperBlock*                   sb;
+		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
+		DirPnode<client::Session>*    child;
 		
+		psb->root_ = (uint64_t) rootpnode;
+		sb = new SuperBlock(session, psb);
+
 		InitNames(session, dirpnode);
 
 		DirInodeMutable* dinode = new DirInodeMutable(sb, dirpnode); 
@@ -49,11 +54,16 @@ SUITE(MFSDirInode)
 
 	TEST_FIXTURE(ClientFixture, TestUnlink)
 	{
-		client::Inode*             inode;
-		SuperBlock*                sb = new SuperBlock(session);
-		DirPnode<client::Session>* dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>* child;
+		client::Inode*                inode;
+		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
+		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
+		SuperBlock*                   sb;
+		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
+		DirPnode<client::Session>*    child;
 		
+		psb->root_ = (uint64_t) rootpnode;
+		sb = new SuperBlock(session, psb);
+
 		InitNames(session, dirpnode);
 
 		DirInodeMutable* dinode = new DirInodeMutable(sb, dirpnode); 
@@ -67,19 +77,24 @@ SUITE(MFSDirInode)
 		child = new(session) DirPnode<client::Session>;
 		CHECK(dinode->Link(session, "foo", (uint64_t) child, false)==0);
 		CHECK(dinode->Lookup(session, "foo", &inode) == 0);
-		CHECK(inode->GetInodeNumber() == (uint64_t) child);
+		CHECK(inode->ino() == (uint64_t) child);
 	}
 
 
 	TEST_FIXTURE(ClientFixture, TestLinkPublish1)
 	{
-		client::Inode*             inode;
-		SuperBlock*                sb = new SuperBlock(session);
-		DirPnode<client::Session>* dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>* child;
-		DirPnode<client::Session>* child1;
-		DirPnode<client::Session>* child2;
-		uint64_t                   ino;
+		client::Inode*                inode;
+		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
+		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
+		SuperBlock*                   sb;
+		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
+		DirPnode<client::Session>*    child;
+		DirPnode<client::Session>*    child1;
+		DirPnode<client::Session>*    child2;
+		uint64_t                      ino;
+
+		psb->root_ = (uint64_t) rootpnode;
+		sb = new SuperBlock(session, psb);
 
 		InitNames(session, dirpnode);
 
@@ -106,13 +121,18 @@ SUITE(MFSDirInode)
 	
 	TEST_FIXTURE(ClientFixture, TestLinkPublish2)
 	{
-		client::Inode*             inode;
-		SuperBlock*                sb = new SuperBlock(session);
-		DirPnode<client::Session>* dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>* child;
-		DirPnode<client::Session>* child1;
-		DirPnode<client::Session>* child2;
-		uint64_t                   ino;
+		client::Inode*                inode;
+		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
+		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
+		SuperBlock*                   sb;
+		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
+		DirPnode<client::Session>*    child;
+		DirPnode<client::Session>*    child1;
+		DirPnode<client::Session>*    child2;
+		uint64_t                      ino;
+
+		psb->root_ = (uint64_t) rootpnode;
+		sb = new SuperBlock(session, psb);
 
 		InitNames(session, dirpnode);
 
@@ -138,13 +158,18 @@ SUITE(MFSDirInode)
 	// then link the same name
 	TEST_FIXTURE(ClientFixture, TestLinkPublish3)
 	{
-		client::Inode*             inode;
-		SuperBlock*                sb = new SuperBlock(session);
-		DirPnode<client::Session>* dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>* child;
-		DirPnode<client::Session>* child1;
-		DirPnode<client::Session>* child2;
-		uint64_t                   ino;
+		client::Inode*                inode;
+		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
+		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
+		SuperBlock*                   sb;
+		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
+		DirPnode<client::Session>*    child;
+		DirPnode<client::Session>*    child1;
+		DirPnode<client::Session>*    child2;
+		uint64_t                      ino;
+		
+		psb->root_ = (uint64_t) rootpnode;
+		sb = new SuperBlock(session, psb);
 
 		InitNames(session, dirpnode);
 

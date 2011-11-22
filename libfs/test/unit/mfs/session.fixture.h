@@ -14,7 +14,7 @@ public:
 
 class Session {
 public:
-	StorageManager* sm;
+	StorageManager* smgr_;
 };
 
 struct SessionFixture 
@@ -23,12 +23,12 @@ struct SessionFixture
 		: session(NULL)
 	{ 
 		session = new Session();
-		session->sm = new StorageManager();
+		session->smgr_ = new StorageManager();
 	}
 
 	~SessionFixture() 
 	{
-		delete session->sm;
+		delete session->smgr_;
 		delete session;
 	}
 	

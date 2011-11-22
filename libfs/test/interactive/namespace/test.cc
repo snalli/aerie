@@ -26,6 +26,7 @@ void test11(const char* tag)
 	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
 	libfs_mkdir("/home/hvolos/dir", 0);
 	libfs_mkdir("/home/hvolos/dir/test", 0);
+	//libfs_mkdir("/home/hvolos/dir/../foo", 0);
 	
 	
 	//libfs_open("/etc/hvolos/test", 0);
