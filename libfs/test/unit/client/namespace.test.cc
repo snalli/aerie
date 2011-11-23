@@ -4,8 +4,8 @@
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "tool/testfw/unittest.h"
-//#include "mfs/client/dir_inode.h"
 #include "common/errno.h"
+#include "common/types.h"
 #include "client.fixture.h"
 #include "client/namespace.h"
 #include "client/sb.h"
@@ -19,7 +19,7 @@ public:
 	
 	PseudoDirInode(client::SuperBlock* sb);
 
-	int Init(client::Session* session, client::InodeNumber ino) { assert(0); }
+	int Init(client::Session* session, InodeNumber ino) { assert(0); }
 	int Open(client::Session* session, const char* path, int flags) { assert(0); }
 	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { assert(0); }
 	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { assert(0); }
@@ -31,17 +31,13 @@ public:
 
 	int Publish(client::Session* session) { assert(0); }
 
-	client::SuperBlock* GetSuperBlock() { return sb_; }
-	void SetSuperBlock(client::SuperBlock* sb) { sb_ = sb; }
-
 private:
-	client::SuperBlock* sb_;
 	EntryCache          entries_;
 };
 
 
 PseudoDirInode::PseudoDirInode(client::SuperBlock* sb)
-	: sb_(sb)
+	: Inode(sb, NULL, 0)
 { 
 	entries_.set_empty_key("");
 }
@@ -87,7 +83,7 @@ public:
 	void* GetPSuperBlock() { assert(0); }
 
 private:
-	int LoadInode(client::InodeNumber ino, client::Inode** ipp) { assert(0); }
+	int LoadInode(InodeNumber ino, client::Inode** ipp) { assert(0); }
 	int MakeInode(client::Session* session, int type, client::Inode** ipp) { assert(0); }
 };
 

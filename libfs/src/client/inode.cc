@@ -4,6 +4,7 @@ namespace client {
 
 Inode::Inode()
 	: sb_(NULL),
+	  pnode_(NULL),
 	  ino_(0)
 { 
 	printf("Inode::Inode: %p\n", this);
@@ -11,8 +12,9 @@ Inode::Inode()
 }
 
 
-Inode::Inode(SuperBlock* sb, InodeNumber ino)
+Inode::Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino)
 	: sb_(sb),
+	  pnode_(pnode),
 	  ino_(ino)
 {
 	printf("Inode::Inode: %p\n", this);

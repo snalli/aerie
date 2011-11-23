@@ -1,6 +1,7 @@
 #ifndef _SUPERBLOCK_H_SHD191
 #define _SUPERBLOCK_H_SHD191
 
+#include "common/types.h"
 #include "client/inode.h"
 
 // The SuperBlock provides an indirection layer to the inodes of the 
@@ -36,7 +37,7 @@ protected:
 private:
 	// FIXME: this functions should really be replaced with an inode factory 
 	virtual int MakeInode(Session* session, int type, Inode** ipp) = 0;
-	virtual int LoadInode(client::InodeNumber ino, client::Inode** ipp) = 0;
+	virtual int LoadInode(InodeNumber ino, client::Inode** ipp) = 0;
 };
 
 

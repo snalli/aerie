@@ -129,7 +129,7 @@ private:
 	lock_protocol::status AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock);
-	int RevokeSubtree(HLock* hlock, lock_protocol::Mode new_mode);
+	int RevokeSubtree(Lock* lock, lock_protocol::Mode new_mode);
 
 	pthread_mutex_t      mutex_;
 	Status               status_;

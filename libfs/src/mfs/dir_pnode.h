@@ -12,8 +12,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
+#include "common/pnode.h"
 #include "mfs/mfs_i.h"
-#include "mfs/pnode.h"
 #include "mfs/hashtable.h"
 #include "common/debug.h"
 #include "common/util.h"

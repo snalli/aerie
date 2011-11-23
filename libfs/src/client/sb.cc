@@ -1,6 +1,7 @@
 #ifndef _CLIENT_SUPERBLOCK_H_ANM198
 #define _CLIENT_SUPERBLOCK_H_ANM198
 
+#include "common/types.h"
 #include "client/sb.h"
 #include "client/inode.h"
 #include "client/imap.h"
@@ -35,7 +36,7 @@ SuperBlock::AllocInode(Session* session, int type, Inode** ipp)
 
 
 int
-SuperBlock::GetInode(client::InodeNumber ino, client::Inode** ipp)
+SuperBlock::GetInode(InodeNumber ino, client::Inode** ipp)
 {
 	client::Inode* ip;
 	int            ret;

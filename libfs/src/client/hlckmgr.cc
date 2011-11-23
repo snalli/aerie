@@ -7,90 +7,91 @@
 
 namespace client {
 
-// POLICIES
-//
-// Downgrade:
-//
-// SR --> SL 
-// upgrade each child's local SL lock to a base SR lock 
-// 
-// OR? 
-//
-// SR --> IXSL
-// we need this downgrade if we want to prevent someone from 
-// getting the base lock at SR. I don't think we need this 
-// because the children lock at SR to allow this downgrade 
-// to happen.
-//
-// XR --> IXSL
-// upgrade each child's IXSL lock to a base XR lock
-//
-// all other downgrades require releasing the subtree of locks
-//   e.g SR --> NL: release subtree
-//
-// Upgrade:
-//
-// if cannot upgrade base lock then release all locks
-//
-//
+/** 
+ * POLICIES
+ * 
+ * Downgrade:
+ *
+ * SR --> SL 
+ * upgrade each child's local SL lock to a base SR lock 
+ * 
+ * OR? 
+ *
+ * SR --> IXSL
+ * we need this downgrade if we want to prevent someone from 
+ * getting the base lock at SR. I don't think we need this 
+ * because the children lock at SR to allow this downgrade 
+ * to happen.
+ *
+ * XR --> IXSL
+ * upgrade each child's IXSL lock to a base XR lock
+ *
+ * all other downgrades require releasing the subtree of locks
+ *   e.g SR --> NL: release subtree
+ *
+ * Upgrade:
+ *
+ * if cannot upgrade base lock then release all locks
+ *
+ */
 
-
-/
-// Invariants 
-//
-// 1) Base lock's mode cannot change without invoking the hierarchical lock 
-// manager so it's safe to check lock's state without going through the 
-// base lock manager.
-//    (Cannot change the state of a base lock attached to a hierarchical lock 
-//     without acquring the lock protecting the hierarchical lock.)
-//
-//
-// Locking protocol:
-// 
-// Recursive Rule: some ancestor has a public recursive lock. 
-//  - this rule enables us to acquire a private lock without invoking the server 
-//    lock manager. 
-//
-// Hierarchy Rule: there is an intention or recursive lock on the parent's
-// lock that is compatible. 
-//  - this rule guarantees we acquire locks hierarchically. 
-//
-//
-// 1) If we have a parent then try to acquire a private lock under the 
-//    parent. 
-//    we need to meet the recursive rule:
-/
-//    if we fail the recursive rule then we acquire a public lock.
-//    we need to meet the hierarchy rule:
-//    e.g if SR and need IXSL, we violate the hierarchy rule
-//
-//    if we don't meet the hierarchy rule, then we report a hierarchy 
-//    violation. 
-//
-// 2) If we don't have a parent then we need to have a capability, which 
-//    we provide to the server to get a globally visible lock.
-//
-//
-// Notes:
-// 1) Hierarchical lock acts as mutex lock between threads, that is multiple 
-//    threads cannot acquire the lock even if the locked is held at a mode
-//    permitting multiple owners (e.g. SL). 
-// 
-//
-// TOCTTOU RACE:
-//
-// The locking protocol does not protect against TOCTTOU races sush as 
-// when we check we are under a parent and then someone moves us under 
-// a new parent. The user is responsible for ensuring such races don't 
-// happen by doing lock-coupling of parent and child.
-//
-//
-// States:
-//
-// CONVERTING: intermediate state. 
-// prevents others from modifying lock metadata such as public lock, 
-// mode, children set. 
-// enables a high priority task to abort a low priority task.
+/**
+ * Invariants 
+ *
+ * 1) Base lock's mode cannot change without invoking the hierarchical lock 
+ * manager so it's safe to check lock's state without going through the 
+ * base lock manager.
+ *    (Cannot change the state of a base lock attached to a hierarchical lock 
+ *     without acquring the lock protecting the hierarchical lock.)
+ *
+ *
+ * Locking protocol:
+ * 
+ * Recursive Rule: some ancestor has a public recursive lock. 
+ *  - this rule enables us to acquire a private lock without invoking the server 
+ *    lock manager. 
+ *
+ * Hierarchy Rule: there is an intention or recursive lock on the parent's
+ * lock that is compatible. 
+ *  - this rule guarantees we acquire locks hierarchically. 
+ *
+ *
+ * 1) If we have a parent then try to acquire a private lock under the 
+ *    parent. 
+ *    we need to meet the recursive rule:
+ *
+ *    if we fail the recursive rule then we acquire a public lock.
+ *    we need to meet the hierarchy rule:
+ *    e.g if SR and need IXSL, we violate the hierarchy rule
+ *
+ *    if we don't meet the hierarchy rule, then we report a hierarchy 
+ *    violation. 
+ *
+ * 2) If we don't have a parent then we need to have a capability, which 
+ *    we provide to the server to get a globally visible lock.
+ *
+ *
+ * Notes:
+ * 1) Hierarchical lock acts as mutex lock between threads, that is multiple 
+ *    threads cannot acquire the lock even if the locked is held at a mode
+ *    permitting multiple owners (e.g. SL). 
+ * 
+ *
+ * TOCTTOU RACE:
+ *
+ * The locking protocol does not protect against TOCTTOU races sush as 
+ * when we check we are under a parent and then someone moves us under 
+ * a new parent. The user is responsible for ensuring such races don't 
+ * happen by doing lock-coupling of parent and child.
+ *
+ *
+ * States:
+ *
+ * CONVERTING: intermediate state. 
+ * prevents others from modifying lock metadata such as public lock, 
+ * mode, children set. 
+ * enables a high priority task to abort a low priority task.
+ */
 
 HLock::HLock(lock_protocol::LockId lid, HLock* phl)
 	: status_(NONE),
@@ -770,7 +771,6 @@ HLockManager::Acquire(lock_protocol::LockId lid,
 	HLock*                hlock;
 
 	hlock = FindOrCreateLock(lid);
-	printf("Acquire: %lu, hlock=%p, hlock->lock_=%p\n", lid, hlock,  hlock->lock_);
 	r = AcquireInternal(pthread_self(), hlock, mode, flags);
 	return r;
 }
@@ -834,8 +834,9 @@ HLockManager::Release(lock_protocol::LockId lid)
 
 
 int
-HLockManager::RevokeSubtree(HLock* hlock, lock_protocol::Mode new_mode)
+HLockManager::RevokeSubtree(Lock* lp, lock_protocol::Mode new_mode)
 {
+	HLock*                hlock = static_cast<HLock*>(lp->payload_);
 	HLockPtrSet::iterator itr;
 	HLockPtrSet           release_set;
 	lock_protocol::Mode   old_public_mode;
@@ -945,7 +946,6 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	// not actually locked by us (if the chold is locked then it must have a public
 	// lock).
 	
-	HLock* hlock;
 	int    ret;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
@@ -960,8 +960,7 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	status_ = REVOKING;
 	pthread_mutex_unlock(&mutex_);
 
-	hlock = static_cast<HLock*>(lp->payload_);
-	ret = RevokeSubtree(hlock, new_mode);
+	ret = RevokeSubtree(lp, new_mode);
 
 	pthread_mutex_lock(&mutex_);
 	status_ = NONE;

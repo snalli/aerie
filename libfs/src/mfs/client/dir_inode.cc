@@ -14,11 +14,11 @@ int
 DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inode** ipp) 
 {
 	int                   ret;
-	client::InodeNumber   ino;
+	InodeNumber           ino;
 	client::Inode*        ip;
 	EntryCache::iterator  it;
 	
-	printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) pnode_);
+	printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) dir_pnode());
 
 	// check the private copy first before looking up the global one
 	if ((it = entries_.find(name)) != entries_.end()) {
@@ -28,7 +28,7 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 			return -E_NOENT;
 		}
 	} else {
-		if ((ret = pnode_->Lookup(session, name, &ino)) < 0) {
+		if ((ret = dir_pnode()->Lookup(session, name, &ino)) < 0) {
 			return ret;
 		}
 	}
@@ -82,7 +82,7 @@ DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino,
 		}
 	}
 	
-	if ((ret = pnode_->Lookup(session, name, &ino)) == 0) {
+	if ((ret = dir_pnode()->Lookup(session, name, &ino)) == 0) {
 		// name exists in the persistent structure
 		return -E_EXIST;
 	}
@@ -116,7 +116,7 @@ DirInodeMutable::Unlink(client::Session* session, const char* name)
 		}
 	}
 	
-	if ((ret = pnode_->Lookup(session, name, &ino)) != 0) {
+	if ((ret = dir_pnode()->Lookup(session, name, &ino)) != 0) {
 		// name does not exist in the persistent structure
 		return -E_EXIST;
 	}
@@ -184,12 +184,12 @@ DirInodeMutable::Publish(client::Session* session)
 			// because there we replay the journal which has the unlink operation.
 			// so don't worry for now.
 			// TEST TestLinkPublish3 checks this case
-			if ((ret = pnode_->Link(session, it->first.c_str(), it->second.second)) != 0) {
+			if ((ret = dir_pnode()->Link(session, it->first.c_str(), it->second.second)) != 0) {
 				return ret;
 			}
 		} else {
 			// negative entry -- unlink
-			if ((ret = pnode_->Unlink(session, it->first.c_str())) != 0) {
+			if ((ret = dir_pnode()->Unlink(session, it->first.c_str())) != 0) {
 				return ret;
 			}
 		}

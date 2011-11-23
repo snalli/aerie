@@ -3,23 +3,23 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "common/types.h"
+#include "common/pnode.h"
 #include "client/const.h"
 #include "client/hlckmgr.h"
+
 
 namespace client {
 
 extern HLockManager* global_hlckmgr;
 
-typedef uint64_t InodeNumber;
-
 class Session;
 class SuperBlock;
-
 
 class Inode {
 public:
 	Inode();
-	Inode(SuperBlock* sb, InodeNumber ino);
+	Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino);
 
 	virtual int Init(client::Session* session, InodeNumber ino) = 0;
 	virtual int Open(client::Session* session, const char* path, int flags) = 0;
@@ -32,14 +32,18 @@ public:
 
 	virtual int Publish(client::Session* session) = 0;
 
-	virtual client::SuperBlock* GetSuperBlock() = 0;
-	virtual void SetSuperBlock(client::SuperBlock* sb) = 0;
-
+	client::SuperBlock* GetSuperBlock() { return sb_;}
+	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
+	
 	InodeNumber ino() { return ino_; };
 	void SetInodeNumber(InodeNumber ino) { ino_ = ino; };
 
 	virtual int nlink() { assert(0 && "Not implemented by subclass"); };
 	virtual int set_nlink(int nlink) { assert(0 && "Not implemented by subclass"); };
+
+	TimeStamp ts() { 
+		return pnode_->ts();	
+	}
 
 	int Get();
 	int Put();
@@ -53,6 +57,7 @@ public:
 	}
 
 //protected:
+	Pnode*              pnode_;             // pointer to the immutable persistent inode structure
 	//! process-wide mutex; used for synchronizing access to the
 	//! volatile inode metadata
 	pthread_mutex_t     mutex_;

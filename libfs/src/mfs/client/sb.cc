@@ -39,7 +39,7 @@ SuperBlock::MakeInode(client::Session* session, int type, client::Inode** ipp)
 
 // creates an inode that wraps the persistent inode identified by number ino
 int
-SuperBlock::LoadInode(client::InodeNumber ino, client::Inode** ipp)
+SuperBlock::LoadInode(InodeNumber ino, client::Inode** ipp)
 {
 	int            ret;
 	client::Inode* ip;

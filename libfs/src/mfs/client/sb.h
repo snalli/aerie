@@ -1,8 +1,9 @@
 #ifndef _MFS_CLIENT_SUPERBLOCK_H_KAJ911
 #define _MFS_CLIENT_SUPERBLOCK_H_KAJ911
 
-#include "client/backend.h"
 #include <pthread.h>
+#include "common/types.h"
+#include "client/backend.h"
 #include "mfs/client/dir_inode.h"
 #include "mfs/psb.h"
 
@@ -22,7 +23,7 @@ public:
 	void* GetPSuperBlock() { return (void*) psb_; }
 
 private:
-	int LoadInode(client::InodeNumber ino, client::Inode** ipp);
+	int LoadInode(InodeNumber ino, client::Inode** ipp);
 	int MakeInode(client::Session* session, int type, client::Inode** ipp);
 	
 	PSuperBlock<client::Session>* psb_;

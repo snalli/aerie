@@ -103,10 +103,10 @@ FilePnode::InsertRegion(Region* region)
 	uint64_t newheight;
 	uint64_t bcount;
 
-	printf("FilePnode::InsertRegion region=%p\n", region);
-	printf("FilePnode::InsertRegion region->radixtree_.rnode_=%p\n", region->radixtree_.rnode_);
-	printf("FilePnode::InsertRegion region->base_bn_=%d\n", region->base_bn_);
-	printf("FilePnode::InsertRegion region->slot_.slot_base_=%p\n", region->slot_.slot_base_);
+	//printf("FilePnode::InsertRegion region=%p\n", region);
+	//printf("FilePnode::InsertRegion region->radixtree_.rnode_=%p\n", region->radixtree_.rnode_);
+	//printf("FilePnode::InsertRegion region->base_bn_=%d\n", region->base_bn_);
+	//printf("FilePnode::InsertRegion region->slot_.slot_base_=%p\n", region->slot_.slot_base_);
 
 	if (region->base_bn_ < N_DIRECT) {
 		// TODO: journal this update

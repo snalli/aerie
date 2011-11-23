@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
+#include "common/types.h"
 #include "client/sb.h"
 #include "client/inode.h"
 #include "mfs/hashtable.h"
@@ -21,8 +22,7 @@ public:
 	typedef google::dense_hash_map<std::string, std::pair<bool, uint64_t> > EntryCache;
 	
 	DirInodeMutable(client::SuperBlock* sb, Pnode* pnode)
-		: Inode(sb, (client::InodeNumber) pnode),
-		  pnode_(static_cast<DirPnode<client::Session>*>(pnode)),
+		: Inode(sb, pnode, reinterpret_cast<InodeNumber>(pnode)),
 		  neg_entries_count_(0)
 	{ 
 		entries_.set_empty_key("");
@@ -30,11 +30,6 @@ public:
 		printf("DirInodeMutable: pnode=%p\n", pnode);
 		printf("DirInodeMutable: ino=%lu\n", ino_);
 	}
-
-	DirInodeMutable(Pnode* pnode)
-		: pnode_(static_cast<DirPnode<client::Session>*>(pnode))
-	{ assert(0); }
-
 
 	int Init(client::Session* session, uint64_t ino) {
 		ino_ = ino;
@@ -49,9 +44,6 @@ public:
 	int Insert(client::Session* session, const char* name, client::Inode* inode) { };
 	int Unlink(client::Session* session, const char* name);
 
-	client::SuperBlock* GetSuperBlock() { return sb_;}
-	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
-	
 	int Lookup(client::Session* session, const char* name, client::Inode** ipp);
 
 	int Link(client::Session* session, const char* name, client::Inode* ip, bool overwrite);
@@ -62,10 +54,17 @@ public:
 	int set_nlink(int nlink);
 
 private:
-	DirPnode<client::Session>*  pnode_;             // immutable persistent inode structure
+	DirPnode<client::Session>* dir_pnode();
+	
 	EntryCache                  entries_;
 	int                         neg_entries_count_; // number of negative entries in the map entries_
 };
+
+inline DirPnode<client::Session>*  
+DirInodeMutable::dir_pnode() {
+	return reinterpret_cast<DirPnode<client::Session>*>(pnode_);
+}
+
 
 
 } // namespace mfs

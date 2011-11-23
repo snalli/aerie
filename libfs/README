@@ -4,7 +4,8 @@ DEPENDENCIES
 * Boost C++ Libraries
 * UnitTest++
 * libconfig++
-
+* sysv_ipc python package
+  http://pypi.python.org/pypi/sysv_ipc
 
 STYLE GUIDE
 * We follow Google C++ Style Guide

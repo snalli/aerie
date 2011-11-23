@@ -8,14 +8,17 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cstring>
+#include <stack>
 #include <typeinfo>
 #include "common/util.h"
 #include "common/hrtime.h"
 #include "server/api.h"
 #include "client/client_i.h"
 #include "client/mpinode.h"
+#include "client/inode.h"
 #include "client/hlckmgr.h"
 #include "client/sb.h"
+#include "client/optreadset.h"
 #include "common/debug.h"
 
 #include <typeinfo>
@@ -160,6 +163,46 @@ NameSpace::Unmount(Session* session, char* name)
 }
 
 
+// caller does not hold any lock 
+// 
+// it relies on optimistic concurrency to traverse the chain up to the root
+// and then acquire locks down till the inode
+int
+NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mode)
+{
+	std::vector<Inode*> inode_chain; // treated as a stack
+	OptReadSet<Inode>   read_set;
+	Inode*              tmp_inode;
+	Inode*              parent_inode;
+	int                 retries = 0;
+	int                 ret;
+
+traverse:	
+	if (retries++ > 10) {
+		return -E_BUSY;
+	}
+	read_set.Reset();
+	inode_chain.clear();
+	for (tmp_inode = inode; tmp_inode != root_; tmp_inode = parent_inode) {
+		inode_chain.push_back(tmp_inode);
+		read_set.Read(tmp_inode);
+		ret = tmp_inode->Lookup(session, "..", &parent_inode);
+		if (ret != E_SUCCESS) {
+
+		}
+		if (!read_set.Validate()) {
+			// inconsistent read set; restart
+			goto traverse;
+		}
+	}
+
+	read_set.Validate();
+
+
+	
+}
+
+
 // Look up and return the inode for a path name.
 // If parent != 0, return the inode for the parent and copy the final
 // path element into name, which must have room for DIRSIZ bytes.
@@ -210,10 +253,10 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	// consume the rest of the path by acquiring a lock on each inode in a spider
 	// locking fashion. spider locking is necessary because acquiring an
 	// hierarchical lock on an inode requires having the parent locked.
-	// if we encounter a .. then we move up the hierarchy so we don't do spider 
-	// locking. the client may no longer own the lock on the .. though if another
-	// client asked the lock. this is okay, the lock-manager will bootstrap the 
-	// lock by acquiring locks along the chain from the root to the inode ..
+	// if we encounter a .. then we move up the hierarchy but we don't do spider 
+	// locking. however the client may no longer own the lock on the .. if another
+	// client asked the lock. in this case we need to boostrap the lock by
+	// acquiring locks along the chain from the root to the inode ..
 	while (path != 0) {
 		printf("Namex: inode=%p (ino=%lu), name=%s\n", inode, inode->ino(), name);
 		if ((ret = inode->Lookup(session, name, &inode_next)) < 0) {
@@ -241,7 +284,9 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 			if (str_is_dot(old_name) == 2) {
 				// encountered a ..
 				inode->Unlock();
-				assert(inode_next->Lock(lock_protocol::Mode::IXSL) == E_SUCCESS);
+				if (inode_next->Lock(lock_protocol::Mode::IXSL) != E_SUCCESS) {
+					LockInode(session, inode, lock_protocol::Mode::IXSL);
+				}
 			} else {
 				assert(inode_next->Lock(inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
 				inode->Unlock();
