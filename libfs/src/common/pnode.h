@@ -11,7 +11,7 @@
 
 // x86 specific: allocator has to ensure that this structure is aligned at 8 byte increments
 // to allow atomically reading the lock/timestamp field (ts_) 
-class Pnode {
+class Pnode: public stm::Object<Pnode> {
 public:
 	static Pnode* Load(uint64_t ino) {
 		return reinterpret_cast<Pnode*>(ino);
@@ -19,10 +19,10 @@ public:
 	
 	InodeNumber ino() { return ino_; }
 	TimeStamp ts() { return ts_; }
+	TimeStamp   ts_;
 
 	uint32_t    magic_;
 	InodeNumber ino_;
-	TimeStamp   ts_;
 	uint32_t    nlink_;
 };
 

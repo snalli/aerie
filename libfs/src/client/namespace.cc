@@ -178,25 +178,28 @@ NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mo
 	int                 ret;
 
 traverse:	
-	if (retries++ > 10) {
-		return -E_BUSY;
-	}
-	read_set.Reset();
-	inode_chain.clear();
-	for (tmp_inode = inode; tmp_inode != root_; tmp_inode = parent_inode) {
-		inode_chain.push_back(tmp_inode);
-		read_set.Read(tmp_inode);
-		ret = tmp_inode->Lookup(session, "..", &parent_inode);
-		if (ret != E_SUCCESS) {
+	//if (retries++ > 10) {
+	//	return -E_BUSY;
+	//}
+	//read_set.Reset();
+	if (TX_BEGIN()) 
+	{
+		inode_chain.clear();
+		for (tmp_inode = inode; tmp_inode != root_; tmp_inode = parent_inode) {
+			inode_chain.push_back(tmp_inode);
+			//read_set.Read(tmp_inode);
+			tmp_inode = tmp_inode->txOpenRO();
+			ret = tmp_inode->Lookup(session, "..", &parent_inode);
+			if (ret != E_SUCCESS) {
 
-		}
-		if (!read_set.Validate()) {
-			// inconsistent read set; restart
-			goto traverse;
+			}
+			if (!read_set.Validate()) {
+				// inconsistent read set; restart
+				goto traverse;
+			}
 		}
 	}
-
-	read_set.Validate();
+	//read_set.Validate();
 
 
 	

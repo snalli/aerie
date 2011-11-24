@@ -1,10 +1,67 @@
-#ifndef _OPTIMISTIC_READSET_H_BMA567
-#define _OPTIMISTIC_READSET_H_BMA567
+#ifndef _TRANSACTION_STAMNOS_H_BMA567
+#define _TRANSACTION_STAMNOS_H_BMA567
 
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/types.h"
 
+// Currently we support just read-only distributed transactions
+// For writes, one has to revert to using locks.
+
+namespace dstm {
+
+typedef uint64_t Version;
+
+class ObjectPublicHeader {
+public:
+	ObjectPublicHeader()
+		: version_(0)
+	{ }
+
+protected:
+	Version version_;
+};
+
+
+class ObjectPrivateHeader {
+public:
+	ObjectPrivateHeader()
+		: version_(0)
+	{ }
+
+protected:
+	Transaction* tx;
+};
+
+
+template<class Derived>
+class Object: public ObjectPublicHeader {
+
+};
+
+// this is the private wrapper 
+template<class Derived, class WrappedObject>
+class ObjectWrapper: public Object<Derived> {
+public:
+	Derived* xOpenRO(Transaction* tx);
+
+private:
+	WrappedObject	
+};
+
+
+class Transaction {
+public:
+	int Begin();
+	int	End();
+
+private:
+	typedef google::dense_hash_map<T*, Entry> Set;
+	
+	Set read_set_;
+};
+
+/*
 // Read consistent set. implemented similarly to Harris, OOPSLA 2003
 // 
 
@@ -78,5 +135,8 @@ OptReadSet<T>::Validate()
 	return true;
 }
 
+*/
 
-#endif // _OPTIMISTIC_READSET_H_BMA567
+} // namespace dstm
+
+#endif // _TRANSACTION_STAMNOS_H_BMA567

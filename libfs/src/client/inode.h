@@ -7,6 +7,7 @@
 #include "common/pnode.h"
 #include "client/const.h"
 #include "client/hlckmgr.h"
+#include "common/tx.h"
 
 
 namespace client {
@@ -16,7 +17,7 @@ extern HLockManager* global_hlckmgr;
 class Session;
 class SuperBlock;
 
-class Inode {
+class Inode: public dstm::ShadowObject<Inode, Pnode> {
 public:
 	Inode();
 	Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino);
@@ -40,10 +41,6 @@ public:
 
 	virtual int nlink() { assert(0 && "Not implemented by subclass"); };
 	virtual int set_nlink(int nlink) { assert(0 && "Not implemented by subclass"); };
-
-	TimeStamp ts() { 
-		return pnode_->ts();	
-	}
 
 	int Get();
 	int Put();
