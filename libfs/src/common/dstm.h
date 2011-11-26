@@ -12,21 +12,27 @@ namespace dstm {
 
 typedef uint64_t Version;
 
-class ObjectPublicHeader {
+// public-shared object header
+class ObjectHeader {
 public:
 	ObjectPublicHeader()
 		: version_(0)
 	{ }
 
 protected:
-	Version version_;
+	Version version_ __attribute__ ((aligned (8)));
 };
 
 
-class ObjectPrivateHeader {
+template<class T>
+class Object: public ObjectHeader {
+
+};
+
+
+class ObjectCloneHeader {
 public:
-	ObjectPrivateHeader()
-		: version_(0)
+	ObjectCloneHeader()
 	{ }
 
 protected:
@@ -34,19 +40,13 @@ protected:
 };
 
 
-template<class Derived>
-class Object: public ObjectPublicHeader {
-
-};
-
-// this is the private wrapper 
-template<class Derived, class WrappedObject>
-class ObjectWrapper: public Object<Derived> {
+// this is the private clone 
+template<class Clone, class Shared>
+class ObjectClone: public Object<Clone> {
 public:
 	Derived* xOpenRO(Transaction* tx);
 
 private:
-	WrappedObject	
 };
 
 
@@ -54,6 +54,7 @@ class Transaction {
 public:
 	int Begin();
 	int	End();
+	int Validate();
 
 private:
 	typedef google::dense_hash_map<T*, Entry> Set;

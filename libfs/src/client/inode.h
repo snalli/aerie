@@ -17,7 +17,7 @@ extern HLockManager* global_hlckmgr;
 class Session;
 class SuperBlock;
 
-class Inode: public dstm::ShadowObject<Inode, Pnode> {
+class Inode: public dstm::ObjectClone<Inode, Pnode> {
 public:
 	Inode();
 	Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino);

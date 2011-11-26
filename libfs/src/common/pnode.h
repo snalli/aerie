@@ -9,9 +9,7 @@
 #include "common/types.h"
 
 
-// x86 specific: allocator has to ensure that this structure is aligned at 8 byte increments
-// to allow atomically reading the lock/timestamp field (ts_) 
-class Pnode: public stm::Object<Pnode> {
+class Pnode: public dstm::Object<Pnode> {
 public:
 	static Pnode* Load(uint64_t ino) {
 		return reinterpret_cast<Pnode*>(ino);
