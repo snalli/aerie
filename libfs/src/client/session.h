@@ -1,6 +1,7 @@
 #ifndef _CLIENT_SESSION_H_AKU197
 #define _CLIENT_SESSION_H_AKU197
 
+#include "client/stm.h"
 
 namespace client {
 
@@ -13,6 +14,7 @@ public:
 	{ }
 
 	client::StorageManager* smgr_;
+	stm::Transaction*       tx_;
 };
 
 } // namespace client

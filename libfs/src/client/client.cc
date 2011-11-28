@@ -11,11 +11,13 @@
 #include "client/smgr.h"
 #include "client/lckmgr.h"
 #include "client/hlckmgr.h"
+#include "client/stm.h"
 #include "chunkstore/registry.h"
-
 #include "mfs/client/mfs.h"
 
 namespace client {
+
+__thread Session* thread_session;
 
 FileManager*     global_fmgr;
 NameSpace*       global_namespace;
@@ -97,6 +99,18 @@ Client::Shutdown()
 	delete global_lckmgr;
 	delete global_hlckmgr;
 	return 0;
+}
+
+Session*
+Client::CurrentSession()
+{
+	if (thread_session) {
+		return thread_session;
+	}
+
+	thread_session = new Session(global_smgr);
+	thread_session->tx_ = stm::Self();
+	return thread_session;
 }
 
 int 

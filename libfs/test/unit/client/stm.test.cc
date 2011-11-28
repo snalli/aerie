@@ -5,8 +5,9 @@
 #include "common/errno.h"
 #include "common/types.h"
 #include "client.fixture.h"
-#include "client/optreadset.h"
+#include "client/stm.h"
 
+/*
 class TestObject {
 public:
 	TestObject(TimeStamp ts)
@@ -22,10 +23,33 @@ public:
 private:
 	TimeStamp ts_;
 };
+*/
 
-
-SUITE(ClientOptReadSet)
+SUITE(STM)
 {
+	using namespace client;
+
+	TEST(NullTransaction)
+	{
+		STM_BEGIN()
+		/* do nothing */
+		STM_END()
+	}
+
+	TEST(AbortTransaction1)
+	{
+		int val = 0;
+
+		STM_BEGIN()
+		/* do nothing */
+		STM_ABORT()
+		val = 1; /* control flow doesn't reach this statement */
+		STM_END()
+
+		CHECK(val == 0);
+	}
+
+/*
 	TEST(MultipleRead)
 	{
 		OptReadSet<TestObject> read_set;
@@ -40,5 +64,5 @@ SUITE(ClientOptReadSet)
 
 		
 	}
-
+*/
 }

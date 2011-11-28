@@ -7,7 +7,7 @@
 #include "common/pnode.h"
 #include "client/const.h"
 #include "client/hlckmgr.h"
-#include "common/tx.h"
+#include "client/stm.h"
 
 
 namespace client {
@@ -17,7 +17,7 @@ extern HLockManager* global_hlckmgr;
 class Session;
 class SuperBlock;
 
-class Inode: public dstm::ObjectClone<Inode, Pnode> {
+class Inode: public stm::ObjectProxy<Inode, Pnode> {
 public:
 	Inode();
 	Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino);

@@ -6,18 +6,17 @@
 #ifndef __PNODE_STAMNOS_H_KAL189
 #define __PNODE_STAMNOS_H_KAL189
 
+#include "common/stm.h"
 #include "common/types.h"
 
 
-class Pnode: public dstm::Object<Pnode> {
+class Pnode: public common::stm::Object {
 public:
 	static Pnode* Load(uint64_t ino) {
 		return reinterpret_cast<Pnode*>(ino);
 	}
 	
 	InodeNumber ino() { return ino_; }
-	TimeStamp ts() { return ts_; }
-	TimeStamp   ts_;
 
 	uint32_t    magic_;
 	InodeNumber ino_;

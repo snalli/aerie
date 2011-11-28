@@ -20,8 +20,9 @@ lib_sources = [
                'lckmgr.cc',
                'mpinode.cc',
                'namespace.cc', 
+	       'sb.cc',
                'smgr.cc',
-	       'sb.cc'
+	       'stm.cc'
 	      ]
 #libLocalBuildEnv.Append(LIBS = mfsLibrary)
 #libLocalBuildEnv.Append(LIBS = rpcLibrary)

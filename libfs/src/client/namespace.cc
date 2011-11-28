@@ -18,7 +18,7 @@
 #include "client/inode.h"
 #include "client/hlckmgr.h"
 #include "client/sb.h"
-#include "client/optreadset.h"
+#include "client/stm.h"
 #include "common/debug.h"
 
 #include <typeinfo>
@@ -171,34 +171,25 @@ int
 NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mode)
 {
 	std::vector<Inode*> inode_chain; // treated as a stack
-	OptReadSet<Inode>   read_set;
 	Inode*              tmp_inode;
 	Inode*              parent_inode;
 	int                 retries = 0;
 	int                 ret;
 
-traverse:	
-	//if (retries++ > 10) {
-	//	return -E_BUSY;
-	//}
-	//read_set.Reset();
-	if (TX_BEGIN()) 
-	{
+	STM_BEGIN()
 		inode_chain.clear();
 		for (tmp_inode = inode; tmp_inode != root_; tmp_inode = parent_inode) {
 			inode_chain.push_back(tmp_inode);
-			//read_set.Read(tmp_inode);
-			tmp_inode = tmp_inode->txOpenRO();
+			//tmp_inode = tmp_inode->txOpenRO();
 			ret = tmp_inode->Lookup(session, "..", &parent_inode);
 			if (ret != E_SUCCESS) {
 
 			}
-			if (!read_set.Validate()) {
+			//if (!read_set.Validate()) {
 				// inconsistent read set; restart
-				goto traverse;
-			}
+			//}
 		}
-	}
+	STM_END()
 	//read_set.Validate();
 
 

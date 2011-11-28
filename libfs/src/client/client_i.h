@@ -30,6 +30,7 @@ public:
 	static int InitRPC(int principal_id, const char* xdst);
 	static int Init(int principal_id, const char* xdst);
 	static int Shutdown(); 
+	static Session* CurrentSession();
 	static int Mount(const char* source, const char* target, const char* fstype, uint32_t flags);
 	static int Mkfs(const char* target, const char* fstype, uint32_t flags);
 	static int Open(const char* path, int flags, int mode);
