@@ -57,4 +57,34 @@ SUITE(HLock)
 		EVENT("E3");
 		libfs_shutdown();
 	}
+
+	TEST_FIXTURE(HLockFixture, TestLockIXLockIXLockXLUnlockAll)
+	{
+		lock_protocol::Mode unused;
+
+		EVENT("E1");
+		CHECK(global_hlckmgr->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
+		EVENT("E2");
+		CHECK(global_hlckmgr->Acquire(a, root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
+		EVENT("E3");
+		CHECK(global_hlckmgr->Acquire(b, a, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
+		EVENT("E4");
+		CHECK(check_grant_x(region_, b) == 0);
+		global_hlckmgr->Release(b);
+		CHECK(check_release(region_, b) == 0);
+		global_hlckmgr->Release(a);
+		global_hlckmgr->Release(root);
+		EVENT("E5");
+		EVENT("E6");
+		libfs_shutdown();
+	}
+
+	TEST_FIXTURE(HLockFixture, TestLockXR)
+	{
+		lock_protocol::Mode unused;
+
+		EVENT("E1");
+		CHECK(global_hlckmgr->Acquire(root, lock_protocol::Mode::XR, 0) == lock_protocol::OK);
+		EVENT("E2");
+	}
 }

@@ -38,6 +38,7 @@ hlock_test_list = [
                    ('TestLockUnlockSingleClient1', 1),
                    ('TestLockUnlockConcurrentClient1', 2),
                    ('TestLockUnlockConcurrentClient2', 2),
+                   ('TestDeepLockUnlockConcurrentClient', 2),
 	          ]
 
 #
@@ -249,5 +250,19 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
                   ('C1:T1:E1:block', 'C2:T1:E1:block'),
                   ('C1:T1:E2:block', 'C2:T1:E2:block'),
                   ('C1:T1:E3:block', 'C2:T1:E3:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestDeepLockUnlockConcurrentClient',
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockIXLockXLUnlockAll')]),
+        'C2': ( testProgram, [('T1', 'HLock:TestLockXR')])
+    },
+    rendezvous = [
+                  ('C1:T1:E5:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E6:block', 'C2:T1:E2:block')
     ]
 ))

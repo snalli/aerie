@@ -742,7 +742,7 @@ check_state:
 			}
 			break;
 		case HLock::NONE:
-			dbg_log(DBG_INFO, "[%d:%lu] lock %llu not available; acquiring now\n",
+			dbg_log(DBG_INFO, "[%d:%lu] Hierarchical lock %llu not available; acquiring now\n",
 			        lm_->id(), tid, lid);
 			hlock->set_status(HLock::ACQUIRING);
 			if (phlock = hlock->parent_) {
@@ -897,6 +897,7 @@ HLockManager::RevokeSubtree(Lock* lp, lock_protocol::Mode new_mode)
 	hlock->BeginConverting(true);
 	old_public_mode = hlock->lock_->public_mode_;
 
+	release_set.set_empty_key(NULL);
 	// check whether new_mode covers lock's private mode
 	if (new_mode > hlock->mode_ || new_mode == hlock->mode_) 
 	{
