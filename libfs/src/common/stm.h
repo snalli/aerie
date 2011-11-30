@@ -17,7 +17,6 @@ namespace stm {
 typedef uint64_t Version;
 
 
-
 // header of a transactional object
 class Object {
 public:
@@ -26,6 +25,7 @@ public:
 	{ }
 
 	Version xVersion() { return version_; }
+	Version xSetVersion(Version version) { version_ = version; }
 
 protected:
 	Version version_ __attribute__ ((aligned (8)));

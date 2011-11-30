@@ -491,7 +491,6 @@ LockManager::revoker()
 	std::set<lock_protocol::LockId>::iterator itr_l;
 	GrantQueue<ClientRecord>::iterator        itr_icr;
 	lock_protocol::LockId                     lid;
-	int                                       clt;
 	int                                       revoke_type;
 	std::vector<struct RevokeMsg>             revoke_msgs;
 	std::vector<struct RevokeMsg>::iterator   itr_r;
@@ -506,7 +505,6 @@ LockManager::revoker()
 		revoke_set_.erase(lid);
 		Lock* l = locks_[lid];
 		ClientRecord& waiting_cr = l->waiting_list_.front();
-
 		// ISSUE: distributed deadlock
 		// doing RPC to the client while holding the global mutex may cause a 
 		// distributed deadlock if we block behind a client who is blocked 
@@ -522,6 +520,7 @@ LockManager::revoker()
 		// clients will be added in the gtque that need to be dropped.
 		// make a local copy of the requests to be send and then release 
 		// the mutex.
+		revoke_msgs.clear();
 		for (itr_icr = l->gtque_.begin(); 
 		     itr_icr != l->gtque_.end(); itr_icr++) 
 		{
@@ -542,10 +541,11 @@ LockManager::revoker()
 		pthread_mutex_unlock(mutex_);
 
 		for (itr_r = revoke_msgs.begin(); itr_r != revoke_msgs.end(); itr_r++) {
-			int           unused;
-			dbg_log(DBG_INFO, "revoke client %d lock %llu: \n", clt, lid, revoke_type);
-
-			rpcc*         cl = clients_[(*itr_r).clt_];
+			int   unused;
+			int   clt = (*itr_r).clt_;
+			rpcc* cl = clients_[clt];
+			dbg_log(DBG_INFO, "revoke client %d lock %llu: revoke type = %d\n", 
+			        clt, lid, (*itr_r).revoke_type_);
 			if (cl) {
 				if (cl->call(rlock_protocol::revoke, lid, (*itr_r).seq_, (*itr_r).revoke_type_, unused)
 					!= rlock_protocol::OK) 

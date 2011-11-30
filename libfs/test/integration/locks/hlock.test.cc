@@ -29,6 +29,7 @@ SUITE(HLock)
 		CHECK(check_grant_x(region_, a) == 0);
 		global_hlckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
+		libfs_shutdown();
 	}
 	
 	TEST_FIXTURE(HLockFixture, TestLockIXLockXLUnlock)
@@ -42,6 +43,7 @@ SUITE(HLock)
 		CHECK(check_grant_x(region_, a) == 0);
 		global_hlckmgr->Release(a);
 		CHECK(check_release(region_, a) == 0);
+		libfs_shutdown();
 	}
 
 	TEST_FIXTURE(HLockFixture, TestLockISLockSLUnlock)
@@ -53,5 +55,6 @@ SUITE(HLock)
 		EVENT("E2");
 		global_hlckmgr->Release(a);
 		EVENT("E3");
+		libfs_shutdown();
 	}
 }

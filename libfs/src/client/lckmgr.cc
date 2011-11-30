@@ -141,18 +141,10 @@ LockManager::LockManager(rpcc* rpc_client,
 LockManager::~LockManager()
 {
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-	        "[%d] Shut down LockManager\n", cl2srv_->id());
+	        "[%d] Shutting down Lock Manager\n", cl2srv_->id());
+	
+	ShutdownReleaser();
 
-	// shutdown releaser thread
-	pthread_mutex_lock(&mutex_);
-	std::map<lock_protocol::lock_protocol::LockId, int>::iterator itri;
-	for (itri = revoke_map_.begin(); itri != revoke_map_.end(); itri++) {
-		ReleaseInternal(0, locks_[itri->first], false);
-	}
-	running_ = false;
-	pthread_cond_signal(&revoke_cv);
-	pthread_mutex_unlock(&mutex_);
-	pthread_join(releasethread_th_, NULL);
 
 	// release any held locks
 	pthread_mutex_lock(&mutex_);
@@ -172,7 +164,8 @@ LockManager::~LockManager()
 
 /// \brief Returns the lock lid if it exists, otherwise it returns NULL
 /// Assumes caller has the mutex LockManager::mutex_
-inline Lock* LockManager::FindLockInternal(lock_protocol::LockId lid)
+inline Lock* 
+LockManager::FindLockInternal(lock_protocol::LockId lid)
 {
 	Lock* lp;
 
@@ -185,7 +178,8 @@ inline Lock* LockManager::FindLockInternal(lock_protocol::LockId lid)
 /// \brief Returns the lock lid. If the lock does not exist, it first creates 
 /// the lock.
 /// Assumes caller has the mutex LockManager::mutex_
-inline Lock* LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
+inline Lock* 
+LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 {
 	Lock* lp;
 
@@ -225,7 +219,8 @@ LockManager::FindLock(lock_protocol::LockId lid)
 /// \return a reference (pointer) to the lock.
 ///
 /// Does no reference counting.
-Lock* LockManager::FindOrCreateLock(lock_protocol::LockId lid)
+Lock* 
+LockManager::FindOrCreateLock(lock_protocol::LockId lid)
 {
 	Lock* l;
 
@@ -245,8 +240,11 @@ Lock* LockManager::FindOrCreateLock(lock_protocol::LockId lid)
 ///    This is okay as the releaser checks whether the lock is compatible
 ///    with the requested mode and in such a case he ignores the revoke
 ///    request. 
-void LockManager::Releaser()
+void 
+LockManager::Releaser()
 {
+	class LockUser* lu;
+
 	running_ = true;
 	while (running_) {
 		pthread_mutex_lock(&mutex_);
@@ -259,10 +257,11 @@ void LockManager::Releaser()
 		}
 		std::map<lock_protocol::lock_protocol::LockId, int>::iterator itr = revoke_map_.begin();
 		lock_protocol::LockId lid = itr->first;
-		int seq = itr->second;
-		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-		        "[%d] releasing/converting lock %llu at seq %d\n", cl2srv_->id(), lid, seq);
+		int   seq = itr->second;
 		Lock* l = locks_[lid];
+		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+		        "[%d] releasing/converting lock %llu (%s) at seq %d: revoke_type=%d\n", 
+		        cl2srv_->id(), lid, l->public_mode_.String().c_str(), seq, l->revoke_type_);
 		if (l->status() == Lock::NONE) {
 			DBG_LOG(DBG_WARNING, DBG_MODULE(client_lckmgr), 
 			        "[%d] false revoke alarm: %llu\n", cl2srv_->id(), lid);
@@ -277,16 +276,17 @@ void LockManager::Releaser()
 			// wait until this lock is used at least once
 			pthread_cond_wait(&l->used_cv_, &mutex_);
 		}
-		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), "releaser: 3\n");
 
-		// if there is a user manager registered with us then make a 
-		// synchronous call to revoke the lock. 
-		// otherwise wait for an asynchronous release 
-		if (lu_) {
+		if (lu = lu_) {
+			// there is a user manager registered with us then make a synchronous
+			// call to revoke the lock. otherwise wait for an asynchronous release 
 			// drop lock to avoid any deadlocks caused by callbacks.
 			// releasing the lock is okay as state is consistent here. 
 			pthread_mutex_unlock(&mutex_);
-			lu_->Revoke(l, static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
+			// FIXME RACE: it's possible that some other thread unregisters the  
+			// lock user after we make the check above but before we make the call 
+			// to Revoke below. in such a case lu may point to a destroyed object.
+			lu->Revoke(l, static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
 		} else {
 			lock_protocol::Mode new_mode = lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
 			// wait until the lock is released or becomes compatible with the
@@ -335,7 +335,28 @@ void LockManager::Releaser()
 }
 
 
-lock_protocol::Mode LockManager::SelectMode(Lock* l, lock_protocol::Mode::Set mode_set)
+void 
+LockManager::ShutdownReleaser()
+{
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "[%d] Shutting down Releaser thread\n", cl2srv_->id());
+
+	// drain the revoke_map so that the releaser thread can exit the 
+	// continuous loop and terminate
+	pthread_mutex_lock(&mutex_);
+	std::map<lock_protocol::lock_protocol::LockId, int>::iterator itri;
+	for (itri = revoke_map_.begin(); itri != revoke_map_.end(); itri++) {
+		ReleaseInternal(0, locks_[itri->first], false);
+	}
+	running_ = false;
+	pthread_cond_signal(&revoke_cv);
+	pthread_mutex_unlock(&mutex_);
+	pthread_join(releasethread_th_, NULL);
+}
+
+
+lock_protocol::Mode 
+LockManager::SelectMode(Lock* l, lock_protocol::Mode::Set mode_set)
 {
 	// policy: pick the most severe mode that can be granted locally
 	
@@ -379,8 +400,8 @@ lock_protocol::status LockManager::AcquireInternal(unsigned long tid,
 	lock_protocol::Mode   mode;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-	        "[%d] Acquiring lock %llu (%s)\n", cl2srv_->id(), lid, 
-			mode_set.String().c_str());
+	        "[%d] Acquiring lock %llu (%s), flags=%d\n", cl2srv_->id(), lid, 
+			mode_set.String().c_str(), flags);
 
 check_state:
 	switch (l->status()) {
@@ -574,7 +595,7 @@ lock_protocol::status LockManager::ConvertInternal(unsigned long tid,
 			// FIXME: upgrade should consider what happens with l->seq_ and l->used_
 			// as it is possible the releaser thread to be in the middle of a revocation.
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-					"[%d] Converting lock %llu (UPGRADE: %s to %s)\n", cl2srv_->id(), lid, 
+					"[%d] Converting lock %llu (upgrade: %s to %s)\n", cl2srv_->id(), lid, 
 					l->public_mode_.String().c_str(), new_mode.String().c_str());
 			if ((r = do_convert(l, new_mode, Lock::FLG_NOBLK)) == lock_protocol::OK) {
 				l->public_mode_ = new_mode;
@@ -593,7 +614,7 @@ lock_protocol::status LockManager::ConvertInternal(unsigned long tid,
 			// then communicate with the server if asked (synchronous==true) or let
 			// the releaser thread do it asynchronously for us (synchronous==false)
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-					"[%d] Converting lock %llu (DOWNGRADE: %s to %s)\n", cl2srv_->id(), lid, 
+					"[%d] Converting lock %llu (downgrade: %s to %s)\n", cl2srv_->id(), lid, 
 					l->public_mode_.String().c_str(), new_mode.String().c_str());
 			assert(l->gtque_.ConvertInPlace(tid, new_mode) == 0);
 			if (l->gtque_.Empty()) {

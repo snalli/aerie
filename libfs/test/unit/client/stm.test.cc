@@ -7,23 +7,16 @@
 #include "client.fixture.h"
 #include "client/stm.h"
 
-/*
-class TestObject {
+class TestObject: public common::stm::Object {
 public:
-	TestObject(TimeStamp ts)
-		: ts_(ts)
-	{ }
 
-	void set_ts(TimeStamp ts) {
-		ts_ = ts;
-	}
-
-	TimeStamp ts() { return ts_; }
-
-private:
-	TimeStamp ts_;
 };
-*/
+
+class TestObjectProxy: public client::stm::ObjectProxy<TestObjectProxy, TestObject> {
+public:
+	
+};
+
 
 SUITE(STM)
 {
@@ -49,20 +42,48 @@ SUITE(STM)
 		CHECK(val == 0);
 	}
 
-/*
-	TEST(MultipleRead)
-	{
-		OptReadSet<TestObject> read_set;
-		TestObject             obj1(1);
-		TestObject             obj2(2);
-		TestObject             obj3(1);
-		
-		read_set.Reset();
-		CHECK(read_set.Read(&obj1) == 0);
-		obj1.set_ts(2);
-		CHECK(read_set.Validate() == false);
 
-		
+	TEST(RollbackTransaction1)
+	{
+		int retries = 0;
+		int val = 0;
+
+		STM_BEGIN()
+		if (retries++>1) {
+			goto done;
+		}
+		/* do nothing */
+		stm::Transaction* tx = stm::Self();
+		tx->Rollback(stm::ABORT_VALIDATE);
+		val = 1; /* control flow doesn't reach this statement */
+		STM_END()
+
+	done:
+		CHECK(retries == 3);
+		CHECK(val == 0);
 	}
-*/
+	
+	TEST(SingleRead)
+	{
+		int             retries=0;
+		TestObject      obj1;
+		TestObjectProxy proxy1;
+
+		proxy1.setSubject(&obj1);
+		
+		STM_BEGIN()
+		if (retries++>0) {
+			goto done;
+		}
+		proxy1.xOpenRO();
+		STM_ABORT_IF_INVALID()
+		proxy1.xOpenRO();
+		obj1.xSetVersion(1);  // we emulate someone else's write/commit
+		STM_ABORT_IF_INVALID() // this must abort transaction
+		STM_END()
+
+	done:	
+		CHECK(retries == 2); // make sure we aborted once
+		CHECK(obj1.xVersion() == 1);
+	}
 }

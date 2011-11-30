@@ -317,7 +317,9 @@ class Scheduler:
         wait_list = []
         nowait_list = []
         self.status = Scheduler.RUNNING
-        signal.alarm(self.timeout)
+        if output == 'deferred' or output == 'none':
+            signal.alarm(self.timeout)
+        
         try:
             while not self.ready_queue.empty() or len(wait_list):
                 # execure all tasks in the ready queue

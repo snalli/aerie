@@ -161,14 +161,14 @@ SUITE(ClientNamespace)
 		client::Inode*      inode;
 		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
 		client::SuperBlock* sb = new PseudoSuperBlock(session);
-		client::Inode* dirinode1 = new PseudoDirInode(sb);
+		client::Inode*      dirinode1 = new PseudoDirInode(sb);
 		inode = sb->RootInode();
 		CHECK(inode->Link(session, "C", dirinode1, false) == 0);
 		test_namespace->Init(session);
 		
 		CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
 		
-		CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL,  &inode) == 0);
+		CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) == 0);
 		CHECK(inode == dirinode1);
 		inode->Put();
 		
@@ -188,5 +188,30 @@ SUITE(ClientNamespace)
 		CHECK(inode == dirinode1);
 		inode->Put();
 	}
+
+
+	TEST_FIXTURE(ClientFixture, TestNameiNotExists)
+	{
+		char                tmpname[128];
+		client::Inode*      inode;
+		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
+		client::SuperBlock* sb = new PseudoSuperBlock(session);
+		client::Inode*      dirinode1 = new PseudoDirInode(sb);
+		inode = sb->RootInode();
+		test_namespace->Init(session);
+		
+		CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
+		
+		CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) != 0);
+		
+		CHECK(test_namespace->Namei(session, "/A/../A/B/C", lock_protocol::Mode::NL, &inode) != 0);
+		
+		CHECK(test_namespace->Namei(session, "/A/./B/C", lock_protocol::Mode::NL, &inode) != 0);
+		
+		CHECK(test_namespace->Namei(session, "/A/B/C", lock_protocol::Mode::NL, &inode) != 0);
+		
+		CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) != 0);
+	}
+
 
 }

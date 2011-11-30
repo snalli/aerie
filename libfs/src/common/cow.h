@@ -3,15 +3,13 @@
 
 namespace cow {
 
-class Immutable {
-
-};
-
-template<class Mutable>
-class MutableClone  {
-
-
-
+template<class Proxy, class Subject>
+class ObjectProxy {
+public:
+	Subject* subject() { return subject_; }
+	void setSubject(Subject* subject) { subject_ = subject; }
+private:
+	Subject* subject_;
 };
 
 

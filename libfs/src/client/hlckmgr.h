@@ -33,7 +33,10 @@ public:
 	};
 	
 	enum Flag {
-		FLG_PUBLIC = 0x1, // acquire a globally visible lock 
+		FLG_NOBLK = lock_protocol::FLG_NOQUE, 
+		FLG_CAPABILITY = lock_protocol::FLG_CAPABILITY,
+		FLG_PUBLIC = 0x4, // acquire a globally visible lock 
+		FLG_
 	};
 
 
@@ -96,14 +99,12 @@ public:
 	enum Status {
 		NONE = 0,
 		ATTACHING = 1,
-		REVOKING
-	};
-
-	enum Flag {
-		FLG_HAVEPARENT = 1
+		REVOKING,
+		SHUTTING_DOWN
 	};
 
 	HLockManager(LockManager*, HLockUser* = 0);
+	~HLockManager();
 	
 	void OnRelease(Lock* l) { return; };
 	void OnConvert(Lock* l) { return; };
@@ -122,13 +123,13 @@ private:
 	HLock* FindLockInternal(lock_protocol::LockId lid, HLock* plp);
 	HLock* FindOrCreateLockInternal(lock_protocol::LockId lid, HLock* plp);
 	lock_protocol::status PropagatePublicLock(HLock* phlock, HLock* chlock, lock_protocol::Mode mode);
-	lock_protocol::status AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, int flags);
+	lock_protocol::status AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, bool caller_has_parent, int flags);
 	lock_protocol::status AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, int flags);
-	lock_protocol::status AttachPublicLockChildren(HLock* hlock, lock_protocol::Mode mode);
-	lock_protocol::status AttachPublicLockChild(HLock* phlock, HLock* chlock, lock_protocol::Mode mode);
+	lock_protocol::status AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode);
+	lock_protocol::status AttachPublicLockToChild(HLock* phlock, HLock* chlock, lock_protocol::Mode mode);
 	lock_protocol::status AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode mode, int flags);
-	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock);
+	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock, bool force);
 	int RevokeSubtree(Lock* lock, lock_protocol::Mode new_mode);
 
 	pthread_mutex_t      mutex_;

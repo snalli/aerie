@@ -5,7 +5,8 @@ namespace client {
 Inode::Inode()
 	: sb_(NULL),
 	  pnode_(NULL),
-	  ino_(0)
+	  ino_(0),
+	  refcnt_(0)
 { 
 	printf("Inode::Inode: %p\n", this);
 	pthread_mutex_init(&mutex_, NULL);
@@ -15,7 +16,8 @@ Inode::Inode()
 Inode::Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino)
 	: sb_(sb),
 	  pnode_(pnode),
-	  ino_(ino)
+	  ino_(ino),
+	  refcnt_(0)
 {
 	printf("Inode::Inode: %p\n", this);
 	pthread_mutex_init(&mutex_, NULL);

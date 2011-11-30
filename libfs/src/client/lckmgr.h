@@ -129,7 +129,7 @@ public:
 		return (t != NULL) ? t->mode(): lock_protocol::Mode(lock_protocol::Mode::NL);
 	}
 
-	lock_protocol::LockId lid_;
+	lock_protocol::LockId     lid_;
 
 	/// we use only a single cv to monitor changes of the lock's status
 	/// this may be less efficient because there would be many spurious
@@ -190,7 +190,9 @@ public:
 	lock_protocol::status Cancel(lock_protocol::LockId lid);
 	lock_protocol::status stat(lock_protocol::LockId lid);
 	void Releaser();
+	void ShutdownReleaser();
 	void RegisterLockUser(LockUser* lu) { lu_ = lu; };
+	void UnregisterLockUser() { lu_ = NULL; };
 
 	rlock_protocol::status revoke(lock_protocol::LockId lid, int seq, int revoke_type, int& unused);
 	// Tell this client to retry requesting the lock in which this client

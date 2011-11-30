@@ -24,6 +24,10 @@
 #include <typeinfo>
 
 //TODO: pathname resolution against current working directory, chdir
+//TODO: integrate LockInode
+//TODO: directory operations update object version
+//TODO: rename
+//TODO: test rename
 
 //TODO: extent the namei API to take as argument the type of lock on the resolved inode
 // or expose to the caller what locks are held when the call is returned, and what locks
@@ -165,44 +169,69 @@ NameSpace::Unmount(Session* session, char* name)
 
 // caller does not hold any lock 
 // 
-// it relies on optimistic concurrency to traverse the chain up to the root
-// and then acquire locks down till the inode
+// it relies on a read-only optimistic memory transaction to atomically 
+// traverse the chain up to the root and then acquire locks down till the inode
 int
 NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mode)
 {
-	std::vector<Inode*> inode_chain; // treated as a stack
+	std::vector<Inode*> inode_chain;   // treated as a stack
+	std::vector<Inode*> locked_inodes; 
 	Inode*              tmp_inode;
 	Inode*              parent_inode;
 	int                 retries = 0;
 	int                 ret;
 
 	STM_BEGIN()
+		// transaction does not automatically release any acquired locks 
+		// so we need to do this manually
 		inode_chain.clear();
+		for (std::vector<Inode*>::iterator it = locked_inodes.begin();
+		     it != locked_inodes.end();
+			 it++)
+		{
+			(*it)->Unlock();
+		}
+		locked_inodes.clear();
 		for (tmp_inode = inode; tmp_inode != root_; tmp_inode = parent_inode) {
 			inode_chain.push_back(tmp_inode);
-			//tmp_inode = tmp_inode->txOpenRO();
+			tmp_inode = tmp_inode->xOpenRO();
 			ret = tmp_inode->Lookup(session, "..", &parent_inode);
 			if (ret != E_SUCCESS) {
 
 			}
-			//if (!read_set.Validate()) {
-				// inconsistent read set; restart
-			//}
+			STM_ABORT_IF_INVALID() // read-set consistency
+		}
+		// acquire locks on the inodes in the reverse order they appear 
+		// in the list 
+		parent_inode = NULL;
+		for (std::vector<Inode*>::iterator it = inode_chain.end();
+		     it != locked_inodes.begin();
+			 it--)
+		{
+			if (*it == inode) {
+				if (parent_inode) {
+					assert((*it)->Lock(parent_inode, lock_mode) == 0);
+				} else {
+					assert(*it == root_);
+					assert((*it)->Lock(lock_mode) == 0);
+				}
+			} else {
+				if (parent_inode) {
+					assert((*it)->Lock(parent_inode, lock_protocol::Mode::IX) == 0);
+				} else {
+					assert(*it == root_);
+					assert((*it)->Lock(lock_protocol::Mode::IX) == 0);
+				}
+			}
+			parent_inode = *it;
 		}
 	STM_END()
-	//read_set.Validate();
-
-
-	
 }
 
 
 // Look up and return the inode for a path name.
 // If parent != 0, return the inode for the parent and copy the final
 // path element into name, which must have room for DIRSIZ bytes.
-// FIXME: Release inode when done (putinode) 
-// FIXME: what locks do we hold when calling and when returning from this function???
-// returns with inodep locked and referenced (refcnt++)
 int
 NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_mode, 
                  bool nameiparent, char* name, Inode** inodep)
@@ -227,8 +256,8 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		inode = root_;
 	} else {
 		// TODO: if cwd is not assigned a lock then we need to re-acquire locks 
-		// on the chain along root to cwd. the lock manager should detect this
-		// case and bootstrap.
+		// on the along the chain from root to cwd. the lock manager should detect this
+		// case and bootstrap. LockInode?
 		// idup(cwd_inode)
 		assert(0 && "TODO");
 	}
@@ -279,7 +308,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 				// encountered a ..
 				inode->Unlock();
 				if (inode_next->Lock(lock_protocol::Mode::IXSL) != E_SUCCESS) {
-					LockInode(session, inode, lock_protocol::Mode::IXSL);
+					LockInode(session, inode_next, lock_protocol::Mode::IXSL);
 				}
 			} else {
 				assert(inode_next->Lock(inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
@@ -291,9 +320,6 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	}
 	printf("Namex: inode=%p\n", inode);
 
-	//if (nameiparent) {
-	//	return -1;
-	//}
 done:
 	*inodep = inode;
 	return 0;

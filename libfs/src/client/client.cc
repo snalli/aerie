@@ -15,6 +15,9 @@
 #include "chunkstore/registry.h"
 #include "mfs/client/mfs.h"
 
+// FIXME: Client should be a singleton. otherwise we lose control 
+// over instantiation and destruction of the global variables below, which
+// should really be members of client
 namespace client {
 
 __thread Session* thread_session;
@@ -94,10 +97,10 @@ int
 Client::Shutdown() 
 {
 	// TODO: properly destroy any state created
-	// lock manager's destructor makes callbacks to the hierarchical lock
-	// manager so destroy it first
-	delete global_lckmgr;
 	delete global_hlckmgr;
+	delete global_lckmgr;
+	global_hlckmgr = NULL; 
+	global_lckmgr = NULL;
 	return 0;
 }
 
