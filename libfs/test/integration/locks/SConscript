@@ -34,13 +34,6 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 # INTEGRATION TEST SCHEDULES
 ############################################################################### 
 
-hlock_test_list = [
-                   ('TestLockUnlockSingleClient1', 1),
-                   ('TestLockUnlockConcurrentClient1', 2),
-                   ('TestLockUnlockConcurrentClient2', 2),
-                   ('TestDeepLockUnlockConcurrentClient', 2),
-	          ]
-
 #
 # BASE LOCKS TESTS
 #

@@ -969,17 +969,18 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 	for (itr = release_set.begin(); itr != release_set.end(); itr++) {
 		HLock*              hl = itr->hlock_;
 		lock_protocol::Mode new_mode = itr->mode_;
-		// if lock is LOCKED then wait to be released. 
-		// may need to abort any other dependent lock requests to avoid deadlock?
-		pthread_mutex_lock(&hl->mutex_);
-		hl->WaitStatus(HLock::CONVERTING);
-		pthread_mutex_unlock(&hl->mutex_);
 		if (new_mode == lock_protocol::Mode::NL) {
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 				    "[%d] Revoking hierarchical lock %llu\n", lm_->id(), hl->lid_); 
+			// if lock is LOCKED then wait to be released. 
+			// may need to abort any other dependent lock requests to avoid deadlock?
+			pthread_mutex_lock(&hl->mutex_);
+			hl->WaitStatus(HLock::CONVERTING);
+			pthread_mutex_unlock(&hl->mutex_);
 			if (hl->lock_) {
 				assert(lm_->Release(hl->lock_, true) == lock_protocol::OK); 
 			}
+			
 			hl->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
 			hl->lock_ = NULL;
 			hl->parent_ = NULL;
@@ -989,6 +990,8 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 				    "[%d] Downgrading hierarchical lock %llu: %s to %s\n", lm_->id(), hl->lid_, 
 				    hl->mode_.String().c_str(), new_mode.String().c_str()); 
+			// even if lock is LOCKED we don't need to wait for it to be released because
+			// we are converting it to a mode compatible with the currently locked mode
 			if (hl->lock_) {
 				assert(lm_->Convert(hl->lock_, new_mode, true) == lock_protocol::OK); 
 			}
