@@ -119,6 +119,7 @@ LockManager::LockManager(rpcc* rpc_client,
 	pthread_cond_init(&revoke_cv, NULL);
 
 	locks_.set_empty_key(-1);
+	releaser_thread_running_ = true;
 
 	// register client's lock manager RPC handlers with srv2cl_
 	srv2cl_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
@@ -249,15 +250,12 @@ LockManager::Releaser()
 {
 	class LockUser* lu;
 
-	running_ = true;
-	while (running_) {
+	while (releaser_thread_running_) {
 		pthread_mutex_lock(&mutex_);
-		while (running_ && revoke_map_.empty()) {
-			// FIXME: Lost notification? Sometimes our integration tests may block 
-			// here even after the ShutdownReleased signals the condition.
+		while (releaser_thread_running_ && revoke_map_.empty()) {
 			pthread_cond_wait(&revoke_cv, &mutex_);
 		}
-		if (!running_ && revoke_map_.empty()) {
+		if (!releaser_thread_running_ && revoke_map_.empty()) {
 			pthread_mutex_unlock(&mutex_);
 			return;
 		}
@@ -353,7 +351,7 @@ LockManager::ShutdownReleaser()
 	for (itri = revoke_map_.begin(); itri != revoke_map_.end(); itri++) {
 		ReleaseInternal(0, locks_[itri->first], false);
 	}
-	running_ = false;
+	releaser_thread_running_ = false;
 	pthread_cond_broadcast(&revoke_cv);
 	pthread_mutex_unlock(&mutex_);
 	pthread_join(releasethread_th_, NULL);
