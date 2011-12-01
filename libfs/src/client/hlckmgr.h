@@ -5,6 +5,7 @@
 #ifndef _CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
 #define _CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
 
+#include <utility>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
@@ -13,6 +14,15 @@
 namespace client {
 
 class HLock;
+struct HLockPtrLockModePair {
+	HLockPtrLockModePair(HLock* hlock, lock_protocol::Mode mode)
+		: hlock_(hlock),
+		  mode_(mode)
+	{ }
+	HLock*              hlock_;
+	lock_protocol::Mode mode_;
+};
+typedef std::list<HLockPtrLockModePair> HLockPtrLockModePairSet;
 typedef google::dense_hash_set<HLock*> HLockPtrSet;
 
 /// The hierarchical lock keeps the locking mode to be able to acquire 
@@ -122,7 +132,6 @@ public:
 private:
 	HLock* FindLockInternal(lock_protocol::LockId lid, HLock* plp);
 	HLock* FindOrCreateLockInternal(lock_protocol::LockId lid, HLock* plp);
-	lock_protocol::status PropagatePublicLock(HLock* phlock, HLock* chlock, lock_protocol::Mode mode);
 	lock_protocol::status AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, bool caller_has_parent, int flags);
 	lock_protocol::status AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode);
@@ -130,7 +139,8 @@ private:
 	lock_protocol::status AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock, bool force);
-	int RevokeSubtree(Lock* lock, lock_protocol::Mode new_mode);
+	lock_protocol::status DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode);
+	lock_protocol::status DowngradePublicLockRecursive(HLock* hlock, lock_protocol::Mode new_public_mode, HLockPtrLockModePairSet* release_set);
 
 	pthread_mutex_t      mutex_;
 	Status               status_;

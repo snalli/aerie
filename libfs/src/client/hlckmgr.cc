@@ -52,7 +52,7 @@ namespace client {
  *    lock manager. 
  *
  * Hierarchy Rule: there is an intention or recursive lock on the parent's
- * lock that is compatible. 
+ * lock that protects us. 
  *  - this rule guarantees we acquire locks hierarchically. 
  *
  *
@@ -444,7 +444,8 @@ done:
 /// \brief Acquires and attaches public locks on a chain of hierarchical locks
 ///
 /// Starting at hlock, it walks up the hierarchy till it finds a public lock
-/// and then acquires public locks on each node top-to-bottom.
+/// and then acquires public locks on each node top-to-bottom. The mode of 
+/// each public lock is the mode of the corresponding private lock.
 /// 
 /// For this operation to be safe, the public lock must be a recursive lock.
 ///
@@ -561,7 +562,7 @@ HLockManager::AttachPublicLockToChild(HLock* phlock, HLock* chlock, lock_protoco
 	//}
 
 	if (chlock->lock_) {	
-		// a competing thread attached a lock from bottom-to-up using the method
+		// someone attached a lock from bottom-to-up using the method
 		// AttachPublicLockChainUp. just convert the public lock to the 
 		// supremum mode. the convert method should not block and should succeed.
 		lock_protocol::Mode mode = lock_protocol::Mode::Supremum(mode, chlock->mode_);
@@ -826,8 +827,10 @@ HLockManager::Acquire(lock_protocol::LockId lid,
 }
 
 
-/// if force is set then lock is released even if caller thread is not owner 
-/// of the lock
+/** 
+ * \param if force is set then lock is released even if caller thread is not  
+ * the owner of the lock
+ */
 lock_protocol::status
 HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 {
@@ -885,98 +888,120 @@ HLockManager::Release(lock_protocol::LockId lid)
 }
 
 
-int
-HLockManager::RevokeSubtree(Lock* lp, lock_protocol::Mode new_mode)
+/** 
+ * \brief Recursively revokes a lock and its subtree
+ *
+ * Note: we could implement the following optimization but we didn't as we 
+ * don't expect high benefit: when new public mode does not cover the private
+ * mode, we could convert the lock to the new mode and then recursively 
+ * downgrade each descendant to a mode that does not violate the hierarchy rule.
+ * Insted we just release all descendant locks.
+ */
+lock_protocol::status
+HLockManager::DowngradePublicLockRecursive(HLock* hlock,
+                                           lock_protocol::Mode new_public_mode, 
+                                           HLockPtrLockModePairSet* release_set)
 {
-	HLock*                hlock = static_cast<HLock*>(lp->payload_);
 	HLockPtrSet::iterator itr;
-	HLockPtrSet           release_set;
 	lock_protocol::Mode   old_public_mode;
-	HLock*                hl;
-
+	
 	hlock->BeginConverting(true);
-	old_public_mode = hlock->lock_->public_mode_;
-
-	release_set.set_empty_key(NULL);
-	// check whether new_mode covers lock's private mode
-	if (new_mode > hlock->mode_ || new_mode == hlock->mode_) 
-	{
-		// new_mode covers lock's private mode.
-		// check whether the public lock we release is a recursive lock
-		// as we need to propagate it down to the children 
-		if (old_public_mode == lock_protocol::Mode::XR ||
-		    old_public_mode == lock_protocol::Mode::SR) 
-		{
-			for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
-				hl = *itr;
-				assert(hl->BeginConverting(true) == 0);
-				assert(lock_protocol::Mode::AbidesHierarchyRule(old_public_mode, new_mode) 
-				       == lock_protocol::OK);
-				assert(AttachPublicLockToChild(hlock, hl, old_public_mode) == 0);
-				assert(hl->ancestor_recursive_mode_ == old_public_mode);
-				hl->EndConverting(true);
-			}
-		}	
-	} else {
-		// new_mode no longer covers lock's private mode. 
-		// must release the lock and every descendant of the lock that 
-		// depends on the old mode (i.e. every child that violates hierarchy  
-		// rule under the new mode)
-		//
-		// FIXME: Recursively release the whole subtree, not just the children. 
+	if (!hlock->lock_) {
 		for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
-			hl = *itr;
-			assert(hl->BeginConverting(true) == 0);
-			if (hl->lock_) {
-				// child has a public lock
-				if(!lock_protocol::Mode::AbidesHierarchyRule(hl->lock_->public_mode_, new_mode)) 
+			HLock* hl = *itr;
+			assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
+		}
+		release_set->push_back(HLockPtrLockModePair(hlock, lock_protocol::Mode::NL));
+	} else {
+		old_public_mode = hlock->lock_->public_mode_;
+		// check whether new_public_mode covers lock's private mode
+		if (new_public_mode > hlock->mode_ || new_public_mode == hlock->mode_) 
+		{
+			// new_public_mode covers lock's private mode.
+			// check whether the public lock we release is a recursive lock
+			// as we need to propagate it down to the children
+			if (old_public_mode == lock_protocol::Mode::XR ||
+				old_public_mode == lock_protocol::Mode::SR) 
+			{
+				if (lock_protocol::Mode::AbidesHierarchyRule(old_public_mode, new_public_mode) 
+					== lock_protocol::OK) 
 				{
-					release_set.insert(hl);
+					for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+						HLock* hl = *itr;
+						assert(hl->BeginConverting(true) == 0);
+						assert(AttachPublicLockToChild(hlock, hl, old_public_mode) == 0);
+						assert(hl->ancestor_recursive_mode_ == old_public_mode);
+						hl->EndConverting(true);
+					}
 				} else {
-					hl->EndConverting(true);
+					// cannot propagate recursive lock down the tree as we would 
+					// violate the hierarchy rule: drop children subtrees
+					for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+						HLock* hl = *itr;
+						assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
+					}
 				}
-			} else {
-				// child has a private lock
-				if(!lock_protocol::Mode::AbidesHierarchyRule(hl->mode_, new_mode)) 
-				{
-					release_set.insert(hl);
-				} else {
-					hl->EndConverting(true);
-				}
+			}	
+			release_set->push_back(HLockPtrLockModePair(hlock, new_public_mode));
+		} else {
+			// new mode no longer covers lock's private mode. 
+			// we release the lock and every descendant of the lock 
+			release_set->push_back(HLockPtrLockModePair(hlock, lock_protocol::Mode::NL));
+			for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+				HLock* hl = *itr;
+				assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
 			}
 		}
 	}
+	return 0;
+}
 
-	// release locks
-	if (release_set.size() > 0) {
-		for (itr = release_set.begin(); itr != release_set.end(); itr++) {
-			hl = *itr;
-			assert(0 && "TODO: drop lock subtree");
-			// must reset parents
-			// must set locks' status to NONE
-			hlock->EndConverting(true);
+
+lock_protocol::status
+HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
+{
+	HLockPtrLockModePairSet::iterator itr;
+	HLockPtrLockModePairSet           release_set;
+
+	release_set.clear();
+	assert(DowngradePublicLockRecursive(hlock, new_mode, &release_set) == 0);
+	// downgrade locks
+	for (itr = release_set.begin(); itr != release_set.end(); itr++) {
+		HLock*              hl = itr->hlock_;
+		lock_protocol::Mode new_mode = itr->mode_;
+		// if lock is LOCKED then wait to be released. 
+		// may need to abort any other dependent lock requests to avoid deadlock?
+		pthread_mutex_lock(&hl->mutex_);
+		hl->WaitStatus(HLock::CONVERTING);
+		pthread_mutex_unlock(&hl->mutex_);
+		if (new_mode == lock_protocol::Mode::NL) {
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+				    "[%d] Revoking hierarchical lock %llu\n", lm_->id(), hl->lid_); 
+			if (hl->lock_) {
+				assert(lm_->Release(hl->lock_, true) == lock_protocol::OK); 
+			}
+			hl->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
+			hl->lock_ = NULL;
+			hl->parent_ = NULL;
+			hl->set_status(HLock::NONE); // I should have called EndConverting but it
+			                                // cannot set status to NONE
+		} else {
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+				    "[%d] Downgrading hierarchical lock %llu: %s to %s\n", lm_->id(), hl->lid_, 
+				    hl->mode_.String().c_str(), new_mode.String().c_str()); 
+			if (hl->lock_) {
+				assert(lm_->Convert(hl->lock_, new_mode, true) == lock_protocol::OK); 
+			}
+			hl->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
+			hl->EndConverting(true);
 		}
 	}
-
-	hlock->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
-
-	if (new_mode == hlock->mode_ || new_mode > hlock->mode_) {
-		assert(lm_->Convert(lp, new_mode, true) == lock_protocol::OK); // what if convert fails? 
-	} else {
-		// if hlock is LOCKED then wait to be released. 
-		// may need to abort any other dependent lock requests to avoid deadlock
-		pthread_mutex_lock(&hlock->mutex_);
-		hlock->WaitStatus(HLock::CONVERTING);
-		pthread_mutex_unlock(&hlock->mutex_);
-		assert(lm_->Release(lp, true) == lock_protocol::OK); // what if release fails?
-	}
-	hlock->EndConverting(true);
 
 	return 0;
 }
 
 
-int 
+int
 HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 {
 	// FILEISSUE
@@ -999,9 +1024,10 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	// lock).
 	
 	int    ret;
+	HLock* hlock;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d] Revoking lock %llu: %s to %s\n", lm_->id(), lp->lid_, 
+	        "[%d] Revoking hierarchical lock %llu: %s to %s\n", lm_->id(), lp->lid_, 
 	        lp->public_mode_.String().c_str(), new_mode.String().c_str()); 
 	
 	// serialize self to other revocations and to other threads that try to 
@@ -1017,7 +1043,8 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	status_ = REVOKING;
 	pthread_mutex_unlock(&mutex_);
 
-	ret = RevokeSubtree(lp, new_mode);
+	hlock = static_cast<HLock*>(lp->payload_);
+	ret = DowngradePublicLock(hlock, new_mode);
 
 	pthread_mutex_lock(&mutex_);
 	status_ = NONE;
