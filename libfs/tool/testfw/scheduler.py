@@ -313,7 +313,7 @@ class Scheduler:
             task.out_file.seek(0)
 
     # run all tasks till all non-daemon tasks complete.
-    def run(self, output = 'deferred'):
+    def run(self, output = 'deferred', attach_gdb = False):
         wait_list = []
         nowait_list = []
         self.status = Scheduler.RUNNING
@@ -325,7 +325,7 @@ class Scheduler:
                 # execure all tasks in the ready queue
                 while not self.ready_queue.empty():
                     task = self.ready_queue.get()
-                    task.run(output)
+                    task.run(output, attach_gdb)
                     if task.process == None:
                         self.taskFinishedCallback(task)
                     else:

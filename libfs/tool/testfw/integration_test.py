@@ -30,10 +30,10 @@ class TestTask(Task):
         for s in self.strand_list:
             self.args = self.args + s.args
 
-    def run(self, output='deferred'):
+    def run(self, output='deferred', attach_gdb = False):
         if output=='none' or output=='deferred':
             self.args = self.args + ['-T,-deferred']
-        Task.run(self, output)
+        Task.run(self, output, attach_gdb)
 
 
 # this describes a schedule of an integration test
@@ -119,7 +119,7 @@ class IntegrationTest:
             return True
         return False
 
-    def run(self, scheduler, output='deferred', extra_cmd_args=''):
+    def run(self, scheduler, output='deferred', extra_cmd_args='', attach_gdb = False):
         args = extra_cmd_args.split()
         scheduler.clear()
         # testfw init
@@ -135,7 +135,7 @@ class IntegrationTest:
         # create rendezvous points
         for r in self.rendezvous:
             scheduler.createRendezvousPoint(r.events)
-        scheduler.run(output)
+        scheduler.run(output, attach_gdb)
         itest_has_failure = False
         if scheduler.status == Scheduler.SUCCESS:
             # analyze output to find whether tests had any CHECKS failed

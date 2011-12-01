@@ -23,7 +23,8 @@ def runIntegrationTests(source, target, env):
         if not itest.matchFilter(env['TEST_FILTER']):
             continue
         num_tests = num_tests + 1
-        ret = itest.run(scheduler, env['TEST_STDOUT'], env['TEST_EXTRA_ARGS'])
+        print itest.name
+        ret = itest.run(scheduler, env['TEST_STDOUT'], env['TEST_EXTRA_ARGS'], env['TEST_ATTACH_GDB'])
         if ret == testfw.integration_test.IntegrationTest.TIMEOUT:
             num_timeouts=num_timeouts+1
             timeout_itests.append(itest)

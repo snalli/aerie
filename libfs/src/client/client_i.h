@@ -41,6 +41,7 @@ public:
 	static int Read(int fd, char* dst, uint64_t n);
 	static int CreateDir(const char* path, int mode);
 	static int DeleteDir(const char* path);
+	static int Rename(const char* oldpath, const char* newpath);
 	static int Link(const char* oldpath, const char* newpath);
 	static int Unlink(const char* pathname);
 	static int SetCurWrkDir(const char* path);

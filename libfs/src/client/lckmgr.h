@@ -223,7 +223,7 @@ private:
 	rpcc*                                                cl2srv_;
 
 	int                                                  last_seq_;
-	bool                                                 running_;
+	volatile bool                                        running_;
 
 	/// locks known to this lock manager
 	google::dense_hash_map<lock_protocol::LockId, Lock*> locks_;

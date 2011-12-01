@@ -248,6 +248,9 @@ HLockManager::~HLockManager()
 			assert(lm_->Release(itr->second->lock_, false) == lock_protocol::OK); 
 		}
 	}
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Shutting down Hierarchical Lock Manager: DONE\n", lm_->id());
 }
 
 
@@ -533,6 +536,7 @@ HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, in
 	
 	pthread_mutex_lock(&mutex_);
 	status_ = NONE;
+	pthread_cond_broadcast(&status_cv_);
 	pthread_mutex_unlock(&mutex_);
 
 	return r;
@@ -838,7 +842,7 @@ HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 	lock_protocol::LockId lid = hlock->lid_;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d:%lu] Releasing lock %llu \n", lm_->id(), tid, lid); 
+	        "[%d:%lu] Releasing hierarchical lock %llu \n", lm_->id(), tid, lid); 
 	
 	if (hlock->owner_ == tid) {
 		if (hlock->status() == HLock::LOCKED_CONVERTING) {
@@ -848,7 +852,7 @@ HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 		}
 	} else {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-		        "[%d:%lu] thread %lu is not holder of lck %llu\n",
+		        "[%d:%lu] thread %lu is not holder of hierarchical lock %llu\n",
 		        lm_->id(), tid, tid, lid);
 		r = lock_protocol::NOENT;
 	}
@@ -1049,8 +1053,12 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	hlock = static_cast<HLock*>(lp->payload_);
 	ret = DowngradePublicLock(hlock, new_mode);
 
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "[%d] Revoking hierarchical lock %llu: %s to %s\n: DONE", lm_->id(), lp->lid_, 
+	        lp->public_mode_.String().c_str(), new_mode.String().c_str()); 
 	pthread_mutex_lock(&mutex_);
 	status_ = NONE;
+	pthread_cond_broadcast(&status_cv_);
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;

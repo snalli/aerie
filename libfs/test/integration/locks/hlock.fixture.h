@@ -17,8 +17,8 @@ struct HLockFixture: public LockRegionFixture, RPCFixture {
 	
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
-			delete global_lckmgr;
 			delete global_hlckmgr;
+			delete global_lckmgr;
 		}
 	};
 

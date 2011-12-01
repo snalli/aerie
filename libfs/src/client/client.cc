@@ -379,6 +379,14 @@ Client::GetCurWrkDir(const char* path, size_t size)
 
 
 int 
+Client::Rename(const char* oldpath, const char* newpath)
+{
+	
+
+}
+
+
+int 
 Client::Link(const char* oldpath, const char* newpath)
 {
 /*

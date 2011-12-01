@@ -160,7 +160,11 @@ LockManager::~LockManager()
 	pthread_mutex_unlock(&mutex_);
 	pthread_cond_destroy(&revoke_cv);
 	pthread_mutex_destroy(&mutex_);
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "[%d] Shutting down Lock Manager: DONE\n", cl2srv_->id());
 }
+
 
 /// \brief Returns the lock lid if it exists, otherwise it returns NULL
 /// Assumes caller has the mutex LockManager::mutex_
@@ -249,6 +253,8 @@ LockManager::Releaser()
 	while (running_) {
 		pthread_mutex_lock(&mutex_);
 		while (running_ && revoke_map_.empty()) {
+			// FIXME: Lost notification? Sometimes our integration tests may block 
+			// here even after the ShutdownReleased signals the condition.
 			pthread_cond_wait(&revoke_cv, &mutex_);
 		}
 		if (!running_ && revoke_map_.empty()) {
@@ -276,7 +282,6 @@ LockManager::Releaser()
 			// wait until this lock is used at least once
 			pthread_cond_wait(&l->used_cv_, &mutex_);
 		}
-
 		if (lu = lu_) {
 			// there is a user manager registered with us then make a synchronous
 			// call to revoke the lock. otherwise wait for an asynchronous release 
@@ -349,7 +354,7 @@ LockManager::ShutdownReleaser()
 		ReleaseInternal(0, locks_[itri->first], false);
 	}
 	running_ = false;
-	pthread_cond_signal(&revoke_cv);
+	pthread_cond_broadcast(&revoke_cv);
 	pthread_mutex_unlock(&mutex_);
 	pthread_join(releasethread_th_, NULL);
 }

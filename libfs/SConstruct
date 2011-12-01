@@ -16,6 +16,11 @@ AddOption("--test-integration",
 	default = False,
 	help="run integration tests")
 
+AddOption("--test-gdb",
+	action="store_true", dest="test_attach_gdb",
+	default = False,
+	help="attach gdb")
+
 AddOption("--test-stdout",
 	dest="test_stdout",
 	type='string',
@@ -47,6 +52,7 @@ AddOption('--test-extra-args',
 	help='a regular expression used to match tests to run')
 
 
+mainEnv['TEST_ATTACH_GDB'] = GetOption('test_attach_gdb')
 mainEnv['TEST_FILTER'] = GetOption('test_filter')
 mainEnv['TEST_STDOUT'] = GetOption('test_stdout')
 mainEnv['TEST_STDERR'] = GetOption('test_stderr')
