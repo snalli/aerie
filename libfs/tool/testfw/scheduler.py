@@ -268,7 +268,6 @@ class Task:
                                         stdout=self.out_file,
                                         stderr=self.out_file,
                                         close_fds=False, env=osenv)
-    
     def kill(self):
         try:
             os.kill(self.process.pid, 9)

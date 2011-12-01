@@ -29,6 +29,7 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'RPC:TestServerIsAlive',
+    init_script = None,
     testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'RPC:TestServerIsAlive')])

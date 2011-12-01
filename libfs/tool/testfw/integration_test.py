@@ -16,6 +16,18 @@ class TestStrand(Strand):
         self.args = ["-T,-thread,-tag=%s,-msg=%d,-sem=%d,-suite=%s,-test=%s" % (tag, self.msgque_key, self.sem_key, suite, test)]
  
 
+class NonInteractiveTask(Task):
+    def __init__(self, tag, cmd, cmd_args, preds, daemon, varargs):
+        Task.__init__(self, tag, cmd, cmd_args, preds, daemon, varargs)
+
+    def run(self, output='deferred', attach_gdb = False):
+        if output == 'multi-term':
+            output = 'single-term'
+        Task.run(self, output, False)
+
+
+
+
 class TestTask(Task):
     def __init__(self, tag, cmd, cmd_args, preds, daemon, varargs):
         strands = varargs[0]
@@ -78,11 +90,16 @@ class IntegrationTest:
                 str = str + "%s " % e
             return str
 
-    def __init__(self, name, testfw, server, clients, rendezvous):
+    def __init__(self, name, init_script, testfw, server, clients, rendezvous):
         (name_suite, name_test) = split_tuple(name)
         if not name_suite or not name_test:
             raise NameError('Test name %s is not well formatted. Please use this format:  <SUITE>:<TEST>' % name)
         self.name = name
+        if init_script:
+            init_script_abspath = os.path.join(os.getcwd(), init_script)
+            self.init_script = IntegrationTest.Process('INIT_SCRIPT', init_script_abspath, [])
+        else:
+            self.init_script = None
         testfw_program_abspath = os.path.join(os.getcwd(), str(testfw[0]))
         self.testfw = IntegrationTest.Process('TESTFW', testfw_program_abspath, ['-T,-init'])
         server_program_abspath = os.path.join(os.getcwd(), str(server[0]))
@@ -122,8 +139,14 @@ class IntegrationTest:
     def run(self, scheduler, output='deferred', extra_cmd_args='', attach_gdb = False):
         args = extra_cmd_args.split()
         scheduler.clear()
+        # user defined init script
+        if self.init_script:
+            init_task = scheduler.createTask(NonInteractiveTask, self.init_script.tag, self.init_script.cmd, self.init_script.args, None, False)
+            pred_testfw_task = init_task
+        else:
+            pred_testfw_task = None
         # testfw init
-        testfw_task = scheduler.createTask(Task, self.server.tag, self.testfw.cmd, self.testfw.args, None, False)
+        testfw_task = scheduler.createTask(Task, self.testfw.tag, self.testfw.cmd, self.testfw.args, pred_testfw_task, False)
         # server
         scheduler.createTask(Task, self.server.tag, self.server.cmd, self.server.args + args, testfw_task, True)
         # create clients

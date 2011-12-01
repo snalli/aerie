@@ -76,6 +76,18 @@ FRONTAPI(rmdir) (const char* path)
 
 
 int 
+FRONTAPI(rename) (const char* oldpath, const char* newpath)
+{
+	int ret;
+
+	if ((ret = Client::Rename(oldpath, newpath)) == -E_KVFS) {
+		return rename(oldpath, newpath);
+	}
+	return ret;
+}
+
+
+int 
 FRONTAPI(link) (const char* oldpath, const char* newpath)
 {
 	int ret;

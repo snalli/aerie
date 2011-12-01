@@ -40,6 +40,7 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockSingle',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
@@ -50,6 +51,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockConcurrent1',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')]),
@@ -62,6 +64,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockMultipleTimesConcurrent1',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
@@ -73,6 +76,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockMultipleTimesConcurrent2',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
@@ -91,6 +95,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 # with respect to another client trying to acquire the same lock
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockMultipleTimesConcurrent3',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockTwoTimes')]),
@@ -108,6 +113,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 # a second client tries to acquire the lock in SL between the two events 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockConvert1',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSL')]),
@@ -125,6 +131,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 # a second client tries to acquire the lock in SL between the two events 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockConvert2',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSLsynchronous')]),
@@ -139,6 +146,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestSharedLockUnlock')]),
@@ -152,6 +160,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestSharedLockXLUnlockLockSLUnlock')]),
@@ -168,6 +177,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 # sends a cancel request to break the deadlock  
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockCancel1',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
@@ -184,6 +194,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 # deadlocked and cancels the request. false positive.
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockCancel2',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
@@ -209,6 +220,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestLockUnlockSingleClient',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXRUnlock')])
@@ -220,6 +232,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestLockUnlockConcurrentClient1',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXLUnlock')]),
@@ -234,6 +247,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestLockUnlockConcurrentClient2',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockISLockSLUnlock')]),
@@ -249,6 +263,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestDeepLockUnlockConcurrentClient',
+    init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockIXLockXLUnlockAll')]),
