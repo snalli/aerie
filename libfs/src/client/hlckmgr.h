@@ -128,6 +128,10 @@ public:
 	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Release(HLock* hlock);
 	lock_protocol::status Release(lock_protocol::LockId lid);
+	void RegisterLockUser(HLockUser* hlu) { hlu_ = hlu; };
+	void UnregisterLockUser() { hlu_ = NULL; };
+
+	void PrintDebugInfo();
 
 private:
 	HLock* FindLockInternal(lock_protocol::LockId lid, HLock* plp);

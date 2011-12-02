@@ -239,6 +239,7 @@ HLockManager::~HLockManager()
 	status_ = SHUTTING_DOWN;
 	pthread_mutex_unlock(&mutex_);
 
+
 	// release any base locks held by the hierarchical locks
 	google::dense_hash_map<lock_protocol::LockId, HLock*>::iterator itr;
 	for (itr = locks_.begin(); itr != locks_.end(); ++itr) {
@@ -883,6 +884,8 @@ HLockManager::Release(lock_protocol::LockId lid)
 	hlock = FindLockInternal(lid, NULL);
 	pthread_mutex_unlock(&mutex_);
 	if (hlock == NULL) {
+		DBG_LOG(DBG_WARNING, DBG_MODULE(client_hlckmgr),
+		        "Unknown hierarchical lock %llu\n", lid);
 		return lock_protocol::NOENT;
 	}
 	pthread_mutex_lock(&hlock->mutex_);
@@ -981,10 +984,12 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 			pthread_mutex_lock(&hl->mutex_);
 			hl->WaitStatus(HLock::CONVERTING);
 			pthread_mutex_unlock(&hl->mutex_);
+			if (hlu_) {
+				hlu_->OnRelease(hl);
+			}
 			if (hl->lock_) {
 				assert(lm_->Release(hl->lock_, true) == lock_protocol::OK); 
 			}
-			
 			hl->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
 			hl->lock_ = NULL;
 			hl->parent_ = NULL;
@@ -996,6 +1001,9 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 				    hl->mode_.String().c_str(), new_mode.String().c_str()); 
 			// even if lock is LOCKED we don't need to wait for it to be released because
 			// we are converting it to a mode compatible with the currently locked mode
+			if (hlu_) {
+				hlu_->OnConvert(hl);
+			}
 			if (hl->lock_) {
 				assert(lm_->Convert(hl->lock_, new_mode, true) == lock_protocol::OK); 
 			}
@@ -1053,15 +1061,23 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	hlock = static_cast<HLock*>(lp->payload_);
 	ret = DowngradePublicLock(hlock, new_mode);
 
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d] Revoking hierarchical lock %llu: %s to %s\n: DONE", lm_->id(), lp->lid_, 
-	        lp->public_mode_.String().c_str(), new_mode.String().c_str()); 
 	pthread_mutex_lock(&mutex_);
 	status_ = NONE;
 	pthread_cond_broadcast(&status_cv_);
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;
+}
+
+
+void
+HLockManager::PrintDebugInfo()
+{
+	google::dense_hash_map<lock_protocol::LockId, HLock*>::iterator itr;
+	for (itr = locks_.begin(); itr != locks_.end(); ++itr) {
+		DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr),
+		        "LOCK[%llu] = %p\n", itr->first, itr->second);
+	}
 }
 
 } // namespace client

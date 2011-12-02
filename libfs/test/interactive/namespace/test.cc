@@ -35,7 +35,7 @@ void test11(const char* tag)
 	//libfs_open("/home/hvolos/file", O_CREATE);
 
 	printf("%s: DONE\n", __FUNCTION__);
-	sleep(1000);
+	//sleep(1000);
 }
 
 void test12(const char* tag)

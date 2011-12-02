@@ -12,16 +12,29 @@ using namespace client;
 
 SUITE(Namespace)
 {
-	TEST_FIXTURE(MFSFixture, TestMount)
+	TEST_FIXTURE(MFSFixture, TestMkfs)
 	{
 		libfs_mkfs("/superblock/A", "mfs", 0);
 		libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
 	}
 
-	TEST(TestMkdir)
+	TEST_FIXTURE(MFSFixture, TestMkfsMkdir)
 	{
 		EVENT("E1");
+		libfs_mkfs("/superblock/A", "mfs", 0);
+		libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
+		libfs_mkdir("/home/hvolos/dir", 0);
+		libfs_mkdir("/home/hvolos/dir/test", 0);
 		EVENT("E2");
+		EVENT("E3");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestRmdir)
+	{
+		EVENT("E1");
+		libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
+		EVENT("E2");
+		CHECK(libfs_rmdir("/home/hvolos/dir") == 0);
 		EVENT("E3");
 	}
 

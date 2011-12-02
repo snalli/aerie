@@ -19,6 +19,7 @@ extern StorageManager*   global_smgr;
 extern FileManager*      global_fmgr;
 extern LockManager*      global_lckmgr;
 extern HLockManager*     global_hlckmgr;
+extern Session*          global_session;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;

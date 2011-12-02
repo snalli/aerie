@@ -224,7 +224,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 	sb = dp->GetSuperBlock();
 
 	// allocated inode is write locked and referenced (refcnt=1)
-	if ((ret = sb->AllocInode(global_session, type, &ip)) < 0) {
+	if ((ret = sb->AllocInode(global_session, type, dp, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}
@@ -348,11 +348,8 @@ Client::CreateDir(const char* path, int mode)
 	if ((ret = create(path, &ip, mode, client::type::kDirInode)) < 0) {
 		return ret;
 	}
-	printf("Client::CreateDir: %s -> %p\n", path, ip);
-	ip->Put();
-	ip->Unlock();
-	//TODO: unlock/release the inode?
-  	// iunlockput(ip);
+	assert(ip->Put() == E_SUCCESS);
+	assert(ip->Unlock() == E_SUCCESS);
 	return 0;
 }
 

@@ -39,24 +39,24 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 #
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFS:TestMount',
+    name = 'MFS:TestMkfs',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
     testfw = testProgram, server = lockServerProgram,
     clients = { 
-        'C1': ( testProgram, [('T1', 'Namespace:TestMount')])
+        'C1': ( testProgram, [('T1', 'Namespace:TestMkfs')])
     },
     rendezvous = []
 ))
 
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'Lock:TestMkdir',
-    init_script = None,
+    name = 'MFS:TestMkdirRmdirConcurrent',
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
     testfw = testProgram, server = lockServerProgram,
     clients = { 
-        'C1': ( testProgram, [('T1', 'Namespace:TestMkdir')]),
-        'C2': ( testProgram, [('T1', 'Namespace:TestMkdir')])
+        'C1': ( testProgram, [('T1', 'Namespace:TestMkfsMkdir')]),
+        'C2': ( testProgram, [('T1', 'Namespace:TestRmdir')])
     },
-    rendezvous = [('C1:T1:E2', 'C2:T1:E1'), 
-                  ('C2:T1:E3', 'C1:T1:E3')]
+    rendezvous = [('C1:T1:E2:block', 'C2:T1:E1:block'), 
+                  ('C1:T1:E3:block', 'C2:T1:E3:block')]
 ))

@@ -62,7 +62,7 @@ DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino,
 	EntryCache::iterator   it;
 	int                    ret;
 
-	printf("DirInodeMutable::Link (%s)\n", name);
+	dbg_log (DBG_INFO, "In pnode %lu, linking: %s -> %lu\n", ino_, name, ino);	
 
 	if (name[0] == '\0') {
 		return -1;
@@ -184,6 +184,7 @@ DirInodeMutable::Publish(client::Session* session)
 			// because there we replay the journal which has the unlink operation.
 			// so don't worry for now.
 			// TEST TestLinkPublish3 checks this case
+			printf("Publish: %s->%lu\n", it->first.c_str(), it->second.second);
 			if ((ret = ObjectProxy::subject()->Link(session, it->first.c_str(), it->second.second)) != 0) {
 				return ret;
 			}
