@@ -16,7 +16,7 @@ public:
 		: psb_(psb),
 		  client::SuperBlock(session)
 	{ 
-		LoadInode(psb->root_, &root_);
+		GetInode(psb->root_, &root_);
 	}
 
 

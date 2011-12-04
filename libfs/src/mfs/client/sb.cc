@@ -20,8 +20,6 @@ SuperBlock::MakeInode(client::Session* session, int type, client::Inode** ipp)
 	client::Inode*              ip;
 	DirPnode<client::Session>*  dpnode;
 	
-	printf("mfs::SuperBlock::AllocInode\n");
-	
 	switch (type) {
 		case client::type::kFileInode:
 			//ip = new 	

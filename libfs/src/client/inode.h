@@ -39,8 +39,8 @@ public:
 	InodeNumber ino() { return ino_; };
 	void SetInodeNumber(InodeNumber ino) { ino_ = ino; };
 
-	virtual int nlink() { assert(0 && "Not implemented by subclass"); };
-	virtual int set_nlink(int nlink) { assert(0 && "Not implemented by subclass"); };
+	int nlink() { printf("Inode: %llu, nlink_ = %d\n", ino_, nlink_); return nlink_; }
+	int set_nlink(int nlink) { printf("Inode: %llu, set_nlink_ = %d\n", ino_, nlink); nlink_ = nlink; return 0;}
 
 	int Get();
 	int Put();
@@ -61,6 +61,8 @@ public:
 	//! dynamic reference count; number of objects referencing the
 	//! volatile inode object
 	int                 refcnt_; 
+	//! hard link count
+	int                 nlink_;
 	client::SuperBlock* sb_;                // volatile file system superblock
 	InodeNumber         ino_;
 	//! system-wide public lock; used for inter- and intra process 

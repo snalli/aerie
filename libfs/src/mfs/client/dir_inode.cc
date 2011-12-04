@@ -130,20 +130,6 @@ DirInodeMutable::Unlink(client::Session* session, const char* name)
 }
 
 
-int 
-DirInodeMutable::nlink() 
-{
-	// TODO
-	return 0;
-}
-
-int 
-DirInodeMutable::set_nlink(int nlink) 
-{
-	// TODO
-	return 0;
-}
-
 /*
 //  List all directory entries of a directory
 //     This requires coordinating with the immutable directory inode. Simply
@@ -172,7 +158,9 @@ DirInodeMutable::Publish(client::Session* session)
 	EntryCache::iterator  it;
 	int                   ret;
 
+	printf("PUBLISH\n");
 	for (it = entries_.begin(); it != entries_.end(); it++) {
+		printf("PUBLISH: entry\n");
 		if (it->second.first == true) {
 			// normal entry -- link
 			// FIXME: if a link followed an unlink then the entry is 
@@ -195,6 +183,8 @@ DirInodeMutable::Publish(client::Session* session)
 			}
 		}
 	}
+	printf("inode %llu: nlink_ = %d\n", ino_, nlink_);
+	ObjectProxy::subject()->set_nlink(nlink_);
 	return 0;
 }
 

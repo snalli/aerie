@@ -6,10 +6,11 @@
 
 namespace client {
 
-int MPInode::Lookup(Session* session, const char* name, Inode** inode)
+int MPInode::Lookup(Session* session, const char* name, Inode** inodep)
 {
-	int len;
-	int i;
+	Inode* inode;
+	int    len;
+	int    i;
 
 	if (name[0] == '\0') {
 		return -E_INVAL;
@@ -18,8 +19,9 @@ int MPInode::Lookup(Session* session, const char* name, Inode** inode)
 	// look up for mounted entries 
 	for (i=0; i<entries_count_; i++) {
 		if (strcmp(entries_[i].name_, name) == 0) {
-			*inode = entries_[i].inode_;
-			(*inode)->Get();
+			inode = entries_[i].inode_;
+			inode->Get();
+			*inodep = inode;
 			return E_SUCCESS;
 		}
 	}

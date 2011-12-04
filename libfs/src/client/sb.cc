@@ -44,6 +44,8 @@ SuperBlock::GetInode(InodeNumber ino, client::Inode** ipp)
 	client::Inode* ip;
 	int            ret;
 
+	dbg_log (DBG_INFO, "Get pnode %llu\n", ino);
+
 	pthread_mutex_lock(&mutex_);
 	if ((ret = imap_->Lookup(ino, &ip)) == 0) {
 		ip->Get();
@@ -62,17 +64,6 @@ done:
 }
 
 
-int
-SuperBlock::PutInode(client::Inode* ip)
-{
-	pthread_mutex_lock(&mutex_);
-	ip->Put();
-	// TODO: if refcount == 0, do we remove inode from imap? 
-	// Only if inode does not have any updates that need to be published.
-	// Otherwise, we let the inode manager remove it when the inode is published.
-	pthread_mutex_unlock(&mutex_);
-}
-
 void
 SuperBlock::OnRelease(HLock* hlock)
 {
@@ -84,6 +75,10 @@ SuperBlock::OnRelease(HLock* hlock)
 	
 	pthread_mutex_lock(&mutex_);
 	ino = hlock->lid_;
+	google::dense_hash_map<InodeNumber, Inode*>::iterator itr;
+	for (itr=imap_->ino2inode_map_.begin(); itr != imap_->ino2inode_map_.end(); itr++) {
+		printf("%llu\n", itr->first);
+	}
 	if ((ret = imap_->Lookup(ino, &ip)) == 0) {
 		ip->Publish(global_session);
 	}

@@ -482,6 +482,7 @@ Client::Unlink(const char* pathname)
 	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for child's ..
 	//FIXME: who deallocates the inode if nlink == 0 ???
 	
+	printf("DONEDONE\n");
 	dp->Put();
 	dp->Unlock();
 	ip->Put();

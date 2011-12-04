@@ -23,7 +23,7 @@ public:
 	int Remove(InodeNumber ino);
 	int RemoveAll();
 
-private:
+//private:
 	google::dense_hash_map<InodeNumber, Inode*> ino2inode_map_;
 };
 

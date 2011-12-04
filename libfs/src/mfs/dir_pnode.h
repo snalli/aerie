@@ -31,7 +31,9 @@ public:
 		: ht_(NULL),
 		  self_(0),
 		  parent_(0)
-	{ }
+	{ 
+		  nlink_ = 0;
+	}
 
 	void* operator new(size_t nbytes, Session* session)
 	{

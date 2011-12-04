@@ -31,10 +31,13 @@ public:
 		  neg_entries_count_(0)
 	{ 
 		ObjectProxy::setSubject(reinterpret_cast<DirPnode<client::Session>*>(pnode_));
+		nlink_ = pnode_->nlink_;
 		entries_.set_empty_key("");
 		printf("DirInodeMutable: %p\n", this);
 		printf("DirInodeMutable: pnode=%p\n", pnode);
+		printf("DirInodeMutable: pnode->nlink_=%d\n", pnode->nlink_);
 		printf("DirInodeMutable: ino=%lu\n", ino_);
+		printf("DirInodeMutable: nlink_=%lu\n", nlink_);
 	}
 
 	int Init(client::Session* session, uint64_t ino) {
