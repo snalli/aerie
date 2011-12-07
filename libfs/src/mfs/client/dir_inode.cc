@@ -40,17 +40,6 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 }
 
 
-int 
-DirInodeMutable::Link(client::Session* session, const char* name, client::Inode* ip, 
-                      bool overwrite)
-{
-	uint64_t ino = ip->ino();
-	
-	//FIXME: fix link count
-	return Link(session, name, ino, overwrite);
-}
-
-
 // FIXME: How do we shadow . and ..??? In the EntryCache? It should work.
 // FIXME: Should Link increment the link count as well? currently the caller 
 // must do a separate call but this breaks encapsulation. 

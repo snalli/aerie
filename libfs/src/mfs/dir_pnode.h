@@ -21,7 +21,7 @@
 namespace mfs {
 
 template<typename Session>
-class DirPnode: public Pnode {
+class DirPnode: public stm::object {
 public:
 	static DirPnode* Load(uint64_t ino) {
 		return reinterpret_cast<DirPnode*>(ino);
