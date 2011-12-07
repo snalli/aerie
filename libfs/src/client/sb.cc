@@ -13,7 +13,9 @@ SuperBlock::SuperBlock(Session* session)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	imap_ = new InodeMap();
-	global_hlckmgr->RegisterLockUser(this);
+	if (global_hlckmgr) {
+		global_hlckmgr->RegisterLockUser(this);
+	}
 }
 
 

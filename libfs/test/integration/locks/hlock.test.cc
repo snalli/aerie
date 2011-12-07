@@ -4,10 +4,10 @@
 #include "rpc/rpc.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
-#include "common/lock_protocol.h"
+#include "dcc/common/lock_protocol.h"
+#include "dcc/client/hlckmgr.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
-#include "client/hlckmgr.h"
 #include "hlock.fixture.h"
 #include "checklock.h"
 

@@ -12,8 +12,8 @@
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
-#include "server/lckmgr.h"
-#include "server/hlckmgr.h"
+#include "dcc/server/lckmgr.h"
+#include "dcc/server/hlckmgr.h"
 
 using namespace server;
 

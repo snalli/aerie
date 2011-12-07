@@ -1,5 +1,5 @@
 #include <set>
-#include "common/lock_protocol.h"
+#include "dcc/common/lock_protocol.h"
 #include "tool/testfw/unittest.h"
 
 SUITE(LockProtocolMode)

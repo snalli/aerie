@@ -5,9 +5,9 @@
 #include "common/errno.h"
 #include "common/types.h"
 #include "client.fixture.h"
-#include "client/stm.h"
+#include "dcc/client/stm.h"
 
-class TestObject: public common::stm::Object {
+class TestObject: public dcc::stm::Object {
 public:
 
 };
