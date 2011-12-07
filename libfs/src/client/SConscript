@@ -16,13 +16,13 @@ lib_sources = [
                'extent.cc', 
                'file.cc',
 	       'inode.cc',
-               'hlckmgr.cc',
-               'lckmgr.cc',
+               '../dcc/client/hlckmgr.cc',
+               '../dcc/client/lckmgr.cc',
                'mpinode.cc',
                'namespace.cc', 
 	       'sb.cc',
                'smgr.cc',
-	       'stm.cc'
+	       '../dcc/client/stm.cc'
 	      ]
 #libLocalBuildEnv.Append(LIBS = mfsLibrary)
 #libLocalBuildEnv.Append(LIBS = rpcLibrary)
