@@ -1,0 +1,9 @@
+Import('buildEnv')
+localBuildEnv = buildEnv.Clone()
+
+
+lib_target = 'lserv'
+lib_sources = ['lockspace.cc']
+
+lockservLibrary = localBuildEnv.StaticLibrary(target = lib_target, source = lib_sources)
+Return('lockservLibrary')
