@@ -1,10 +1,10 @@
 // contains static initializations
 // must be included by one .cc file per binary only
 
-#ifndef _LOCK_PROTOCOL_STATIC_H_AFH190
-#define _LOCK_PROTOCOL_STATIC_H_AFH190
+#ifndef _DCC_LOCK_PROTOCOL_STATIC_H_AFH190
+#define _DCC_LOCK_PROTOCOL_STATIC_H_AFH190
 
-#include "common/lock_protocol.h"
+#include "dcc/common/lock_protocol.h"
 
 
 // compatibilities among access modes
@@ -145,4 +145,4 @@ std::string lock_protocol::Mode::mode2str_table_[] = {
 
 
 
-#endif /* _LOCK_PROTOCOL_STATIC_H_AFH190 */
+#endif /* _DCC_LOCK_PROTOCOL_STATIC_H_AFH190 */

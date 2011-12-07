@@ -14,7 +14,7 @@ const int MAX_NUM_ENTRIES=3;
 
 class Session;
 
-class MPInode: public InodeData {
+class MPInode: public Inode {
 public:
 
 	MPInode()

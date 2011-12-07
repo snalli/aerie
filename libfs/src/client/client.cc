@@ -9,9 +9,9 @@
 #include "server/api.h"
 #include "client/config.h"
 #include "client/smgr.h"
-#include "client/lckmgr.h"
-#include "client/hlckmgr.h"
-#include "client/stm.h"
+#include "dcc/client/lckmgr.h"
+#include "dcc/client/hlckmgr.h"
+#include "dcc/client/stm.h"
 #include "chunkstore/registry.h"
 #include "mfs/client/mfs.h"
 

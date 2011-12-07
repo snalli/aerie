@@ -2,14 +2,14 @@
 ///
 /// \brief Client hierarchical lock manager interface.
 
-#ifndef _CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
-#define _CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
+#ifndef _DCC_CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
+#define _DCC_CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
 
 #include <utility>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
-#include "client/lckmgr.h"
+#include "dcc/client/lckmgr.h"
 
 namespace client {
 
@@ -162,7 +162,6 @@ HLock::AddChild(HLock* hlock)
 }
 
 
-
 } // namespace client
 
-#endif /* _CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145 */
+#endif /* _DCC_CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145 */

@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "rpc/rpc.h"
-#include "common/lock_protocol.h"
+#include "dcc/common/lock_protocol.h"
+#include "dcc/client/hlckmgr.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
-#include "client/hlckmgr.h"
 
 using namespace client;
 

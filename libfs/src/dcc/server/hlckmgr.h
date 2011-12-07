@@ -2,11 +2,11 @@
 ///
 /// \brief Server hierarchical lock manager
 
-#ifndef _SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
-#define _SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
+#ifndef _DCC_SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
+#define _DCC_SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
 
 #include <pthread.h>
-#include "server/lckmgr.h"
+#include "dcc/server/lckmgr.h"
 #include "rpc/rpc.h"
 
 namespace server {
@@ -32,4 +32,4 @@ private:
 } // namespace server
 
 
-#endif  /* _SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189 */
+#endif  /* _DCC_SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189 */

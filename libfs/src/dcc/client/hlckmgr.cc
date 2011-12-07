@@ -1,7 +1,7 @@
-#include "client/hlckmgr.h"
+#include "dcc/client/hlckmgr.h"
 #include "common/debug.h"
 #include "common/bitmap.h"
-#include "client/lckmgr.h"
+#include "dcc/client/lckmgr.h"
 
 
 

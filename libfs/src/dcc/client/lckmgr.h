@@ -11,8 +11,8 @@
 #include <google/dense_hash_set>
 #include <set>
 #include "rpc/rpc.h"
-#include "common/gtque.h"
-#include "common/lock_protocol.h"
+#include "dcc/common/gtque.h"
+#include "dcc/common/lock_protocol.h"
 #include "common/bitmap.h"
 
 namespace client {

@@ -3,14 +3,14 @@
 //
 // The implementation is based on MIT 6.824 Labs. 
 
-#include "client/lckmgr.h"
+#include "dcc/client/lckmgr.h"
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
 #include "rpc/rpc.h"
 #include "common/debug.h"
-#include "common/lock_protocol.h"
-#include "common/lock_protocol-static.h"
+#include "dcc/common/lock_protocol.h"
+#include "dcc/common/lock_protocol-static.h"
 
 namespace client {
 

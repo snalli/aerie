@@ -10,7 +10,7 @@
 // For writes, one has to revert to using locks.
 
 
-namespace common {
+namespace dcc {
 
 namespace stm {
 
@@ -35,6 +35,6 @@ protected:
 
 } // namespace stm
 
-} // namespace common
+} // namespace dcc
 
 #endif // _TRANSACTION_STAMNOS_H_BMA567

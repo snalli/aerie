@@ -1,7 +1,6 @@
 #ifndef _SERVER_LOCK_MANAGER_H_SAH189
 #define _SERVER_LOCK_MANAGER_H_SAH189
 
-#include "server/lckmgr.h"
 #include <string>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
@@ -10,8 +9,8 @@
 #include <set>
 #include <vector>
 #include "rpc/rpc.h"
-#include "common/gtque.h"
-#include "common/lock_protocol.h"
+#include "dcc/common/gtque.h"
+#include "dcc/common/lock_protocol.h"
 
 namespace server {
 

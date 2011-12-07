@@ -1,8 +1,8 @@
-#include "server/hlckmgr.h"
+#include "dcc/server/hlckmgr.h"
 #include "rpc/rpc.h"
 #include "common/debug.h"
-#include "common/lock_protocol.h"
-#include "server/lckmgr.h"
+#include "dcc/common/lock_protocol.h"
+#include "dcc/server/lckmgr.h"
 
 namespace server {
 

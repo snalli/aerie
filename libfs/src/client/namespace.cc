@@ -16,9 +16,9 @@
 #include "client/client_i.h"
 #include "client/mpinode.h"
 #include "client/inode.h"
-#include "client/hlckmgr.h"
 #include "client/sb.h"
-#include "client/stm.h"
+#include "dcc/client/hlckmgr.h"
+#include "dcc/client/stm.h"
 #include "common/debug.h"
 
 #include <typeinfo>

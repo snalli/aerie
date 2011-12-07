@@ -5,8 +5,8 @@
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/types.h"
-#include "common/cow.h"
-#include "common/stm.h"
+#include "dpo/common/cow.h"
+#include "dcc/common/stm.h"
 
 namespace client {
 
@@ -39,9 +39,9 @@ enum {
 	ABORT_VALIDATE = 2,
 };
 
-typedef sigjmp_buf           JmpBuf;
-typedef common::stm::Object  Object;
-typedef common::stm::Version Version;
+typedef sigjmp_buf        JmpBuf;
+typedef dcc::stm::Object  Object;
+typedef dcc::stm::Version Version;
 
 class Transaction {
 public:

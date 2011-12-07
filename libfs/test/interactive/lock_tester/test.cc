@@ -5,10 +5,10 @@
 //#include "tool/testfw/integrationtest.h"
 //#include "tool/testfw/testfw.h"
 //#include "tool/testfw/ut_barrier.h"
-#include "common/lock_protocol.h"
+#include "dcc/common/lock_protocol.h"
+#include "dcc/client/hlckmgr.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
-#include "client/hlckmgr.h"
 //#include "checklock.hxx"
 
 using namespace client;

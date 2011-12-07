@@ -1,7 +1,7 @@
 #ifndef _CLIENT_SESSION_H_AKU197
 #define _CLIENT_SESSION_H_AKU197
 
-#include "client/stm.h"
+#include "dcc/client/stm.h"
 
 namespace client {
 

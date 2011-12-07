@@ -1,6 +1,6 @@
 // the caching lock server implementation
 
-#include "server/lckmgr.h"
+#include "dcc/server/lckmgr.h"
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -8,10 +8,10 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <vector>
+#include "dcc/common/gtque.h"
+#include "dcc/common/lock_protocol.h"
+#include "dcc/common/lock_protocol-static.h"
 #include "common/debug.h"
-#include "common/gtque.h"
-#include "common/lock_protocol.h"
-#include "common/lock_protocol-static.h"
 
 // TODO: leases
 // Server does not trust clients so it should adopt timeouts to expire 
