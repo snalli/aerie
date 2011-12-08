@@ -3,8 +3,8 @@
 // This API helps the user to use both kernel and library file systems 
 // transparently.
 
-#ifndef _LIBFS_C_FRONT_API_H_AGH167
-#define _LIBFS_C_FRONT_API_H_AGH167
+#ifndef __STAMNOS_FS_CLIENT_C_FRONT_API
+#define __STAMNOS_FS_CLIENT_C_FRONT_API
 
 #include <sys/types.h>
 #include <stdint.h>
@@ -34,4 +34,4 @@ ssize_t FRONTAPI(write) (int fd, const void *buf, size_t count);
 ssize_t FRONTAPI(read) (int fd, const void *buf, size_t count);
 off_t FRONTAPI(lseek) (int fd, off_t offset, int whence);
 
-#endif /* _LIBFS_C_FRONT_API_H_AGH167 */
+#endif /* __STAMNOS_FS_CLIENT_C_FRONT_API_H */

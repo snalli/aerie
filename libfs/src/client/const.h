@@ -1,5 +1,5 @@
-#ifndef _CONST_H_DGS189
-#define _CONST_H_DGS189
+#ifndef __STAMNOS_FS_CLIENT_CONST_H
+#define __STAMNOS_FS_CLIENT_CONST_H
 
 #include <fcntl.h> // for open flags constant
 #include "common/errno.h"
@@ -35,4 +35,4 @@ const int kDirInode  = 2;
 
 } // namespace client
 
-#endif /* _CONST_H_DGS189 */
+#endif // __STAMNOS_FS_CLIENT_CONST_H

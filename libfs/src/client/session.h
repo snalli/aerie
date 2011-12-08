@@ -1,5 +1,5 @@
-#ifndef _CLIENT_SESSION_H_AKU197
-#define _CLIENT_SESSION_H_AKU197
+#ifndef __STAMNOS_FS_CLIENT_SESSION_H
+#define __STAMNOS_FS_CLIENT_SESSION_H
 
 #include "dcc/client/stm.h"
 
@@ -19,4 +19,4 @@ public:
 
 } // namespace client
 
-#endif /* _CLIENT_SESSION_H_AKU197 */
+#endif // __STAMNOS_FS_CLIENT_SESSION_H

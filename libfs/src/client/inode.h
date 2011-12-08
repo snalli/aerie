@@ -1,5 +1,5 @@
-#ifndef _CLIENT_INODE_H_JAK129
-#define _CLIENT_INODE_H_JAK129
+#ifndef __STAMNOS_FS_CLIENT_INODE_H
+#define __STAMNOS_FS_CLIENT_INODE_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -75,4 +75,4 @@ public:
 } // namespace client
 
 
-#endif /* _CLIENT_INODE_H_JAK129 */
+#endif // __STAMNOS_FS_CLIENT_INODE_H

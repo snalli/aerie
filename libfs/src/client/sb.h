@@ -1,5 +1,5 @@
-#ifndef _SUPERBLOCK_H_SHD191
-#define _SUPERBLOCK_H_SHD191
+#ifndef __STAMNOS_FS_CLIENT_SUPERBLOCK_H
+#define __STAMNOS_FS_CLIENT_SUPERBLOCK_H
 
 #include "common/types.h"
 #include "client/inode.h"
@@ -55,4 +55,4 @@ private:
 
 } // namespace client
 
-#endif /* _SUPERBLOCK_H_SHD191 */
+#endif // __STAMNOS_FS_CLIENT_SUPERBLOCK_H

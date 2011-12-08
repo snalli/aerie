@@ -1,9 +1,11 @@
-/// \file imap.h
-/// 
-/// \brief Inode Map: maps inode number to inode descriptor
+/**
+ * \file imap.h
+ * 
+ * \brief Inode Map: maps inode number to inode descriptor
+ */
 
-#ifndef __CLIENT_INODE_MAP_H_AKL189
-#define __CLIENT_INODE_MAP_H_AKL189
+#ifndef __STAMNOS_FS_CLIENT_INODE_MAP_H
+#define __STAMNOS_FS_CLIENT_INODE_MAP_H
 
 #include "client/inode.h"
 #include <stdint.h>
@@ -73,4 +75,4 @@ InodeMap::Remove(InodeNumber ino)
 
 } // namespace client
 
-#endif // __CLIENT_INODE_MAP_H_AKL189
+#endif // __STAMNOS_FS_CLIENT_INODE_MAP_H

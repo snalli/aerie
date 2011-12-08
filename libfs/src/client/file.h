@@ -1,5 +1,5 @@
-#ifndef _FILE_H_AFA191
-#define _FILE_H_AFA191
+#ifndef __STAMNOS_FS_CLIENT_FILE_H
+#define __STAMNOS_FS_CLIENT_FILE_H
 
 #include <stdint.h>
 #include <pthread.h>
@@ -70,4 +70,4 @@ private:
 
 } // namespace client
 
-#endif /* _FILE_H_AFA191 */
+#endif // __STAMNOS_FS_CLIENT_FILE_H

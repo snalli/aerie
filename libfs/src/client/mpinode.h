@@ -1,5 +1,5 @@
-#ifndef _MPNODE_H_JAK129
-#define _MPNODE_H_JAK129
+#ifndef __STAMNOS_FS_CLIENT_MPINODE_H
+#define __STAMNOS_FS_CLIENT_MPINODE_H
 
 #include <stdint.h>
 #include "client/inode.h"
@@ -49,4 +49,4 @@ private:
 
 } // namespace client
 
-#endif /* _MPNODE_H_JAK129 */
+#endif // __STAMNOS_FS_CLIENT_MPINODE_H

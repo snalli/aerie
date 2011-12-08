@@ -1,7 +1,7 @@
 // This is the master internal header file for the LibFS client library.
 
-#ifndef _CLIENT_INTERNAL_H_ABG189
-#define _CLIENT_INTERNAL_H_ABG189
+#ifndef __STAMNOS_FS_CLIENT_INTERNAL_H
+#define __STAMNOS_FS_CLIENT_INTERNAL_H
 
 #include "client/const.h"
 #include "client/namespace.h"
@@ -54,4 +54,4 @@ public:
 
 } // namespace client
 
-#endif /* _CLIENT_INTERNAL_H_ABG189 */
+#endif /* __STAMNOS_FS_CLIENT_INTERNAL_H */

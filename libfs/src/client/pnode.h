@@ -1,4 +1,5 @@
-#ifdef _PNODE_PROXY_H_
+#ifndef __STAMNOS_FS_CLIENT_PNODE_PROXY_H_
+#define __STAMNOS_FS_CLIENT_PNODE_PROXY_H_
 
 class PnodeProxy {
 
@@ -13,4 +14,4 @@ class PnodeProxy {
 
 } // namespace client
 
-#endif // 
+#endif // __STAMNOS_FS_CLIENT_PNODE_PROXY_H_

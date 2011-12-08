@@ -1,5 +1,5 @@
-#ifndef _CLIENT_CONFIG_H_WER192
-#define _CLIENT_CONFIG_H_WER192
+#ifndef __STAMNOS_FS_CLIENT_CONFIG_H
+#define __STAMNOS_FS_CLIENT_CONFIG_H
 
 #include "common/config.h"
 
@@ -19,4 +19,4 @@ public:
 
 }
 
-#endif /* _CLIENT_CONFIG_H_WER192 */
+#endif /* __STAMNOS_FS_CLIENT_CONFIG_H */

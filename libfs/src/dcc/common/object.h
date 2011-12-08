@@ -1,5 +1,5 @@
-#ifndef _TRANSACTION_STAMNOS_H_BMA567
-#define _TRANSACTION_STAMNOS_H_BMA567
+#ifndef __STAMNOS_DCC_COMMON_OBJECT_H
+#define __STAMNOS_DCC_COMMON_OBJECT_H
 
 #include <setjmp.h>
 #include <google/sparsehash/sparseconfig.h>
@@ -12,12 +12,13 @@
 
 namespace dcc {
 
-namespace stm {
+namespace common {
 
 typedef uint64_t Version;
 
 
-// header of a transactional object
+// header of an object that is synchronized under distributed concurrency 
+// control
 class Object {
 public:
 	Object()
@@ -33,8 +34,8 @@ protected:
 
 
 
-} // namespace stm
+} // namespace common
 
 } // namespace dcc
 
-#endif // _TRANSACTION_STAMNOS_H_BMA567
+#endif // __STAMNOS_DCC_COMMON_OBJECT_H
