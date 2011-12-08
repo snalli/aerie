@@ -2,8 +2,8 @@
 ///
 /// \brief Client lock manager interface.
 
-#ifndef _CLIENT_LOCK_MANAGER_H_AFG819
-#define _CLIENT_LOCK_MANAGER_H_AFG819
+#ifndef __STAMNOS_DPO_CLIENT_LOCK_MANAGER_H
+#define __STAMNOS_DPO_CLIENT_LOCK_MANAGER_H
 
 #include <string>
 #include <google/sparsehash/sparseconfig.h>
@@ -11,8 +11,8 @@
 #include <google/dense_hash_set>
 #include <set>
 #include "rpc/rpc.h"
-#include "dcc/common/gtque.h"
-#include "dcc/common/lock_protocol.h"
+#include "dpo/common/gtque.h"
+#include "dpo/common/lock_protocol.h"
 #include "common/bitmap.h"
 
 namespace client {
@@ -241,4 +241,4 @@ private:
 
 } // namespace client
 
-#endif  // _CLIENT_LOCK_MANAGER_H_AFG819
+#endif // __STAMNOS_DPO_CLIENT_LOCK_MANAGER_H

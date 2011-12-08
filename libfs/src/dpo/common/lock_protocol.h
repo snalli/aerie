@@ -1,7 +1,7 @@
 // lock protocol
 
-#ifndef _STAMNOS_DCC_LOCK_PROTOCOL_H_AKL156
-#define _STAMNOS_DCC_LOCK_PROTOCOL_H_AKL156
+#ifndef __STAMNOS_DPO_LOCK_PROTOCOL_H
+#define __STAMNOS_DPO_LOCK_PROTOCOL_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -350,6 +350,6 @@ private:
 	int value_;
 };
 
-#include "dcc/common/lock_protocol-inl.h"
+#include "dpo/common/lock_protocol-inl.h"
 
-#endif /* _STAMNOS_DCC_LOCK_PROTOCOL_H_AKL156 */
+#endif // __STAMNOS_DPO_LOCK_PROTOCOL_H

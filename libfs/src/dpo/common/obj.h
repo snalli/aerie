@@ -13,7 +13,7 @@ namespace dpo {
 
 typedef uint16_t ObjectType;
 
-class Object: public dcc::common::Object {
+class Object: public dpo::cc::common::Object {
 public:
 
 	ObjectType magic_;

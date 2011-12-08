@@ -4,7 +4,7 @@
 #include "dpo/dpo.h"
 #include "common/errno.h"
 
-using namespace client;
+//using namespace client;
 
 class Dummy {
 public:
@@ -14,6 +14,7 @@ private:
 
 };
 
+#if 0
 
 class DummyRW:: public dpo::client::Object<DummyRW>
 {
@@ -41,3 +42,6 @@ SUITE(DPO)
 
 
 }
+
+
+#endif

@@ -2,11 +2,11 @@
 ///
 /// \brief Server hierarchical lock manager
 
-#ifndef _DCC_SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
-#define _DCC_SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189
+#ifndef __STAMNOS_DPO_SERVER_HIERARCHICAL_LOCK_MANAGER_H
+#define __STAMNOS_DPO_SERVER_HIERARCHICAL_LOCK_MANAGER_H
 
 #include <pthread.h>
-#include "dcc/server/lckmgr.h"
+#include "dpo/server/lckmgr.h"
 #include "rpc/rpc.h"
 
 namespace server {
@@ -32,4 +32,4 @@ private:
 } // namespace server
 
 
-#endif  /* _DCC_SERVER_HIERARCHICAL_LOCK_MANAGER_H_APL189 */
+#endif // __STAMNOS_DPO_SERVER_HIERARCHICAL_LOCK_MANAGER_H

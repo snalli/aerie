@@ -6,11 +6,11 @@
 #ifndef __PNODE_STAMNOS_H_KAL189
 #define __PNODE_STAMNOS_H_KAL189
 
-#include "dcc/common/stm.h"
+#include "dpo/common/object-obsolete.h"
 #include "common/types.h"
 
 
-class Pnode: public dcc::stm::Object {
+class Pnode: public dpo::cc::common::Object {
 public:
 	static Pnode* Load(uint64_t ino) {
 		return reinterpret_cast<Pnode*>(ino);

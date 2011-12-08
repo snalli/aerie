@@ -5,15 +5,16 @@
  * 
  */
 
-#ifndef __STAMNOS_DPO_CLIENT_RW_H
-#define __STAMNOS_DPO_CLIENT_RW_H
+#ifndef __STAMNOS_DPO_CLIENT_RWPROXY_H
+#define __STAMNOS_DPO_CLIENT_RWPROXY_H
 
+#if 1
 namespace dpo {
 
 namespace rw {
 
-template<class Derived>
-class ObjectProxy: public dcc::client::Object {
+template<class Derived, class Subject>
+class ObjectProxy: public dcc::client::Object<Derived, Subject> {
 public:
 	int Lock() {
 		dcc::Object::Lock();
@@ -63,4 +64,6 @@ private:
 
 } // namespace dpo
 
-#endif // __STAMNOS_DPO_CLIENT_RW_H
+#endif
+
+#endif // __STAMNOS_DPO_CLIENT_RWPROXY_H

@@ -2,14 +2,14 @@
 ///
 /// \brief Client hierarchical lock manager interface.
 
-#ifndef _DCC_CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
-#define _DCC_CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145
+#ifndef __STAMNOS_DPO_CLIENT_HIERARCHICAL_LOCK_MANAGER_H
+#define __STAMNOS_DPO_CLIENT_HIERARCHICAL_LOCK_MANAGER_H
 
 #include <utility>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
-#include "dcc/client/lckmgr.h"
+#include "dpo/client/lckmgr.h"
 
 namespace client {
 
@@ -164,4 +164,4 @@ HLock::AddChild(HLock* hlock)
 
 } // namespace client
 
-#endif /* _DCC_CLIENT_HIERARCHICAL_LOCK_MANAGER_H_ABN145 */
+#endif // __STAMNOS_DPO_CLIENT_HIERARCHICAL_LOCK_MANAGER_H

@@ -3,7 +3,7 @@
 
 #include "common/types.h"
 #include "client/inode.h"
-#include "dcc/client/hlckmgr.h"
+#include "dpo/client/hlckmgr.h"
 
 /**
  *

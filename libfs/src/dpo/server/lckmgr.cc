@@ -1,6 +1,6 @@
 // the caching lock server implementation
 
-#include "dcc/server/lckmgr.h"
+#include "dpo/server/lckmgr.h"
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -8,9 +8,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <vector>
-#include "dcc/common/gtque.h"
-#include "dcc/common/lock_protocol.h"
-#include "dcc/common/lock_protocol-static.h"
+#include "dpo/common/gtque.h"
+#include "dpo/common/lock_protocol.h"
+#include "dpo/common/lock_protocol-static.h"
 #include "common/debug.h"
 
 // TODO: leases

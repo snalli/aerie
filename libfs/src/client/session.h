@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_FS_CLIENT_SESSION_H
 #define __STAMNOS_FS_CLIENT_SESSION_H
 
-#include "dcc/client/stm.h"
+#include "dpo/client/stm.h"
 
 namespace client {
 

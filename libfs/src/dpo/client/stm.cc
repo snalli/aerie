@@ -1,4 +1,4 @@
-#include "dcc/client/stm.h"
+#include "dpo/client/stm.h"
 
 namespace client {
 
@@ -10,10 +10,12 @@ __thread Transaction* transaction_; // per thread transaction descriptor
 int
 Transaction::Init()
 {
-	nesting_ = 0;
-	rset_.set_empty_key(0);
+	//FIXME
+	//nesting_ = 0;
+	//rset_.set_empty_key(0);
 }
 
+/*
 
 int 
 Transaction::Start(JmpBuf* jmpbuf, uint32_t abort_flags)
@@ -96,7 +98,7 @@ Transaction::Rollback(int flags)
 
 	siglongjmp(jmpbuf_, flags);
 }
-
+*/
 
 } // namespace stm
 

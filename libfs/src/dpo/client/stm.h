@@ -5,8 +5,6 @@
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/types.h"
-#include "dpo/common/cow.h"
-#include "dcc/common/stm.h"
 
 namespace client {
 
@@ -40,12 +38,17 @@ enum {
 };
 
 typedef sigjmp_buf        JmpBuf;
-typedef dcc::stm::Object  Object;
-typedef dcc::stm::Version Version;
+/*
+typedef dpo::stm::Object  Object;
+typedef dpo::stm::Version Version;
+
+*/
+typedef uint64_t Version;
 
 class Transaction {
 public:
 	int Init();
+/*
 	int Start(JmpBuf* jmpbuf, uint32_t abort_flags);
 	int	Commit();
 	void AbortIfInvalid(); 
@@ -66,6 +69,7 @@ private:
 	ReadSet rset_;
 	JmpBuf  jmpbuf_;
 	int     nesting_;
+*/
 };
 
 
@@ -85,7 +89,8 @@ Self()
 
 
 template<class Proxy, class Subject>
-class ObjectProxy: public cow::ObjectProxy<Proxy, Subject> {
+//class ObjectProxy: public cow::ObjectProxy<Proxy, Subject> {
+class ObjectProxy {
 public:
 	Proxy* xOpenRO(Transaction* tx);
 	Proxy* xOpenRO();
@@ -93,22 +98,6 @@ private:
 	Transaction* tx_;
 };
 
-
-template<class Proxy, class Subject>
-Proxy* ObjectProxy<Proxy, Subject>::xOpenRO(Transaction* tx)
-{
-	Proxy* proxy = static_cast<Proxy*>(this);
-	Object* subj = proxy->subject();
-	tx->OpenRO(subj);
-	return proxy;
-}
-
-template<class Proxy, class Subject>
-Proxy* ObjectProxy<Proxy, Subject>::xOpenRO()
-{
-	Transaction* tx = Self();
-	return xOpenRO(tx);
-}
 
 
 

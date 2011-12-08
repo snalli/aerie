@@ -12,7 +12,6 @@ STYLE GUIDE
   http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
 
 SOURCE CODE OVERVIEW
-src/dcc    distributed concurrency control
 src/dpo    distributed persistent objects 
 src/rpc    remote procedure call
 src/mfs    memory file system backend

@@ -20,9 +20,9 @@ lib_sources = [
                'namespace.cc', 
 	       'sb.cc',
                'smgr.cc',
-               '../dcc/client/hlckmgr.cc',
-               '../dcc/client/lckmgr.cc',
-	       '../dcc/client/stm.cc'
+               '../dpo/client/hlckmgr.cc',
+               '../dpo/client/lckmgr.cc',
+	       '../dpo/client/stm.cc'
 	      ]
 #libLocalBuildEnv.Append(LIBS = mfsLibrary)
 #libLocalBuildEnv.Append(LIBS = rpcLibrary)

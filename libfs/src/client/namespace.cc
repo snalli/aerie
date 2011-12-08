@@ -17,8 +17,8 @@
 #include "client/mpinode.h"
 #include "client/inode.h"
 #include "client/sb.h"
-#include "dcc/client/hlckmgr.h"
-#include "dcc/client/stm.h"
+#include "dpo/client/hlckmgr.h"
+//#include "dpo/client/stm.h"
 #include "common/debug.h"
 
 #include <typeinfo>
@@ -174,6 +174,8 @@ NameSpace::Unmount(Session* session, char* name)
 int
 NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mode)
 {
+// FIXME
+#if 0 
 	std::vector<Inode*> inode_chain;   // treated as a stack
 	std::vector<Inode*> locked_inodes; 
 	Inode*              tmp_inode;
@@ -226,6 +228,7 @@ NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mo
 			parent_inode = *it;
 		}
 	STM_END()
+#endif
 }
 
 

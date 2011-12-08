@@ -1,5 +1,5 @@
-#ifndef _SERVER_LOCK_MANAGER_H_SAH189
-#define _SERVER_LOCK_MANAGER_H_SAH189
+#ifndef __STAMNOS_DPO_SERVER_LOCK_MANAGER_H
+#define __STAMNOS_DPO_SERVER_LOCK_MANAGER_H
 
 #include <string>
 #include <google/sparsehash/sparseconfig.h>
@@ -9,8 +9,8 @@
 #include <set>
 #include <vector>
 #include "rpc/rpc.h"
-#include "dcc/common/gtque.h"
-#include "dcc/common/lock_protocol.h"
+#include "dpo/common/gtque.h"
+#include "dpo/common/lock_protocol.h"
 
 namespace server {
 
@@ -114,4 +114,4 @@ private:
 
 } // namespace server
 
-#endif // _SERVER_LOCK_MANAGER_H_SAH189
+#endif // __STAMNOS_DPO_SERVER_LOCK_MANAGER_H

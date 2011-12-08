@@ -18,7 +18,7 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 	client::Inode*        ip;
 	EntryCache::iterator  it;
 	
-	printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) ObjectProxy::subject());
+	//FIXME: printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) ObjectProxy::subject());
 
 	// check the private copy first before looking up the global one
 	if ((it = entries_.find(name)) != entries_.end()) {
@@ -28,9 +28,10 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 			return -E_NOENT;
 		}
 	} else {
-		if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) < 0) {
-			return ret;
-		}
+		//FIXME
+		//if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) < 0) {
+		//	return ret;
+		//}
 	}
 
     sb_->GetInode(ino, &ip);
@@ -81,11 +82,12 @@ DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino,
 			return E_SUCCESS;
 		}
 	}
-	
-	if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) == 0) {
-		// name exists in the persistent structure
-		return -E_EXIST;
-	}
+
+	//FIXME
+	//if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) == 0) {
+	//	// name exists in the persistent structure
+	//	return -E_EXIST;
+	//}
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(true, ino)));
 	assert(ret_pair.second == true);
 	printf("DirInodeMutable::Link (%s): DONE\n", name);
@@ -116,10 +118,11 @@ DirInodeMutable::Unlink(client::Session* session, const char* name)
 		}
 	}
 	
-	if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) != 0) {
-		// name does not exist in the persistent structure
-		return -E_EXIST;
-	}
+	// FIXME
+	//if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) != 0) {
+	//	// name does not exist in the persistent structure
+	//	return -E_EXIST;
+	//}
 	// add a negative directory entry when removing a directory entry from 
 	// the persistent data structure
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(false, ino)));
@@ -173,18 +176,20 @@ DirInodeMutable::Publish(client::Session* session)
 			// so don't worry for now.
 			// TEST TestLinkPublish3 checks this case
 			printf("Publish: %s->%lu\n", it->first.c_str(), it->second.second);
-			if ((ret = ObjectProxy::subject()->Link(session, it->first.c_str(), it->second.second)) != 0) {
-				return ret;
-			}
+			// FIXME
+			//if ((ret = ObjectProxy::subject()->Link(session, it->first.c_str(), it->second.second)) != 0) {
+			//	return ret;
+			//}
 		} else {
 			// negative entry -- unlink
-			if ((ret = ObjectProxy::subject()->Unlink(session, it->first.c_str())) != 0) {
-				return ret;
-			}
+			//FIXME
+			//if ((ret = ObjectProxy::subject()->Unlink(session, it->first.c_str())) != 0) {
+			//	return ret;
+			//}
 		}
 	}
 	printf("inode %llu: nlink_ = %d\n", ino_, nlink_);
-	ObjectProxy::subject()->set_nlink(nlink_);
+	//FIXME ObjectProxy::subject()->set_nlink(nlink_);
 	return 0;
 }
 

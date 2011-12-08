@@ -1,6 +1,6 @@
 #include <pthread.h>
-#include "dcc/common/lock_protocol.h"
-#include "dcc/common/gtque.h"
+#include "dpo/common/lock_protocol.h"
+#include "dpo/common/gtque.h"
 #include "tool/testfw/unittest.h"
 
 
