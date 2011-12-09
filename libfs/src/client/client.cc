@@ -112,7 +112,7 @@ Client::CurrentSession()
 	}
 
 	thread_session = new Session(global_smgr);
-	thread_session->tx_ = stm::Self();
+	thread_session->tx_ = dpo::stm::client::Self();
 	return thread_session;
 }
 

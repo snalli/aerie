@@ -1,8 +1,10 @@
 #include "dpo/client/stm.h"
 
-namespace client {
+namespace dpo {
 
 namespace stm {
+
+namespace client {
 
 __thread Transaction* transaction_; // per thread transaction descriptor
 
@@ -41,9 +43,10 @@ Transaction::Commit()
 	return 0;
 }
 
+*/
 
 int
-Transaction::OpenRO(Object* obj)
+Transaction::OpenRO(::dpo::cc::common::Object* obj)
 {
 	ReadSet::iterator it;
 
@@ -57,6 +60,7 @@ Transaction::OpenRO(Object* obj)
 	return 0;
 }
 
+/*
 
 int 
 Transaction::Validate()
@@ -100,6 +104,8 @@ Transaction::Rollback(int flags)
 }
 */
 
+} // namespace client
+
 } // namespace stm
 
-} // namespace client
+} // namespace dpo

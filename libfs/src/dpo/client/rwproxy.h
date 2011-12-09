@@ -5,22 +5,27 @@
  * 
  */
 
-#ifndef __STAMNOS_DPO_CLIENT_RWPROXY_H
-#define __STAMNOS_DPO_CLIENT_RWPROXY_H
+#ifndef __STAMNOS_DPO_CLIENT_RW_PROXY_H
+#define __STAMNOS_DPO_CLIENT_RW_PROXY_H
 
-#if 1
+#include "dpo/client/proxy.h"
+
 namespace dpo {
+
+namespace client {
 
 namespace rw {
 
-template<class Derived, class Subject>
-class ObjectProxy: public dcc::client::Object<Derived, Subject> {
+template<class Derived, class Subject, class VersionManager>
+//class ObjectProxy: public dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager> {
+class ObjectProxy: public dpo::vm::client::ObjectProxy<Derived, Subject, VersionManager> {
 public:
-	int Lock() {
-		dcc::Object::Lock();
-		CopyOnWrite();
-	}
+	//int Lock(lock_protocol::Mode mode) {
+		//dcc::Object::Lock();
+		//CopyOnWrite();
+	//}
 
+/*
 	int CopyOnWrite() {
 		if (state_ == INVALID) {
 			Derived::CopyOnWrite();
@@ -28,9 +33,10 @@ public:
 		}
 		return 0;
 	}
-
+*/
 	// this function has to be virtual or functor that is registered 
 	// with the object manager
+/*
 	int Update(int flags) {
 		if (state_ == VALID) {
 			if (ret = Derived::Update() < 0) { 
@@ -45,25 +51,14 @@ public:
 		}
 		return -1;
 	}
-
-private:
-	state_; // invalid, opened (valid)
-
+*/
 };
 
-template<class Proxy, class Subject>
-class ObjectProxy {
-public:
-	Subject* subject() { return subject_; }
-	void setSubject(Subject* subject) { subject_ = subject; }
-private:
-	Subject* subject_;
-};
 
 } // namespace rw
 
-} // namespace dpo
+} // namespace client
 
-#endif
+} // namespace dpo
 
 #endif // __STAMNOS_DPO_CLIENT_RWPROXY_H

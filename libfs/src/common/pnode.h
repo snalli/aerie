@@ -6,7 +6,7 @@
 #ifndef __PNODE_STAMNOS_H_KAL189
 #define __PNODE_STAMNOS_H_KAL189
 
-#include "dpo/common/object-obsolete.h"
+#include "dpo/common/obj.h"
 #include "common/types.h"
 
 

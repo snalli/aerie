@@ -25,7 +25,7 @@ typedef uint64_t Version;
 
 // header of an object that is synchronized under distributed concurrency 
 // control
-class CCObject {
+class Object {
 public:
 	Object()
 		: status_(0),

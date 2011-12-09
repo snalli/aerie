@@ -13,8 +13,8 @@ public:
 		: smgr_(smgr)
 	{ }
 
-	client::StorageManager* smgr_;
-	stm::Transaction*       tx_;
+	client::StorageManager*          smgr_;
+	dpo::stm::client::Transaction*   tx_;
 };
 
 } // namespace client

@@ -164,4 +164,17 @@ HLock::AddChild(HLock* hlock)
 
 } // namespace client
 
+
+namespace dpo {
+
+namespace cc {
+
+namespace client {
+	typedef ::client::HLock HLock;
+} // namespace client
+
+} // namespace cc
+
+} // namespace dpo
+
 #endif // __STAMNOS_DPO_CLIENT_HIERARCHICAL_LOCK_MANAGER_H
