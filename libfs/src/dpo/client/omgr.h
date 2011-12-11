@@ -11,13 +11,17 @@ namespace dpo {
 
 namespace client {
 
+class ObjectManager; // forward reference
+
 /**
  * \brief Type specific object manager
  */
 class ObjectManagerOfType {
+friend class ObjectManager;
 public:
-	virtual void* Create();
-	virtual void OnRelease();
+	virtual ObjectProxy* Create(ObjectId oid) = 0;
+	//virtual void OnRelease();
+	
 private:
 	ObjectMap oid2obj_map_;
 };
@@ -26,13 +30,16 @@ private:
 class ObjectManager {
 	typedef google::dense_hash_map<ObjectType, ObjectManagerOfType*> ObjectType2Manager; 
 public:
-	int Register(ObjectType* type, ObjectManagerOfType* mgr);
+	ObjectManager();
+	int Register(ObjectType type_id, ObjectManagerOfType* mgr);
+	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref);
+	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
 	//ObjectProxy* Object(ObjectId oid);
 	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
 
 private:
 	pthread_mutex_t    mutex_;
-	ObjectType2Manager objtype2mgr_; 
+	ObjectType2Manager objtype2mgr_map_; 
 };
 
 

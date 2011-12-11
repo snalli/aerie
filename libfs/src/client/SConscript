@@ -22,6 +22,7 @@ lib_sources = [
                'smgr.cc',
                '../dpo/client/hlckmgr.cc',
                '../dpo/client/lckmgr.cc',
+	       '../dpo/client/omgr.cc',
 	       '../dpo/client/stm.cc'
 	      ]
 #libLocalBuildEnv.Append(LIBS = mfsLibrary)

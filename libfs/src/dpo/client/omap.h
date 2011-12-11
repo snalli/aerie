@@ -13,6 +13,8 @@
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/debug.h"
+#include "common/errno.h"
+#include "dpo/common/obj.h"
 #include "dpo/client/proxy.h"
 
 namespace dpo {
@@ -20,7 +22,7 @@ namespace dpo {
 namespace client {
 
 class ObjectMap {
-	typedef google::dense_hash_map<ObjectId, ObjectProxy*> ObjectIdMap;
+	typedef google::dense_hash_map<ObjectId, ObjectProxy*, dpo::common::ObjectIdHashFcn > ObjectIdMap;
 public:
 	ObjectMap();
 	int Init();
@@ -49,10 +51,10 @@ ObjectMap::Lookup(ObjectId oid, ObjectProxy** obj)
 	it = oid2obj_map_.find(oid);
 
 	if (it == oid2obj_map_.end()) {
-		return -1;
+		return -E_EXIST;
 	}
 	*obj = it->second;
-	return 0;
+	return E_SUCCESS;
 }
 
 
@@ -66,7 +68,7 @@ ObjectMap::Insert(ObjectProxy* obj)
 	pairret = oid2obj_map_.insert(std::pair<ObjectId, ObjectProxy*>(oid, obj));
 	assert(pairret.second == true);
 
-	return 0;
+	return E_SUCCESS;
 }
 
 inline int 

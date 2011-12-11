@@ -18,7 +18,6 @@ typedef dpo::common::ObjectType  ObjectType;
 // CONCURRENCY CONTROL
 
 namespace cc {
-
 namespace client {
 
 
@@ -68,7 +67,6 @@ Derived* ObjectProxy<Derived, Subject>::xOpenRO()
 // VERSION MANAGEMENT
 
 namespace vm {
-
 namespace client {
 
 
@@ -83,9 +81,7 @@ protected:
 
 };
 
-
 } // namespace client
-
 } // namespace vm
 
 } // namespace dpo

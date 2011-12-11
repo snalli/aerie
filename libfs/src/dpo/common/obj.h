@@ -8,22 +8,30 @@
 #define __STAMNOS_DPO_COMMON_PERSISTENT_OBJECT_H
 
 #include <stdint.h>
+#include <boost/functional/hash.hpp>
 #include "common/types.h"
 
 namespace dpo {
 
 namespace common {
 
-
+// 0 is invalid value for type ObjectType
 typedef uint16_t ObjectType;
 
+struct ObjectIdHashFcn;
+
 class ObjectId {
+friend class ObjectIdHashFcn;
 	enum {
 		OBJECT_NUMBER_LEN_LOG2 = 48
 	};
 public:
 	ObjectId(uint64_t id = 0)
 		: id_(id)
+	{ }
+
+	ObjectId(const ObjectId& oid)
+		: id_(oid.id_)
 	{ }
 
 	ObjectId(ObjectType type, void* addr) {
@@ -38,6 +46,14 @@ public:
 		return u16_[3];
 	}
 
+	uint64_t num() {
+		return id_ & ((1LLU << OBJECT_NUMBER_LEN_LOG2) - 1);
+	}
+
+	void* addr() {
+		return reinterpret_cast<void*>(num());
+	}
+
 	bool operator==(const ObjectId& other) const {
 		return (id_ == other.id_);
 	}
@@ -45,6 +61,8 @@ public:
 	bool operator!=(const ObjectId& other) const {
 		return !(*this == other);
 	}
+
+
 private:
 	void Create(ObjectType type, uint64_t num) {
 		id_ = type;
@@ -57,35 +75,31 @@ private:
 	};
 };
 
-
-class Object {
-public:
-	ObjectId oid();
-	ObjectType type();
-	void set_type(ObjectType type);
-
-private:
-	ObjectType type_; //!< Magic number identifying object type
+struct ObjectIdHashFcn {
+	std::size_t operator()(const ObjectId& oid) const {
+		boost::hash<uint64_t> hasher;
+		return hasher(oid.id_);
+	}
 };
 
 
-inline ObjectId
-Object::oid()
-{
-	return ObjectId(type_, this);
-}
+class Object {
+public:
+	ObjectId oid() {
+		return ObjectId(type_, this);
+	}
 
-inline ObjectType 
-Object::type()
-{
-	return type_;
-}
+	ObjectType type() {
+		return type_;
+	}
 
-inline void 
-Object::set_type(ObjectType type)
-{
-	type_ = type;
-}
+	void set_type(ObjectType type) {
+		type_ = type;
+	}
+
+protected:
+	ObjectType type_; //!< Magic number identifying object type
+};
 
 
 } // namespace common
@@ -137,5 +151,6 @@ protected:
 
 
 } // namespace dpo
+
 
 #endif // __STAMNOS_DPO_COMMON_OBJECT_H

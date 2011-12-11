@@ -7,10 +7,16 @@
 
 using namespace client;
 
+const int TYPE_DUMMY = 1;
+
 // Immutable object
-class Dummy {
+class Dummy: public dpo::cc::common::Object {
 public:
-	
+	Dummy() 
+	{ 
+		set_type(TYPE_DUMMY);
+	}
+
 	int nlink_;
 };
 
@@ -42,18 +48,19 @@ typedef dpo::client::rw::ObjectProxy<Dummy, DummyVersionManager> DummyRW;
 // Proxy object reference
 typedef dpo::client::rw::ObjectProxyReference<Dummy, DummyVersionManager> DummyRWReference;
 
+
 SUITE(DPO)
 {
 	TEST(SimpleObject) 
 	{
-		//dpo::client::ObjectManager* mgr = new dpo::client::ObjectManager();
+		dpo::client::ObjectManager* mgr = new dpo::client::ObjectManager();
+		dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>;
+		mgr->Register(TYPE_DUMMY, dummy_mgr);
 
 		Dummy            dummy;        // the public object
-		DummyRW          dummy_rw;     // the RW private object
 		DummyRWReference dummy_rw_ref; // a reference to a private object
-
-		dummy_rw_ref.obj_ = &dummy_rw;
-		dummy_rw_ref.next_ = dummy_rw.next_;
+		
+		CHECK(mgr->GetObject(dummy.oid(), &dummy_rw_ref) == E_SUCCESS);
 		//mgr->Make(DummyCoW, &dummy_cow);
 		//mgr->MakeDefer(DummyCoW, &dummy_cow);
 
