@@ -21,13 +21,26 @@ public:
 
 };
 
-// Proxy object
-//template dpo::client::rw::ObjectProxy<Dummy, DummyVersionManager> DummyRW;
-class DummyRW : public dpo::client::rw::ObjectProxy<DummyRW, Dummy, DummyVersionManager>
+/*
+// Derived proxy object (just for testing inheritance instantiation at compile time)
+class DummyRWT : public dpo::client::rw::ObjectProxyTemplate<DummyRWT, Dummy, DummyVersionManager>
 {
 
 };
 
+// Derived proxy object reference (just for testing inheritance instantiation at compile time)
+class DummyRWReferenceT: public dpo::client::rw::ObjectProxyReferenceTemplate<DummyRWReferenceT, Dummy, DummyVersionManager>
+{
+
+};
+
+*/
+
+// Proxy object
+typedef dpo::client::rw::ObjectProxy<Dummy, DummyVersionManager> DummyRW;
+
+// Proxy object reference
+typedef dpo::client::rw::ObjectProxyReference<Dummy, DummyVersionManager> DummyRWReference;
 
 SUITE(DPO)
 {
@@ -35,9 +48,12 @@ SUITE(DPO)
 	{
 		//dpo::client::ObjectManager* mgr = new dpo::client::ObjectManager();
 
-		//Dummy    dummy;    // the public object
-		//DummyRW  dummy_rw; // the RW private object
+		Dummy            dummy;        // the public object
+		DummyRW          dummy_rw;     // the RW private object
+		DummyRWReference dummy_rw_ref; // a reference to a private object
 
+		dummy_rw_ref.obj_ = &dummy_rw;
+		dummy_rw_ref.next_ = dummy_rw.next_;
 		//mgr->Make(DummyCoW, &dummy_cow);
 		//mgr->MakeDefer(DummyCoW, &dummy_cow);
 

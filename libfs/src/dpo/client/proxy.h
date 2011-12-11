@@ -7,11 +7,20 @@
 
 namespace dpo {
 
+namespace client {
+
+typedef dpo::common::ObjectProxy ObjectProxy;
+typedef dpo::common::ObjectId    ObjectId; 
+typedef dpo::common::ObjectType  ObjectType;
+
+} // namespace client
+
 // CONCURRENCY CONTROL
 
 namespace cc {
 
 namespace client {
+
 
 template<class Derived, class Subject>
 class ObjectProxy: public dpo::common::ObjectProxyTemplate<Subject> {
@@ -28,7 +37,7 @@ public:
 	Derived* xOpenRO();
 
 private:
-	dpo::cc::client::HLock         hlock;
+	//dpo::cc::client::HLock         hlock;
 	dpo::stm::client::Transaction* tx_;
 };
 

@@ -2,31 +2,30 @@
  * \file omap.h
  * 
  * \brief Object Map: maps object id (public object address) to 
- * process' private object header
+ * process' private object proxy
+ *
  */
 
-#ifndef __DPO_CLIENT_OBJECT_MAP_H_AKL189
-#define __DPO_CLIENT_OBJECT_MAP_H_AKL189
+#ifndef __STAMNOS_DPO_CLIENT_OBJECT_MAP_H
+#define __STAMNOS_DPO_CLIENT_OBJECT_MAP_H
 
-#include "dpo/client/obj.h"
 #include <stdint.h>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/debug.h"
-
-typedef uint64_t ObjectId; 
+#include "dpo/client/proxy.h"
 
 namespace dpo {
 
 namespace client {
 
 class ObjectMap {
-	typedef google::dense_hash_map<ObjectId, Object*> ObjectIdMap;
+	typedef google::dense_hash_map<ObjectId, ObjectProxy*> ObjectIdMap;
 public:
 	ObjectMap();
 	int Init();
-	int Lookup(ObjectId oid, Object** obj);
-	int Insert(Object* obj);
+	int Lookup(ObjectId oid, ObjectProxy** obj);
+	int Insert(ObjectProxy* obj);
 	int Remove(ObjectId oid);
 	int RemoveAll();
 
@@ -38,14 +37,14 @@ private:
 inline 
 ObjectMap::ObjectMap()
 {
-	oid2obj_map_.set_empty_key(-1);
+	oid2obj_map_.set_empty_key(ObjectId(0));
 }
 
 
 inline int 
-ObjectMap::Lookup(ObjectId oid, Object** obj)
+ObjectMap::Lookup(ObjectId oid, ObjectProxy** obj)
 {
-	google::dense_hash_map<ObjectId, Object*>::iterator it;
+	ObjectIdMap::iterator it;
 
 	it = oid2obj_map_.find(oid);
 
@@ -58,13 +57,13 @@ ObjectMap::Lookup(ObjectId oid, Object** obj)
 
 
 inline int 
-ObjectMap::Insert(Object* obj)
+ObjectMap::Insert(ObjectProxy* obj)
 {
 	ObjectId                               oid;
 	std::pair<ObjectIdMap::iterator, bool> pairret;
 
 	oid = obj->oid();
-	pairret = oid2obj_map_.insert(std::pair<ObjectId, Object*>(oid, obj));
+	pairret = oid2obj_map_.insert(std::pair<ObjectId, ObjectProxy*>(oid, obj));
 	assert(pairret.second == true);
 
 	return 0;
@@ -83,4 +82,4 @@ ObjectMap::Remove(ObjectId oid)
 
 } // namespace dpo
 
-#endif // __DPO_CLIENT_INODE_MAP_H_AKL189
+#endif // __STAMNOS_DPO_CLIENT_OBJECT_MAP_H

@@ -1,5 +1,5 @@
 /**
- * \file object.h
+ * \file obj.h
  *
  * \brief This is the object header of a public persistent object 
  */
@@ -14,12 +14,49 @@ namespace dpo {
 
 namespace common {
 
-enum {
-	OBJECT_NUMBER_LEN_LOG2 = 48
-};
 
 typedef uint16_t ObjectType;
-typedef uint64_t ObjectId;
+
+class ObjectId {
+	enum {
+		OBJECT_NUMBER_LEN_LOG2 = 48
+	};
+public:
+	ObjectId(uint64_t id = 0)
+		: id_(id)
+	{ }
+
+	ObjectId(ObjectType type, void* addr) {
+		Create(type, reinterpret_cast<uint64_t>(addr));
+	}
+
+	ObjectId(ObjectType type, uint64_t num) {
+		Create(type, num);
+	}
+
+	ObjectType type() {
+		return u16_[3];
+	}
+
+	bool operator==(const ObjectId& other) const {
+		return (id_ == other.id_);
+	}
+
+	bool operator!=(const ObjectId& other) const {
+		return !(*this == other);
+	}
+private:
+	void Create(ObjectType type, uint64_t num) {
+		id_ = type;
+		id_ = id_ << OBJECT_NUMBER_LEN_LOG2;
+		id_ = id_ + num;
+	}
+	union {
+		uint64_t id_;
+		uint16_t u16_[4];
+	};
+};
+
 
 class Object {
 public:
@@ -31,12 +68,11 @@ private:
 	ObjectType type_; //!< Magic number identifying object type
 };
 
+
 inline ObjectId
 Object::oid()
 {
-	uint64_t oid = type_;
-	oid = oid << OBJECT_NUMBER_LEN_LOG2;
-	return oid + reinterpret_cast<uint64_t>(this);
+	return ObjectId(type_, this);
 }
 
 inline ObjectType 
