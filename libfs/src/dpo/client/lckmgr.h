@@ -15,6 +15,8 @@
 #include "dpo/common/lock_protocol.h"
 #include "common/bitmap.h"
 
+namespace dpo {
+namespace cc {
 namespace client {
 
 
@@ -239,6 +241,14 @@ private:
 };
 
 
+} // namespace client
+} // namespace cc
+} // namespace dpo
+
+
+namespace client {
+	typedef ::dpo::cc::client::Lock        Lock;
+	typedef ::dpo::cc::client::LockManager LockManager;
 } // namespace client
 
 #endif // __STAMNOS_DPO_CLIENT_LOCK_MANAGER_H

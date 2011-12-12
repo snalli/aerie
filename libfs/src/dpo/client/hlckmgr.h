@@ -11,6 +11,8 @@
 #include <google/dense_hash_set>
 #include "dpo/client/lckmgr.h"
 
+namespace dpo {
+namespace cc {
 namespace client {
 
 class HLock;
@@ -163,18 +165,15 @@ HLock::AddChild(HLock* hlock)
 
 
 } // namespace client
+} // namespace cc
+} // namespace dpo
 
-
-namespace dpo {
-
-namespace cc {
 
 namespace client {
-	typedef ::client::HLock HLock;
+	typedef ::dpo::cc::client::HLock        HLock;
+	typedef ::dpo::cc::client::HLockManager HLockManager;
+	typedef ::dpo::cc::client::HLockUser    HLockUser;
 } // namespace client
 
-} // namespace cc
-
-} // namespace dpo
 
 #endif // __STAMNOS_DPO_CLIENT_HIERARCHICAL_LOCK_MANAGER_H

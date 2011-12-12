@@ -6,6 +6,7 @@
 #include "dpo/common/obj.h"
 #include "dpo/client/proxy.h"
 #include "dpo/client/omap.h"
+#include "dpo/client/hlckmgr.h"
 
 namespace dpo {
 
@@ -30,7 +31,7 @@ private:
 class ObjectManager {
 	typedef google::dense_hash_map<ObjectType, ObjectManagerOfType*> ObjectType2Manager; 
 public:
-	ObjectManager();
+	ObjectManager(dpo::cc::client::HLockManager* hlckmgr = NULL);
 	int Register(ObjectType type_id, ObjectManagerOfType* mgr);
 	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref);
 	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
@@ -39,8 +40,9 @@ public:
 	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
 
 private:
-	pthread_mutex_t    mutex_;
-	ObjectType2Manager objtype2mgr_map_; 
+	pthread_mutex_t                mutex_;
+	ObjectType2Manager             objtype2mgr_map_; 
+	dpo::cc::client::HLockManager* hlckmgr_;
 };
 
 

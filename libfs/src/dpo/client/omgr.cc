@@ -7,6 +7,7 @@
 #include "common/errno.h"
 #include "common/debug.h"
 #include "common/list.h"
+#include "dpo/client/hlckmgr.h"
 #include "dpo/client/omgr.h"
 
 namespace dpo {
@@ -14,7 +15,8 @@ namespace client {
 
 //TODO: Fine-grain locking in GetObject/PutObject.
 
-ObjectManager::ObjectManager()
+ObjectManager::ObjectManager(dpo::cc::client::HLockManager* hlckmgr)
+	: hlckmgr_(hlckmgr)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2mgr_map_.set_empty_key(0);

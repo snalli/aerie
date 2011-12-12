@@ -39,11 +39,259 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 #
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'DPO:Test',
+    name = 'Lock:TestLockUnlockSingle',
     init_script = None,
     testfw = testProgram, server = lockServerProgram,
     clients = { 
-        'C1': ( testProgram, [('T1', 'DPO:Test')])
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
     },
     rendezvous = []
 ))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockConcurrent1',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
+    },
+    rendezvous = [('C1:T1:E2', 'C2:T1:E1'), 
+                  ('C2:T1:E3', 'C1:T1:E3')]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockMultipleTimesConcurrent1',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
+    },
+    rendezvous = [('C1:T1:E1:block', 'C2:T1:E1:block')]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockMultipleTimesConcurrent2',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
+    },
+    rendezvous = [
+                  ('C1:T1:E1:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E4:block', 'C2:T1:E4:block')
+    
+    ]
+))
+
+
+# checks that a client that grabs a cached lock is serialized
+# with respect to another client trying to acquire the same lock
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockUnlockMultipleTimesConcurrent3',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockTwoTimes')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E3:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E4:block', 'C2:T1:E3:block')
+    ]
+))
+
+
+# asynchronous conversion
+# a client acquires a lock in XL and then tries to convert it in SL
+# a second client tries to acquire the lock in SL between the two events 
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockConvert1',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSL')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockSL')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+# synchronous conversion
+# a client acquires a lock in XL and then tries to convert it in SL
+# a second client tries to acquire the lock in SL between the two events 
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockConvert2',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSLsynchronous')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockSL')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestSharedLockUnlock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestSharedLockUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestSharedLockXLUnlockLockSLUnlock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestSharedLockXLUnlockLockSLUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E3:block', 'C2:T1:E3:block'),
+                  ('C1:T1:E4:block', 'C2:T1:E4:block')
+    ]
+))
+
+
+# cancel request. deadlock scenario: two clients deadlock. one of the clients 
+# sends a cancel request to break the deadlock  
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockCancel1',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockBLockA')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E3:block', 'C1:T2:E1:block')
+    ]
+))
+
+
+# cancel request. non-deadlock scenario (false positive): client thinks has 
+# deadlocked and cancels the request. false positive.
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Lock:TestLockCancel2',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
+        'C2': ( testProgram, [('T1', 'Lock:TestLockBUnlockB')])
+    },
+    rendezvous = [
+                  ('C1:T1:E2:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E3:block', 'C1:T2:E1:block'), # C1:T2 waits till C1:T1 starts the request
+                  ('C1:T2:E2:block', 'C2:T1:E3:block'), # C1:T2 makes sure C2:T1 has the lock 
+				                                        # before starting the cancel request
+                  ('C1:T2:E3:block', 'C2:T1:E4:block')  # C2:T1 releases the lock only after C1:T2
+				                                        # is done with the cancel request
+    ]
+))
+
+
+
+
+#
+# HIERARCHICAL LOCK TESTS
+#
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestLockUnlockSingleClient',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXRUnlock')])
+    },
+    rendezvous = [
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestLockUnlockConcurrentClient1',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXLUnlock')]),
+        'C2': ( testProgram, [('T1', 'HLock:TestLockIXLockXLUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E1:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E2:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestLockUnlockConcurrentClient2',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockISLockSLUnlock')]),
+        'C2': ( testProgram, [('T1', 'HLock:TestLockISLockSLUnlock')])
+    },
+    rendezvous = [
+                  ('C1:T1:E1:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E2:block', 'C2:T1:E2:block'),
+                  ('C1:T1:E3:block', 'C2:T1:E3:block')
+    ]
+))
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'HLock:TestDeepLockUnlockConcurrentClient',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockIXLockXLUnlockAll')]),
+        'C2': ( testProgram, [('T1', 'HLock:TestLockXR')])
+    },
+    rendezvous = [
+                  ('C1:T1:E5:block', 'C2:T1:E1:block'),
+                  ('C1:T1:E6:block', 'C2:T1:E2:block')
+    ]
+))
+
+
+
+
+#
+# OBJECT/CONTAINER TESTS
+#
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Object:Test',
+    init_script = None,
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Object:Test')])
+    },
+    rendezvous = [
+    ]
+))
+
+

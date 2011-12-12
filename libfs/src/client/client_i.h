@@ -8,18 +8,19 @@
 #include "client/smgr.h"
 #include "client/file.h"
 
+namespace dpo { namespace client { class ObjectManager; } }
+namespace dpo { namespace cc { namespace client { class LockManager; } } }
+namespace dpo { namespace cc { namespace client { class HLockManager; } } }
 
 namespace client {
 
-class LockManager;
-class HLockManager;
-
-extern NameSpace*        global_namespace;
-extern StorageManager*   global_smgr;
-extern FileManager*      global_fmgr;
-extern LockManager*      global_lckmgr;
-extern HLockManager*     global_hlckmgr;
-extern Session*          global_session;
+extern NameSpace*                         global_namespace;
+extern StorageManager*                    global_smgr;
+extern FileManager*                       global_fmgr;
+extern dpo::cc::client::LockManager*      global_lckmgr;
+extern dpo::cc::client::HLockManager*     global_hlckmgr;
+extern dpo::client::ObjectManager*        global_omgr;
+extern Session*                           global_session;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;

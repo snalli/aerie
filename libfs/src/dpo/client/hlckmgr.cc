@@ -4,7 +4,8 @@
 #include "dpo/client/lckmgr.h"
 
 
-
+namespace dpo {
+namespace cc {
 namespace client {
 
 /** 
@@ -1081,3 +1082,5 @@ HLockManager::PrintDebugInfo()
 }
 
 } // namespace client
+} // namespace cc
+} // namespace dpo

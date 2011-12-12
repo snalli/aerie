@@ -1,5 +1,5 @@
-#ifndef _HLOCK_FIXTURE_HXX_AGL189
-#define _HLOCK_FIXTURE_HXX_AGL189
+#ifndef __STAMNOS_TEST_DPO_HLOCK_FIXTURE_H
+#define __STAMNOS_TEST_DPO_HLOCK_FIXTURE_H
 
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
@@ -43,4 +43,4 @@ struct HLockFixture: public LockRegionFixture, RPCFixture {
 };
 
 
-#endif /* _HLOCK_FIXTURE_HXX_AGL189 */
+#endif // __STAMNOS_TEST_DPO_HLOCK_FIXTURE_H

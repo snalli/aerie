@@ -11,6 +11,7 @@
 #include "client/smgr.h"
 #include "dpo/client/lckmgr.h"
 #include "dpo/client/hlckmgr.h"
+#include "dpo/client/omgr.h"
 #include "dpo/client/stm.h"
 #include "chunkstore/registry.h"
 #include "mfs/client/mfs.h"
@@ -32,6 +33,8 @@ rpcc*            rpc_client;
 rpcs*            rpc_server;
 std::string      id;
 Session*         global_session;
+
+dpo::client::ObjectManager*   global_omgr;
 
 // Known backend file system implementations
 struct KnownFS {

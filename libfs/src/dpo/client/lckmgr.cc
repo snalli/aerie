@@ -12,6 +12,8 @@
 #include "dpo/common/lock_protocol.h"
 #include "dpo/common/lock_protocol-static.h"
 
+namespace dpo {
+namespace cc {
 namespace client {
 
 static int revoke2mode_table[] = {
@@ -993,3 +995,5 @@ LockManager::stat(lock_protocol::LockId lid)
 
 
 } // namespace client
+} // namespace cc
+} // namespace dpo
