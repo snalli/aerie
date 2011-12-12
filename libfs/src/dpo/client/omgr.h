@@ -34,6 +34,7 @@ public:
 	int Register(ObjectType type_id, ObjectManagerOfType* mgr);
 	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref);
 	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
+	int ReleaseObject(dpo::common::ObjectProxy* obj);
 	//ObjectProxy* Object(ObjectId oid);
 	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
 

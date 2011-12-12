@@ -23,24 +23,7 @@ public:
 class DummyVersionManager {
 public:
 
-	
-
 };
-
-/*
-// Derived proxy object (just for testing inheritance instantiation at compile time)
-class DummyRWT : public dpo::client::rw::ObjectProxyTemplate<DummyRWT, Dummy, DummyVersionManager>
-{
-
-};
-
-// Derived proxy object reference (just for testing inheritance instantiation at compile time)
-class DummyRWReferenceT: public dpo::client::rw::ObjectProxyReferenceTemplate<DummyRWReferenceT, Dummy, DummyVersionManager>
-{
-
-};
-
-*/
 
 // Proxy object
 typedef dpo::client::rw::ObjectProxy<Dummy, DummyVersionManager> DummyRW;
@@ -55,20 +38,13 @@ SUITE(DPO)
 	{
 		dpo::client::ObjectManager* mgr = new dpo::client::ObjectManager();
 		dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>;
-		mgr->Register(TYPE_DUMMY, dummy_mgr);
+		CHECK(mgr->Register(TYPE_DUMMY, dummy_mgr) == E_SUCCESS);
 
 		Dummy            dummy;        // the public object
 		DummyRWReference dummy_rw_ref; // a reference to a private object
 		
 		CHECK(mgr->GetObject(dummy.oid(), &dummy_rw_ref) == E_SUCCESS);
-		//mgr->Make(DummyCoW, &dummy_cow);
-		//mgr->MakeDefer(DummyCoW, &dummy_cow);
-
-		//dummy_cow = DummyCoW::Make(dummy);
-
-		//dummy_cow->Open(); // dummy_cow->Lock() or dummy_cow->Lock(parent_oid);
+		CHECK(dummy_rw_ref.obj()->subject() == &dummy);
+		CHECK(mgr->PutObject(dummy_rw_ref) == E_SUCCESS);
 	}
-
-
 }
-

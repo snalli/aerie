@@ -5,12 +5,14 @@
  */
 
 #include "common/errno.h"
+#include "common/debug.h"
 #include "common/list.h"
 #include "dpo/client/omgr.h"
 
 namespace dpo {
 namespace client {
 
+//TODO: Fine-grain locking in GetObject/PutObject.
 
 ObjectManager::ObjectManager()
 {
@@ -26,7 +28,7 @@ ObjectManager::Register(ObjectType type_id, ObjectManagerOfType* mgr)
 	ObjectType2Manager::iterator itr; 
 
 	pthread_mutex_lock(&mutex_);
-    if ((itr = objtype2mgr_map_.find(type_id)) == objtype2mgr_map_.end()) {
+    if ((itr = objtype2mgr_map_.find(type_id)) != objtype2mgr_map_.end()) {
 		ret = -E_EXIST;
 		goto done;
 	}
@@ -70,16 +72,54 @@ ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_re
 		// object exists
 		obj_ref->Set(obj, true);
 	}
+	ret = E_SUCCESS;
 
 done:
 	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
+
 
 int
 ObjectManager::PutObject(dpo::common::ObjectProxyReference& obj_ref)
 {
-	
+	int                  ret = E_SUCCESS;
+	ObjectManagerOfType* mgr;
+	ObjectProxy*         obj = obj_ref.obj();
+
+	pthread_mutex_lock(&mutex_);
+	obj_ref.Reset(true);
+	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
+
+
+int
+ObjectManager::ReleaseObject(dpo::common::ObjectProxy* obj)
+{
+	int                  ret = E_SUCCESS;
+	ObjectManagerOfType* mgr;
+/*
+	pthread_mutex_lock(&mutex_);
+	ObjectType type = obj->oid.type();
+	ObjectType2Manager::iterator itr;
+	if ((itr = objtype2mgr_map_.find(type)) == objtype2mgr_map_.end()) {
+		ret = -E_INVAL; // unknown type id 
+		goto done;
+	}
+	mgr = itr->second;
+
+	if ((ret = mgr->oid2obj_map_.Remove(obj->oid())) != E_SUCCESS) {
+		ret = -E_EXIST; // does not exist
+		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_omgr), 
+				"Object reference points to an unknown object oid\n");
+	}
+	obj_ref.Reset(true);
+	pthread_mutex_unlock(&mutex_);
+	return ret;
+*/
+}
+
 
 
 } // namespace client

@@ -23,9 +23,8 @@ template<class Subject, class VersionManager> class ObjectProxy;
 template<class Subject, class VersionManager>
 class ObjectManager: public dpo::client::ObjectManagerOfType {
 public:
-	//FIXME: ObjectProxy<Subject, VersionManager>* Create() {
 	dpo::client::ObjectProxy* Create(ObjectId oid) {
-		return new ObjectProxy<Subject, VersionManager>;
+		return new ObjectProxy<Subject, VersionManager>(oid);
 	}
 
 
@@ -36,20 +35,18 @@ public:
 template<class Subject, class VersionManager>
 class ObjectProxyReference: public dpo::common::ObjectProxyReference {
 public:
- 	//FIXME: these fields have been moved under dpo::common::ObjectProxyReference
-	//       ../common/proxy.h         
-	//FIXME: This class should only provide setter/getter methods to obj_ and next_
-	//       for the specific Subject/versionmanager template instant
-
-//private:
-	//ObjectProxy<Subject, VersionManager>*          obj_;
-	//ObjectProxyReference<Subject, VersionManager>* next_;
+	ObjectProxy<Subject, VersionManager>* obj() { 
+		return static_cast<ObjectProxy<Subject, VersionManager>*>(obj_);
+	}
 };
 
 
 template<class Subject, class VersionManager>
 class ObjectProxy: public dpo::vm::client::ObjectProxy< ObjectProxy<Subject, VersionManager>, Subject, VersionManager> {
 public:
+	ObjectProxy(ObjectId oid)
+		: dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>(oid)
+	{ }
 	//Create(); // lazy shadow
 	//Destroy();
 	//Lock();

@@ -47,6 +47,10 @@ protected:
 template<class Subject>
 class ObjectProxyTemplate: public ObjectProxy {
 public:
+	ObjectProxyTemplate(ObjectId oid) 
+		: ObjectProxy(oid)
+	{ }
+
 	Subject* subject() { return static_cast<Subject*>(subject_); }
 	void set_subject(Subject* subject) { subject_ = subject; }
 		// dont' need to lock the 
@@ -85,10 +89,10 @@ public:
 		}
 		obj_->refcnt_++;
 		list_del(&list_);
-		obj_ = NULL;
 		if (lock) {
 			pthread_mutex_unlock(&(obj_->mutex_));
 		}
+		obj_ = NULL;
 	}
 
 protected:

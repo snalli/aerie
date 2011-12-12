@@ -24,6 +24,10 @@ namespace client {
 template<class Derived, class Subject>
 class ObjectProxy: public dpo::common::ObjectProxyTemplate<Subject> {
 public:
+	ObjectProxy(dpo::common::ObjectId oid)
+		: dpo::common::ObjectProxyTemplate<Subject>(oid)
+	{ }
+
 	int Lock(lock_protocol::Mode mode) {
 
 	}
@@ -73,6 +77,10 @@ namespace client {
 template<class Derived, class Subject, class VersionManager>
 class ObjectProxy: public dpo::cc::client::ObjectProxy<Derived, Subject> {
 public:
+	ObjectProxy(dpo::common::ObjectId oid)
+		: dpo::cc::client::ObjectProxy<Derived, Subject>(oid)
+	{ }
+
 	//vOpenRO(); 
 	//vOpenRW();
 	
