@@ -48,26 +48,26 @@ public:
 	ObjectProxy(ObjectId oid)
 		: dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>(oid)
 	{ }
-	//Create(); // lazy shadow
-	//Destroy();
-	//Lock();
-	//Unlock();
 
+	int Lock(lock_protocol::Mode mode) {
+		int ret;
+		
+		if ((ret = dpo::cc::client::ObjectProxy::Lock(mode)) != lock_protocol::OK) {
+			return ret;
+		}
+		dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen();
+		return lock_protocol::OK;
+	}
 
-	//int Lock(lock_protocol::Mode mode) {
+	int Lock(dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
 		//dcc::Object::Lock();
 		//CopyOnWrite();
-	//}
 
-/*
-	int CopyOnWrite() {
-		if (state_ == INVALID) {
-			Derived::CopyOnWrite();
-			state_ = VALID;
-		}
-		return 0;
 	}
-*/
+
+	//Create(); // lazy shadow
+	//Destroy();
+
 	// this function has to be virtual or functor that is registered 
 	// with the object manager
 /*

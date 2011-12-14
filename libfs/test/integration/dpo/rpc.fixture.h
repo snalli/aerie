@@ -1,5 +1,5 @@
-#ifndef _RPC_FIXTURE_HXX_AGL119
-#define _RPC_FIXTURE_HXX_AGL119
+#ifndef __STAMNOS_TEST_RPC_FIXTURE_H
+#define __STAMNOS_TEST_RPC_FIXTURE_H
 
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
@@ -40,4 +40,4 @@ struct RPCFixture {
 };
 
 
-#endif /* _RPC_FIXTURE_HXX_AGL119 */
+#endif // __STAMNOS_TEST_RPC_FIXTURE_H

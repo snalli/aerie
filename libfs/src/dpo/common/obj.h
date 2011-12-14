@@ -145,11 +145,7 @@ protected:
 
 
 } // namespace common
-
 } // namespace cc
-
-
-
 } // namespace dpo
 
 

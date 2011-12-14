@@ -285,12 +285,14 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Object:Test',
-    init_script = None,
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
     testfw = testProgram, server = lockServerProgram,
     clients = { 
-        'C1': ( testProgram, [('T1', 'Object:Test')])
+        'C1': ( testProgram, [('T1', 'Object:Test')]),
+        'C2': ( testProgram, [('T1', 'Object:Test')])
     },
     rendezvous = [
+                  ('C1:T1:AfterMapObjects:block', 'C2:T1:AfterMapObjects:block'),
     ]
 ))
 

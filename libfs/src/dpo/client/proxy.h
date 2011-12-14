@@ -20,33 +20,49 @@ typedef dpo::common::ObjectType  ObjectType;
 namespace cc {
 namespace client {
 
-
-template<class Derived, class Subject>
-class ObjectProxy: public dpo::common::ObjectProxyTemplate<Subject> {
+class ObjectProxy: public dpo::common::ObjectProxy {
 public:
-	ObjectProxy(dpo::common::ObjectId oid)
-		: dpo::common::ObjectProxyTemplate<Subject>(oid)
+	ObjectProxy(dpo::common::ObjectId oid) 
+		: dpo::common::ObjectProxy(oid)
 	{ }
 
 	int Lock(lock_protocol::Mode mode) {
 
 	}
 
-	int Lock(ObjectProxy* parent, lock_protocol::Mode mode) {
+	int Lock(dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
 
 	}
+
+	int Unlock() {
+
+	}
+
+private:
+	//dpo::cc::client::HLock hlock;
+};
+
+
+template<class Derived, class Subject>
+class ObjectProxyTemplate: public ObjectProxy {
+public:
+	ObjectProxyTemplate(dpo::common::ObjectId oid)
+		: ObjectProxy(oid)
+	{ }
+
+	Subject* subject() { return static_cast<Subject*>(subject_); }
+	//void set_subject(Subject* subject) { subject_ = subject; } // FIXME: do we need this ???
 
 	Derived* xOpenRO(dpo::stm::client::Transaction* tx);
 	Derived* xOpenRO();
 
 private:
-	//dpo::cc::client::HLock         hlock;
 	dpo::stm::client::Transaction* tx_;
 };
 
 
 template<class Derived, class Subject>
-Derived* ObjectProxy<Derived, Subject>::xOpenRO(dpo::stm::client::Transaction* tx)
+Derived* ObjectProxyTemplate<Derived, Subject>::xOpenRO(dpo::stm::client::Transaction* tx)
 {
 	Derived* derived = static_cast<Derived*>(this);
 	Subject* subj = derived->subject();
@@ -56,7 +72,7 @@ Derived* ObjectProxy<Derived, Subject>::xOpenRO(dpo::stm::client::Transaction* t
 
 
 template<class Derived, class Subject>
-Derived* ObjectProxy<Derived, Subject>::xOpenRO()
+Derived* ObjectProxyTemplate<Derived, Subject>::xOpenRO()
 {
 	dpo::stm::client::Transaction* tx = dpo::stm::client::Self();
 	return xOpenRO(tx);
@@ -64,7 +80,6 @@ Derived* ObjectProxy<Derived, Subject>::xOpenRO()
 
 
 } // namespace client
-
 } // namespace cc
 
 
@@ -73,21 +88,38 @@ Derived* ObjectProxy<Derived, Subject>::xOpenRO()
 namespace vm {
 namespace client {
 
-
+//FIXME: VersionManager must be a layer
 template<class Derived, class Subject, class VersionManager>
-class ObjectProxy: public dpo::cc::client::ObjectProxy<Derived, Subject> {
+class ObjectProxy: public dpo::cc::client::ObjectProxyTemplate<Derived, Subject>,
+                   public VersionManager /* inherit the interface of VersionManager */
+{
 public:
 	ObjectProxy(dpo::common::ObjectId oid)
-		: dpo::cc::client::ObjectProxy<Derived, Subject>(oid)
-	{ }
+		: dpo::cc::client::ObjectProxyTemplate<Derived, Subject>(oid),
+		  valid_(false)
+	{ 
+		VersionManager::vSetSubject(dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::subject());
+	}
 
+	int vOpen() {
+		if (!valid_) {
+			return VersionManager::vOpen();
+		}
+		return 0;
+	}
 	//vOpenRO(); 
 	//vOpenRW();
 	
 protected:
-	int state_; // invalid, opened (valid)
-
+	bool valid_; // invalid, opened (valid)
 };
+
+/*
+template<class Derived, class Subject, class VersionManager>
+int ObjectProxy<Derived, Subject, VersionManager>::vOpen()
+{
+}
+*/
 
 } // namespace client
 } // namespace vm

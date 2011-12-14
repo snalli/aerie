@@ -44,19 +44,6 @@ protected:
 };
 
 
-template<class Subject>
-class ObjectProxyTemplate: public ObjectProxy {
-public:
-	ObjectProxyTemplate(ObjectId oid) 
-		: ObjectProxy(oid)
-	{ }
-
-	Subject* subject() { return static_cast<Subject*>(subject_); }
-	void set_subject(Subject* subject) { subject_ = subject; }
-		// dont' need to lock the 
-};
-
-
 class ObjectProxyReference {
 public:
 	ObjectProxyReference() 
@@ -100,7 +87,7 @@ protected:
 	struct list_head list_;
 };
  
-
+ 
 } // namespace common
 } // namespace dpo
 

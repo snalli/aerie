@@ -38,4 +38,19 @@ StorageManager::Alloc(Session* session, size_t nbytes, std::type_info const& typ
 	return 0;
 }
 
+
+int 
+StorageManager::AllocExtent(Session* session, size_t nbytes, void** ptr)
+{
+	ChunkDescriptor* achunkdsc[16];
+	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
+
+	chunk_store.CreateChunk(roundup_bytes, CHUNK_TYPE_EXTENT, &achunkdsc[0]);
+	*ptr = achunkdsc[0]->chunk_;
+
+	return 0;
+}
+
+
+
 } // namespace client

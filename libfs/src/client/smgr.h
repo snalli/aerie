@@ -25,6 +25,7 @@ public:
 	}		  
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
+	int AllocExtent(Session* session, size_t nbytes, void** ptr);
 
 private:
 	rpcc*        client_;
