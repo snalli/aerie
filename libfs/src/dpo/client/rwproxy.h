@@ -8,6 +8,7 @@
 #ifndef __STAMNOS_DPO_CLIENT_RW_PROXY_H
 #define __STAMNOS_DPO_CLIENT_RW_PROXY_H
 
+#include <assert.h>
 #include "dpo/client/proxy.h"
 #include "dpo/client/omgr.h"
 
@@ -55,14 +56,12 @@ public:
 		if ((ret = dpo::cc::client::ObjectProxy::Lock(mode)) != lock_protocol::OK) {
 			return ret;
 		}
-		dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen();
+		assert((dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen() == 0));
 		return lock_protocol::OK;
 	}
 
 	int Lock(dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
-		//dcc::Object::Lock();
-		//CopyOnWrite();
-
+		// TODO
 	}
 
 	//Create(); // lazy shadow

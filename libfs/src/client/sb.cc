@@ -73,10 +73,10 @@ SuperBlock::OnRelease(HLock* hlock)
 	InodeNumber    ino;
 	int            ret;
 
-	dbg_log (DBG_INFO, "CALLBACK: Releasing hierarchical lock %llu\n", hlock->lid_);
+	dbg_log (DBG_INFO, "CALLBACK: Releasing hierarchical lock %s\n", hlock->lid_.c_str());
 	
 	pthread_mutex_lock(&mutex_);
-	ino = hlock->lid_;
+	ino = hlock->lid_.number();
 	google::dense_hash_map<InodeNumber, Inode*>::iterator itr;
 	for (itr=imap_->ino2inode_map_.begin(); itr != imap_->ino2inode_map_.end(); itr++) {
 		printf("%llu\n", itr->first);
@@ -92,7 +92,7 @@ SuperBlock::OnRelease(HLock* hlock)
 void
 SuperBlock::OnConvert(HLock* hlock)
 {
-	dbg_log (DBG_INFO, "CALLBACK: Converting hierarchical lock %llu\n", hlock->lid_);
+	dbg_log (DBG_INFO, "CALLBACK: Converting hierarchical lock %s\n", hlock->lid_.c_str());
 	
 	// do nothing?
 }

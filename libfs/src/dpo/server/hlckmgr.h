@@ -17,10 +17,9 @@ public:
 	HLockManager(rpcs* rpc_server);
 	~HLockManager();
 	lock_protocol::status Stat(lock_protocol::LockId, int&);
-	lock_protocol::status Acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, unsigned long long arg, int& mode_granted);
-	lock_protocol::status AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, std::vector<int> modeiv, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
-	lock_protocol::status Convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
-	lock_protocol::status Release(int clt, int seq, lock_protocol::LockId lid, int flags, int& unused);
+	lock_protocol::status Acquire(int clt, int seq, unsigned long long lid_u64, int mode_set, int flags, unsigned long long arg, int& mode_granted);
+	lock_protocol::status Convert(int clt, int seq, unsigned long long lid_u64, int mode, int flags, int& unused);
+	lock_protocol::status Release(int clt, int seq, unsigned long long lid_u64, int flags, int& unused);
 	lock_protocol::status Subscribe(int, std::string, int&);
 
 private:

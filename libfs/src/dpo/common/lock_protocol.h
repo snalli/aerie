@@ -5,6 +5,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string>
+#include <boost/functional/hash.hpp>
+#include <boost/lexical_cast.hpp>
 #include "rpc/rpc.h"
 #include "common/bitmap.h"
 
@@ -41,6 +44,7 @@ public:
 
 	typedef int status;
 	typedef unsigned long long LockId;
+
 	enum rpc_numbers {
 		acquire = 0x7001,
 		acquirev,

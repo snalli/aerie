@@ -188,7 +188,7 @@ DirInodeMutable::Publish(client::Session* session)
 			//}
 		}
 	}
-	printf("inode %llu: nlink_ = %d\n", ino_, nlink_);
+	printf("inode %lu: nlink_ = %d\n", ino_, nlink_);
 	//FIXME ObjectProxy::subject()->set_nlink(nlink_);
 	return 0;
 }

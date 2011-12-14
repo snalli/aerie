@@ -36,7 +36,7 @@ public:
 		printf("DirInodeMutable: pnode=%p\n", pnode);
 		printf("DirInodeMutable: pnode->nlink_=%d\n", pnode->nlink_);
 		printf("DirInodeMutable: ino=%lu\n", ino_);
-		printf("DirInodeMutable: nlink_=%lu\n", nlink_);
+		printf("DirInodeMutable: nlink_=%d\n", nlink_);
 	}
 
 	int Init(client::Session* session, uint64_t ino) {

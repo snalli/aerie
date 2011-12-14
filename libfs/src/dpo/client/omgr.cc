@@ -10,21 +10,34 @@
 #include "dpo/client/hlckmgr.h"
 #include "dpo/client/omgr.h"
 
+//TODO: Fine-grain locking in GetObject/PutObject.
+
+
 namespace dpo {
 namespace client {
 
-//TODO: Fine-grain locking in GetObject/PutObject.
 
 ObjectManager::ObjectManager(dpo::cc::client::HLockManager* hlckmgr)
 	: hlckmgr_(hlckmgr)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2mgr_map_.set_empty_key(0);
+	hlckmgr_->RegisterLockUser(this);
+}
+
+
+ObjectManager::~ObjectManager()
+{
+//	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
+//	        "[%d] Shutting down Object Manager\n", id());
+
+	hlckmgr_->UnregisterLockUser();
+
 }
 
 
 int
-ObjectManager::Register(ObjectType type_id, ObjectManagerOfType* mgr)
+ObjectManager::RegisterType(ObjectType type_id, ObjectManagerOfType* mgr)
 {
 	int                          ret = E_SUCCESS;
 	ObjectType2Manager::iterator itr; 

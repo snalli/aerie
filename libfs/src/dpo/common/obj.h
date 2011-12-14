@@ -26,12 +26,12 @@ friend class ObjectIdHashFcn;
 		OBJECT_NUMBER_LEN_LOG2 = 48
 	};
 public:
-	ObjectId(uint64_t id = 0)
-		: id_(id)
+	ObjectId(uint64_t u64 = 0)
+		: u64_(u64)
 	{ }
 
 	ObjectId(const ObjectId& oid)
-		: id_(oid.id_)
+		: u64_(oid.u64_)
 	{ }
 
 	ObjectId(ObjectType type, void* addr) {
@@ -47,7 +47,7 @@ public:
 	}
 
 	uint64_t num() {
-		return id_ & ((1LLU << OBJECT_NUMBER_LEN_LOG2) - 1);
+		return u64_ & ((1LLU << OBJECT_NUMBER_LEN_LOG2) - 1);
 	}
 
 	void* addr() {
@@ -55,7 +55,7 @@ public:
 	}
 
 	bool operator==(const ObjectId& other) const {
-		return (id_ == other.id_);
+		return (u64_ == other.u64_);
 	}
 
 	bool operator!=(const ObjectId& other) const {
@@ -65,20 +65,21 @@ public:
 
 private:
 	void Create(ObjectType type, uint64_t num) {
-		id_ = type;
-		id_ = id_ << OBJECT_NUMBER_LEN_LOG2;
-		id_ = id_ + num;
+		u64_ = type;
+		u64_ = u64_ << OBJECT_NUMBER_LEN_LOG2;
+		u64_ = u64_ | num;
 	}
 	union {
-		uint64_t id_;
+		uint64_t u64_;
 		uint16_t u16_[4];
 	};
 };
 
+
 struct ObjectIdHashFcn {
 	std::size_t operator()(const ObjectId& oid) const {
 		boost::hash<uint64_t> hasher;
-		return hasher(oid.id_);
+		return hasher(oid.u64_);
 	}
 };
 

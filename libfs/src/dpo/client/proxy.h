@@ -15,6 +15,7 @@ typedef dpo::common::ObjectType  ObjectType;
 
 } // namespace client
 
+
 // CONCURRENCY CONTROL
 
 namespace cc {
@@ -31,7 +32,7 @@ public:
 	}
 
 	int Lock(dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
-
+		
 	}
 
 	int Unlock() {
@@ -39,7 +40,7 @@ public:
 	}
 
 private:
-	//dpo::cc::client::HLock hlock;
+	dpo::cc::client::HLock* hlock_;
 };
 
 
@@ -88,7 +89,31 @@ Derived* ObjectProxyTemplate<Derived, Subject>::xOpenRO()
 namespace vm {
 namespace client {
 
-//FIXME: VersionManager must be a layer
+template<class Subject>
+class VersionManager {
+public:
+	VersionManager(Subject* subject = NULL)
+		: subject_(subject)
+	{ }
+
+	void set_subject(Subject* subject) {
+		subject_ = subject;
+	}
+	
+	Subject* subject() {
+		return subject_;
+	}
+
+protected:
+	Subject* subject_;
+};
+
+
+// FIXME: Currently we rely on multiple inheritance to parameterize 
+// ObjectProxy on the VersionManager. 
+// Can we make VersionManager a mixin layer instead? This would 
+// save us from the extra subject_ kept in the VersionManager class
+
 template<class Derived, class Subject, class VersionManager>
 class ObjectProxy: public dpo::cc::client::ObjectProxyTemplate<Derived, Subject>,
                    public VersionManager /* inherit the interface of VersionManager */
@@ -98,12 +123,19 @@ public:
 		: dpo::cc::client::ObjectProxyTemplate<Derived, Subject>(oid),
 		  valid_(false)
 	{ 
-		VersionManager::vSetSubject(dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::subject());
+		// initializing in the initialization list is risky as we need to be 
+		// sure that dpo::cc::client::ObjectProxyTemplate<Derived, Subject>
+		// has been initialized first.
+		VersionManager::set_subject(dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::subject());
 	}
 
 	int vOpen() {
+		int ret;
 		if (!valid_) {
-			return VersionManager::vOpen();
+			if ((ret = VersionManager::vOpen()) < 0) {
+				return ret;
+			}
+			valid_ = true;
 		}
 		return 0;
 	}
@@ -114,12 +146,6 @@ protected:
 	bool valid_; // invalid, opened (valid)
 };
 
-/*
-template<class Derived, class Subject, class VersionManager>
-int ObjectProxy<Derived, Subject, VersionManager>::vOpen()
-{
-}
-*/
 
 } // namespace client
 } // namespace vm

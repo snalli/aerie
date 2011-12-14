@@ -74,6 +74,7 @@ struct Lock {
 
 
 class LockManager {
+	typedef google::dense_hash_map<lock_protocol::LockId, Lock*> LockMap;
 public:
 	LockManager(rpcs* rpc_server = NULL, pthread_mutex_t* mutex = NULL);
 	~LockManager();
@@ -82,7 +83,6 @@ public:
 	Lock* FindOrCreateLock(lock_protocol::LockId lid);
 	lock_protocol::status Stat(lock_protocol::LockId, int&);
 	lock_protocol::status Acquire(int clt, int seq, lock_protocol::LockId lid, int mode_set, int flags, unsigned long long arg, int& mode_granted);
-	lock_protocol::status AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, std::vector<int> modeiv, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
 	lock_protocol::status Convert(int clt, int seq, lock_protocol::LockId lid, int mode, int flags, int& unused);
 	lock_protocol::status Release(int clt, int seq, lock_protocol::LockId lid, int flags, int& unused);
 	lock_protocol::Mode  SelectMode(Lock* lock, lock_protocol::Mode::Set mode_set);
@@ -98,17 +98,17 @@ public:
 	lock_protocol::status ConvertInternal(int clt, int seq, Lock* l, lock_protocol::Mode mode, int flags, int& unused);
 
 private:
-	std::map<int, rpcc*>                                 clients_;
-	google::dense_hash_map<lock_protocol::LockId, Lock*> locks_;
-	std::set<lock_protocol::LockId>                      revoke_set_;
+	std::map<int, rpcc*>                    clients_;
+	LockMap                                 locks_;
+	std::set<lock_protocol::LockId>         revoke_set_;
 
-	pthread_mutex_t*                                     mutex_;
-	pthread_cond_t                                       available_cv_;
-	pthread_cond_t                                       revoke_cv_;
+	pthread_mutex_t*                        mutex_;
+	pthread_cond_t                          available_cv_;
+	pthread_cond_t                          revoke_cv_;
 	/// Contains any locks that become available after a release or have being
 	/// acquired in shared mode (and thus waiting clients can grab them)
-	std::deque<lock_protocol::LockId>                    available_locks_; 
-	class LockUser*                                      lu_;
+	std::deque<lock_protocol::LockId>       available_locks_; 
+	class LockUser*                         lu_;
 };
 
 

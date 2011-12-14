@@ -30,24 +30,21 @@ public:
 	int nlink_;
 };
 
-//FIXME: VersionManager must be a layer/template
-class DummyVersionManager {
+
+class DummyVersionManager: public dpo::vm::client::VersionManager<Dummy> {
 public:
 	int set_nlink(int nlink) {
 		nlink_ = nlink;
 	}
 
 	int vOpen() {
-		nlink_ = subject_->nlink_;
+		nlink_ = subject()->nlink_;
 	}
 
-	void vSetSubject(Dummy* subject) {
-		subject_ = subject;
-	}
 private:
 	int nlink_;
-	Dummy* subject_;
 };
+
 
 // Proxy object
 typedef dpo::client::rw::ObjectProxy<Dummy, DummyVersionManager> DummyRW;
@@ -97,7 +94,7 @@ SUITE(Object)
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>;
-		CHECK(global_omgr->Register(TYPE_DUMMY, dummy_mgr) == E_SUCCESS);
+		CHECK(global_omgr->RegisterType(TYPE_DUMMY, dummy_mgr) == E_SUCCESS);
 		CHECK(global_omgr->GetObject(OID[0], &dummy_rw_ref) == E_SUCCESS);
 		dummy_rw_ref.obj()->Lock(lock_protocol::Mode::XL);
 		dummy_rw_ref.obj()->set_nlink(1);

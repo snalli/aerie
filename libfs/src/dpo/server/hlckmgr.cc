@@ -20,7 +20,6 @@ HLockManager::HLockManager(rpcs* rpc_server)
 	if (rpc_server) {
 		rpc_server->reg(lock_protocol::stat, this, &HLockManager::Stat);
 		rpc_server->reg(lock_protocol::acquire, this, &HLockManager::Acquire);
-		rpc_server->reg(lock_protocol::acquirev, this, &HLockManager::AcquireVector);
 		rpc_server->reg(lock_protocol::release, this, &HLockManager::Release);
 		rpc_server->reg(lock_protocol::convert, this, &HLockManager::Convert);
 		rpc_server->reg(lock_protocol::subscribe, this, &HLockManager::Subscribe);
@@ -83,15 +82,6 @@ HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 done:
 	pthread_mutex_unlock(&mutex_);
 	return r;
-}
-
-
-lock_protocol::status
-HLockManager::AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, 
-                           std::vector<int> modeiv, int flags, 
-                           std::vector<unsigned long long> argv, int& num_locks_granted)
-{
-	return lm_->AcquireVector(clt, seq, lidv, modeiv, flags, argv, num_locks_granted);
 }
 
 

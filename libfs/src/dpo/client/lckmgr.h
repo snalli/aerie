@@ -84,6 +84,74 @@ namespace client {
 // lock. we expect this to be okay as public locks are heavyweight (involve RPC)
 // consider using fine grain mutex (one per lock) if we see contention.
 
+typedef uint16_t LockType;
+
+class LockId {
+	enum {
+		LOCK_NUMBER_LEN_LOG2 = 48
+	};
+public:
+	LockId(uint64_t u64 = 0)
+		: u64_(u64)
+	{ }
+
+	LockId(const LockId& lid)
+		: u64_(lid.u64_)
+	{ }
+
+	LockId(LockType type_id, uint64_t num) {
+		Init(type_id, num);
+	}
+
+	LockType type() const {
+		return u16_[3];
+	}
+
+	uint64_t number() const {
+		return u64_ & ((1LLU << LOCK_NUMBER_LEN_LOG2) - 1);
+	}
+
+	bool operator==(const LockId& other) const {
+		return (u64_ == other.u64_);
+	}
+
+	bool operator!=(const LockId& other) const {
+		return !(*this == other);
+	}
+
+	lock_protocol::LockId marshall() const {
+		return u64_;
+	}
+
+	std::string string() const {
+		return boost::lexical_cast<std::string>(type()) + 
+			   std::string(".") + 
+			   boost::lexical_cast<std::string>(number());
+	}
+
+	const char* c_str() const {
+		return string().c_str();
+	}
+private:
+	void Init(LockType type_id, uint64_t num) {
+		u64_ = type_id;
+		u64_ = u64_ << LOCK_NUMBER_LEN_LOG2;
+		u64_ = u64_ | num;
+	}
+
+	union {
+		uint64_t u64_;  
+		uint16_t u16_[4];
+	};
+};
+
+struct LockIdHashFcn {
+	std::size_t operator()(const LockId& lid) const {
+		boost::hash<uint64_t> hasher;
+		return hasher(lid.marshall());
+	}
+};
+
 
 class ThreadRecord {
 public:
@@ -119,19 +187,19 @@ public:
 		FLG_CAPABILITY = lock_protocol::FLG_CAPABILITY
 	};
 
-	Lock(lock_protocol::LockId);
+	Lock(LockId);
 	~Lock();
 
 	// changes the status of this lock
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
-	lock_protocol::LockId lid() const { return lid_; }
+	LockId lid() const { return lid_; }
 	lock_protocol::Mode mode(pthread_t tid) { 
 		ThreadRecord* t = gtque_.Find(tid);
 		return (t != NULL) ? t->mode(): lock_protocol::Mode(lock_protocol::Mode::NL);
 	}
 
-	lock_protocol::LockId     lid_;
+	LockId                    lid_;
 
 	/// we use only a single cv to monitor changes of the lock's status
 	/// this may be less efficient because there would be many spurious
@@ -175,41 +243,42 @@ public:
 
 
 class LockManager {
+	typedef google::dense_hash_map<LockId, Lock*, LockIdHashFcn> LockMap;
+	typedef google::dense_hash_map<LockId, int, LockIdHashFcn>  RevokeMap;
 public:
 	LockManager(rpcc* rpc_client, rpcs* rpc_server, std::string id, class LockUser* lu);
 	~LockManager();
-	Lock* FindLock(lock_protocol::LockId lid);
-	Lock* FindOrCreateLock(lock_protocol::LockId lid);
+	Lock* FindLock(LockId lid);
+	Lock* FindOrCreateLock(LockId lid);
 	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
+	lock_protocol::status Acquire(LockId lid, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
+	lock_protocol::status Acquire(LockId lid, lock_protocol::Mode::Set mode_set, int flags, lock_protocol::Mode& mode_granted);
 	lock_protocol::status Convert(Lock* lock, lock_protocol::Mode new_mode, bool synchronous = false);
-	lock_protocol::status Convert(lock_protocol::LockId lid, lock_protocol::Mode new_mode, bool synchronous = false);
+	lock_protocol::status Convert(LockId lid, lock_protocol::Mode new_mode, bool synchronous = false);
 	lock_protocol::status Release(Lock* lock, bool synchronous = false);
-	lock_protocol::status Release(lock_protocol::LockId lid, bool synchronous = false);
+	lock_protocol::status Release(LockId lid, bool synchronous = false);
 	lock_protocol::status Cancel(Lock* l);
-	lock_protocol::status Cancel(lock_protocol::LockId lid);
-	lock_protocol::status stat(lock_protocol::LockId lid);
+	lock_protocol::status Cancel(LockId lid);
+	lock_protocol::status stat(LockId lid);
 	void Releaser();
 	void ShutdownReleaser();
 	void RegisterLockUser(LockUser* lu) { lu_ = lu; };
 	void UnregisterLockUser() { lu_ = NULL; };
 
-	rlock_protocol::status revoke(lock_protocol::LockId lid, int seq, int revoke_type, int& unused);
+	rlock_protocol::status revoke(lock_protocol::LockId, int seq, int revoke_type, int& unused);
 	// Tell this client to retry requesting the lock in which this client
 	// was interest when that lock just became available.
-	rlock_protocol::status retry(lock_protocol::LockId lid, int seq, int& current_seq);
+	rlock_protocol::status retry(lock_protocol::LockId, int seq, int& current_seq);
 
 	int id() { return cl2srv_->id(); }
 
 private:
 	int do_acquire(Lock* l, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
-	int do_acquirev(std::vector<Lock*> lv, std::vector<lock_protocol::Mode> modev, int flags, std::vector<unsigned long long> argv, int& num_locks_granted);
 	int do_convert(Lock* l, lock_protocol::Mode mode, int flags);
 	int do_release(Lock* l, int flags);
-	Lock* FindLockInternal(lock_protocol::LockId lid);
-	Lock* FindOrCreateLockInternal(lock_protocol::LockId lid);
+	Lock* FindLockInternal(LockId lid);
+	Lock* FindOrCreateLockInternal(LockId lid);
 	lock_protocol::status AcquireInternal(unsigned long tid, Lock* l, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
 	lock_protocol::status ConvertInternal(unsigned long tid, Lock* l, lock_protocol::Mode new_mode, bool synchronous);
 	lock_protocol::status ReleaseInternal(unsigned long tid, Lock* e, bool synchronous);
@@ -228,12 +297,12 @@ private:
 	volatile bool                                        releaser_thread_running_;
 
 	/// locks known to this lock manager
-	google::dense_hash_map<lock_protocol::LockId, Lock*> locks_;
+	LockMap                                              locks_;
 
 	// global lock
 	pthread_mutex_t                                      mutex_;
 	// key: lock id; value: seq no. of the corresponding acquire
-	std::map<lock_protocol::LockId, int>                 revoke_map_;
+	RevokeMap                                            revoke_map_;
 	// controls access to the revoke_map
 	pthread_mutex_t                                      revoke_mutex_;
 	pthread_cond_t                                       revoke_cv;

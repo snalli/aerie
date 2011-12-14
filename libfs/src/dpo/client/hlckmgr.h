@@ -15,7 +15,8 @@ namespace dpo {
 namespace cc {
 namespace client {
 
-class HLock;
+class HLock; // forward declaration
+
 struct HLockPtrLockModePair {
 	HLockPtrLockModePair(HLock* hlock, lock_protocol::Mode mode)
 		: hlock_(hlock),
@@ -24,6 +25,7 @@ struct HLockPtrLockModePair {
 	HLock*              hlock_;
 	lock_protocol::Mode mode_;
 };
+
 typedef std::list<HLockPtrLockModePair> HLockPtrLockModePairSet;
 typedef google::dense_hash_set<HLock*> HLockPtrSet;
 
@@ -52,13 +54,13 @@ public:
 	};
 
 
-	HLock(lock_protocol::LockId, HLock*);
+	HLock(LockId, HLock*);
 	HLock(HLock*);
 	
 	// changes the status of this lock
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
-	lock_protocol::LockId lid() const { return lid_; }
+	LockId lid() const { return lid_; }
 	int AddChild(HLock* hlock);
 	int ChangeStatus(LockStatus old_sts, LockStatus new_sts);
 	int WaitStatus(LockStatus old_sts);
@@ -67,13 +69,14 @@ public:
 	int EndConverting(bool lock);
 	
 
-	Lock*                 lock_;   // the public lock if one is attached
+	Lock*                 lock_;   //!< the public base lock if one is attached
 	HLock*                parent_;
 	
-	pthread_t             owner_; ///< thread that owns the lock
-	/// we use only a single cv to monitor changes of the lock's status
-	/// this may be less efficient because there would be many spurious
-	/// wake-ups, but it's simple anyway
+	pthread_t             owner_;  //!< thread that owns the lock
+	
+	//! we use only a single cv to monitor changes of the lock's status
+	//! this may be less efficient because there would be many spurious
+	//! wake-ups, but it's simple anyway
 	pthread_cond_t        status_cv_;
 	
 	/// condvar that is signaled when the ``used'' field is set to true
@@ -89,12 +92,12 @@ public:
 	///  (i.e. till lock is publicly released and is returned to status NONE)
 	lock_protocol::Mode   mode_;                    
 	lock_protocol::Mode   ancestor_recursive_mode_; ///< recursive mode of ancestors
-	lock_protocol::LockId lid_;
+	LockId                lid_;
 	HLockPtrSet           children_;
+
 private:	
 	LockStatus            status_;
 };
-
 
 
 class HLockUser {
@@ -107,6 +110,7 @@ public:
 
 
 class HLockManager: public LockUser {
+	typedef google::dense_hash_map<LockId, HLock*, LockIdHashFcn> LockMap;
 public:
 	enum Status {
 		NONE = 0,
@@ -122,22 +126,23 @@ public:
 	void OnConvert(Lock* l) { return; };
 	int Revoke(Lock* lock, lock_protocol::Mode mode);
 
-	HLock* FindOrCreateLock(lock_protocol::LockId lid, lock_protocol::LockId plid);
-	HLock* FindOrCreateLock(lock_protocol::LockId lid);
+	HLock* FindOrCreateLock(LockId lid, LockId plid);
+	HLock* FindOrCreateLock(LockId lid);
 
 	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode mode, int flags);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::LockId, lock_protocol::Mode mode, int flags);
-	lock_protocol::status Acquire(lock_protocol::LockId lid, lock_protocol::Mode mode, int flags);
+	lock_protocol::status Acquire(LockId lid, LockId, lock_protocol::Mode mode, int flags);
+	lock_protocol::status Acquire(LockId lid, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Release(HLock* hlock);
-	lock_protocol::status Release(lock_protocol::LockId lid);
+	lock_protocol::status Release(LockId lid);
 	void RegisterLockUser(HLockUser* hlu) { hlu_ = hlu; };
 	void UnregisterLockUser() { hlu_ = NULL; };
 
 	void PrintDebugInfo();
+	int id() { return lm_->id(); }
 
 private:
-	HLock* FindLockInternal(lock_protocol::LockId lid, HLock* plp);
-	HLock* FindOrCreateLockInternal(lock_protocol::LockId lid, HLock* plp);
+	HLock* FindLockInternal(LockId lid, HLock* plp);
+	HLock* FindOrCreateLockInternal(LockId lid, HLock* plp);
 	lock_protocol::status AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, bool caller_has_parent, int flags);
 	lock_protocol::status AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode);
@@ -153,7 +158,7 @@ private:
 	pthread_cond_t       status_cv_;
 	HLockUser*           hlu_;
 	LockManager*         lm_;
-	google::dense_hash_map<lock_protocol::LockId, HLock*> locks_;
+	LockMap              locks_;
 };
 
 

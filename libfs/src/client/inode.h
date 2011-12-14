@@ -39,8 +39,8 @@ public:
 	InodeNumber ino() { return ino_; };
 	void SetInodeNumber(InodeNumber ino) { ino_ = ino; };
 
-	int nlink() { printf("Inode: %llu, nlink_ = %d\n", ino_, nlink_); return nlink_; }
-	int set_nlink(int nlink) { printf("Inode: %llu, set_nlink_ = %d\n", ino_, nlink); nlink_ = nlink; return 0;}
+	int nlink() { printf("Inode: %lu, nlink_ = %d\n", ino_, nlink_); return nlink_; }
+	int set_nlink(int nlink) { printf("Inode: %lu, set_nlink_ = %d\n", ino_, nlink); nlink_ = nlink; return 0;}
 
 	int Get();
 	int Put();

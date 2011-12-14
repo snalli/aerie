@@ -28,16 +28,21 @@ private:
 };
 
 
-class ObjectManager {
+class ObjectManager: public dpo::cc::client::HLockUser {
 	typedef google::dense_hash_map<ObjectType, ObjectManagerOfType*> ObjectType2Manager; 
 public:
 	ObjectManager(dpo::cc::client::HLockManager* hlckmgr = NULL);
-	int Register(ObjectType type_id, ObjectManagerOfType* mgr);
+	~ObjectManager();
+	int RegisterType(ObjectType type_id, ObjectManagerOfType* mgr);
 	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref);
 	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
 	int ReleaseObject(dpo::common::ObjectProxy* obj);
+	void OnRelease(dpo::cc::client::HLock* hlock) { }
+	void OnConvert(dpo::cc::client::HLock* hlock) { }
+	int Revoke(dpo::cc::client::HLock* hlock) { }
 	//ObjectProxy* Object(ObjectId oid);
 	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
+	int id() { return hlckmgr_->id(); }
 
 private:
 	pthread_mutex_t                mutex_;
