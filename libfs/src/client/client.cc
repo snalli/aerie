@@ -81,7 +81,7 @@ Client::Init(int principal_id, const char* xdst)
 	// create necessary managers
 	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
 	global_smgr = new StorageManager(rpc_client, principal_id);
-	global_lckmgr = new LockManager(rpc_client, rpc_server, id, 0);
+	global_lckmgr = new LockManager(rpc_client, rpc_server, id);
 	global_hlckmgr = new HLockManager(global_lckmgr);
 	global_session = new Session(global_smgr);
 

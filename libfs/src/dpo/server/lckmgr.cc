@@ -609,30 +609,4 @@ LockManager::retryer()
 	}
 }
 
-#if 0 // OBSOLETE
-
-lock_protocol::status
-LockManager::AcquireVector(int clt, int seq, std::vector<lock_protocol::LockId> lidv, 
-                           std::vector<int> modeiv, int flags, 
-                           std::vector<unsigned long long> argv, int& num_locks_granted)
-{
-	lock_protocol::status                         r;
-	std::vector<lock_protocol::LockId>::iterator  lidv_itr;
-	std::vector<int>::iterator                    modeiv_itr;
-	
-	for (lidv_itr = lidv.begin(), modeiv_itr = modeiv.begin(); 
-		lidv_itr != lidv.end() && modeiv_itr != modeiv.end(); 
-		lidv_itr++, modeiv_itr++) 
-	{
-		printf("lid=%llu, mode=%s\n", *lidv_itr, lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(*modeiv_itr)).String().c_str());
-	}
-
-	//TODO
-
-	r = lock_protocol::OK;
-
-	return r;
-}
-#endif
-
 } // namespace server

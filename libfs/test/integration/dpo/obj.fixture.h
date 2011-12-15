@@ -28,7 +28,7 @@ struct ObjectFixture: public LockRegionFixture, RPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id, 0);
+			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id);
 			global_hlckmgr = new HLockManager(global_lckmgr);
 			global_omgr = new dpo::client::ObjectManager(global_hlckmgr);
 			initialized = true;

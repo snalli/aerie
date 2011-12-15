@@ -112,6 +112,9 @@ public:
 class HLockManager: public LockUser {
 	typedef google::dense_hash_map<LockId, HLock*, LockIdHashFcn> LockMap;
 public:
+	enum {
+		HLOCK_TYPE = 1 
+	};
 	enum Status {
 		NONE = 0,
 		ATTACHING = 1,

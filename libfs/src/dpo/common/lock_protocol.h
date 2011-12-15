@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
-#include <boost/functional/hash.hpp>
-#include <boost/lexical_cast.hpp>
 #include "rpc/rpc.h"
 #include "common/bitmap.h"
 

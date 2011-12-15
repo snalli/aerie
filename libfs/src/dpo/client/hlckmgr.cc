@@ -217,10 +217,11 @@ HLockManager::HLockManager(LockManager* lm, HLockUser* hlu)
 	  hlu_(hlu),
 	  status_(NONE)
 {
-	lm_->RegisterLockUser(this);
+	lm_->RegisterLockUser(HLOCK_TYPE, this);
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_cond_init(&status_cv_, NULL);
-	locks_.set_empty_key(-1);
+	locks_.set_empty_key(LockId(0, 0));
+	locks_.set_deleted_key(LockId(-1, 0));
 }
 
 
@@ -229,7 +230,7 @@ HLockManager::~HLockManager()
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d] Shutting down Hierarchical Lock Manager\n", id());
 
-	lm_->UnregisterLockUser();	
+	lm_->UnregisterLockUser(HLOCK_TYPE);	
 
 	// make sure no other thread is running inside this object 
 	// (e.g. a thread making a callback to Revoke)

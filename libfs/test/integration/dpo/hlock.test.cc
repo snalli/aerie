@@ -13,10 +13,10 @@
 
 using namespace client;
 
-static lock_protocol::LockId root = 1;
-static lock_protocol::LockId a    = 2;
-static lock_protocol::LockId b    = 3;
-static lock_protocol::LockId c    = 4;
+static dpo::cc::client::LockId root(dpo::cc::client::HLockManager::HLOCK_TYPE, 1);
+static dpo::cc::client::LockId a(dpo::cc::client::HLockManager::HLOCK_TYPE, 2);
+static dpo::cc::client::LockId b(dpo::cc::client::HLockManager::HLOCK_TYPE, 3);
+static dpo::cc::client::LockId c(dpo::cc::client::HLockManager::HLOCK_TYPE, 4);
 
 
 SUITE(HLock)
@@ -26,9 +26,9 @@ SUITE(HLock)
 		lock_protocol::Mode unused;
 		global_hlckmgr->Acquire(root, lock_protocol::Mode::IX, 0);
 		global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XR, 0);
-		CHECK(check_grant_x(region_, a) == 0);
+		CHECK(check_grant_x(region_, a.number()) == 0);
 		global_hlckmgr->Release(a);
-		CHECK(check_release(region_, a) == 0);
+		CHECK(check_release(region_, a.number()) == 0);
 	}
 	
 	TEST_FIXTURE(HLockFixture, TestLockIXLockXLUnlock)
@@ -36,12 +36,14 @@ SUITE(HLock)
 		lock_protocol::Mode unused;
 
 		EVENT("E1");
+		printf("START\n");
 		CHECK(global_hlckmgr->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
+		printf("DONE\n");
 		EVENT("E2");
 		CHECK(global_hlckmgr->Acquire(a, root, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
-		CHECK(check_grant_x(region_, a) == 0);
+		CHECK(check_grant_x(region_, a.number()) == 0);
 		global_hlckmgr->Release(a);
-		CHECK(check_release(region_, a) == 0);
+		CHECK(check_release(region_, a.number()) == 0);
 	}
 
 	TEST_FIXTURE(HLockFixture, TestLockISLockSLUnlock)
@@ -66,9 +68,9 @@ SUITE(HLock)
 		EVENT("E3");
 		CHECK(global_hlckmgr->Acquire(b, a, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
 		EVENT("E4");
-		CHECK(check_grant_x(region_, b) == 0);
+		CHECK(check_grant_x(region_, b.number()) == 0);
 		global_hlckmgr->Release(b);
-		CHECK(check_release(region_, b) == 0);
+		CHECK(check_release(region_, b.number()) == 0);
 		global_hlckmgr->Release(a);
 		global_hlckmgr->Release(root);
 		EVENT("E5");

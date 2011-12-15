@@ -26,7 +26,7 @@ struct HLockFixture: public LockRegionFixture, RPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id, 0);
+			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id);
 			global_hlckmgr = new HLockManager(global_lckmgr);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 

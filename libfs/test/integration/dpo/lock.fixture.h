@@ -47,7 +47,7 @@ struct LockFixture: public LockRegionFixture, RPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id, 0);
+			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete
