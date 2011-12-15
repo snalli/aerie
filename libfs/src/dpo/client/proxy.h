@@ -1,9 +1,11 @@
 #ifndef __STAMNOS_DPO_CLIENT_OBJECT_PROXY_H
 #define __STAMNOS_DPO_CLIENT_OBJECT_PROXY_H
 
+#include "common/errno.h"
 #include "dpo/common/proxy.h"
 #include "dpo/client/hlckmgr.h"
 #include "dpo/client/stm.h"
+#include "client/session.h"
 
 namespace dpo {
 
@@ -23,36 +25,40 @@ namespace client {
 
 class ObjectProxy: public dpo::common::ObjectProxy {
 public:
-	ObjectProxy(dpo::common::ObjectId oid) 
+	ObjectProxy(::client::Session* session, dpo::common::ObjectId oid) 
 		: dpo::common::ObjectProxy(oid)
-	{ }
-
-	int Lock(lock_protocol::Mode mode) {
-
+	{ 
+		hlock_ = session->hlckmgr_->FindOrCreateLock(LockId(1, oid.num()));
+		hlock_->set_payload(reinterpret_cast<void*>(oid.u64()));
 	}
 
-	int Lock(dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
-		
+	int Lock(::client::Session* session, lock_protocol::Mode mode) {
+		return session->hlckmgr_->Acquire(hlock_, mode, 0);
 	}
 
-	int Unlock() {
+	int Lock(::client::Session* session, dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
+		assert(parent->hlock_);
+		return session->hlckmgr_->Acquire(hlock_, parent->hlock_, mode, 0);
+	}
 
+	int Unlock(::client::Session* session) {
+		return session->hlckmgr_->Release(hlock_);
 	}
 
 private:
-	dpo::cc::client::HLock* hlock_;
+	dpo::cc::client::HLock* hlock_; // hierarchical lock
+	dpo::cc::client::Lock*  lock_;  // flat lock 
 };
 
 
 template<class Derived, class Subject>
 class ObjectProxyTemplate: public ObjectProxy {
 public:
-	ObjectProxyTemplate(dpo::common::ObjectId oid)
-		: ObjectProxy(oid)
+	ObjectProxyTemplate(::client::Session* session, dpo::common::ObjectId oid)
+		: ObjectProxy(session, oid)
 	{ }
 
 	Subject* subject() { return static_cast<Subject*>(subject_); }
-	//void set_subject(Subject* subject) { subject_ = subject; } // FIXME: do we need this ???
 
 	Derived* xOpenRO(dpo::stm::client::Transaction* tx);
 	Derived* xOpenRO();
@@ -109,41 +115,57 @@ protected:
 };
 
 
-// FIXME: Currently we rely on multiple inheritance to parameterize 
+// FIXME: Currently we rely on composition to parameterize 
 // ObjectProxy on the VersionManager. 
 // Can we make VersionManager a mixin layer instead? This would 
 // save us from the extra subject_ kept in the VersionManager class
+// and avoid the call to the ugly interface() to access the shadow object
 
 template<class Derived, class Subject, class VersionManager>
-class ObjectProxy: public dpo::cc::client::ObjectProxyTemplate<Derived, Subject>,
-                   public VersionManager /* inherit the interface of VersionManager */
+class ObjectProxy: public dpo::cc::client::ObjectProxyTemplate<Derived, Subject>
 {
 public:
-	ObjectProxy(dpo::common::ObjectId oid)
-		: dpo::cc::client::ObjectProxyTemplate<Derived, Subject>(oid),
+	ObjectProxy(::client::Session* session, dpo::common::ObjectId oid)
+		: dpo::cc::client::ObjectProxyTemplate<Derived, Subject>(session, oid),
 		  valid_(false)
 	{ 
 		// initializing in the initialization list is risky as we need to be 
 		// sure that dpo::cc::client::ObjectProxyTemplate<Derived, Subject>
 		// has been initialized first.
-		VersionManager::set_subject(dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::subject());
+		vm_.set_subject(dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::subject());
+	}
+
+	VersionManager* interface() {
+		return &vm_;
 	}
 
 	int vOpen() {
 		int ret;
 		if (!valid_) {
-			if ((ret = VersionManager::vOpen()) < 0) {
+			if ((ret = vm_.vOpen()) < 0) {
 				return ret;
 			}
 			valid_ = true;
 		}
 		return 0;
 	}
-	//vOpenRO(); 
-	//vOpenRW();
 	
+	int vUpdate() {
+		return (valid_ ? vm_.vUpdate(): E_INVAL);
+	}
+
+	int vClose() {
+		int ret = E_SUCCESS;
+		if (valid_) {
+			ret = vm_.vUpdate();
+		}
+		valid_ = false;
+		return ret;
+	}
+
 protected:
-	bool valid_; // invalid, opened (valid)
+	bool           valid_; // invalid, opened (valid)
+	VersionManager vm_;
 };
 
 

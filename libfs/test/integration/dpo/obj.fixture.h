@@ -30,7 +30,7 @@ struct ObjectFixture: public LockRegionFixture, RPCFixture {
 		if (!initialized) {
 			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id);
 			global_hlckmgr = new HLockManager(global_lckmgr);
-			global_omgr = new dpo::client::ObjectManager(global_hlckmgr);
+			global_omgr = new dpo::client::ObjectManager(global_lckmgr, global_hlckmgr);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

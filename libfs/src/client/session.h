@@ -1,6 +1,8 @@
 #ifndef __STAMNOS_FS_CLIENT_SESSION_H
 #define __STAMNOS_FS_CLIENT_SESSION_H
 
+#include "dpo/client/hlckmgr.h"
+#include "dpo/client/lckmgr.h"
 #include "dpo/client/stm.h"
 
 namespace client {
@@ -9,10 +11,16 @@ class StorageManager;
 
 class Session {
 public:
-	Session(client::StorageManager* smgr)
-		: smgr_(smgr)
+	Session(dpo::cc::client::LockManager* lckmgr, 
+	        dpo::cc::client::HLockManager* hlckmgr, 
+	        StorageManager* smgr)
+		: lckmgr_(lckmgr),
+		  hlckmgr_(hlckmgr),
+		  smgr_(smgr)
 	{ }
 
+	dpo::cc::client::LockManager*    lckmgr_;
+	dpo::cc::client::HLockManager*   hlckmgr_;
 	client::StorageManager*          smgr_;
 	dpo::stm::client::Transaction*   tx_;
 };

@@ -11,6 +11,7 @@
 #include <assert.h>
 #include "dpo/client/proxy.h"
 #include "dpo/client/omgr.h"
+#include "client/session.h"
 
 namespace dpo {
 
@@ -25,13 +26,18 @@ template<class Subject, class VersionManager> class ObjectProxy;
 template<class Subject, class VersionManager>
 class ObjectManager: public dpo::client::ObjectManagerOfType {
 public:
-	dpo::client::ObjectProxy* Create(ObjectId oid) {
-		return new ObjectProxy<Subject, VersionManager>(oid);
+	dpo::client::ObjectProxy* Create(::client::Session* session, ObjectId oid) {
+		return new ObjectProxy<Subject, VersionManager>(session, oid);
 	}
 
-
+	void OnRelease(::client::Session* session, ObjectId oid) {
+		ObjectProxy<Subject, VersionManager>* obj;
+		dpo::client::ObjectProxy*             obj2;
+		assert(oid2obj_map_.Lookup(oid, &obj2) == E_SUCCESS);
+		obj = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2);
+		assert(obj->vClose() == E_SUCCESS);
+	}
 };
-
 
 
 template<class Subject, class VersionManager>
@@ -46,14 +52,15 @@ public:
 template<class Subject, class VersionManager>
 class ObjectProxy: public dpo::vm::client::ObjectProxy< ObjectProxy<Subject, VersionManager>, Subject, VersionManager> {
 public:
-	ObjectProxy(ObjectId oid)
-		: dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>(oid)
+	ObjectProxy(::client::Session* session, ObjectId oid)
+		: dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>(session, oid),
+	      session_(session)
 	{ }
 
 	int Lock(lock_protocol::Mode mode) {
 		int ret;
 		
-		if ((ret = dpo::cc::client::ObjectProxy::Lock(mode)) != lock_protocol::OK) {
+		if ((ret = dpo::cc::client::ObjectProxy::Lock(session_, mode)) != lock_protocol::OK) {
 			return ret;
 		}
 		assert((dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen() == 0));
@@ -61,7 +68,18 @@ public:
 	}
 
 	int Lock(dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
-		// TODO
+		int ret;
+		
+		if ((ret = dpo::cc::client::ObjectProxy::Lock(session_, parent, mode)) != lock_protocol::OK) {
+			return ret;
+		}
+		assert((dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen() == 0));
+		return lock_protocol::OK;
+
+	}
+
+	int Unlock() {
+		return dpo::cc::client::ObjectProxy::Unlock(session_);
 	}
 
 	//Create(); // lazy shadow
@@ -85,6 +103,8 @@ public:
 		return -1;
 	}
 */
+private:
+	::client::Session* session_;
 };
 
 

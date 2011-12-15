@@ -83,7 +83,7 @@ Client::Init(int principal_id, const char* xdst)
 	global_smgr = new StorageManager(rpc_client, principal_id);
 	global_lckmgr = new LockManager(rpc_client, rpc_server, id);
 	global_hlckmgr = new HLockManager(global_lckmgr);
-	global_session = new Session(global_smgr);
+	global_session = new Session(global_lckmgr, global_hlckmgr, global_smgr);
 
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
@@ -114,7 +114,7 @@ Client::CurrentSession()
 		return thread_session;
 	}
 
-	thread_session = new Session(global_smgr);
+	thread_session = new Session(global_lckmgr, global_hlckmgr, global_smgr);
 	thread_session->tx_ = dpo::stm::client::Self();
 	return thread_session;
 }

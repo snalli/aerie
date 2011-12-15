@@ -55,7 +55,7 @@ Transaction::OpenRO(::dpo::cc::common::Object* obj)
 	}
 
 	ReadSetEntry rset_entry;
-	rset_entry.version_ = obj->xVersion();
+	rset_entry.version_ = obj->ccVersion();
 	rset_[obj] = rset_entry;
 	return 0;
 }

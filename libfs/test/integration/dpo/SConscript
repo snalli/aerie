@@ -293,6 +293,8 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     },
     rendezvous = [
                   ('C1:T1:AfterMapObjects:block', 'C2:T1:AfterMapObjects:block'),
+                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
+                  ('C1:T1:End:block', 'C2:T1:End:block'),
     ]
 ))
 

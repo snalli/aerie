@@ -7,8 +7,10 @@
 #include "common/errno.h"
 #include "common/debug.h"
 #include "common/list.h"
+#include "dpo/client/lckmgr.h"
 #include "dpo/client/hlckmgr.h"
 #include "dpo/client/omgr.h"
+#include "client/session.h"
 
 //TODO: Fine-grain locking in GetObject/PutObject.
 
@@ -17,12 +19,15 @@ namespace dpo {
 namespace client {
 
 
-ObjectManager::ObjectManager(dpo::cc::client::HLockManager* hlckmgr)
-	: hlckmgr_(hlckmgr)
+ObjectManager::ObjectManager(dpo::cc::client::LockManager* lckmgr, 
+                             dpo::cc::client::HLockManager* hlckmgr)
+	: lckmgr_(lckmgr),
+	  hlckmgr_(hlckmgr)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2mgr_map_.set_empty_key(0);
 	hlckmgr_->RegisterLockUser(this);
+	session_ = new ::client::Session(lckmgr, hlckmgr, NULL);
 }
 
 
@@ -75,7 +80,7 @@ ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_re
 	mgr = itr->second;
 	if ((ret = mgr->oid2obj_map_.Lookup(oid, &obj)) != E_SUCCESS) {
 		// create the object
-		if ((obj = mgr->Create(oid)) == NULL) {
+		if ((obj = mgr->Create(session_, oid)) == NULL) {
 			ret = -E_NOMEM;
 			goto done;
 		}
@@ -106,6 +111,42 @@ ObjectManager::PutObject(dpo::common::ObjectProxyReference& obj_ref)
 	obj_ref.Reset(true);
 	pthread_mutex_unlock(&mutex_);
 	return ret;
+}
+
+
+void 
+ObjectManager::OnRelease(dpo::cc::client::HLock* hlock)
+{
+	ObjectId             oid(reinterpret_cast<uint64_t>(hlock->payload()));
+	ObjectManagerOfType* mgr;
+
+	pthread_mutex_lock(&mutex_);
+	ObjectType type = oid.type();
+	ObjectType2Manager::iterator itr;
+	if ((itr = objtype2mgr_map_.find(type)) == objtype2mgr_map_.end()) {
+		//ret = -E_INVAL; // unknown type id 
+		goto done;
+	}
+	mgr = itr->second;
+	
+	mgr->OnRelease(session_, oid);
+/*
+	if ((ret = mgr->oid2obj_map_.Remove(oid) != E_SUCCESS) {
+		ret = -E_EXIST; // does not exist
+		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_omgr), 
+				"Object reference points to an unknown object oid\n");
+	}
+	obj_ref.Reset(true);
+*/
+done:
+	pthread_mutex_unlock(&mutex_);
+}
+
+
+void 
+ObjectManager::OnConvert(dpo::cc::client::HLock* hlock)
+{
+	assert(0);
 }
 
 

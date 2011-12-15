@@ -66,8 +66,7 @@ public:
 	};
 
 
-	HLock(LockId, HLock*);
-	HLock(HLock*);
+	HLock(LockId lid);
 	
 	// changes the status of this lock
 	void set_status(LockStatus);
@@ -80,7 +79,9 @@ public:
 	int WaitStatus2(LockStatus old_sts1, LockStatus old_sts2);
 	int BeginConverting(bool lock);
 	int EndConverting(bool lock);
-	
+
+	void* payload() { return payload_; }
+	void set_payload(void* payload) { payload_ = payload; }
 
 	Lock*                 lock_;   //!< the public base lock if one is attached
 	HLock*                parent_;
@@ -107,7 +108,7 @@ public:
 	lock_protocol::Mode   ancestor_recursive_mode_; ///< recursive mode of ancestors
 	LockId                lid_;
 	HLockPtrSet           children_;
-
+	void*                 payload_;     ///< lock users may use it for anything they like
 private:	
 	LockStatus            status_;
 };
@@ -139,9 +140,9 @@ public:
 	void OnConvert(Lock* l) { return; };
 	int Revoke(Lock* lock, lock_protocol::Mode mode);
 
-	HLock* FindOrCreateLock(LockId lid, LockId plid);
 	HLock* FindOrCreateLock(LockId lid);
 
+	lock_protocol::status Acquire(HLock* hlock, HLock* phlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(LockId lid, LockId, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(LockId lid, lock_protocol::Mode mode, int flags);
@@ -154,14 +155,14 @@ public:
 	int id() { return lm_->id(); }
 
 private:
-	HLock* FindLockInternal(LockId lid, HLock* plp);
-	HLock* FindOrCreateLockInternal(LockId lid, HLock* plp);
+	HLock* FindLockInternal(LockId lid);
+	HLock* FindOrCreateLockInternal(LockId lid);
 	lock_protocol::status AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, bool caller_has_parent, int flags);
 	lock_protocol::status AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode);
 	lock_protocol::status AttachPublicLockToChild(HLock* phlock, HLock* chlock, lock_protocol::Mode mode);
 	lock_protocol::status AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int flags);
-	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, lock_protocol::Mode mode, int flags);
+	lock_protocol::status AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status ReleaseInternal(pthread_t tid, HLock* hlock, bool force);
 	lock_protocol::status DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode);
 	lock_protocol::status DowngradePublicLockRecursive(HLock* hlock, lock_protocol::Mode new_public_mode, HLockPtrLockModePairSet* release_set);

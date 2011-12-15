@@ -94,14 +94,14 @@ namespace client {
  * enables a high priority task to abort a low priority task.
  */
 
-HLock::HLock(LockId lid, HLock* phl)
+HLock::HLock(LockId lid)
 	: status_(NONE),
 	  mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  ancestor_recursive_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  can_retry_(false),
 	  used_(false),
 	  lid_(lid),
-	  parent_(phl),
+	  parent_(NULL),
 	  lock_(NULL)
 {
 	pthread_mutex_init(&mutex_, NULL);
@@ -258,7 +258,7 @@ HLockManager::~HLockManager()
 
 
 HLock*
-HLockManager::FindLockInternal(LockId lid, HLock* plp)
+HLockManager::FindLockInternal(LockId lid)
 {
 	HLock* lp;
 	
@@ -272,16 +272,15 @@ HLockManager::FindLockInternal(LockId lid, HLock* plp)
 // if parent lock plp is NULL then we create a lock without a parent
 // which is useful for root locks
 HLock*
-HLockManager::FindOrCreateLockInternal(LockId lid, HLock* plp)
+HLockManager::FindOrCreateLockInternal(LockId lid)
 {
 	HLock* lp;
 	
 	lp = locks_[lid];
 	if (lp == NULL) {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-		        "[%d] Creating hierarchical lock %s with parent lock %s\n", id(), 
-		        lid.c_str(), plp != 0 ? plp->lid_.c_str(): "NONE");
-		lp = new HLock(lid, plp);
+		        "[%d] Creating hierarchical lock %s\n", id(), lid.c_str());
+		lp = new HLock(lid);
 		locks_[lid] = lp;
 	}	
 	return lp;
@@ -298,24 +297,12 @@ HLockManager::FindOrCreateLockInternal(LockId lid, HLock* plp)
  * Does no reference counting.
  */
 HLock*
-HLockManager::FindOrCreateLock(LockId lid, LockId plid)
-{
-	HLock* hlock;
-
-	pthread_mutex_lock(&mutex_);
-	HLock* plp = locks_[plid];
-	hlock = FindOrCreateLockInternal(lid, plp);
-	pthread_mutex_unlock(&mutex_);
-	return hlock;
-}
-
-
-HLock*
 HLockManager::FindOrCreateLock(LockId lid)
 {
 	HLock* hlock;
+
 	pthread_mutex_lock(&mutex_);
-	hlock = FindOrCreateLockInternal(lid, NULL);
+	hlock = FindOrCreateLockInternal(lid);
 	pthread_mutex_unlock(&mutex_);
 	return hlock;
 }
@@ -633,13 +620,12 @@ HLockManager::AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode)
 
 
 lock_protocol::status
-HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, 
+HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
                               lock_protocol::Mode mode, int flags)
 {
 	lock_protocol::status r;
 	lock_protocol::Mode   mode_granted;
 	LockId                lid = hlock->lid_;
-	HLock*                phlock;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d:%lu] Acquiring hierarchical lock %s (%s)\n", id(), 
@@ -690,7 +676,9 @@ check_state:
 				// invariant: the lock has not been dropped so there must be an ancestor
 				// that covers us. otherwise our lock should had been revoked.
 				// we'll need to grab the mutex of the ancestor to check its state
-				if (phlock = hlock->parent_) {
+				// FIXME: What if the old parent (hlock->parent_) is different from
+				// the new parent (phlock)?
+				if (hlock->parent_) {
 					if (lock_protocol::Mode::AbidesRecursiveRule(mode, 
 						   hlock->ancestor_recursive_mode_))
 					{
@@ -753,7 +741,8 @@ check_state:
 			dbg_log(DBG_INFO, "[%d:%lu] Hierarchical lock %s not available; acquiring now\n",
 			        id(), tid, lid.c_str());
 			hlock->set_status(HLock::ACQUIRING);
-			if (phlock = hlock->parent_) {
+			if (phlock) {
+				hlock->parent_ = phlock;
 				pthread_mutex_lock(&phlock->mutex_);
 				if (flags & HLock::FLG_PUBLIC ||
 					!lock_protocol::Mode::AbidesRecursiveRule(mode, phlock->ancestor_recursive_mode_))
@@ -803,7 +792,17 @@ HLockManager::Acquire(HLock* hlock, lock_protocol::Mode mode, int flags)
 {
 	lock_protocol::status r;
 
-	r = AcquireInternal(pthread_self(), hlock, mode, flags);
+	r = AcquireInternal(pthread_self(), hlock, NULL, mode, flags);
+	return r;
+}
+
+
+lock_protocol::status
+HLockManager::Acquire(HLock* hlock, HLock* phlock, lock_protocol::Mode mode, int flags)
+{
+	lock_protocol::status r;
+
+	r = AcquireInternal(pthread_self(), hlock, phlock, mode, flags);
 	return r;
 }
 
@@ -814,9 +813,16 @@ HLockManager::Acquire(LockId lid, LockId plid,
 {
 	lock_protocol::status r;
 	HLock*                hlock;
+	HLock*                phlock;
 
-	hlock = FindOrCreateLock(lid, plid);
-	r = AcquireInternal(pthread_self(), hlock, mode, flags);
+	pthread_mutex_lock(&mutex_);
+	hlock = FindOrCreateLockInternal(lid);
+	phlock = FindLockInternal(plid);
+	pthread_mutex_unlock(&mutex_);
+	if (phlock == NULL) {
+		return lock_protocol::NOENT;
+	}
+	r = AcquireInternal(pthread_self(), hlock, phlock, mode, flags);
 	return r;
 }
 
@@ -829,7 +835,7 @@ HLockManager::Acquire(LockId lid,
 	HLock*                hlock;
 
 	hlock = FindOrCreateLock(lid);
-	r = AcquireInternal(pthread_self(), hlock, mode, flags);
+	r = AcquireInternal(pthread_self(), hlock, NULL, mode, flags);
 	return r;
 }
 
@@ -883,7 +889,7 @@ HLockManager::Release(LockId lid)
 	HLock*                hlock;
 
 	pthread_mutex_lock(&mutex_);
-	hlock = FindLockInternal(lid, NULL);
+	hlock = FindLockInternal(lid);
 	pthread_mutex_unlock(&mutex_);
 	if (hlock == NULL) {
 		DBG_LOG(DBG_WARNING, DBG_MODULE(client_hlckmgr),
@@ -992,11 +998,12 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 			if (hl->lock_) {
 				assert(lm_->Release(hl->lock_, true) == lock_protocol::OK); 
 			}
+			// clearing lock
 			hl->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
 			hl->lock_ = NULL;
 			hl->parent_ = NULL;
 			hl->set_status(HLock::NONE); // I should have called EndConverting but it
-			                                // cannot set status to NONE
+			                             // cannot set status to NONE
 		} else {
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 				    "[%d] Downgrading hierarchical lock %s: %s to %s\n", id(), hl->lid_.c_str(), 

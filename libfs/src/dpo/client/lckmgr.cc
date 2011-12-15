@@ -334,9 +334,7 @@ LockManager::Releaser()
 					if (do_release(l, 0) == lock_protocol::OK) {
 						// we set the lock's status to none instead of erasing it
 						l->set_status(Lock::NONE);
-						printf("BEFORE: %s\n", lid.c_str());
 						revoke_map_.erase(lid);
-						printf("AFTER\n");
 					}
 					// if remote release fails, we leave this lock in the revoke_map_,
 					// which will be released in a later attempt

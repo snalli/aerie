@@ -1,8 +1,9 @@
 #ifndef __STAMNOS_DPO_COMMON_CC_LOCK_PROTOCOL_H
 #define __STAMNOS_DPO_COMMON_CC_LOCK_PROTOCOL_H
 
+#include <sstream>
 #include <boost/functional/hash.hpp>
-#include <boost/lexical_cast.hpp>
+//#include <boost/lexical_cast.hpp>
 #include "dpo/common/lock_protocol.h"
 
 namespace dpo {
@@ -49,9 +50,10 @@ public:
 	}
 
 	std::string string() const {
-		return boost::lexical_cast<std::string>(type()) + 
-			   std::string(".") + 
-			   boost::lexical_cast<std::string>(number());
+		std::stringstream oss;
+		oss << type() << "." << number();
+		oss << std::hex << " (0x" << type() << ".0x" << number() << ")";
+		return oss.str();
 	}
 
 	const char* c_str() const {

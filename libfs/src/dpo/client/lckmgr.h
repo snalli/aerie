@@ -133,6 +133,9 @@ public:
 		ThreadRecord* t = gtque_.Find(tid);
 		return (t != NULL) ? t->mode(): lock_protocol::Mode(lock_protocol::Mode::NL);
 	}
+	
+	void* payload() { return payload_; }
+	void set_payload(void* payload) { payload_ = payload; }
 
 	LockId                    lid_;
 
@@ -161,6 +164,7 @@ public:
 	lock_protocol::Mode       public_mode_; ///< mode as known by the server and seen by the world
 	void*                     payload_;     ///< lock users may use it for anything they like
 	bool                      cancel_;      ///< cancel outstanding request
+	
 private:
 	LockStatus                status_;
 };

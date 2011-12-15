@@ -61,7 +61,10 @@ public:
 	bool operator!=(const ObjectId& other) const {
 		return !(*this == other);
 	}
-
+	
+	uint64_t u64() {
+		return u64_;
+	}
 
 private:
 	void Create(ObjectType type, uint64_t num) {
@@ -122,7 +125,6 @@ namespace common {
 
 typedef uint64_t VersionNumber;
 
-
 /**
  * Base object for any object that is synchronized under distributed 
  * concurrency control
@@ -134,8 +136,8 @@ public:
 		  version_(0)
 	{ }
 
-	VersionNumber xVersion() { return version_; }
-	VersionNumber xSetVersion(VersionNumber version) { version_ = version; }
+	VersionNumber ccVersion() { return version_; }
+	VersionNumber ccSetVersion(VersionNumber version) { version_ = version; }
 
 protected:
 	//! bit flags that indicate the state of the object

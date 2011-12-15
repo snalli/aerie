@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "rpc/rpc.h"
+#include "common/errno.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
 #include "dpo/client/rwproxy.h"
@@ -36,11 +37,20 @@ public:
 	int set_nlink(int nlink) {
 		nlink_ = nlink;
 	}
+	
+	int nlink() {
+		return nlink_;
+	}
 
 	int vOpen() {
 		nlink_ = subject()->nlink_;
+		return E_SUCCESS;
 	}
 
+	int vUpdate() {
+		subject()->nlink_ = nlink_;
+		return E_SUCCESS;
+	}
 private:
 	int nlink_;
 };
@@ -96,8 +106,17 @@ SUITE(Object)
 		dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>;
 		CHECK(global_omgr->RegisterType(TYPE_DUMMY, dummy_mgr) == E_SUCCESS);
 		CHECK(global_omgr->GetObject(OID[0], &dummy_rw_ref) == E_SUCCESS);
+		EVENT("BeforeLock");
 		dummy_rw_ref.obj()->Lock(lock_protocol::Mode::XL);
-		dummy_rw_ref.obj()->set_nlink(1);
+		int nlink = dummy_rw_ref.obj()->interface()->nlink();
+		if (strcmp(SELF->Tag(), "C1:T1")==0) {
+			CHECK(nlink == 0);
+		} else {
+			CHECK(nlink == 1);
+		}
+		dummy_rw_ref.obj()->interface()->set_nlink(nlink+1);
 		dummy_rw_ref.obj()->Unlock();
+		EVENT("AfterLock");
+		EVENT("End");
 	}
 }

@@ -8,6 +8,8 @@
 #include "dpo/client/omap.h"
 #include "dpo/client/hlckmgr.h"
 
+namespace client { class Session; } // forward declaration
+
 namespace dpo {
 
 namespace client {
@@ -20,10 +22,10 @@ class ObjectManager; // forward reference
 class ObjectManagerOfType {
 friend class ObjectManager;
 public:
-	virtual ObjectProxy* Create(ObjectId oid) = 0;
-	//virtual void OnRelease();
-	
-private:
+	virtual ObjectProxy* Create(::client::Session* session, ObjectId oid) = 0;
+	virtual void OnRelease(::client::Session* session, ObjectId oid) = 0;
+
+protected:	
 	ObjectMap oid2obj_map_;
 };
 
@@ -31,14 +33,14 @@ private:
 class ObjectManager: public dpo::cc::client::HLockUser {
 	typedef google::dense_hash_map<ObjectType, ObjectManagerOfType*> ObjectType2Manager; 
 public:
-	ObjectManager(dpo::cc::client::HLockManager* hlckmgr = NULL);
+	ObjectManager(dpo::cc::client::LockManager* lckmgr, dpo::cc::client::HLockManager* hlckmgr);
 	~ObjectManager();
 	int RegisterType(ObjectType type_id, ObjectManagerOfType* mgr);
 	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref);
 	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
 	int ReleaseObject(dpo::common::ObjectProxy* obj);
-	void OnRelease(dpo::cc::client::HLock* hlock) { }
-	void OnConvert(dpo::cc::client::HLock* hlock) { }
+	void OnRelease(dpo::cc::client::HLock* hlock);
+	void OnConvert(dpo::cc::client::HLock* hlock);
 	int Revoke(dpo::cc::client::HLock* hlock) { }
 	//ObjectProxy* Object(ObjectId oid);
 	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
@@ -47,7 +49,9 @@ public:
 private:
 	pthread_mutex_t                mutex_;
 	ObjectType2Manager             objtype2mgr_map_; 
+	dpo::cc::client::LockManager*  lckmgr_;
 	dpo::cc::client::HLockManager* hlckmgr_;
+	::client::Session*             session_;
 };
 
 
