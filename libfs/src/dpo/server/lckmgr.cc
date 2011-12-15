@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <vector>
 #include "dpo/common/gtque.h"
+#include "dpo/common/cc.h"
 #include "dpo/common/lock_protocol.h"
 #include "dpo/common/lock_protocol-static.h"
 #include "common/debug.h"
@@ -28,6 +29,8 @@
 
 
 namespace server {
+
+typedef dpo::cc::common::LockId LockId;
 
 // we ask the client to revoke the lock to a mode which is at least compatible to
 // the conflicting lock request.
@@ -175,7 +178,7 @@ LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 	lp = locks_[lid];
 	if (lp == NULL) {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-		        "Creating lock %llu\n", lid);
+		        "Creating lock %s\n", LockId(lid).c_str());
 		lp = new Lock(lid);
 		locks_[lid] = lp;
 	}	
@@ -247,16 +250,16 @@ LockManager::AcquireInternal(int clt, int seq, Lock* l,
 	lock_protocol::status r;
 	lock_protocol::Mode   mode;
 	
-	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %llu (%s)\n", clt, seq, 
-	        l->lid_, mode_set.String().c_str());
+	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %s (%s)\n", clt, seq, 
+	        LockId(l->lid_).c_str(), mode_set.String().c_str());
 	mode = SelectMode(l, mode_set);
 	wq_len = l->waiting_list_.size();
-	dbg_log(DBG_INFO, "queue len for lock %llu: %d\n", l->lid_, wq_len);
+	dbg_log(DBG_INFO, "queue len for lock %s: %d\n", LockId(l->lid_).c_str(), wq_len);
 	if ((wq_len == 0 || (wq_len > 0 && l->expected_clt_ == clt)) &&
 		l->gtque_.CanGrant(mode)) 
 	{
-		dbg_log(DBG_INFO, "lock %llu is compatible; granting to clt %d\n", 
-		        l->lid_, clt);
+		dbg_log(DBG_INFO, "lock %s is compatible; granting to clt %d\n", 
+		        LockId(l->lid_).c_str(), clt);
 		r = lock_protocol::OK;
 		l->gtque_.Add(ClientRecord(clt, seq, mode));
 		l->expected_clt_ = -1;
@@ -287,11 +290,11 @@ LockManager::AcquireInternal(int clt, int seq, Lock* l,
 			if (wq_len > 0) {
 				// Note that we don't need to add lid to revoke_set_ here, because we
 				// already did so for the head of the queue
-				dbg_log(DBG_INFO, "clt %d not expected for lock %llu; queued\n",
-						clt, l->lid_);
+				dbg_log(DBG_INFO, "clt %d not expected for lock %s; queued\n",
+						clt, LockId(l->lid_).c_str());
 			} else {
-				dbg_log(DBG_INFO, "queuing clt %d seq %d for lock %llu\n", 
-						clt, seq, l->lid_);
+				dbg_log(DBG_INFO, "queuing clt %d seq %d for lock %s\n", 
+						clt, seq, LockId(l->lid_).c_str());
 				// i will be the head of the waiting list
 				if (!l->revoke_sent_) {
 					revoke_set_.insert(l->lid_);
@@ -338,8 +341,8 @@ LockManager::ConvertInternal(int clt, int seq, Lock* l,
 	if (locks_.find(l->lid_) != locks_.end() && locks_[l->lid_]->gtque_.Exists(clt))
 	{
 		ClientRecord* cr = l->gtque_.Find(clt);
-		dbg_log(DBG_INFO, "clt %d convert lck %llu at seq %d (%s --> %s)\n", 
-		        clt, l->lid_, seq, cr->mode().String().c_str(), 
+		dbg_log(DBG_INFO, "clt %d convert lck %s at seq %d (%s --> %s)\n", 
+		        clt, LockId(l->lid_).c_str(), seq, cr->mode().String().c_str(), 
 				new_mode.String().c_str());
 		assert(cr->seq_ == seq);
 		// if there is an outstanding revoke request then 
@@ -406,8 +409,8 @@ LockManager::Release(int clt, int seq, lock_protocol::LockId lid, int flags, int
 	lock_protocol::status r;
 	Lock*                 lock;
 
-	dbg_log(DBG_INFO, "clt %d release lck %llu at seq %d\n", 
-	        clt, lid, seq);
+	dbg_log(DBG_INFO, "clt %d release lock %s at seq %d\n", 
+	        clt, LockId(lid).c_str(), seq);
 
 	pthread_mutex_lock(mutex_);
 	lock = FindOrCreateLockInternal(lid);
@@ -520,8 +523,8 @@ LockManager::revoker()
 			int   unused;
 			int   clt = (*itr_r).clt_;
 			rpcc* cl = clients_[clt];
-			dbg_log(DBG_INFO, "revoke client %d lock %llu: revoke type = %d\n", 
-			        clt, lid, (*itr_r).revoke_type_);
+			dbg_log(DBG_INFO, "revoke client %d lock %s: revoke type = %d\n", 
+			        clt, LockId(lid).c_str(), (*itr_r).revoke_type_);
 			if (cl) {
 				if (cl->call(rlock_protocol::revoke, lid, (*itr_r).seq_, (*itr_r).revoke_type_, unused)
 					!= rlock_protocol::OK) 
@@ -575,8 +578,8 @@ LockManager::retryer()
 				accepted) == rlock_protocol::OK) 
 			{
 				dbg_log(DBG_INFO,
-				        "successfully sent a retry to clt %d seq %d for lck %llu\n",
-				        cr->id(), cr->seq_, lid); 
+				        "successfully sent a retry to clt %d seq %d for lck %s\n",
+				        cr->id(), cr->seq_, LockId(lid).c_str()); 
 				// client ignored retry. make the lock available for the next waiting
 				// client
 				if (!accepted) {
@@ -589,8 +592,8 @@ LockManager::retryer()
 				}
 			} else {
 				dbg_log(DBG_ERROR,
-				        "failed to tell client %d to retry lock %llu\n", 
-				        cr->id(), lid);
+				        "failed to tell client %d to retry lock %s\n", 
+				        cr->id(), LockId(lid).c_str());
 				//FIXME: if cannot reach client then we need to send a retry to the
 				//next waiting client. But here you don't actually know whether client
 				//got the call but just didn't reply. so you need to do some heart beat

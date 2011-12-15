@@ -1,6 +1,7 @@
 #include "dpo/server/hlckmgr.h"
 #include "rpc/rpc.h"
 #include "common/debug.h"
+#include "dpo/common/cc.h"
 #include "dpo/common/lock_protocol.h"
 #include "dpo/server/lckmgr.h"
 
@@ -10,6 +11,7 @@ namespace server {
 //extent base lock manager to provide an API for use by this server which accepts a pointer to a object
 //collect all RPC under subclass RPC
 
+typedef dpo::cc::common::LockId LockId;
 
 HLockManager::HLockManager(rpcs* rpc_server)
 {
@@ -51,8 +53,8 @@ HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 	lock = lm_->FindOrCreateLockInternal(lid);
 
 	if (flags & lock_protocol::FLG_CAPABILITY) {
-		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %llu (%s)"
-					" using capability\n", clt, seq, lid, 
+		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %s (%s)"
+					" using capability\n", clt, seq, LockId(lid).c_str(), 
 					mode_set.String().c_str());
 		//TODO verify capability or get capability from the table
 	} else {
@@ -64,9 +66,9 @@ HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 			r = lock_protocol::HRERR;
 			goto done;
 		}
-		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %llu (%s)"
-				" under hierarchical lock %llu (%s)\n", clt, seq, lid, 
-				mode_set.String().c_str(), plid, plock_mode.String().c_str());
+		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %s (%s)"
+				" under hierarchical lock %s (%s)\n", clt, seq, LockId(lid).c_str(), 
+				mode_set.String().c_str(), LockId(plid).c_str(), plock_mode.String().c_str());
 		for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
 			if (!lock_protocol::Mode::AbidesHierarchyRule((*itr), plock_mode)) {
 				mode_set.Remove((*itr));

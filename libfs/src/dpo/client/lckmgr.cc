@@ -305,7 +305,6 @@ LockManager::Releaser()
 		// if there is a user manager registered with us then make a synchronous
 		// call to revoke the lock. otherwise wait for an asynchronous release 
 		assert(lid.type() < LOCK_TYPE_COUNT);
-		printf("RELEASE: %d\n", lid.type());
 		if (lu = lu_[lid.type()]) {
 			// drop lock to avoid any deadlocks caused by callbacks.
 			// releasing the lock is okay as state is consistent here. 

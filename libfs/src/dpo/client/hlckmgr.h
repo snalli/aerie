@@ -17,6 +17,10 @@ namespace client {
 
 class HLock; // forward declaration
 
+enum {
+	HLOCK_TYPE = 1 
+};
+
 struct HLockPtrLockModePair {
 	HLockPtrLockModePair(HLock* hlock, lock_protocol::Mode mode)
 		: hlock_(hlock),
@@ -29,12 +33,20 @@ struct HLockPtrLockModePair {
 typedef std::list<HLockPtrLockModePair> HLockPtrLockModePairSet;
 typedef google::dense_hash_set<HLock*> HLockPtrSet;
 
-/// The hierarchical lock keeps the locking mode to be able to acquire 
-/// a base lock if it needs to (e.g. when the parent's base lock is 
-/// released or downgraded). 
-/// To simplify the implementation of the hierarchical lock and to make 
-/// it more lightweight, the lock cannnot be acquired by multiple threads
-/// concurrently. Thus, the locking mode is not used to synchronize threads
+/**
+ * A hierarchical lock is identified by an ID=(TYPE_ID, NUMBER)
+ * Don't confuse the TYPE_ID of the hierarchical lock with the TYPE_ID
+ * of the underlying base lock. The base lock TYPE_ID for the hierarchical
+ * lock is HLOCK_TYPE.
+ * 
+ * The hierarchical lock keeps the locking mode to be able to acquire 
+ * a base lock if it needs to (e.g. when the parent's base lock is 
+ * released or downgraded). 
+ * To simplify the implementation of the hierarchical lock and to make 
+ * it more lightweight, the lock cannnot be acquired by multiple threads
+ * concurrently. Thus, the locking mode is not used to synchronize threads
+ *
+ */
 class HLock {
 public:
 	enum LockStatus {
@@ -61,6 +73,7 @@ public:
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
 	LockId lid() const { return lid_; }
+	LockId base_lid() const { return LockId(HLOCK_TYPE, lid_.number()); }
 	int AddChild(HLock* hlock);
 	int ChangeStatus(LockStatus old_sts, LockStatus new_sts);
 	int WaitStatus(LockStatus old_sts);
@@ -112,9 +125,6 @@ public:
 class HLockManager: public LockUser {
 	typedef google::dense_hash_map<LockId, HLock*, LockIdHashFcn> LockMap;
 public:
-	enum {
-		HLOCK_TYPE = 1 
-	};
 	enum Status {
 		NONE = 0,
 		ATTACHING = 1,

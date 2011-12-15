@@ -13,10 +13,10 @@
 
 using namespace client;
 
-static dpo::cc::client::LockId root(dpo::cc::client::HLockManager::HLOCK_TYPE, 1);
-static dpo::cc::client::LockId a(dpo::cc::client::HLockManager::HLOCK_TYPE, 2);
-static dpo::cc::client::LockId b(dpo::cc::client::HLockManager::HLOCK_TYPE, 3);
-static dpo::cc::client::LockId c(dpo::cc::client::HLockManager::HLOCK_TYPE, 4);
+static dpo::cc::client::LockId root(1, 1);
+static dpo::cc::client::LockId a(1, 2);
+static dpo::cc::client::LockId b(1, 3);
+static dpo::cc::client::LockId c(1, 4);
 
 
 SUITE(HLock)
