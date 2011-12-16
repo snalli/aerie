@@ -3,8 +3,8 @@
 
 #include <sstream>
 #include <boost/functional/hash.hpp>
-//#include <boost/lexical_cast.hpp>
-#include "dpo/common/lock_protocol.h"
+#include "dpo/base/common/lock_protocol.h"
+
 
 namespace dpo {
 namespace cc {
@@ -78,8 +78,6 @@ struct LockIdHashFcn {
 		return hasher(lid.marshall());
 	}
 };
-
-
 
 
 } // namespace common

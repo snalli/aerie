@@ -5,8 +5,8 @@
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/types.h"
-#include "dpo/common/cow.h"
-#include "dpo/common/object.h"
+#include "dpo/base/common/cow.h"
+#include "dpo/base/common/object.h"
 
 namespace client {
 

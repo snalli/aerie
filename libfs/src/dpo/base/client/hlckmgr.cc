@@ -1,7 +1,7 @@
-#include "dpo/client/hlckmgr.h"
+#include "dpo/base/client/hlckmgr.h"
 #include "common/debug.h"
 #include "common/bitmap.h"
-#include "dpo/client/lckmgr.h"
+#include "dpo/base/client/lckmgr.h"
 
 
 namespace dpo {

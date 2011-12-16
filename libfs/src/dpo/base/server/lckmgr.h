@@ -9,8 +9,8 @@
 #include <set>
 #include <vector>
 #include "rpc/rpc.h"
-#include "dpo/common/gtque.h"
-#include "dpo/common/lock_protocol.h"
+#include "dpo/base/common/gtque.h"
+#include "dpo/base/common/lock_protocol.h"
 
 namespace server {
 

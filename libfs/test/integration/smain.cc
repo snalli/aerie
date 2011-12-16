@@ -12,8 +12,8 @@
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
-#include "dpo/server/lckmgr.h"
-#include "dpo/server/hlckmgr.h"
+#include "dpo/base/server/lckmgr.h"
+#include "dpo/base/server/hlckmgr.h"
 
 using namespace server;
 

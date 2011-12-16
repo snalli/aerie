@@ -7,9 +7,9 @@
 #include "common/errno.h"
 #include "common/debug.h"
 #include "common/list.h"
-#include "dpo/client/lckmgr.h"
-#include "dpo/client/hlckmgr.h"
-#include "dpo/client/omgr.h"
+#include "dpo/base/client/lckmgr.h"
+#include "dpo/base/client/hlckmgr.h"
+#include "dpo/base/client/omgr.h"
 #include "client/session.h"
 
 //TODO: Fine-grain locking in GetObject/PutObject.

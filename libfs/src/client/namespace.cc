@@ -17,7 +17,7 @@
 #include "client/mpinode.h"
 #include "client/inode.h"
 #include "client/sb.h"
-#include "dpo/client/hlckmgr.h"
+#include "dpo/base/client/hlckmgr.h"
 //#include "dpo/client/stm.h"
 #include "common/debug.h"
 

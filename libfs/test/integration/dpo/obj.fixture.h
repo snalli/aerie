@@ -6,7 +6,7 @@
 #include "client/libfs.h"
 #include "client/config.h"
 #include "client/client_i.h"
-#include "dpo/client/omgr.h"
+#include "dpo/base/client/omgr.h"
 #include "rpc.fixture.h"
 #include "lock.fixture.h"
 

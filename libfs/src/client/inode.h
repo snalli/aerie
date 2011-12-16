@@ -6,7 +6,7 @@
 #include "common/types.h"
 #include "common/pnode.h"
 #include "client/const.h"
-#include "dpo/client/hlckmgr.h"
+#include "dpo/base/client/hlckmgr.h"
 
 
 namespace client {

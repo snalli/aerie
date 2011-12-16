@@ -1,9 +1,9 @@
-#include "dpo/server/hlckmgr.h"
+#include "dpo/base/server/hlckmgr.h"
 #include "rpc/rpc.h"
 #include "common/debug.h"
-#include "dpo/common/cc.h"
-#include "dpo/common/lock_protocol.h"
-#include "dpo/server/lckmgr.h"
+#include "dpo/base/common/cc.h"
+#include "dpo/base/common/lock_protocol.h"
+#include "dpo/base/server/lckmgr.h"
 
 namespace server {
 

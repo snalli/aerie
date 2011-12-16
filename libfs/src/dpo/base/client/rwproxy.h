@@ -9,8 +9,8 @@
 #define __STAMNOS_DPO_CLIENT_RW_PROXY_H
 
 #include <assert.h>
-#include "dpo/client/proxy.h"
-#include "dpo/client/omgr.h"
+#include "dpo/base/client/proxy.h"
+#include "dpo/base/client/omgr.h"
 #include "client/session.h"
 
 namespace dpo {

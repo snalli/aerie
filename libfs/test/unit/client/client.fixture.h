@@ -25,7 +25,7 @@ struct ClientFixture
 		: session(NULL)
 	{ 
 		client::StorageManager* smgr = new client::StorageManager();
-		session = new client::Session(smgr);
+		session = new client::Session(NULL, NULL, smgr);
 	}
 
 	~ClientFixture() 

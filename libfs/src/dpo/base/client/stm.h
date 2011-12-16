@@ -4,7 +4,7 @@
 #include <setjmp.h>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
-#include "dpo/common/obj.h"
+#include "dpo/base/common/obj.h"
 #include "common/types.h"
 
 namespace dpo {

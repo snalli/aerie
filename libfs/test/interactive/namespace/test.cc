@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "rpc/rpc.h"
-#include "dpo/common/lock_protocol.h"
-#include "dpo/client/hlckmgr.h"
+#include "dpo/base/common/lock_protocol.h"
+#include "dpo/base/client/hlckmgr.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
 

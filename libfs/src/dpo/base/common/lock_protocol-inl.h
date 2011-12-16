@@ -1,5 +1,5 @@
-#ifndef _LOCK_PROTOCOL_INLINE_H_AKL156
-#define _LOCK_PROTOCOL_INLINE_H_AKL156
+#ifndef __STAMNOS_DPO_LOCK_PROTOCOL_INLINE_H
+#define __STAMNOS_DPO_LOCK_PROTOCOL_INLINE_H
 
 
 inline lock_protocol::Mode::Set::Enum operator|(lock_protocol::Mode::Enum a, lock_protocol::Mode::Enum b)
@@ -116,4 +116,4 @@ lock_protocol::Mode::Set::LeastSevere()
 }
 
 
-#endif /* _LOCK_PROTOCOL_INLINE_H_AKL156 */
+#endif // __STAMNOS_DPO_LOCK_PROTOCOL_INLINE_H

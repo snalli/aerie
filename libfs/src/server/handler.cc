@@ -12,7 +12,7 @@
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
-#include "dpo/server/lckmgr.h"
+#include "dpo/base/server/lckmgr.h"
 #include "api.h"
 
 using namespace server;

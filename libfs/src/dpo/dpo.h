@@ -1,8 +1,8 @@
-#ifndef __STAMNOS_DPO_H_HAJ901
-#define __STAMNOS_DPO_H_HAJ901
+#ifndef __STAMNOS_DPO_DPO_H
+#define __STAMNOS_DPO_DPO_H
 
-#include "dpo/common/proxy.h"
-#include "dpo/common/obj.h"
-#include "dpo/client/omgr.h"
+#include "dpo/base/common/proxy.h"
+#include "dpo/base/common/obj.h"
+#include "dpo/base/client/omgr.h"
 
-#endif // __STAMNOS_DPO_H_HAJ901
+#endif // __STAMNOS_DPO_DPO_H

@@ -1,9 +1,9 @@
 #ifndef __STAMNOS_FS_CLIENT_SESSION_H
 #define __STAMNOS_FS_CLIENT_SESSION_H
 
-#include "dpo/client/hlckmgr.h"
-#include "dpo/client/lckmgr.h"
-#include "dpo/client/stm.h"
+#include "dpo/base/client/hlckmgr.h"
+#include "dpo/base/client/lckmgr.h"
+#include "dpo/base/client/stm.h"
 
 namespace client {
 

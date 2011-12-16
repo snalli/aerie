@@ -3,10 +3,10 @@
 
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
-#include "dpo/common/obj.h"
-#include "dpo/client/proxy.h"
-#include "dpo/client/omap.h"
-#include "dpo/client/hlckmgr.h"
+#include "dpo/base/common/obj.h"
+#include "dpo/base/client/proxy.h"
+#include "dpo/base/client/omap.h"
+#include "dpo/base/client/hlckmgr.h"
 
 namespace client { class Session; } // forward declaration
 
