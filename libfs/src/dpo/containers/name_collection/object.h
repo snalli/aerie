@@ -30,8 +30,8 @@ public:
 	
 	Object()
 		: ht_(NULL),
-		  self_(0),
-		  parent_(0)
+		  self_(dpo::common::ObjectId(0)),
+		  parent_(dpo::common::ObjectId(0))
 	{ 
 		  nlink_ = 0;
 	}
@@ -46,13 +46,13 @@ public:
 		return ptr;
 	}
 
-	int Lookup(Session* session, const char* name, uint64_t* ino);
-	int Link(Session* session, const char* name, uint64_t ino);
-	int Unlink(Session* session, const char* name);
+	int Find(Session* session, const char* name, dpo::common::Object oid);
+	int Insert(Session* session, const char* name, dpo::common::ObjectId oid);
+	int Erase(Session* session, const char* name);
 
 //private:
-	uint64_t            self_;    // entry '.'
-	uint64_t            parent_;  // entry '..'
+	ObjectId            self_;    // entry '.'
+	ObjectId            parent_;  // entry '..'
 	HashTable<Session>* ht_;      // entries
 };
 
