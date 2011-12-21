@@ -33,7 +33,6 @@ int RegistryServer::Lookup(std::string name, uint64_t* obj)
 		return -1;
 	}
 	*obj = it->second;
-	printf("Lookup: %s, %llx\n", name.c_str(), *obj);
 	pthread_mutex_unlock(&mutex_);
 	return 0;
 }
@@ -43,7 +42,6 @@ int RegistryServer::Add(std::string name, uint64_t obj)
 {
 	int                                                        i;
 	std::pair<std::map<std::string, uint64_t>::iterator, bool> pairret;
-	
 	pthread_mutex_lock(&mutex_);
 	pairret = map_.insert(std::pair<std::string, uint64_t>(name, obj));
 	if (pairret.second != true) {

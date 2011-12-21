@@ -35,11 +35,11 @@ public:
 	{ }
 
 	ObjectId(ObjectType type, void* addr) {
-		Create(type, reinterpret_cast<uint64_t>(addr));
+		Init(type, reinterpret_cast<uint64_t>(addr));
 	}
 
 	ObjectId(ObjectType type, uint64_t num) {
-		Create(type, num);
+		Init(type, num);
 	}
 
 	ObjectType type() {
@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-	void Create(ObjectType type, uint64_t num) {
+	void Init(ObjectType type, uint64_t num) {
 		u64_ = type;
 		u64_ = u64_ << OBJECT_NUMBER_LEN_LOG2;
 		u64_ = u64_ | num;

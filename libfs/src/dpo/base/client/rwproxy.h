@@ -35,7 +35,7 @@ public:
 		dpo::client::ObjectProxy*             obj2;
 		assert(oid2obj_map_.Lookup(oid, &obj2) == E_SUCCESS);
 		obj = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2);
-		assert(obj->vClose() == E_SUCCESS);
+		assert(obj->vClose(session) == E_SUCCESS);
 	}
 };
 

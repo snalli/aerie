@@ -24,7 +24,8 @@ lockServerProgram = myTestEnv.Program('smain', \
 hlockServerProgram = myTestEnv.Program('smain-hlock', \
 	source = myTestEnv['HLOCK_SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 testProgram = myTestEnv.Program('test', \
-	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], \
+	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), \
+                  Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), objects], \
 	LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 
@@ -292,7 +293,24 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
         'C2': ( testProgram, [('T1', 'Object:Test')])
     },
     rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:AfterMapObjects:block'),
+                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
+                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
+                  ('C1:T1:End:block', 'C2:T1:End:block'),
+    ]
+))
+
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'ContainersNameContainer:Test',
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'ContainersNameContainer:Test')]),
+        'C2': ( testProgram, [('T1', 'ContainersNameContainer:Test')])
+    },
+    rendezvous = [
+                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
                   ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
                   ('C1:T1:End:block', 'C2:T1:End:block'),
     ]

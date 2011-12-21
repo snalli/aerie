@@ -31,6 +31,7 @@ Import('rpcLibrary')
 depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 
 source = [Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), 'main.cc']
+source += [Glob('*/*/*.test.cc'), Glob('*/*/*.fixture.cc'), Glob('*/*/*.helper.cc')]
 test = testEnv.Program('test', source, LIBS=['pthread', 'rt', 'UnitTest++']+depLibs)
 
 if testEnv['TEST_FILTER']:

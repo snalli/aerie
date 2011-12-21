@@ -28,7 +28,7 @@ NameSpace*       global_namespace;
 StorageManager*  global_smgr;
 LockManager*     global_lckmgr;
 HLockManager*    global_hlckmgr;
-Registry*        registry;
+Registry*        global_registry;
 rpcc*            rpc_client;
 rpcs*            rpc_server;
 std::string      id;
@@ -91,7 +91,7 @@ Client::Init(int principal_id, const char* xdst)
 	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
 								  
-	registry = new Registry(rpc_client, principal_id);
+	global_registry = new Registry(rpc_client, principal_id);
 	return global_namespace->Init(global_session);
 }
 
@@ -129,6 +129,7 @@ Client::Mount(const char* source,
 	client::SuperBlock* sb;
 	void*               ptr;
 	char*               path = const_cast<char*>(target);
+	uint64_t            u64;
 
 	if (target == NULL || source == NULL || fstype == NULL) {
 		return -1;
@@ -136,9 +137,10 @@ Client::Mount(const char* source,
 
 	for (i=0; known_fs[i].name != NULL; i++) {
 		if (strcmp(fstype, known_fs[i].name) == 0) {
-			if (registry->Lookup(source, &ptr) < 0) {
+			if (global_registry->Lookup(source, &u64) < 0) {
 				return -1;
 			}
+			ptr = (void*) u64;
 			sb = known_fs[i].CreateSuperBlock(global_session, ptr);
 			if (sb == NULL) {
 				return -1;
@@ -173,7 +175,7 @@ Client::Mkfs(const char* target,
 				return -1;
 			}
 			ptr = sb->GetPSuperBlock();
-			registry->Add(target, ptr);
+			global_registry->Add(target, (uint64_t) ptr);
 			dbg_log (DBG_INFO, "Mkfs %s (%p)\n", target, ptr);
 			return 0;
 		}

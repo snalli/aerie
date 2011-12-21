@@ -150,14 +150,14 @@ public:
 		return 0;
 	}
 	
-	int vUpdate() {
-		return (valid_ ? vm_.vUpdate(): E_INVAL);
+	int vUpdate(::client::Session* session) {
+		return (valid_ ? vm_.vUpdate(session): E_INVAL);
 	}
 
-	int vClose() {
+	int vClose(::client::Session* session) {
 		int ret = E_SUCCESS;
 		if (valid_) {
-			ret = vm_.vUpdate();
+			ret = vm_.vUpdate(session);
 		}
 		valid_ = false;
 		return ret;

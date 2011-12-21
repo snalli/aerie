@@ -6,7 +6,7 @@
 #include "tool/testfw/unittest.h"
 #include "common/errno.h"
 #include "common/types.h"
-#include "client.fixture.h"
+#include "unit/fixture/client.fixture.h"
 #include "client/namespace.h"
 #include "client/sb.h"
 #include "client/inode.h"

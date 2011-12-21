@@ -21,7 +21,7 @@ Registry::Registry(rpcc* c, unsigned int principal_id):
 
 
 int
-Registry::Lookup(const char *name, void **obj)
+Registry::Lookup(const char *name, uint64_t* val)
 {
 	std::string        name_str;
 	unsigned long long r;
@@ -33,24 +33,22 @@ Registry::Lookup(const char *name, void **obj)
 	if (intret) {
 		return -intret;
 	}
-	*obj = (void*) r;
+	*val = r;
 	
 	return 0;
 }
 
 
 int
-Registry::Add(const char *name, void *obj)
+Registry::Add(const char *name, uint64_t val)
 {
 	std::string        name_str;
-	unsigned long long val;
 	int                r;
 	int                intret;
 
 	name_str = std::string(name);
-	val = (unsigned long long) obj;
 
-	intret = client_->call(RPC_REGISTRY_ADD, principal_id_, name_str, val, r);
+	intret = client_->call(RPC_REGISTRY_ADD, principal_id_, name_str, (unsigned long long) val, r);
 	if (intret) {
 		return -intret;
 	}

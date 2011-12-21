@@ -5,7 +5,7 @@
 #include "common/errno.h"
 #include "common/types.h"
 #include "dpo/base/client/stm.h"
-#include "../client/client.fixture.h"
+#include "unit/fixture/client.fixture.h"
 
 #if 0
 class TestObject: public dcc::stm::Object {

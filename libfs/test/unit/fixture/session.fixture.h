@@ -1,5 +1,5 @@
-#ifndef __TEST_SESSION_FIXTURE_H_JAL190
-#define __TEST_SESSION_FIXTURE_H_JAL190
+#ifndef __STAMNOS_TEST_SESSION_FIXTURE_H
+#define __STAMNOS_TEST_SESSION_FIXTURE_H
 
 class Session;
 
@@ -35,5 +35,4 @@ struct SessionFixture
 	Session* session;
 };
 
-
-#endif // __TEST_SESSION_FIXTURE_H_JAL190
+#endif // __STAMNOS_TEST_SESSION_FIXTURE_H

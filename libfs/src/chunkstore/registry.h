@@ -8,8 +8,8 @@
 class Registry {
 public:
 	Registry(rpcc *c, unsigned int);
-	int Lookup(const char *name, void**);
-	int Add(const char *name, void*);
+	int Lookup(const char *name, uint64_t* val);
+	int Add(const char *name, uint64_t val);
 	int Remove(const char *name);
 
 private:

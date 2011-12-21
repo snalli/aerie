@@ -1,5 +1,5 @@
-#ifndef // __STAMNOS_DPO_COMMON_HASHTABLE_H 
-#define // __STAMNOS_DPO_COMMON_HASHTABLE_H 
+#ifndef __STAMNOS_DPO_COMMON_HASHTABLE_H 
+#define __STAMNOS_DPO_COMMON_HASHTABLE_H 
 
 #include <stdint.h>
 #include <string.h>
@@ -11,8 +11,9 @@
 #include "common/hash.h"
 
 enum {
-	HT_REHASH = 1;
+	HT_REHASH = 1
 };
+
 
 inline uint64_t lgl2lnr (uint64_t logical_addr)
 {
@@ -231,83 +232,6 @@ private:
 	};
 
 	int Delete(Session* session, Entry<Session>* entry, Entry<Session>* prev_entry, Entry<Session>* next_entry);
-};
-
-
-
-// Class Bucket encapsulates the primary bucket page
-template<typename Session>
-class Bucket {
-public:
-	Bucket()
-	{
-		Init();
-	}
-
-	int Init() {
-		return 0;
-	}	
-	
-	inline bool IsEmpty() {
-
-	}
-
-	int Insert(Session* session, const char* key, int key_size, uint64_t val);
-	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
-	int Search(Session* session, const char* key, int key_size, uint64_t* val);
-	int Search(Session* session, const char* key, int key_size, char** val, int* val_size);
-	int Delete(Session* session, const char* key, int key_size);
-	int Split(Session* session, Bucket* new_bucket, const SplitPredicate& split_predicate);
-	int Merge(Session* session, Bucket*);
-	void Print();
-
-private:
-	Page<Session> page_;
-
-	int Delete(Session* session, Entry<Session>* entry, Entry<Session>* prev_entry, Entry<Session>* next_entry);
-};
-
-
-template<typename Session>
-class HashTable {
-public:
-	HashTable()
-		: split_idx_(0),
-		  size_log2_(5)
-	{ }
-
-	void* operator new(size_t nbytes, Session* session)
-	{
-		void* ptr;
-		
-		if (session->smgr_->Alloc(session, nbytes, typeid(HashTable), &ptr) < 0) {
-			dbg_log(DBG_ERROR, "No storage available");
-		}
-		return ptr;
-	}
-
-	int Init();
-
-	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
-	int Insert(Session* session, const char* key, int key_size, uint64_t val);
-	int Search(Session* session, const char *key, int key_size, char** valp, int* val_sizep);
-	int Search(Session* session, const char* key, int key_size, uint64_t* val);
-	int Delete(Session* session, const char* key, int key_size);
-	void Print();
-
-private:
-	class LinearSplit;
-
-	inline uint32_t Index(Session* session, const char* key, int key_size);
-	static uint32_t ModHash(uint32_t fh, int size_log2_, int shift) 
-	{
-		uint32_t mask = (1 << (size_log2_ + shift)) - 1;
-		return fh & mask;
-	}
-	
-	uint32_t         size_log2_;    // log2 of size 
-	uint32_t         split_idx_;
-	Bucket<Session>  buckets_[NUM_BUCKETS];
 };
 
 
@@ -674,6 +598,40 @@ Page<Session>::Print()
 //
 //////////////////////////////////////////////////////////////////////////////
 
+
+// Class Bucket encapsulates the primary bucket page
+template<typename Session>
+class Bucket {
+public:
+	Bucket()
+	{
+		Init();
+	}
+
+	int Init() {
+		return 0;
+	}	
+	
+	inline bool IsEmpty() {
+
+	}
+
+	int Insert(Session* session, const char* key, int key_size, uint64_t val);
+	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
+	int Search(Session* session, const char* key, int key_size, uint64_t* val);
+	int Search(Session* session, const char* key, int key_size, char** val, int* val_size);
+	int Delete(Session* session, const char* key, int key_size);
+	int Split(Session* session, Bucket* new_bucket, const SplitPredicate& split_predicate);
+	int Merge(Session* session, Bucket*);
+	void Print();
+
+private:
+	Page<Session> page_;
+
+	int Delete(Session* session, Entry<Session>* entry, Entry<Session>* prev_entry, Entry<Session>* next_entry);
+};
+
+
 template<typename Session>
 int 
 Bucket<Session>::Insert(Session* session, const char* key, int key_size, 
@@ -807,6 +765,49 @@ void Bucket<Session>::Print()
 //  HashTable
 //
 //////////////////////////////////////////////////////////////////////////////
+
+
+template<typename Session>
+class HashTable {
+public:
+	HashTable()
+		: split_idx_(0),
+		  size_log2_(5)
+	{ }
+
+	void* operator new(size_t nbytes, Session* session)
+	{
+		void* ptr;
+		
+		if (session->smgr_->Alloc(session, nbytes, typeid(HashTable), &ptr) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+		return ptr;
+	}
+
+	int Init();
+
+	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
+	int Insert(Session* session, const char* key, int key_size, uint64_t val);
+	int Search(Session* session, const char *key, int key_size, char** valp, int* val_sizep);
+	int Search(Session* session, const char* key, int key_size, uint64_t* val);
+	int Delete(Session* session, const char* key, int key_size);
+	void Print();
+
+private:
+	class LinearSplit;
+
+	inline uint32_t Index(Session* session, const char* key, int key_size);
+	static uint32_t ModHash(uint32_t fh, int size_log2_, int shift) 
+	{
+		uint32_t mask = (1 << (size_log2_ + shift)) - 1;
+		return fh & mask;
+	}
+	
+	uint32_t         size_log2_;    // log2 of size 
+	uint32_t         split_idx_;
+	Bucket<Session>  buckets_[NUM_BUCKETS];
+};
 
 
 template<typename Session>
@@ -947,5 +948,6 @@ HashTable<Session>::Print()
 		bucket->Print();
 	}	
 }
+
 
 #endif // __STAMNOS_DPO_COMMON_HASHTABLE_H 

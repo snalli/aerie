@@ -3,7 +3,7 @@
 #include "tool/testfw/unittest.h"
 #include "mfs/client/dir_inode.h"
 #include "common/errno.h"
-#include "unit/client/client.fixture.h"
+#include "unit/fixture/client.fixture.h"
 #include "mfs/client/sb.h"
 
 using namespace mfs;

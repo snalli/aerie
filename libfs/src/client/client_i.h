@@ -8,6 +8,7 @@
 #include "client/smgr.h"
 #include "client/file.h"
 
+class Registry;
 namespace dpo { namespace client { class ObjectManager; } }
 namespace dpo { namespace cc { namespace client { class LockManager; } } }
 namespace dpo { namespace cc { namespace client { class HLockManager; } } }
@@ -21,6 +22,7 @@ extern dpo::cc::client::LockManager*      global_lckmgr;
 extern dpo::cc::client::HLockManager*     global_hlckmgr;
 extern dpo::client::ObjectManager*        global_omgr;
 extern Session*                           global_session;
+extern Registry*                          global_registry;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;

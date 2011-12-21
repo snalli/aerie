@@ -23,7 +23,8 @@ lib_sources = [
                '../dpo/base/client/hlckmgr.cc',
                '../dpo/base/client/lckmgr.cc',
 	       '../dpo/base/client/omgr.cc',
-	       '../dpo/base/client/stm.cc'
+	       '../dpo/base/client/stm.cc',
+	       '../dpo/containers/name/container.cc'
 	      ]
 #libLocalBuildEnv.Append(LIBS = mfsLibrary)
 #libLocalBuildEnv.Append(LIBS = rpcLibrary)

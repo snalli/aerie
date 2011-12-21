@@ -18,16 +18,27 @@
 
 using namespace client;
 
-const int TYPE_DUMMY = 1;
-
 // Object
 class Dummy: public dpo::cc::common::Object {
 public:
+
 	Dummy() 
 	{ 
-		set_type(TYPE_DUMMY);
+		set_type(1);
+		nlink_ = 0;
 	}
 	
+	void* operator new(size_t nbytes, Session* session)
+    {
+		void* ptr;
+
+        if (session->smgr_->AllocExtent(session, nbytes, &ptr) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+        return ptr;
+    }
+
+
 	int nlink_;
 };
 
@@ -47,7 +58,7 @@ public:
 		return E_SUCCESS;
 	}
 
-	int vUpdate() {
+	int vUpdate(::client::Session* session) {
 		subject()->nlink_ = nlink_;
 		return E_SUCCESS;
 	}
@@ -64,48 +75,19 @@ typedef dpo::client::rw::ObjectProxyReference<Dummy, DummyVersionManager> DummyR
 
 static dpo::common::ObjectId OID[16];
 
-// Client C1:T1 constructs objects, rest just map the region containing 
-// the objects
-int MapObjects(testfw::Test* test)
-{
-	void*       ptr;
-	void*       base_addr;
-	void*       mmap_base_addr=(void*) 0x0000100000000000LLU;
-	
-	int fd = open("/tmp/stamnos_test_object_file", O_RDWR);
-	base_addr = mmap(mmap_base_addr, 1024*1024, PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
-	if (base_addr != mmap_base_addr) {
-		return -1;
-	}
-	if (strcmp(test->Tag(), "C1:T1") == 0) {
-		for (int i=0; i<16; i++) {
-			void*  ptr = (void*) (((uint64_t) mmap_base_addr) + i*sizeof(Dummy));
-			Dummy* dummy_ptr = new (ptr) Dummy;
-			if (dummy_ptr == NULL) {
-				return -1;
-			}
-		}
-	}
-	for (int i=0; i<16; i++) {
-		void* ptr = (void*) (((uint64_t) mmap_base_addr) + i*sizeof(Dummy));
-		OID[i] = dpo::common::ObjectId(TYPE_DUMMY, ptr);
-	}
-	return 0;
-}
-
-
 SUITE(Object)
 {
 	TEST_FIXTURE(ObjectFixture, Test)
 	{
 		DummyRWReference dummy_rw_ref;
 
-		CHECK(MapObjects(SELF) == 0);
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<Dummy>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>;
-		CHECK(global_omgr->RegisterType(TYPE_DUMMY, dummy_mgr) == E_SUCCESS);
-		CHECK(global_omgr->GetObject(OID[0], &dummy_rw_ref) == E_SUCCESS);
+		CHECK(global_omgr->RegisterType(1, dummy_mgr) == E_SUCCESS);
+		CHECK(global_omgr->GetObject(OID[1], &dummy_rw_ref) == E_SUCCESS);
 		EVENT("BeforeLock");
 		dummy_rw_ref.obj()->Lock(lock_protocol::Mode::XL);
 		int nlink = dummy_rw_ref.obj()->interface()->nlink();

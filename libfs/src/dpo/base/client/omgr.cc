@@ -70,6 +70,9 @@ ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_re
 	ObjectManagerOfType* mgr;
 	ObjectProxy*         obj;
 
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
+	        "[%d] Get Object: oid=%lx\n", id(), oid.u64());
+
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();
 	ObjectType2Manager::iterator itr;

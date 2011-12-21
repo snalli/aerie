@@ -124,7 +124,7 @@ LockManager::LockManager(rpcc* rpc_client,
 	revoke_map_.set_deleted_key(LockId(-1, 0));
 	releaser_thread_running_ = true;
 
-	for (int i; i<LOCK_TYPE_COUNT; i++) {
+	for (int i=0; i<LOCK_TYPE_COUNT; i++) {
 		lu_[i] = NULL;
 	}
 	// register client's lock manager RPC handlers with srv2cl_
@@ -964,6 +964,7 @@ LockManager::do_release(Lock* l, int flags)
 	if (lu = lu_[l->lid_.type()]) {
 		lu->OnRelease(l);
 	}
+
 	r = cl2srv_->call(lock_protocol::release, cl2srv_->id(), l->seq_, l->lid_.marshall(), 
 	                  flags, unused);
 	return r;

@@ -4,11 +4,12 @@
 #include <vector>
 #include <string>
 #include "tool/testfw/unittest.h"
-#include "mfs/hashtable.h"
+#include "dpo/containers/assoc/hashtable.h"
 #include "common/errno.h"
-#include "session.fixture.h"
+#include "unit/fixture/session.fixture.h"
 
-SUITE(MFSHashTableEntry)
+
+SUITE(ContainersHashTableEntry)
 {
 	const int buffer_size = 128;
 
@@ -64,7 +65,7 @@ SUITE(MFSHashTableEntry)
 }
 
 
-SUITE(MFSHashTablePage)
+SUITE(ContainersHashTablePage)
 {
 	TEST_FIXTURE(SessionFixture, TestInsert1)
 	{
@@ -422,7 +423,7 @@ class TestSession {
 
 };
 
-SUITE(MFSHashTable)
+SUITE(ContainersHashTable)
 {
 	TEST_FIXTURE(SessionFixture, TestInsert)
 	{
