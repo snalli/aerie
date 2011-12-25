@@ -1,10 +1,11 @@
-#ifndef __MFS_CLIENT_INODE_FACTORY_H
-#define __MFS_CLIENT_INODE_FACTORY_H
+#ifndef __STAMNOS_MFS_CLIENT_INODE_FACTORY_H
+#define __STAMNOS_MFS_CLIENT_INODE_FACTORY_H
 
 #include "common/types.h"
 #include "client/backend.h"
 
 namespace mfs {
+namespace client {
 
 class InodeFactory {
 public:
@@ -12,6 +13,7 @@ public:
 };
 
 
+} // namespace client
 } // namespace mfs
 
-#endif // __MFS_CLIENT_INODE_FACTORY_H
+#endif // __STAMNOS_MFS_CLIENT_INODE_FACTORY_H

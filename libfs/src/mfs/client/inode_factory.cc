@@ -3,6 +3,7 @@
 #include "mfs/client/dir_inode.h"
 
 namespace mfs {
+namespace client {
 
 int InodeFactory::Open(client::SuperBlock* sb, InodeNumber ino, 
                        client::Inode** ipp)
@@ -22,4 +23,5 @@ int InodeFactory::Open(client::SuperBlock* sb, InodeNumber ino,
 }
 
 
+} // namespace client 
 } // namespace mfs

@@ -14,6 +14,10 @@ namespace mfs {
 // with the generic superblock (and storage manager). 
 // The bottom line is that we need some form of polymorphism, either at the superblock or at the factory.
 
+
+//FIXME: SUPERBLOCK
+#if 0
+
 int
 SuperBlock::MakeInode(client::Session* session, int type, client::Inode** ipp)
 {
@@ -46,5 +50,8 @@ SuperBlock::LoadInode(InodeNumber ino, client::Inode** ipp)
 	*ipp = ip;
 	return ret;
 }
+
+#endif
+
 
 } // namespace mfs

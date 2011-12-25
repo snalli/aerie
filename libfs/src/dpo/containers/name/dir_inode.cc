@@ -13,8 +13,6 @@ namespace mfs {
 int 
 DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inode** ipp) 
 {
-//FIXME: INODE
-/*
 	int                   ret;
 	InodeNumber           ino;
 	client::Inode*        ip;
@@ -38,7 +36,7 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 
     sb_->GetInode(ino, &ip);
     *ipp = ip;
-*/
+
 	return E_SUCCESS;
 }
 
@@ -61,8 +59,6 @@ int
 DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino, 
                       bool overwrite)
 {
-// FIXME: INODE
-/*
 	assert(overwrite == false);
 	EntryCache::iterator   it;
 	int                    ret;
@@ -95,7 +91,6 @@ DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino,
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(true, ino)));
 	assert(ret_pair.second == true);
 	printf("DirInodeMutable::Link (%s): DONE\n", name);
-*/
 	return 0;
 }
 
@@ -104,8 +99,6 @@ int
 DirInodeMutable::Unlink(client::Session* session, const char* name)  
 {
 
-// FIXME: INODE
-/*
 	EntryCache::iterator   it;
 	int                    ret;
 	uint64_t               ino;
@@ -135,7 +128,7 @@ DirInodeMutable::Unlink(client::Session* session, const char* name)
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(false, ino)));
 	neg_entries_count_++;
 	assert(ret_pair.second == true);
-*/
+
 	return E_SUCCESS;
 }
 
@@ -162,8 +155,6 @@ DirInodeMutable::Readdir()
 int 
 DirInodeMutable::Publish(client::Session* session)
 {
-// FIXME: INODE
-/*
 	// FIXME: Currently we publish by simply doing the updates in-place. 
 	// Normally this must be done via the trusted server using the journal 
 
@@ -199,7 +190,6 @@ DirInodeMutable::Publish(client::Session* session)
 	}
 	printf("inode %lu: nlink_ = %d\n", ino_, nlink_);
 	//FIXME ObjectProxy::subject()->set_nlink(nlink_);
-*/
 	return 0;
 }
 

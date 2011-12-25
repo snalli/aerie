@@ -46,7 +46,6 @@ public:
 		printf("DirInodeMutable: pnode_=%p\n", pnode_);
 		return 0;
 	}
-
 	int Open(client::Session* session, const char* path, int flags) { };
 	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }

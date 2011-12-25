@@ -9,6 +9,7 @@
 #include "server/api.h"
 #include "client/config.h"
 #include "client/smgr.h"
+#include "client/fsomgr.h"
 #include "dpo/base/client/lckmgr.h"
 #include "dpo/base/client/hlckmgr.h"
 #include "dpo/base/client/omgr.h"
@@ -23,27 +24,19 @@ namespace client {
 
 __thread Session* thread_session;
 
-FileManager*     global_fmgr;
-NameSpace*       global_namespace;
-StorageManager*  global_smgr;
-LockManager*     global_lckmgr;
-HLockManager*    global_hlckmgr;
-Registry*        global_registry;
-rpcc*            rpc_client;
-rpcs*            rpc_server;
-std::string      id;
-Session*         global_session;
+FileSystemObjectManager* global_fsomgr;
+FileManager*             global_fmgr;
+NameSpace*               global_namespace;
+StorageManager*          global_smgr;
+LockManager*             global_lckmgr;
+HLockManager*            global_hlckmgr;
+Registry*                global_registry;
+rpcc*                    rpc_client;
+rpcs*                    rpc_server;
+std::string              id;
+Session*                 global_session;
 
 dpo::client::ObjectManager*   global_omgr;
-
-// Known backend file system implementations
-struct KnownFS {
-	const char*         name;
-	client::SuperBlock* (*CreateSuperBlock)(Session*, void*);
-} known_fs[] = {
-	{"mfs", mfs::CreateSuperBlock},
-	{NULL, NULL}
-};
 
 
 int 
@@ -92,6 +85,11 @@ Client::Init(int principal_id, const char* xdst)
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
 								  
 	global_registry = new Registry(rpc_client, principal_id);
+
+	// register known file system backends
+	global_fsomgr = new FileSystemObjectManager(rpc_client, principal_id);
+	mfs::client::RegisterBackend(global_fsomgr);
+
 	return global_namespace->Init(global_session);
 }
 
@@ -135,6 +133,8 @@ Client::Mount(const char* source,
 		return -1;
 	}
 
+	//FIXME: SUPERBLOCK 
+	/*
 	for (i=0; known_fs[i].name != NULL; i++) {
 		if (strcmp(fstype, known_fs[i].name) == 0) {
 			if (global_registry->Lookup(source, &u64) < 0) {
@@ -150,6 +150,7 @@ Client::Mount(const char* source,
 			return global_namespace->Mount(global_session, path, sb);
 		}
 	}
+	*/
 	return -1;
 }
 
@@ -168,6 +169,8 @@ Client::Mkfs(const char* target,
 		return -1;
 	}
 
+	//FIXME
+	/*
 	for (i=0; known_fs[i].name != NULL; i++) {
 		if (strcmp(fstype, known_fs[i].name) == 0) {
 			sb = known_fs[i].CreateSuperBlock(global_session, NULL);
@@ -180,6 +183,7 @@ Client::Mkfs(const char* target,
 			return 0;
 		}
 	}
+	*/
 	return -1;
 }
 
@@ -225,6 +229,8 @@ create(const char* path, Inode** ipp, int mode, int type)
 		return -E_EXIST;
 	}
 	
+	// FIXME: SUPERBLOCK
+	/*
 	printf("dp=%p\n", dp);
 	sb = dp->GetSuperBlock();
 
@@ -233,6 +239,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}
+	*/
 	printf("allocated inode\n");
 	ip->set_nlink(1);
 	if (type == client::type::kDirInode) {

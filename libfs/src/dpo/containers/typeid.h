@@ -5,7 +5,8 @@ namespace dpo {
 namespace containers {
 
 enum {
-	T_NAME_CONTAINER = 1
+	T_SUPER_CONTAINER = 1,
+	T_NAME_CONTAINER = 2
 };
 
 } // namespace containers

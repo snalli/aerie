@@ -24,6 +24,7 @@ namespace client {
 class Session; // forward declaration
 class InodeMap; // forward declaration
 
+#if 0
 class SuperBlock: public HLockUser {
 public:
 	SuperBlock(Session* session);
@@ -50,7 +51,17 @@ private:
 	virtual int MakeInode(Session* session, int type, Inode** ipp) = 0;
 	virtual int LoadInode(InodeNumber ino, client::Inode** ipp) = 0;
 };
+#endif
 
+
+// Abstract class representing a file-system specific superblock
+class SuperBlock {
+public:
+	virtual int RootInode();	
+
+
+
+};
 
 
 } // namespace client

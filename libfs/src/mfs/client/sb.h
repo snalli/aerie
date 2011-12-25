@@ -9,9 +9,11 @@
 
 namespace mfs {
 
+//FIXME: SUPERBLOCK
 class SuperBlock: public client::SuperBlock {
 public:
 
+/*	
 	SuperBlock(client::Session* session, PSuperBlock<client::Session>* psb)
 		: psb_(psb),
 		  client::SuperBlock(session)
@@ -28,7 +30,7 @@ private:
 	
 	PSuperBlock<client::Session>* psb_;
 	//client::InodeMap*             imap_;
-	
+*/	
 };
 
 

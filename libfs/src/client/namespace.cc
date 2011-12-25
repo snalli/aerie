@@ -139,7 +139,9 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 			}
 			if (*path == '\0') {
 				// reached end of path -- mount superblock
-				Inode* root_inode = sb->RootInode();
+				//FIXME: SUPERBLOCK
+				//Inode* root_inode = sb->RootInode();
+				Inode* root_inode;
 				printf("ROOT INODE: %p\n", root_inode);
 				assert(inode->Link(session, name, root_inode, false) == 0);	
 				if (root_inode->Link(session, "..", inode, false) != 0) {
@@ -159,6 +161,7 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 
 	return 0;
 }
+
 
 int
 NameSpace::Unmount(Session* session, char* name)

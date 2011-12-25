@@ -5,9 +5,10 @@
 #include "client/client_i.h"
 #include "client/sb.h"
 #include "client/inode.h"
-#include "client/imap.h"
 
 namespace client {
+
+#if 0
 
 SuperBlock::SuperBlock(Session* session)
 {
@@ -96,6 +97,8 @@ SuperBlock::OnConvert(HLock* hlock)
 	
 	// do nothing?
 }
+
+#endif
 
 
 } // namespace client

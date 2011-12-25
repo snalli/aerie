@@ -14,9 +14,7 @@
 #include "client/session.h"
 
 namespace dpo {
-
 namespace client {
-
 namespace rw {
 
 
@@ -82,27 +80,6 @@ public:
 		return dpo::cc::client::ObjectProxy::Unlock(session_);
 	}
 
-	//Create(); // lazy shadow
-	//Destroy();
-
-	// this function has to be virtual or functor that is registered 
-	// with the object manager
-/*
-	int Update(int flags) {
-		if (state_ == VALID) {
-			if (ret = Derived::Update() < 0) { 
-				return ret;
-			}
-			if (flags & LOCK_REVOKE) {
-				// lock is revoked so object proxy will get out of sync
-				// sooner or later; mark the object as invalid
-				state_ = INVALID; 
-			}
-			return 0;
-		}
-		return -1;
-	}
-*/
 private:
 	::client::Session* session_;
 };

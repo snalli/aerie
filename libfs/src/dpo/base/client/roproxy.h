@@ -9,10 +9,10 @@
 #define __STAMNOS_DPO_CLIENT_RO_PROXY_H
 
 namespace dpo {
-
 namespace client {
-
 namespace ro {
+
+
 
 
 
