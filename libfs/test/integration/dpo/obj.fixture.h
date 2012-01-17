@@ -43,7 +43,7 @@ struct ObjectFixture: public LockRegionFixture, RPCFixture {
 			global_hlckmgr = new HLockManager(global_lckmgr);
 			global_omgr = new dpo::client::ObjectManager(global_lckmgr, global_hlckmgr);
 		    global_registry = new Registry(client::rpc_client, 1);
-			session = new Session(global_lckmgr, global_hlckmgr, global_smgr);
+			session = new Session(global_lckmgr, global_hlckmgr, global_smgr, global_omgr);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

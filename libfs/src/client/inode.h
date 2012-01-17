@@ -6,6 +6,7 @@
 #include "common/types.h"
 #include "common/pnode.h"
 #include "client/const.h"
+#include "client/session.h"
 #include "dpo/base/client/hlckmgr.h"
 
 
@@ -13,7 +14,6 @@ namespace client {
 
 extern HLockManager* global_hlckmgr;
 
-class Session;
 class SuperBlock;
 
 //FIXME: class Inode: public stm::ObjectProxy<Inode, Pnode> {

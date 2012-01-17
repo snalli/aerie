@@ -1,10 +1,10 @@
 //! \file
-//! Definition of the client side name container 
+//! Definition of the client side superblock container 
 //!
 
 
-#ifndef __STAMNOS_DPO_NAME_CONTAINER_PROXY_H
-#define __STAMNOS_DPO_NAME_CONTAINER_PROXY_H
+#ifndef __STAMNOS_DPO_SUPER_CONTAINER_PROXY_H
+#define __STAMNOS_DPO_SUPER_CONTAINER_PROXY_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -15,7 +15,7 @@
 #include "common/util.h"
 #include "client/session.h"
 #include "dpo/containers/assoc/hashtable.h"
-#include "dpo/containers/name/common.h"
+#include "dpo/containers/super/common.h"
 #include "dpo/base/common/obj.h"
 #include "dpo/base/client/rwproxy.h"
 
@@ -23,7 +23,6 @@
 namespace dpo {
 namespace containers {
 namespace client {
-
 
 class SuperContainer {
 public:
@@ -40,13 +39,12 @@ public:
 	int vOpen();
 	int vUpdate(::client::Session* session);
 
-	dpo::common::ObjectId root(Session* session);
-	int set_root(Session* session, dpo::common::ObjectId oid);
+	dpo::common::ObjectId root(::client::Session* session);
+	int set_root(::client::Session* session, dpo::common::ObjectId oid);
 
 private:
 
 };
-
 
 
 } // namespace client

@@ -5,8 +5,25 @@
 namespace mfs {
 namespace client {
 
-int InodeFactory::Open(client::SuperBlock* sb, InodeNumber ino, 
-                       client::Inode** ipp)
+
+int
+InodeFactory::Make()
+{
+	//dpo::containers::client::SuperContainer::Object::Make()
+
+}
+
+
+int 
+InodeFactory::Load()
+{
+
+
+}
+
+
+int InodeFactory::Open(::client::SuperBlock* sb, InodeNumber ino, 
+                       ::client::Inode** ipp)
 {
 	Pnode* pnode = Pnode::Load(ino);
 	switch(pnode->magic_) {

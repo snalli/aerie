@@ -81,10 +81,13 @@ public:
 
 	client::Inode* CreateImmutableInode(int type) { assert(0); }
 	void* GetPSuperBlock() { assert(0); }
+	client::Inode* RootInode() { return root_; }
 
 private:
 	int LoadInode(InodeNumber ino, client::Inode** ipp) { assert(0); }
 	int MakeInode(client::Session* session, int type, client::Inode** ipp) { assert(0); }
+	
+	client::Inode* root_;
 };
 
 

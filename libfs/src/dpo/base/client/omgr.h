@@ -1,3 +1,10 @@
+/**
+ * \file omgr.h
+ *
+ * \brief Generic persistent object (container) manager
+ * 
+ */
+
 #ifndef __STAMNOS_DPO_CLIENT_OBJECT_MANAGER_H
 #define __STAMNOS_DPO_CLIENT_OBJECT_MANAGER_H
 
@@ -7,17 +14,17 @@
 #include "dpo/base/client/proxy.h"
 #include "dpo/base/client/omap.h"
 #include "dpo/base/client/hlckmgr.h"
+#include "client/session.h"
 
 namespace client { class Session; } // forward declaration
 
 namespace dpo {
-
 namespace client {
 
-class ObjectManager; // forward reference
+class ObjectManager; // forward declaration
 
 /**
- * \brief Type specific object manager
+ * \brief Abstract-base class of type specific persistent object manager
  */
 class ObjectManagerOfType {
 friend class ObjectManager;
@@ -45,8 +52,9 @@ public:
 	//ObjectProxy* Object(ObjectId oid);
 	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
 	int id() { return hlckmgr_->id(); }
-
 private:
+	int RegisterBaseTypes();
+	
 	pthread_mutex_t                mutex_;
 	ObjectType2Manager             objtype2mgr_map_; 
 	dpo::cc::client::LockManager*  lckmgr_;

@@ -20,10 +20,15 @@ namespace rw {
 
 template<class Subject, class VersionManager> class ObjectProxy;
 
-
+/**
+ * \brief Implementation of type specific persistent object manager
+ */
 template<class Subject, class VersionManager>
 class ObjectManager: public dpo::client::ObjectManagerOfType {
 public:
+	//FIXME: the use of session is confusing as we don't get a complete session 
+	// (for example the session has a NULL pointer as a pointer to the generic object manager 
+
 	dpo::client::ObjectProxy* Create(::client::Session* session, ObjectId oid) {
 		return new ObjectProxy<Subject, VersionManager>(session, oid);
 	}

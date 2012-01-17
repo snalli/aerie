@@ -1,5 +1,5 @@
-#ifndef _MFS_CLIENT_SUPERBLOCK_H_KAJ911
-#define _MFS_CLIENT_SUPERBLOCK_H_KAJ911
+#ifndef __STAMNOS_MFS_CLIENT_SUPERBLOCK_H
+#define __STAMNOS_MFS_CLIENT_SUPERBLOCK_H
 
 #include <pthread.h>
 #include "common/types.h"
@@ -8,11 +8,19 @@
 #include "mfs/psb.h"
 
 namespace mfs {
+namespace client {
+
 
 //FIXME: SUPERBLOCK
-class SuperBlock: public client::SuperBlock {
+class SuperBlock: public ::client::SuperBlock {
 public:
+	::client::Inode* RootInode() {
+		return root_;
+	}
 
+private:
+
+	::client::Inode* root_;
 /*	
 	SuperBlock(client::Session* session, PSuperBlock<client::Session>* psb)
 		: psb_(psb),
@@ -33,7 +41,7 @@ private:
 */	
 };
 
-
+} // namespace client
 } // namespace mfs
 
-#endif /* _MFS_CLIENT_SUPERBLOCK_H_KAJ911 */
+#endif // __STAMNOS_MFS_CLIENT_SUPERBLOCK_H

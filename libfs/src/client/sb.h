@@ -57,10 +57,7 @@ private:
 // Abstract class representing a file-system specific superblock
 class SuperBlock {
 public:
-	virtual int RootInode();	
-
-
-
+	virtual client::Inode* RootInode() = 0;	
 };
 
 

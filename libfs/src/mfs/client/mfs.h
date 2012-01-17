@@ -7,9 +7,9 @@
 namespace mfs {
 namespace client {
 
-client::SuperBlock* CreateSuperBlock(client::Session* session, void* ptr);
+//client::SuperBlock* CreateSuperBlock(client::Session* session, void* ptr);
 
-void RegisterBackend(client::FileSystemObjectManager* fsomgr);
+void RegisterBackend(::client::FileSystemObjectManager* fsomgr);
 
 
 } // namespace client

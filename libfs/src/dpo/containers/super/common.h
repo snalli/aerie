@@ -17,6 +17,7 @@
 #include "common/debug.h"
 #include "common/util.h"
 
+
 namespace dpo {
 namespace containers {
 namespace common {
@@ -28,6 +29,16 @@ class Object: public dpo::cc::common::Object {
 public:
 	static Object* Load(dpo::common::ObjectId oid) {
 		return reinterpret_cast<Object*>(oid.addr());
+	}
+
+	static Object* Make(Session* session) {
+		size_t nbytes = sizeof(Object);
+		void* ptr;
+		
+		if (session->smgr_->Alloc(session, nbytes, typeid(Object<Session>), &ptr) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+		return ptr;
 	}
 	
 	Object()
@@ -62,10 +73,10 @@ private:
 
 
 template<typename Session>
-int 
-SuperContainer::Object<Session>::root(Session* session, dpo::common::ObjectId oid)
+dpo::common::ObjectId 
+SuperContainer::Object<Session>::root(Session* session)
 {
-	root_ = oid;
+	return root_;
 }
 
 
@@ -73,7 +84,7 @@ template<typename Session>
 int 
 SuperContainer::Object<Session>::set_root(Session* session, dpo::common::ObjectId oid)
 {
-	return root_;
+	root_ = oid;
 }
 
 

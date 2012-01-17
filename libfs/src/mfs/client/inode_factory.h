@@ -3,13 +3,19 @@
 
 #include "common/types.h"
 #include "client/backend.h"
+#include "client/inode_factory.h"
+#include "common/const.h"
 
 namespace mfs {
 namespace client {
 
-class InodeFactory {
+class InodeFactory: public ::client::InodeFactory {
 public:
-	static int Open(client::SuperBlock* sb, InodeNumber ino, client::Inode** ipp);
+	static int Open(::client::SuperBlock* sb, InodeNumber ino, ::client::Inode** ipp);
+	
+	int Make();
+	int Load();
+
 };
 
 

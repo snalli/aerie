@@ -1,5 +1,7 @@
-#ifndef _HASHTABLE_H_HAJ123
-#define _HASHTABLE_H_HAJ123
+//FIXME: remove this file
+
+#ifndef __STAMNOS_DPO_COMMON_HASHTABLE_H 
+#define __STAMNOS_DPO_COMMON_HASHTABLE_H 
 
 #include <stdint.h>
 #include <string.h>
@@ -947,4 +949,4 @@ HashTable<Session>::Print()
 	}	
 }
 
-#endif /* _HASHTABLE_H_HAJ123 */
+#endif // __STAMNOS_DPO_COMMON_HASHTABLE_H 

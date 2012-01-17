@@ -11,24 +11,10 @@
 #include "client/libfs.h"
 #include "client/inode.h"
 #include "client/namespace.h"
-#include "mfs/client/sb.h"
 
 
 pthread_attr_t attr;
 unsigned int principal_id;
-
-void demo()
-{
-	int      ret;
-
-	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
-	//libfs_open("/etc/hvolos/test", 0);
-	//libfs_open("/home/hvolos/test", 0);
-	libfs_mkdir("/home/hvolos/dir", 0);
-	libfs_mkdir("/home/hvolos/dir/test", 0);
-	//libfs_open("/home/hvolos/dir/test", O_CREATE);
-	//libfs_open("/home/hvolos/file", O_CREATE);
-}
 
 
 int
@@ -77,8 +63,6 @@ main(int argc, char *argv[])
 
 	if (strcmp(operation, "mkfs") == 0) {
 		libfs_mkfs("/superblock/A", "mfs", 0);
-	} else if (strcmp(operation, "demo") == 0) {
-		demo();	
 	} else {
 		// unknown
 	}

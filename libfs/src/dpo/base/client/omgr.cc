@@ -27,7 +27,9 @@ ObjectManager::ObjectManager(dpo::cc::client::LockManager* lckmgr,
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2mgr_map_.set_empty_key(0);
 	hlckmgr_->RegisterLockUser(this);
-	session_ = new ::client::Session(lckmgr, hlckmgr, NULL);
+	//FIXME: the use of session is confusing as we don't use a complete session 
+	// (for example this private session has a NULL pointer as a pointer to the generic object manager 
+	session_ = new ::client::Session(lckmgr, hlckmgr, NULL, NULL);
 }
 
 
@@ -38,6 +40,23 @@ ObjectManager::~ObjectManager()
 
 	hlckmgr_->UnregisterLockUser();
 
+}
+
+
+int
+ObjectManager::RegisterBaseTypes()
+{
+	/*
+	// SuperContainer
+	dpo::client::rw::ObjectManager<SuperContainer::Object, SuperContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<SuperContainer::Object, SuperContainer::VersionManager>;
+    RegisterType(dpo::containers::T_SUPER_CONTAINER, mgr);
+	
+	// NameContainer
+	dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
+    RegisterType(dpo::containers::T_NAME_CONTAINER, mgr);
+
+	*/
+	return E_SUCCESS;
 }
 
 

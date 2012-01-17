@@ -8,6 +8,7 @@
 #include "dpo/base/client/rwproxy.h"
 #include "dpo/base/client/omgr.h"
 #include "dpo/containers/name/container.h"
+#include "dpo/containers/typeid.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
 #include "test/integration/dpo/obj.fixture.h"
@@ -27,8 +28,7 @@ SUITE(ContainersNameContainer)
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
-		CHECK(global_omgr->RegisterType(1, mgr) == E_SUCCESS);
-		printf("OID[1]=%lx\n", OID[1].u64());
+		CHECK(global_omgr->RegisterType(dpo::containers::T_NAME_CONTAINER, mgr) == E_SUCCESS);
 		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
 		EVENT("BeforeLock");
 		rw_ref.obj()->Lock(lock_protocol::Mode::XL);

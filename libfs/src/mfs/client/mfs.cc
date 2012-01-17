@@ -3,17 +3,23 @@
 #include "mfs/client/sb_factory.h"
 #include "mfs/client/sb.h"
 #include "mfs/client/inode_factory.h"
-#include "mfs/client/inode.h"
+//#include "mfs/client/inode.h"
 #include "mfs/psb.h"
+#include "mfs/const.h"
 
 namespace mfs {
 namespace client {
 
 void 
-RegisterBackend(client::FileSystemObjectManager* fsomgr)
+RegisterBackend(::client::FileSystemObjectManager* fsomgr)
 {
 	SuperBlockFactory* sb_factory = new SuperBlockFactory();
-	fsomgr->Register(sb_factory, inode_factory)
+	InodeFactory* inode_factory = new InodeFactory();
+	fsomgr->Register(sb_factory, inode_factory);
+	
+	// register any file system specific container types with the main 
+	// client object manager
+	// NO: no file system specific container types
 }
 
 

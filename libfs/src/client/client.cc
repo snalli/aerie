@@ -76,8 +76,8 @@ Client::Init(int principal_id, const char* xdst)
 	global_smgr = new StorageManager(rpc_client, principal_id);
 	global_lckmgr = new LockManager(rpc_client, rpc_server, id);
 	global_hlckmgr = new HLockManager(global_lckmgr);
-	global_session = new Session(global_lckmgr, global_hlckmgr, global_smgr);
-
+	global_omgr = new dpo::client::ObjectManager(global_lckmgr, global_hlckmgr);
+	global_session = new Session(global_lckmgr, global_hlckmgr, global_smgr, global_omgr);
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
@@ -85,6 +85,7 @@ Client::Init(int principal_id, const char* xdst)
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
 								  
 	global_registry = new Registry(rpc_client, principal_id);
+
 
 	// register known file system backends
 	global_fsomgr = new FileSystemObjectManager(rpc_client, principal_id);
@@ -112,7 +113,7 @@ Client::CurrentSession()
 		return thread_session;
 	}
 
-	thread_session = new Session(global_lckmgr, global_hlckmgr, global_smgr);
+	thread_session = new Session(global_lckmgr, global_hlckmgr, global_smgr, global_omgr);
 	thread_session->tx_ = dpo::stm::client::Self();
 	return thread_session;
 }
@@ -133,6 +134,9 @@ Client::Mount(const char* source,
 		return -1;
 	}
 
+	//if ((ret = global_fsomgr->CreateSuperBlock(global_session, fstype, &sb)) < 0) {
+	//	return -1;
+	//}
 	//FIXME: SUPERBLOCK 
 	/*
 	for (i=0; known_fs[i].name != NULL; i++) {
@@ -160,6 +164,7 @@ Client::Mkfs(const char* target,
              const char* fstype, 
              uint32_t flags)
 {
+	int                 ret;
 	int                 i;
 	client::SuperBlock* sb;
 	void*               ptr;
@@ -168,23 +173,16 @@ Client::Mkfs(const char* target,
 	if (target == NULL || fstype == NULL) {
 		return -1;
 	}
-
-	//FIXME
+	
+	if ((ret = global_fsomgr->CreateSuperBlock(global_session, fstype, &sb)) < 0) {
+		return -1;
+	}
 	/*
-	for (i=0; known_fs[i].name != NULL; i++) {
-		if (strcmp(fstype, known_fs[i].name) == 0) {
-			sb = known_fs[i].CreateSuperBlock(global_session, NULL);
-			if (sb == NULL) {
-				return -1;
-			}
 			ptr = sb->GetPSuperBlock();
 			global_registry->Add(target, (uint64_t) ptr);
 			dbg_log (DBG_INFO, "Mkfs %s (%p)\n", target, ptr);
-			return 0;
-		}
-	}
 	*/
-	return -1;
+	return E_SUCCESS;
 }
 
 
@@ -229,17 +227,12 @@ create(const char* path, Inode** ipp, int mode, int type)
 		return -E_EXIST;
 	}
 	
-	// FIXME: SUPERBLOCK
-	/*
-	printf("dp=%p\n", dp);
-	sb = dp->GetSuperBlock();
-
 	// allocated inode is write locked and referenced (refcnt=1)
-	if ((ret = sb->AllocInode(global_session, type, dp, &ip)) < 0) {
+	if ((ret = global_fsomgr->AllocInode(global_session, dp, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}
-	*/
+
 	printf("allocated inode\n");
 	ip->set_nlink(1);
 	if (type == client::type::kDirInode) {
@@ -253,6 +246,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 	*ipp = ip;
 	return 0;
 }
+
 
 // TODO: implement file open
 int 

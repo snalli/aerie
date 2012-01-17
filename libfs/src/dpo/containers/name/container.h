@@ -14,7 +14,6 @@
 #include "common/debug.h"
 #include "common/util.h"
 #include "client/session.h"
-#include "dpo/containers/assoc/hashtable.h"
 #include "dpo/containers/name/common.h"
 #include "dpo/base/common/obj.h"
 #include "dpo/base/client/rwproxy.h"
