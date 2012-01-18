@@ -16,21 +16,21 @@ SuperContainer::VersionManager::vOpen()
 
 
 int 
-SuperContainer::VersionManager::vUpdate()
+SuperContainer::VersionManager::vUpdate(::client::Session* session)
 {
 	return 0;
 }
 
 
 dpo::common::ObjectId 
-SuperContainer::VersionManager::root(Session* session)
+SuperContainer::VersionManager::root(::client::Session* session)
 {
-	return subject()->root();
+	return subject()->root(session);
 }
 
 
 int 
-SuperContainer::VersionManager::set_root(Session* session, dpo::common::ObjectId oid)
+SuperContainer::VersionManager::set_root(::client::Session* session, dpo::common::ObjectId oid)
 {
 	return subject()->set_root(session, oid);
 }

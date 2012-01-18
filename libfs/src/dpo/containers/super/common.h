@@ -31,16 +31,6 @@ public:
 		return reinterpret_cast<Object*>(oid.addr());
 	}
 
-	static Object* Make(Session* session) {
-		size_t nbytes = sizeof(Object);
-		void* ptr;
-		
-		if (session->smgr_->Alloc(session, nbytes, typeid(Object<Session>), &ptr) < 0) {
-			dbg_log(DBG_ERROR, "No storage available");
-		}
-		return ptr;
-	}
-	
 	Object()
 		: root_(dpo::common::ObjectId(0))
 	{ 

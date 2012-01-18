@@ -124,38 +124,23 @@ Client::Mount(const char* source,
               const char* fstype, 
               uint32_t flags)
 {
-	int                 i;
-	client::SuperBlock* sb;
-	void*               ptr;
-	char*               path = const_cast<char*>(target);
-	uint64_t            u64;
+	int                   ret;
+	client::SuperBlock*   sb;
+	char*                 path = const_cast<char*>(target);
+	uint64_t              u64;
 
 	if (target == NULL || source == NULL || fstype == NULL) {
 		return -1;
 	}
-
-	//if ((ret = global_fsomgr->CreateSuperBlock(global_session, fstype, &sb)) < 0) {
-	//	return -1;
-	//}
-	//FIXME: SUPERBLOCK 
-	/*
-	for (i=0; known_fs[i].name != NULL; i++) {
-		if (strcmp(fstype, known_fs[i].name) == 0) {
-			if (global_registry->Lookup(source, &u64) < 0) {
-				return -1;
-			}
-			ptr = (void*) u64;
-			sb = known_fs[i].CreateSuperBlock(global_session, ptr);
-			if (sb == NULL) {
-				return -1;
-			}
-			dbg_log (DBG_INFO, "Mount %s (%p) to %s\n", source, ptr, target);
-
-			return global_namespace->Mount(global_session, path, sb);
-		}
+	if (global_registry->Lookup(source, &u64) < 0) {
+		return -1;
 	}
-	*/
-	return -1;
+	dpo::common::ObjectId oid = dpo::common::ObjectId(u64);
+	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {
+		return -1;
+	}
+	dbg_log (DBG_INFO, "Mount %s (%lx) to %s\n", source, u64, target);
+	return global_namespace->Mount(global_session, path, sb);
 }
 
 
@@ -165,9 +150,7 @@ Client::Mkfs(const char* target,
              uint32_t flags)
 {
 	int                 ret;
-	int                 i;
 	client::SuperBlock* sb;
-	void*               ptr;
 	char*               path = const_cast<char*>(target);
 
 	if (target == NULL || fstype == NULL) {
@@ -177,11 +160,8 @@ Client::Mkfs(const char* target,
 	if ((ret = global_fsomgr->CreateSuperBlock(global_session, fstype, &sb)) < 0) {
 		return -1;
 	}
-	/*
-			ptr = sb->GetPSuperBlock();
-			global_registry->Add(target, (uint64_t) ptr);
-			dbg_log (DBG_INFO, "Mkfs %s (%p)\n", target, ptr);
-	*/
+	global_registry->Add(target, sb->oid().u64());
+	dbg_log (DBG_INFO, "Mkfs %s (%lx)\n", target, sb->oid().u64());
 	return E_SUCCESS;
 }
 

@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include "common/types.h"
 #include "client/backend.h"
+#include "dpo/containers/super/container.h"
+#include "dpo/base/common/obj.h"
 #include "mfs/client/dir_inode.h"
 #include "mfs/psb.h"
 
@@ -17,19 +19,21 @@ public:
 	::client::Inode* RootInode() {
 		return root_;
 	}
-
-private:
-
-	::client::Inode* root_;
-/*	
-	SuperBlock(client::Session* session, PSuperBlock<client::Session>* psb)
-		: psb_(psb),
-		  client::SuperBlock(session)
+	
+	SuperBlock(dpo::containers::client::SuperContainer::Reference rw_ref)
+		: super_rw_ref_(rw_ref)
 	{ 
-		GetInode(psb->root_, &root_);
 	}
 
+	dpo::common::ObjectId oid() {
+		return super_rw_ref_.obj()->oid();	
+	}
 
+private:
+	
+	dpo::containers::client::SuperContainer::Reference super_rw_ref_;
+	::client::Inode*                                   root_;
+/*	
 	void* GetPSuperBlock() { return (void*) psb_; }
 
 private:

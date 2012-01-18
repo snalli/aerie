@@ -12,7 +12,6 @@
 #include "common/types.h"
 
 namespace dpo {
-
 namespace common {
 
 // 0 is invalid value for type ObjectType

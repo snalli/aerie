@@ -46,9 +46,11 @@ public:
 	void Register(int type_id, const char* type_str, SuperBlockFactory* sb_factory, InodeFactory* inode_factory);
 	void Register(SuperBlockFactory* sb_factory, InodeFactory* inode_factory);
 	void Unregister(int type_id);
-	int AllocInode(Session* session, Inode* parent, int type, Inode** ipp);
 	int CreateSuperBlock(Session* session, int fs_type, SuperBlock** sbp); 
 	int CreateSuperBlock(Session* session, const char* fs_type, SuperBlock** sbp); 
+	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, int fs_type, SuperBlock** sbp); 
+	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, const char* fs_type, SuperBlock** sbp); 
+	int AllocInode(Session* session, Inode* parent, int type, Inode** ipp);
 
 private:
 	int FSTypeStrToId(const char* fs_type);

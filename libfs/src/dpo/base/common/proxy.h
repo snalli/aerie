@@ -56,14 +56,14 @@ public:
 
 	void Set(ObjectProxy* obj, bool lock = true) {
 		if (lock) {
-			pthread_mutex_lock(&(obj_->mutex_));
+			pthread_mutex_lock(&(obj->mutex_));
 		}
 		assert(obj_ == NULL);
 		obj_ = obj;
 		obj_->refcnt_++;
 		list_add_tail(&list_, &(obj->list_));
 		if (lock) {
-			pthread_mutex_unlock(&(obj_->mutex_));
+			pthread_mutex_unlock(&(obj->mutex_));
 		}
 	}
 

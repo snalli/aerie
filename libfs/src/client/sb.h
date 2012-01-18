@@ -4,6 +4,7 @@
 #include "common/types.h"
 #include "client/inode.h"
 #include "dpo/base/client/hlckmgr.h"
+#include "dpo/base/common/obj.h"
 
 /**
  *
@@ -58,6 +59,7 @@ private:
 class SuperBlock {
 public:
 	virtual client::Inode* RootInode() = 0;	
+	virtual dpo::common::ObjectId oid() = 0;
 };
 
 

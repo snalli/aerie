@@ -10,7 +10,10 @@
 #include "dpo/base/client/lckmgr.h"
 #include "dpo/base/client/hlckmgr.h"
 #include "dpo/base/client/omgr.h"
+#include "dpo/base/client/rwproxy.h"
 #include "client/session.h"
+#include "dpo/containers/super/container.h"
+#include "dpo/containers/name/container.h"
 
 //TODO: Fine-grain locking in GetObject/PutObject.
 
@@ -30,6 +33,7 @@ ObjectManager::ObjectManager(dpo::cc::client::LockManager* lckmgr,
 	//FIXME: the use of session is confusing as we don't use a complete session 
 	// (for example this private session has a NULL pointer as a pointer to the generic object manager 
 	session_ = new ::client::Session(lckmgr, hlckmgr, NULL, NULL);
+	assert(RegisterBaseTypes() == E_SUCCESS);
 }
 
 
@@ -46,16 +50,24 @@ ObjectManager::~ObjectManager()
 int
 ObjectManager::RegisterBaseTypes()
 {
-	/*
-	// SuperContainer
-	dpo::client::rw::ObjectManager<SuperContainer::Object, SuperContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<SuperContainer::Object, SuperContainer::VersionManager>;
-    RegisterType(dpo::containers::T_SUPER_CONTAINER, mgr);
-	
-	// NameContainer
-	dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
-    RegisterType(dpo::containers::T_NAME_CONTAINER, mgr);
+	int ret;
 
-	*/
+	// SuperContainer
+	{
+	dpo::client::rw::ObjectManager<dpo::containers::client::SuperContainer::Object, dpo::containers::client::SuperContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<dpo::containers::client::SuperContainer::Object, dpo::containers::client::SuperContainer::VersionManager>;
+    if ((ret = RegisterType(dpo::containers::T_SUPER_CONTAINER, mgr)) < 0) {
+		return ret;
+	}
+	}
+
+	{
+	// NameContainer
+	dpo::client::rw::ObjectManager<dpo::containers::client::NameContainer::Object, dpo::containers::client::NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<dpo::containers::client::NameContainer::Object, dpo::containers::client::NameContainer::VersionManager>;
+    if ((ret = RegisterType(dpo::containers::T_NAME_CONTAINER, mgr)) < 0) {
+		return ret;
+	}
+	}
+
 	return E_SUCCESS;
 }
 
@@ -90,7 +102,7 @@ ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_re
 	ObjectProxy*         obj;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
-	        "[%d] Get Object: oid=%lx\n", id(), oid.u64());
+	        "[%d] Get Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
 
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();

@@ -77,6 +77,31 @@ FileSystemObjectManager::CreateSuperBlock(Session* session, const char* fs_type,
 	return CreateSuperBlock(session, fs_type_id, sbp);
 }
 
+int 
+FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId oid, 
+                                        int fs_type, SuperBlock** sbp)
+{
+	SuperBlockFactoryMap::iterator it;
+	SuperBlockFactory*             sb_factory; 
+
+	it = sb_factory_map_.find(fs_type);
+	if (it == sb_factory_map_.end()) {
+		return -1;
+	}
+	sb_factory = it->second;
+	return sb_factory->Load(session, oid, sbp);
+}
+
+
+int 
+FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId oid, 
+                                        const char* fs_type, SuperBlock** sbp)
+{
+	int fs_type_id = FSTypeStrToId(fs_type);
+	
+	return LoadSuperBlock(session, oid, fs_type_id, sbp);
+}
+
 
 int 
 FileSystemObjectManager::AllocInode(Session* session, Inode* parent, 
