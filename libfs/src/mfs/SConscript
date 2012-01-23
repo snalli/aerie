@@ -13,7 +13,6 @@ clt_lib_sources += ['client/dir_inode.cc',
                     'client/file_inode.cc', 
                     'client/inode_factory.cc', 
                     'client/mfs.cc', 
-                    'client/sb.cc',
 		    'client/sb_factory.cc'
 		   ]
 

@@ -11,11 +11,8 @@ namespace client {
 
 class InodeFactory: public ::client::InodeFactory {
 public:
-	static int Open(::client::SuperBlock* sb, InodeNumber ino, ::client::Inode** ipp);
-	
-	int Make();
-	int Load();
-
+	int Make(::client::Session* session, int type, ::client::Inode** ipp);
+	int Load(::client::Session* session, dpo::common::ObjectId oid, ::client::Inode** ipp);
 };
 
 

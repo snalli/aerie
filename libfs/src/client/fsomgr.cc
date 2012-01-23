@@ -77,6 +77,7 @@ FileSystemObjectManager::CreateSuperBlock(Session* session, const char* fs_type,
 	return CreateSuperBlock(session, fs_type_id, sbp);
 }
 
+
 int 
 FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId oid, 
                                         int fs_type, SuperBlock** sbp)
@@ -104,8 +105,8 @@ FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId 
 
 
 int 
-FileSystemObjectManager::AllocInode(Session* session, Inode* parent, 
-                                    int type, Inode** ipp)
+FileSystemObjectManager::CreateInode(Session* session, Inode* parent, 
+                                     int type, Inode** ipp)
 {
 	// TODO
 

@@ -208,7 +208,7 @@ create(const char* path, Inode** ipp, int mode, int type)
 	}
 	
 	// allocated inode is write locked and referenced (refcnt=1)
-	if ((ret = global_fsomgr->AllocInode(global_session, dp, type, &ip)) < 0) {
+	if ((ret = global_fsomgr->CreateInode(global_session, dp, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}

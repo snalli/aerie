@@ -7,24 +7,17 @@ namespace client {
 
 
 int
-InodeFactory::Make()
+InodeFactory::Make(::client::Session* session, int type, ::client::Inode** ipp)
 {
-	//dpo::containers::client::SuperContainer::Object::Make()
 
 }
 
 
 int 
-InodeFactory::Load()
+InodeFactory::Load(::client::Session* session, dpo::common::ObjectId oid, 
+                   ::client::Inode** ipp)
 {
-
-
-}
-
-
-int InodeFactory::Open(::client::SuperBlock* sb, InodeNumber ino, 
-                       ::client::Inode** ipp)
-{
+/*
 	Pnode* pnode = Pnode::Load(ino);
 	switch(pnode->magic_) {
 		//case 1: // directory
@@ -36,9 +29,8 @@ int InodeFactory::Open(::client::SuperBlock* sb, InodeNumber ino,
 			//*ipp = new mfs::FileInodeMutable(sb, pnode);
 			break;
 	}
-	return 0;
+*/
 }
-
 
 } // namespace client 
 } // namespace mfs

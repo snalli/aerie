@@ -50,7 +50,7 @@ public:
 	int CreateSuperBlock(Session* session, const char* fs_type, SuperBlock** sbp); 
 	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, int fs_type, SuperBlock** sbp); 
 	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, const char* fs_type, SuperBlock** sbp); 
-	int AllocInode(Session* session, Inode* parent, int type, Inode** ipp);
+	int CreateInode(Session* session, Inode* parent, int type, Inode** ipp);
 
 private:
 	int FSTypeStrToId(const char* fs_type);

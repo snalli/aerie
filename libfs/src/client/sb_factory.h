@@ -10,7 +10,6 @@ class SuperBlock;  // forward declaration
 
 class SuperBlockFactory {
 public:
-	// FIXME
 	virtual int Make(Session* session, SuperBlock** sbp) = 0;
 	virtual int Load(Session* session, dpo::common::ObjectId oid, SuperBlock** sbp) = 0;
 	virtual int TypeID() = 0;

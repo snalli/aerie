@@ -7,13 +7,11 @@
 #include "dpo/containers/super/container.h"
 #include "dpo/base/common/obj.h"
 #include "mfs/client/dir_inode.h"
-#include "mfs/psb.h"
 
 namespace mfs {
 namespace client {
 
 
-//FIXME: SUPERBLOCK
 class SuperBlock: public ::client::SuperBlock {
 public:
 	::client::Inode* RootInode() {
@@ -30,19 +28,8 @@ public:
 	}
 
 private:
-	
 	dpo::containers::client::SuperContainer::Reference super_rw_ref_;
 	::client::Inode*                                   root_;
-/*	
-	void* GetPSuperBlock() { return (void*) psb_; }
-
-private:
-	int LoadInode(InodeNumber ino, client::Inode** ipp);
-	int MakeInode(client::Session* session, int type, client::Inode** ipp);
-	
-	PSuperBlock<client::Session>* psb_;
-	//client::InodeMap*             imap_;
-*/	
 };
 
 } // namespace client
