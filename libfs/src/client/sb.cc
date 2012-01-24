@@ -10,16 +10,6 @@ namespace client {
 
 #if 0
 
-SuperBlock::SuperBlock(Session* session)
-{
-	pthread_mutex_init(&mutex_, NULL);
-	imap_ = new InodeMap();
-	if (global_hlckmgr) {
-		global_hlckmgr->RegisterLockUser(this);
-	}
-}
-
-
 // this returns the allocated inode as write locked
 int
 SuperBlock::AllocInode(Session* session, int type, Inode* parent, Inode** ipp)

@@ -13,7 +13,7 @@
 #include "client/sb.h"
 #include "client/smgr.h"
 #include "client/inode.h"
-#include "client/imap.h"
 #include "client/fsomgr.h"
+#include "client/const.h"
 
 #endif  /* __STAMNOS_FS_CLIENT_BACKEND_H */

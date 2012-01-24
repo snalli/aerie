@@ -13,6 +13,12 @@ class InodeFactory: public ::client::InodeFactory {
 public:
 	int Make(::client::Session* session, int type, ::client::Inode** ipp);
 	int Load(::client::Session* session, dpo::common::ObjectId oid, ::client::Inode** ipp);
+
+private:
+	int LoadDirInode(::client::Session* session, dpo::common::ObjectId oid, ::client::Inode** ipp);
+	int LoadFileInode(::client::Session* session, dpo::common::ObjectId oid, ::client::Inode** ipp);
+	int MakeDirInode(::client::Session* session, ::client::Inode** ipp);
+	int MakeFileInode(::client::Session* session, ::client::Inode** ipp);
 };
 
 

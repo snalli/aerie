@@ -22,7 +22,6 @@ public:
 	Inode();
 	Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino);
 
-	virtual int Init(client::Session* session, InodeNumber ino) = 0;
 	virtual int Open(client::Session* session, const char* path, int flags) = 0;
 	virtual int Write(client::Session* session, char* src, uint64_t off, uint64_t n) = 0;
 	virtual int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) = 0;

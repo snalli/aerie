@@ -2,8 +2,10 @@
 #include <stdint.h>
 #include "client/backend.h"
 #include "client/inode.h"
+#include "client/session.h"
 
 namespace mfs {
+namespace client {
 
 
 //TODO thread safety: acquire/release mutex to protect volatile metadata/data structures
@@ -11,7 +13,7 @@ namespace mfs {
 
 
 int 
-DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inode** ipp) 
+DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode** ipp) 
 {
 //FIXME: INODE
 /*
@@ -20,7 +22,7 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 	client::Inode*        ip;
 	EntryCache::iterator  it;
 	
-	//FIXME: printf("DirInodeMutable::Lookup %s in inode %lu\n", name, (uint64_t) ObjectProxy::subject());
+	//FIXME: printf("DirInode::Lookup %s in inode %lu\n", name, (uint64_t) ObjectProxy::subject());
 
 	// check the private copy first before looking up the global one
 	if ((it = entries_.find(name)) != entries_.end()) {
@@ -44,8 +46,8 @@ DirInodeMutable::Lookup(client::Session* session, const char* name, client::Inod
 
 
 int 
-DirInodeMutable::Link(client::Session* session, const char* name, client::Inode* ip, 
-                      bool overwrite)
+DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip, 
+               bool overwrite)
 {
 	uint64_t ino = ip->ino();
 	
@@ -58,8 +60,8 @@ DirInodeMutable::Link(client::Session* session, const char* name, client::Inode*
 // FIXME: Should Link increment the link count as well? currently the caller 
 // must do a separate call but this breaks encapsulation. 
 int 
-DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino, 
-                      bool overwrite)
+DirInode::Link(::client::Session* session, const char* name, uint64_t ino, 
+               bool overwrite)
 {
 // FIXME: INODE
 /*
@@ -94,14 +96,14 @@ DirInodeMutable::Link(client::Session* session, const char* name, uint64_t ino,
 	//}
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(true, ino)));
 	assert(ret_pair.second == true);
-	printf("DirInodeMutable::Link (%s): DONE\n", name);
+	printf("DirInode::Link (%s): DONE\n", name);
 */
 	return 0;
 }
 
 
 int 
-DirInodeMutable::Unlink(client::Session* session, const char* name)  
+DirInode::Unlink(::client::Session* session, const char* name)  
 {
 
 // FIXME: INODE
@@ -153,14 +155,15 @@ DirInodeMutable::Unlink(client::Session* session, const char* name)
 //     should quickly provide an answer.
 
 int 
-DirInodeMutable::Readdir()
+DirInode::Readdir()
 {
 
 }
 */
 
+
 int 
-DirInodeMutable::Publish(client::Session* session)
+DirInode::Publish(::client::Session* session)
 {
 // FIXME: INODE
 /*
@@ -204,4 +207,5 @@ DirInodeMutable::Publish(client::Session* session)
 }
 
 
+} // namespace client
 } // namespace mfs

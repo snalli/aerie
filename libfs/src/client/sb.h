@@ -23,7 +23,6 @@
 namespace client {
 
 class Session; // forward declaration
-class InodeMap; // forward declaration
 
 #if 0
 class SuperBlock: public HLockUser {

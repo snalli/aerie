@@ -93,9 +93,14 @@ done:
 
 /**
  * \brief Initializes a reference to the object identified by oid
+ *
+ * If use_exist_obj_ref is set then it sets obj_ref to point to an existing
+ * reference that points to the object. This is useful for embedded references
+ * Otherwise it initializes the obj_ref to point to the object. 
  */
 int
-ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref)
+ObjectManager::GetObjectInternal(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref, 
+                                 bool use_exist_obj_ref)
 {
 	int                  ret = E_SUCCESS;
 	ObjectManagerOfType* mgr;
@@ -119,18 +124,41 @@ ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_re
 			goto done;
 		}
 		assert(mgr->oid2obj_map_.Insert(obj) == E_SUCCESS);
+		if (obj_ref == NULL) {
+			return -E_INVAL;
+		}
 		// no need to grab the lock on obj after creation as it's not reachable 
 		// before we release the lock manager's mutex lock
-		obj_ref->Set(obj, false);
+		(*obj_ref)->Set(obj, false);
 	} else {
 		// object exists
-		obj_ref->Set(obj, true);
+		if (use_exist_obj_ref) {
+			*obj_ref = obj->HeadReference();
+		} else {
+			(*obj_ref)->Set(obj, true);
+		}
 	}
 	ret = E_SUCCESS;
 
 done:
 	pthread_mutex_unlock(&mutex_);
 	return ret;
+}
+
+
+int
+ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref) 
+                        
+{
+	return GetObjectInternal(oid, obj_ref, false);
+}
+
+
+int
+ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref) 
+                        
+{
+	return GetObjectInternal(oid, &obj_ref, true);
 }
 
 

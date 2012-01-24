@@ -4,12 +4,12 @@
  * \brief Contains simple types
  */
 
-#ifndef _TYPES_STAMNOS_H_KLM196
-#define _TYPES_STAMNOS_H_KLM196
+#ifndef __STAMNOS_TYPES_H
+#define __STAMNOS_TYPES_H
 
 #include <stdint.h>
 
 typedef uint64_t InodeNumber;
 typedef uint64_t TimeStamp;
 
-#endif /* _TYPES_STAMNOS_H_KLM196 */
+#endif // __STAMNOS_TYPES_H
