@@ -15,15 +15,13 @@ namespace client {
 int 
 DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode** ipp) 
 {
-//FIXME: INODE
-/*
 	int                   ret;
 	InodeNumber           ino;
-	client::Inode*        ip;
-	EntryCache::iterator  it;
+	::client::Inode*      ip;
 	
-	//FIXME: printf("DirInode::Lookup %s in inode %lu\n", name, (uint64_t) ObjectProxy::subject());
+	dbg_log (DBG_INFO, "Lookup %s in inode %d\n", name, ino());	
 
+/*
 	// check the private copy first before looking up the global one
 	if ((it = entries_.find(name)) != entries_.end()) {
 		if (it->second.first == true) {
@@ -39,8 +37,8 @@ DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode**
 	}
 
     sb_->GetInode(ino, &ip);
-    *ipp = ip;
 */
+    *ipp = ip;
 	return E_SUCCESS;
 }
 

@@ -48,6 +48,26 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     rendezvous = []
 ))
 
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'MFS:TestMkfsMountSingle',
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Namespace:TestMkfsMount')])
+    },
+    rendezvous = []
+))
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'MFS:TestMkfsMountConcurrent',
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Namespace:TestMkfs')]),
+        'C2': ( testProgram, [('T1', 'Namespace:TestMount')])
+    },
+    rendezvous = [('C1:T1:MkfsAfter:block', 'C2:T1:MountBefore:block')]
+))
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFS:TestMkdirRmdirConcurrent',

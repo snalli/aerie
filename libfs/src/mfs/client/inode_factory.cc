@@ -22,6 +22,8 @@ InodeFactory::LoadDirInode(::client::Session* session, dpo::common::ObjectId oid
 	pthread_mutex_lock(&mutex_);
 	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
+			// the in-core inode already exists; just return this and 
+			// we are done
 			dip = reinterpret_cast<DirInode*>(ref->owner());
 		} else {
 			dip = new DirInode(ref);
@@ -30,7 +32,6 @@ InodeFactory::LoadDirInode(::client::Session* session, dpo::common::ObjectId oid
 		dip = new DirInode(ref);
 	}
 	pthread_mutex_unlock(&mutex_);
-
 	*ipp = dip;
 	return E_SUCCESS;
 }

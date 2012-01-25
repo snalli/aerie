@@ -331,6 +331,8 @@ Client::CreateDir(const char* path, int mode)
 	int    ret;
 	Inode* ip;
 
+	dbg_log (DBG_INFO, "Create Directory: %s\n", path);	
+
 	if ((ret = create(path, &ip, mode, client::type::kDirInode)) < 0) {
 		return ret;
 	}
@@ -343,6 +345,8 @@ Client::CreateDir(const char* path, int mode)
 int
 Client::DeleteDir(const char* pathname)
 {
+	dbg_log (DBG_INFO, "Delete Directory: %s\n", pathname);	
+
 	return Client::Unlink(pathname);
 }
 

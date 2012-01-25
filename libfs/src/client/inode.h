@@ -16,7 +16,6 @@ extern HLockManager* global_hlckmgr;
 
 class SuperBlock;
 
-//FIXME: class Inode: public stm::ObjectProxy<Inode, Pnode> {
 class Inode {
 public:
 	Inode();

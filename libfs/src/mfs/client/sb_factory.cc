@@ -30,7 +30,10 @@ SuperBlockFactory::Load(::client::Session* session, dpo::common::ObjectId oid,
 
 	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
+			// the in-core superblock already exists; just return this and 
+			// we are done
 			sb = reinterpret_cast<SuperBlock*>(ref->owner());
+			goto done;
 		} else {
 			sb = new SuperBlock(ref);
 		}
@@ -44,6 +47,7 @@ SuperBlockFactory::Load(::client::Session* session, dpo::common::ObjectId oid,
 		return ret;
 	}
 	sb->root_ = dip;
+done:	
 	*sbp = sb;
 	return E_SUCCESS;
 }
