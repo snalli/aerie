@@ -8,8 +8,8 @@
 
 using namespace mfs;
 
+// TODO: All these tests should become single client integration tests
 
-// FIXME: error: no matching function for call to 'mfs::SuperBlock::SuperBlock(client::Session*&, mfs::PSuperBlock<client::Session>*&)'
 #if 0
 
 SUITE(MFSDirInode)
@@ -29,7 +29,6 @@ SUITE(MFSDirInode)
 		child = new(session) DirPnode<client::Session>;
 		CHECK(dirpnode->Link(session, "doc", (uint64_t) child) == 0);
 	}
-
 
 	TEST_FIXTURE(ClientFixture, TestLink)
 	{

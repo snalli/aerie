@@ -269,11 +269,11 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	// boundary condition: get the lock on the first inode
 	path = SkipElem(path, name);
 	if (nameiparent && path != 0 && *path == '\0') {
-		inode->Lock(lock_mode);
+		inode->Lock(session, lock_mode);
 		inode->Get();
 		goto done;
 	} else {
-		inode->Lock(lock_protocol::Mode::IXSL);
+		inode->Lock(session, lock_protocol::Mode::IXSL);
 		inode->Get();
 	}
 	
@@ -288,7 +288,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		printf("Namex: inode=%p (ino=%lu), name=%s\n", inode, inode->ino(), name);
 		if ((ret = inode->Lookup(session, name, &inode_next)) < 0) {
 			inode->Put();
-			inode->Unlock();
+			inode->Unlock(session);
 			return ret;
 		}
 		old_name = name;
@@ -296,12 +296,12 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		if (nameiparent && path != 0 && *path == '\0') {
 			if (str_is_dot(old_name) == 2) {
 				// encountered a ..
-				inode->Unlock();
-				assert(inode_next->Lock(lock_mode) == E_SUCCESS);
+				inode->Unlock(session);
+				assert(inode_next->Lock(session, lock_mode) == E_SUCCESS);
 			} else {
 				// spider locking
-				assert(inode_next->Lock(inode, lock_mode) == E_SUCCESS);
-				inode->Unlock();
+				assert(inode_next->Lock(session, inode, lock_mode) == E_SUCCESS);
+				inode->Unlock(session);
 			}
 			inode->Put();
 			inode = inode_next;
@@ -310,13 +310,13 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		} else {
 			if (str_is_dot(old_name) == 2) {
 				// encountered a ..
-				inode->Unlock();
-				if (inode_next->Lock(lock_protocol::Mode::IXSL) != E_SUCCESS) {
+				inode->Unlock(session);
+				if (inode_next->Lock(session, lock_protocol::Mode::IXSL) != E_SUCCESS) {
 					LockInode(session, inode_next, lock_protocol::Mode::IXSL);
 				}
 			} else {
-				assert(inode_next->Lock(inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
-				inode->Unlock();
+				assert(inode_next->Lock(session, inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
+				inode->Unlock(session);
 			}
 			inode->Put();
 			inode = inode_next;

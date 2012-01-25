@@ -5,6 +5,7 @@
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/types.h"
+#include "common/const.h"
 #include "client/inode.h"
 #include "mfs/hashtable.h"
 #include "dpo/containers/name/container.h"
@@ -21,18 +22,13 @@ class DirInode: public ::client::Inode
 {
 public:
 	DirInode(dpo::common::ObjectProxyReference* ref)
-		: rw_ref_(static_cast<dpo::containers::client::NameContainer::Reference*>(ref))
-	{ }
+	{ 
+		ref_ = ref;
+		fs_type_ = ::common::fs::kMFS;
+		type_ = ::client::type::kDirInode;
+	}
 
 	//static DirInode* Load(::client::Session* session, dpo::common::ObjectId oid);
-
-	dpo::common::ObjectId oid() {
-		return rw_ref_->obj()->oid();	
-	}
-
-	InodeNumber ino() {
-		return oid().u64();
-	}
 
 	int Open(::client::Session* session, const char* path, int flags) { return 0; };
 	int Read(::client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
@@ -47,7 +43,10 @@ public:
 	int set_nlink(int nlink);
 
 private:
-	dpo::containers::client::NameContainer::Reference* rw_ref_;
+	dpo::containers::client::NameContainer::Reference* rw_ref() {
+		return static_cast<dpo::containers::client::NameContainer::Reference*>(ref_);
+	}
+	int nlink_;
 };
 
 

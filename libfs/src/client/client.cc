@@ -171,7 +171,7 @@ Client::Mkfs(const char* target,
 // One way would be to keep a pointer to the superblock in the inode 
 // TODO: Support O_EXCL with O_CREAT
 static inline int
-create(const char* path, Inode** ipp, int mode, int type)
+create(::client::Session* session, const char* path, Inode** ipp, int mode, int type)
 {
 	char          name[128];
 	Inode*        dp;
@@ -182,33 +182,33 @@ create(const char* path, Inode** ipp, int mode, int type)
 	// when Nameiparent returns successfully, dp is 
 	// locked for writing. we release the lock on dp after we get the lock
 	// on its child
-	if ((ret = global_namespace->Nameiparent(global_session, path, 
+	if ((ret = global_namespace->Nameiparent(session, path, 
 	                                         lock_protocol::Mode::XL, 
 	                                         name, &dp)) < 0) 
 	{
 		return ret;
 	}
 	printf("create: dp=%p\n", dp);
-	if ((ret = dp->Lookup(global_session, name, &ip)) == E_SUCCESS) {
+	if ((ret = dp->Lookup(session, name, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
-		ip->Lock(dp, lock_protocol::Mode::XR); 
+		ip->Lock(session, dp, lock_protocol::Mode::XR); 
 		if (type == client::type::kFileInode && 
 		    ip->type() == client::type::kFileInode) 
 		{
 			*ipp = ip;
 			dp->Put();
-			dp->Unlock();
+			dp->Unlock(session);
 			return E_SUCCESS;
 		}
 		ip->Put();
-		ip->Unlock();
+		ip->Unlock(session);
 		dp->Put();
-		dp->Unlock();
+		dp->Unlock(session);
 		return -E_EXIST;
 	}
 	
 	// allocated inode is write locked and referenced (refcnt=1)
-	if ((ret = global_fsomgr->CreateInode(global_session, dp, type, &ip)) < 0) {
+	if ((ret = global_fsomgr->CreateInode(session, dp, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}
@@ -217,12 +217,12 @@ create(const char* path, Inode** ipp, int mode, int type)
 	ip->set_nlink(1);
 	if (type == client::type::kDirInode) {
 		assert(dp->set_nlink(dp->nlink() + 1) == 0); // for child's ..
-		assert(ip->Link(global_session, ".", ip, false) == 0 );
-		assert(ip->Link(global_session, "..", dp, false) == 0);
+		assert(ip->Link(session, ".", ip, false) == 0 );
+		assert(ip->Link(session, "..", dp, false) == 0);
 	}
-	assert(dp->Link(global_session, name, ip, false) == 0);
+	assert(dp->Link(session, name, ip, false) == 0);
 	dp->Put();
-	dp->Unlock();
+	dp->Unlock(session);
 	*ipp = ip;
 	return 0;
 }
@@ -249,7 +249,7 @@ Client::Open(const char* path, int flags, int mode)
 	return fd;
 
 	if (flags & O_CREAT) {
-		if((ret = create(path, &ip, mode, client::type::kFileInode)) < 0) {
+		if((ret = create(global_session, path, &ip, mode, client::type::kFileInode)) < 0) {
 			return ret;
 		}	
 	} else {
@@ -333,11 +333,11 @@ Client::CreateDir(const char* path, int mode)
 
 	dbg_log (DBG_INFO, "Create Directory: %s\n", path);	
 
-	if ((ret = create(path, &ip, mode, client::type::kDirInode)) < 0) {
+	if ((ret = create(global_session, path, &ip, mode, client::type::kDirInode)) < 0) {
 		return ret;
 	}
 	assert(ip->Put() == E_SUCCESS);
-	assert(ip->Unlock() == E_SUCCESS);
+	assert(ip->Unlock(global_session) == E_SUCCESS);
 	return 0;
 }
 
@@ -439,28 +439,27 @@ Client::Unlink(const char* pathname)
 	// Cannot unlink "." or "..".
 	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 		dp->Put();
-		dp->Unlock();
+		dp->Unlock(global_session);
 		return -E_INVAL;
 	}
 
 	if ((ret = dp->Lookup(global_session, name, &ip)) != E_SUCCESS) {
 		dp->Put();
-		dp->Unlock();
-		printf("NO EXISTS\n");
+		dp->Unlock(global_session);
 		return ret;
 	}
 	
 	// do we need recursive lock if file? 
-	ip->Lock(dp, lock_protocol::Mode::XR); 
+	ip->Lock(global_session, dp, lock_protocol::Mode::XR); 
 	assert(ip->nlink() > 0);
 
 	if (ip->type() == client::type::kDirInode) {
 		//TODO: make sure directory is empty
 		// dp->empty()
 		ip->Put();
-		ip->Unlock();
+		ip->Unlock(global_session);
 		dp->Put();
-		dp->Unlock();
+		dp->Unlock(global_session);
 	}
 
 	assert(dp->Unlink(global_session, name) == 0);
@@ -474,9 +473,9 @@ Client::Unlink(const char* pathname)
 	
 	printf("DONEDONE\n");
 	dp->Put();
-	dp->Unlock();
+	dp->Unlock(global_session);
 	ip->Put();
-	ip->Unlock();
+	ip->Unlock(global_session);
 
 	return E_SUCCESS;
 }

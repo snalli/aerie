@@ -40,7 +40,9 @@ class Session;           // forward declaration
 
 class FileSystemObjectManager {
 	typedef google::dense_hash_map<int, SuperBlockFactory*> SuperBlockFactoryMap;
-	typedef google::dense_hash_map<std::string, int> FSTypeStrToIdMap;
+	typedef google::dense_hash_map<int, InodeFactory*>      InodeFactoryMap;
+	typedef google::dense_hash_map<std::string, int>        FSTypeStrToIdMap;
+
 public:
 	FileSystemObjectManager(rpcc* rpc_client, unsigned int principal_id);
 	void Register(int type_id, const char* type_str, SuperBlockFactory* sb_factory, InodeFactory* inode_factory);
@@ -50,15 +52,14 @@ public:
 	int CreateSuperBlock(Session* session, const char* fs_type, SuperBlock** sbp); 
 	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, int fs_type, SuperBlock** sbp); 
 	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, const char* fs_type, SuperBlock** sbp); 
-	int CreateInode(Session* session, Inode* parent, int type, Inode** ipp);
+	int CreateInode(Session* session, Inode* parent, int inode_type, Inode** ipp);
 
 private:
 	int FSTypeStrToId(const char* fs_type);
 	
 	SuperBlockFactoryMap sb_factory_map_;
-	FSTypeStrToIdMap     fstype_str_to_id_map_;        
-	//InodeFactoryMap*      inode_factory_map_;
-	//InodeFactory*      inode_factory_;
+	FSTypeStrToIdMap     fstype_str_to_id_map_;
+	InodeFactoryMap      inode_factory_map_;
 };
 
 } // namespace client

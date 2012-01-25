@@ -80,7 +80,7 @@ NameContainer::VersionManager::Find(::client::Session* session,
 
 	*oidp = tmp_oid;
 
-	return 0;
+	return E_SUCCESS;
 }
 
 
@@ -119,7 +119,7 @@ NameContainer::VersionManager::Insert(::client::Session* session,
 
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, dpo::common::ObjectId> >(name, std::pair<bool, dpo::common::ObjectId>(true, oid)));
 	assert(ret_pair.second == true);
-	return 0;
+	return E_SUCCESS;
 }
 
 

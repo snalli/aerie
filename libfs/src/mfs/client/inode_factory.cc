@@ -93,7 +93,7 @@ InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 
 
 int
-InodeFactory::Make(::client::Session* session, int type, ::client::Inode** ipp)
+InodeFactory::MakeInode(::client::Session* session, int type, ::client::Inode** ipp)
 {
 	int ret = E_SUCCESS;
 
@@ -112,8 +112,8 @@ InodeFactory::Make(::client::Session* session, int type, ::client::Inode** ipp)
 
 
 int 
-InodeFactory::Load(::client::Session* session, dpo::common::ObjectId oid, 
-                   ::client::Inode** ipp)
+InodeFactory::LoadInode(::client::Session* session, dpo::common::ObjectId oid, 
+                        ::client::Inode** ipp)
 {
 	int ret = E_SUCCESS;
 
@@ -129,6 +129,21 @@ InodeFactory::Load(::client::Session* session, dpo::common::ObjectId oid,
 	}
 	
 	return ret;
+}
+
+
+int
+InodeFactory::Make(::client::Session* session, int type, ::client::Inode** ipp)
+{
+	return MakeInode(session, type, ipp);
+}
+
+
+int 
+InodeFactory::Load(::client::Session* session, dpo::common::ObjectId oid, 
+                   ::client::Inode** ipp)
+{
+	return LoadInode(session, oid, ipp);
 }
 
 } // namespace client 

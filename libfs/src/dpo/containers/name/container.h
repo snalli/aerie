@@ -52,11 +52,12 @@ public:
 	int vUpdate(::client::Session* session);
 	
 	int Find(::client::Session* session, const char* name, dpo::common::ObjectId* oidp);
-	int Find(::client::Session* session, const char* name, NameContainer::Reference* oref);
 	int Insert(::client::Session* session, const char* name, dpo::common::ObjectId oid);
-	int Insert(::client::Session* session, const char* name, NameContainer::Reference* oref);
 	int Erase(::client::Session* session, const char* name);
 
+	// do we need these?
+	// int Find(::client::Session* session, const char* name, NameContainer::Reference* oref);
+	// int Insert(::client::Session* session, const char* name, NameContainer::Reference* oref);
 private:
 
 	EntryCache entries_;

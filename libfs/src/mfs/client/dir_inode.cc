@@ -3,6 +3,7 @@
 #include "client/backend.h"
 #include "client/inode.h"
 #include "client/session.h"
+#include "mfs/client/inode_factory.h"
 
 namespace mfs {
 namespace client {
@@ -16,28 +17,20 @@ int
 DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode** ipp) 
 {
 	int                   ret;
-	InodeNumber           ino;
 	::client::Inode*      ip;
+	dpo::common::ObjectId oid;
 	
-	dbg_log (DBG_INFO, "Lookup %s in inode %d\n", name, ino());	
+	dbg_log (DBG_INFO, "Lookup %s in inode %lx\n", name, ino());
 
-/*
-	// check the private copy first before looking up the global one
-	if ((it = entries_.find(name)) != entries_.end()) {
-		if (it->second.first == true) {
-			ino = it->second.second;
-		} else {
-			return -E_NOENT;
-		}
-	} else {
-		//FIXME
-		//if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) < 0) {
-		//	return ret;
-		//}
+	assert(ref_ != NULL);
+
+	if ((ret = rw_ref()->obj()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
+		return ret;
 	}
-
-    sb_->GetInode(ino, &ip);
-*/
+	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
+		return ret;
+	}
+	ip->Get();
     *ipp = ip;
 	return E_SUCCESS;
 }
@@ -203,6 +196,20 @@ DirInode::Publish(::client::Session* session)
 */
 	return 0;
 }
+
+
+int DirInode::nlink()
+{
+	return nlink_;
+}
+
+
+int DirInode::set_nlink(int nlink)
+{
+	nlink_ = nlink; 
+	return 0;
+}
+
 
 
 } // namespace client

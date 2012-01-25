@@ -32,8 +32,11 @@ public:
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
 	int Unlink(client::Session* session, const char* name) { assert(0); }
 	int Publish(client::Session* session) { return 0; }
-	SuperBlock* GetSuperBlock() { return NULL; };
-	void SetSuperBlock(SuperBlock* sb) { return; };
+	
+	int nlink() { return 0; }
+	int set_nlink(int nlink) { return 0; }
+	SuperBlock* GetSuperBlock() { return NULL; }
+	void SetSuperBlock(SuperBlock* sb) { return; }
 
 	struct Entry {
 		char   name_[64];

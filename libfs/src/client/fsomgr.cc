@@ -9,6 +9,7 @@ FileSystemObjectManager::FileSystemObjectManager(rpcc* rpc_client,
                                                  unsigned int principal_id)
 {
 	sb_factory_map_.set_empty_key(0);
+	inode_factory_map_.set_empty_key(0);
 	fstype_str_to_id_map_.set_empty_key("");
 }
 
@@ -19,6 +20,7 @@ FileSystemObjectManager::Register(int type_id, const char* type_str,
                                   InodeFactory* inode_factory)
 {
 	sb_factory_map_[type_id] = sb_factory;
+	inode_factory_map_[type_id] = inode_factory;
 	fstype_str_to_id_map_[std::string(type_str)] = type_id;
 }
 
@@ -104,13 +106,34 @@ FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId 
 }
 
 
+/**
+ * \brief Creates an inode of the same file system as the parent inode.
+ * The inode is write locked and referenced (refcnt=1)
+ *
+ */
 int 
 FileSystemObjectManager::CreateInode(Session* session, Inode* parent, 
-                                     int type, Inode** ipp)
+                                     int inode_type, Inode** ipp)
 {
-	// TODO
+	int                       ret;
+	InodeFactoryMap::iterator it;
+	InodeFactory*             inode_factory; 
+	Inode*                    ip;
+	int                       fs_type = parent->fs_type();
 
-
+	it = inode_factory_map_.find(fs_type);
+	if (it == inode_factory_map_.end()) {
+		return -1;
+	}
+	inode_factory = it->second;
+	if ((ret = inode_factory->Make(session, inode_type, &ip)) != E_SUCCESS) {
+		return ret;
+	}
+    ip->Lock(session, parent, lock_protocol::Mode::XR);
+    ip->Get();
+	
+	*ipp = ip;
+	return E_SUCCESS;
 }
 
 

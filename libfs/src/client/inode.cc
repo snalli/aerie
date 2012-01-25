@@ -1,67 +1,63 @@
 #include "client/inode.h"
+#include "common/errno.h"
+#include "client/session.h"
 
 namespace client {
 
 Inode::Inode()
 	: sb_(NULL),
 	  pnode_(NULL),
-	  ino_(0),
-	  refcnt_(0)
+	  refcnt_(0),
+	  ref_(NULL)
 { 
 	printf("Inode::Inode: %p\n", this);
 	pthread_mutex_init(&mutex_, NULL);
 }
 
 
-Inode::Inode(SuperBlock* sb, Pnode* pnode, InodeNumber ino)
-	: sb_(sb),
-	  pnode_(pnode),
-	  ino_(ino),
-	  refcnt_(0)
-{
-	printf("Inode::Inode: %p\n", this);
-	pthread_mutex_init(&mutex_, NULL);
-}
-
-
-//FIXME: when creating the inode, inode manager assigns a public lock if 
-// needed. if there is a public lock, then we acquire it otherwise we acquire the
-// private lock
 int
-Inode::Lock(lock_protocol::Mode mode)
+Inode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
-	if (ino_) {
-		return global_hlckmgr->Acquire(ino_, mode, 0);
+	dpo::cc::client::ObjectProxy* cc_proxy;
+
+	if (ref_) {
+		cc_proxy = static_cast<dpo::cc::client::ObjectProxy*>(ref_->obj());	
+		return cc_proxy->Lock(session, mode);
 	}
-	return 0;
+	return E_SUCCESS;
 }
 
 
 int
-Inode::Lock(Inode* parent_inode, lock_protocol::Mode mode)
+Inode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
-	InodeNumber pino = parent_inode->ino_;
-	printf("LOCK: inode=%p, parent_inode=%p, pino=%lu, ino_=%lu\n", this, parent_inode, pino, ino_);
-	if (ino_) {
-		if (pino) {
-			// root inode of the file system. 
-			// FIXME: need to pass a capability
-			return global_hlckmgr->Acquire(ino_, pino, mode, 0);
+	dpo::cc::client::ObjectProxy* cc_proxy;
+	dpo::cc::client::ObjectProxy* cc_proxy_parent;
+
+	if (ref_) {
+		cc_proxy = static_cast<dpo::cc::client::ObjectProxy*>(ref_->obj());	
+		if (parent_inode->ref_) {
+			cc_proxy_parent = static_cast<dpo::cc::client::ObjectProxy*>(parent_inode->ref_->obj());	
+			return cc_proxy->Lock(session, cc_proxy_parent, mode);
 		} else {
-			return global_hlckmgr->Acquire(ino_, mode, 0);
+			return cc_proxy->Lock(session, mode);
 		}
 	}
-	return 0;
+
+	return E_SUCCESS;
 }
 
 
 int
-Inode::Unlock()
+Inode::Unlock(::client::Session* session)
 {
-	if (ino_) {
-		return global_hlckmgr->Release(ino_);
+	dpo::cc::client::ObjectProxy* cc_proxy;
+
+	if (ref_) {
+		cc_proxy = static_cast<dpo::cc::client::ObjectProxy*>(ref_->obj());	
+		return cc_proxy->Unlock(session);
 	}
-	return 0;
+	return E_SUCCESS;
 }
 
 

@@ -7,17 +7,17 @@
 #include "common/errno.h"
 #include "common/types.h"
 #include "unit/fixture/client.fixture.h"
+#include "dpo/base/common/obj.h"
 #include "client/namespace.h"
 #include "client/sb.h"
 #include "client/inode.h"
-
 
 
 class PseudoDirInode: public client::Inode {
 public:
 	typedef google::dense_hash_map<std::string, client::Inode*> EntryCache;
 	
-	PseudoDirInode(client::SuperBlock* sb);
+	PseudoDirInode();
 
 	int Init(client::Session* session, InodeNumber ino) { assert(0); }
 	int Open(client::Session* session, const char* path, int flags) { assert(0); }
@@ -28,16 +28,18 @@ public:
 	int Link(client::Session* session, const char* name, client::Inode* inode, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
 	int Unlink(client::Session* session, const char* name) { assert(0); }
-
 	int Publish(client::Session* session) { assert(0); }
 
+	int nlink() { return nlink_; }
+	int set_nlink(int nlink) { nlink_ = nlink; return 0; }
+
 private:
-	EntryCache          entries_;
+	EntryCache  entries_;
+	int         nlink_;
 };
 
 
-PseudoDirInode::PseudoDirInode(client::SuperBlock* sb)
-	: Inode(sb, NULL, 0)
+PseudoDirInode::PseudoDirInode()
 { 
 	entries_.set_empty_key("");
 }
@@ -73,20 +75,15 @@ PseudoDirInode::Link(client::Session* session, const char* name, client::Inode* 
 
 class PseudoSuperBlock: public client::SuperBlock {
 public:
-	PseudoSuperBlock(client::Session* session)
-		: client::SuperBlock(session)
+	PseudoSuperBlock()
 	{
-		root_ = new PseudoDirInode(this);
+		root_ = new PseudoDirInode();
 	}
 
-	client::Inode* CreateImmutableInode(int type) { assert(0); }
-	void* GetPSuperBlock() { assert(0); }
 	client::Inode* RootInode() { return root_; }
+	dpo::common::ObjectId oid() { return dpo::common::ObjectId(0); }
 
 private:
-	int LoadInode(InodeNumber ino, client::Inode** ipp) { assert(0); }
-	int MakeInode(client::Session* session, int type, client::Inode** ipp) { assert(0); }
-	
 	client::Inode* root_;
 };
 
@@ -97,8 +94,8 @@ SUITE(ClientNamespace)
 	TEST_FIXTURE(ClientFixture, TestMount)
 	{
 		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
-		client::SuperBlock* sb = new PseudoSuperBlock(session);
-		client::Inode*      dirinode = new PseudoDirInode(sb);
+		client::SuperBlock* sb = new PseudoSuperBlock();
+		client::Inode*      dirinode = new PseudoDirInode();
 		test_namespace->Init(session);
 		
 		CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
@@ -107,8 +104,8 @@ SUITE(ClientNamespace)
 	TEST_FIXTURE(ClientFixture, TestMultipleMount)
 	{
 		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
-		client::SuperBlock* sb1 = new PseudoSuperBlock(session);
-		client::SuperBlock* sb2 = new PseudoSuperBlock(session);
+		client::SuperBlock* sb1 = new PseudoSuperBlock();
+		client::SuperBlock* sb2 = new PseudoSuperBlock();
 		test_namespace->Init(session);
 		
 		CHECK(test_namespace->Mount(session, "/A/B", sb1) == 0);
@@ -122,7 +119,7 @@ SUITE(ClientNamespace)
 		char                tmpname[128];
 		client::Inode*      inode;
 		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
-		client::SuperBlock* sb = new PseudoSuperBlock(session);
+		client::SuperBlock* sb = new PseudoSuperBlock();
 		test_namespace->Init(session);
 		
 		CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
@@ -148,7 +145,7 @@ SUITE(ClientNamespace)
 		inode->Put();
 		
 		// link /A/B/C to an inode
-		client::Inode* dirinode1 = new PseudoDirInode(sb);
+		client::Inode* dirinode1 = new PseudoDirInode();
 		CHECK(inode->Link(session, "C", dirinode1, false) == 0);
 
 		CHECK(test_namespace->Nameiparent(session, "/A/B/C/D", lock_protocol::Mode::NL, tmpname, &inode) == 0);
@@ -163,8 +160,8 @@ SUITE(ClientNamespace)
 		char                tmpname[128];
 		client::Inode*      inode;
 		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
-		client::SuperBlock* sb = new PseudoSuperBlock(session);
-		client::Inode*      dirinode1 = new PseudoDirInode(sb);
+		client::SuperBlock* sb = new PseudoSuperBlock();
+		client::Inode*      dirinode1 = new PseudoDirInode();
 		inode = sb->RootInode();
 		CHECK(inode->Link(session, "C", dirinode1, false) == 0);
 		test_namespace->Init(session);
@@ -198,8 +195,8 @@ SUITE(ClientNamespace)
 		char                tmpname[128];
 		client::Inode*      inode;
 		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
-		client::SuperBlock* sb = new PseudoSuperBlock(session);
-		client::Inode*      dirinode1 = new PseudoDirInode(sb);
+		client::SuperBlock* sb = new PseudoSuperBlock();
+		client::Inode*      dirinode1 = new PseudoDirInode();
 		inode = sb->RootInode();
 		test_namespace->Init(session);
 		
