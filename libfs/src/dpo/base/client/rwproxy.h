@@ -46,6 +46,10 @@ public:
 template<class Subject, class VersionManager>
 class ObjectProxyReference: public dpo::common::ObjectProxyReference {
 public:
+	ObjectProxyReference(void* owner = NULL)
+		: dpo::common::ObjectProxyReference(owner)
+	{ }
+
 	ObjectProxy<Subject, VersionManager>* obj() { 
 		return static_cast<ObjectProxy<Subject, VersionManager>*>(obj_);
 	}

@@ -99,7 +99,8 @@ done:
  * Otherwise it initializes the obj_ref to point to the object. 
  */
 int
-ObjectManager::GetObjectInternal(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref, 
+ObjectManager::GetObjectInternal(ObjectId oid, 
+                                 dpo::common::ObjectProxyReference** obj_ref, 
                                  bool use_exist_obj_ref)
 {
 	int                  ret = E_SUCCESS;
@@ -107,7 +108,7 @@ ObjectManager::GetObjectInternal(ObjectId oid, dpo::common::ObjectProxyReference
 	ObjectProxy*         obj;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
-	        "[%d] Get Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
+	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
 
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();
@@ -118,22 +119,28 @@ ObjectManager::GetObjectInternal(ObjectId oid, dpo::common::ObjectProxyReference
 	}
 	mgr = itr->second;
 	if ((ret = mgr->oid2obj_map_.Lookup(oid, &obj)) != E_SUCCESS) {
-		// create the object
+		if (use_exist_obj_ref) {
+			ret = -E_INVAL;
+			goto done;
+		}
+		// create the object proxy
 		if ((obj = mgr->Create(session_, oid)) == NULL) {
 			ret = -E_NOMEM;
 			goto done;
 		}
 		assert(mgr->oid2obj_map_.Insert(obj) == E_SUCCESS);
-		if (obj_ref == NULL) {
+		if (*obj_ref == NULL) {
 			return -E_INVAL;
 		}
 		// no need to grab the lock on obj after creation as it's not reachable 
 		// before we release the lock manager's mutex lock
 		(*obj_ref)->Set(obj, false);
 	} else {
-		// object exists
-		if (use_exist_obj_ref) {
-			*obj_ref = obj->HeadReference();
+		// object proxy exists
+		if (use_exist_obj_ref {
+			if ((*obj_ref = obj->HeadReference()) == NULL) {
+				return -E_INVAL
+			}
 		} else {
 			(*obj_ref)->Set(obj, true);
 		}
@@ -146,19 +153,34 @@ done:
 }
 
 
+/**
+ * \brief Returns an existing reference to the object proxy identified by oid
+ * if such a reference exists. It does not increment the reference count.
+ *
+ */
 int
-ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref) 
-                        
+ObjectManager::FindObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref) 
 {
-	return GetObjectInternal(oid, obj_ref, false);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
+	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
+	
+	return GetObjectInternal(oid, obj_ref, true);
 }
 
 
+/**
+ * \brief Initializes a passed reference to point to the proxy of the object 
+ * identified by oid. It increments the reference count.
+ *
+ */
 int
 ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref) 
                         
 {
-	return GetObjectInternal(oid, &obj_ref, true);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
+	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
+	
+	return GetObjectInternal(oid, &obj_ref, false);
 }
 
 

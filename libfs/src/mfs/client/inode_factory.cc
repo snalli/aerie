@@ -11,17 +11,18 @@ int
 InodeFactory::LoadDirInode(::client::Session* session, dpo::common::ObjectId oid, 
                            ::client::Inode** ipp)
 {
-	int                                               ret = E_SUCCESS;
-	::client::Inode*                                  ip;
-	dpo::containers::client::NameContainer::Reference rw_ref;
+	int                                                ret = E_SUCCESS;
+	dpo::common::ObjectProxyReference*                 rw_ref;
+	dpo::containers::client::NameContainer::Reference* nrw_ref;
+	DirInode*                                          dip;
 
-	if ((ret = session->omgr_->GetObject(oid, &rw_ref)) < 0) {
-		//FIXME: deallocate the allocated object
-		return ret;
+	if ((ret = session->omgr_->FindObject(oid, &rw_ref)) == E_SUCCESS) {
+		dip = reinterpret_cast<DirInode*>(rw_ref->owner());
+	} else {
+		dip = DirInode::Load(session, oid);
 	}
-	ip = new DirInode(rw_ref);
-	*ipp = ip;
-	return ret;
+	*ipp = dip;
+	return E_SUCCESS;
 }
 
 
@@ -35,7 +36,7 @@ InodeFactory::MakeDirInode(::client::Session* session, ::client::Inode** ipp)
 		return -E_NOMEM;
 	}
 	if ((ret = LoadDirInode(session, obj->oid(), ipp)) < 0) {
-		// FIXME: deallocate the allocated object
+		// FIXME: deallocate the allocated persistent object (container)
 		return ret;
 	}
 	return ret;

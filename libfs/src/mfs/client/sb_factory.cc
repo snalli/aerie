@@ -22,19 +22,15 @@ SuperBlockFactory::Load(::client::Session* session, dpo::common::ObjectId oid,
 {
 	int                                                ret;
 	SuperBlock*                                        sb; 
-	dpo::containers::client::SuperContainer::Reference rw_ref;
-	dpo::common::ObjectId                              root_inode_oid;
+	dpo::common::ObjectProxyReference*                 rw_ref;
 
-	if ((ret = session->omgr_->GetObject(oid, &rw_ref)) < 0) {
-		//FIXME: deallocate the allocated object
-		return ret;
+	printf("Load 1\n");
+	if ((ret = session->omgr_->FindObject(oid, &rw_ref)) == E_SUCCESS) {
+		sb = reinterpret_cast<SuperBlock*>(rw_ref->owner());
+	} else {
+		printf("Load 2\n");
+		sb = SuperBlock::Load(session, oid);
 	}
-
-	root_inode_oid = rw_ref.obj()->interface()->root(session);
-
-
-	sb = new SuperBlock(rw_ref);
-
 	*sbp = sb;
 	return E_SUCCESS;
 }

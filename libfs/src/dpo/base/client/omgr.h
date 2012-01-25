@@ -43,6 +43,8 @@ public:
 	ObjectManager(dpo::cc::client::LockManager* lckmgr, dpo::cc::client::HLockManager* hlckmgr);
 	~ObjectManager();
 	int RegisterType(ObjectType type_id, ObjectManagerOfType* mgr);
+	int FindOrGetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
+	int FindObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
 	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref);
 	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
 	int ReleaseObject(dpo::common::ObjectProxy* obj);
@@ -52,7 +54,9 @@ public:
 	//ObjectProxy* Object(ObjectId oid);
 	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
 	int id() { return hlckmgr_->id(); }
+
 private:
+	int GetObjectInternal(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref, bool use_exist_obj_ref);
 	int RegisterBaseTypes();
 	
 	pthread_mutex_t                mutex_;

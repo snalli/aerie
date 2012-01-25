@@ -15,7 +15,7 @@ SUITE(Namespace)
 	TEST_FIXTURE(MFSFixture, TestMkfs)
 	{
 		CHECK(libfs_mkfs("/superblock/A", "mfs", 0) == 0);
-		CHECK(libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0) == 0);
+		//CHECK(libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0) == 0);
 	}
 
 	TEST_FIXTURE(MFSFixture, TestMkfsMkdir)

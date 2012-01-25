@@ -2,7 +2,7 @@
 #define __STAMNOS_DPO_COMMON_OBJECT_PROXY_H
 
 #include <pthread.h>
-#include "common/list.h"
+#include <list>
 #include "dpo/base/common/obj.h"
 
 
@@ -16,19 +16,30 @@ class ObjectProxy; // forward reference
 class ObjectProxyReference {
 friend class ObjectProxy;
 public:
-	ObjectProxyReference() 
-		: obj_(NULL)
+	ObjectProxyReference(void* owner = NULL) 
+		: obj_(NULL),
+		  owner_(owner)
 	{ }
 
 	ObjectProxy* obj() { 
 		return obj_;
 	}
+
+	void* owner() {
+		return owner_;
+	}
+
+	void* set_owner(void* owner) {
+		owner_ = owner;
+	}
+
 	inline void Set(ObjectProxy* obj, bool lock = true);
 	inline void Reset(bool lock = true);
 
 protected:
-	ObjectProxy*     obj_;
-	struct list_head reflist_;
+	ObjectProxy* obj_;
+	void*        owner_; // the volatile object that owns this reference 
+	                     // (has it embedded in its structure)
 };
 
 
@@ -41,14 +52,12 @@ public:
 		  subject_(NULL)  
 	{
 		pthread_mutex_init(&mutex_, NULL);
-		INIT_LIST_HEAD(&reflist_);
 	}
 
 	ObjectProxy(dpo::common::ObjectId oid)
 		: refcnt_(0)
 	{
 		pthread_mutex_init(&mutex_, NULL);
-		INIT_LIST_HEAD(&reflist_);
 		subject_ = static_cast<dpo::common::Object*>(oid.addr());
 	}
 
@@ -60,19 +69,17 @@ public:
 		ObjectProxyReference* ref = NULL;
 		pthread_mutex_lock(&mutex_);
 		if (refcnt_ > 0) {
-			struct list_head* first_entry = (&reflist_)->next;
-			int off = offsetof(ObjectProxyReference, reflist_);
-			//ref = (ObjectProxyReference*)((char*) first_entry - offsetof(ObjectProxyReference, reflist_));
+			ref = reflist_.front();
 		} 
 		pthread_mutex_unlock(&mutex_);
 		return ref;
 	}
 
 protected:
-	pthread_mutex_t      mutex_;
-	struct list_head     reflist_;   // reference list 
-	int                  refcnt_;
-	dpo::common::Object* subject_;
+	pthread_mutex_t                  mutex_;
+	std::list<ObjectProxyReference*> reflist_;   // list of references to this object proxy 
+	int                              refcnt_;
+	dpo::common::Object*             subject_;
 };
 
 
@@ -83,7 +90,7 @@ void ObjectProxyReference::Set(ObjectProxy* obj, bool lock) {
 	assert(obj_ == NULL);
 	obj_ = obj;
 	obj_->refcnt_++;
-	list_add_tail(&reflist_, &(obj->reflist_));
+	obj_->reflist_.push_back(this);
 	if (lock) {
 		pthread_mutex_unlock(&(obj->mutex_));
 	}
@@ -97,7 +104,7 @@ void ObjectProxyReference::Reset(bool lock) {
 		pthread_mutex_lock(&(obj_->mutex_));
 	}
 	obj_->refcnt_++;
-	list_del(&reflist_);
+	obj_->reflist_.remove(this);
 	if (lock) {
 		pthread_mutex_unlock(&(obj_->mutex_));
 	}

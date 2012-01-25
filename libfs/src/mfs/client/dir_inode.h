@@ -20,9 +20,34 @@ namespace client {
 class DirInode: public ::client::Inode
 {
 public:
-	DirInode(dpo::containers::client::NameContainer::Reference rw_ref)
-		: rw_ref_(rw_ref)
+	DirInode()
+		: rw_ref_(this)
 	{ }
+
+/*
+	static DirInode* Load(::client::Session* session, dpo::common::ObjectId oid) {
+		DirInode*  dip;
+
+		dip = new DirInode();
+		if (session->omgr_->GetObject(oid, &(dip->rw_ref_)) < 0) {
+			delete dip;
+			return NULL;
+		}
+		return dip;
+	}
+*/
+
+	static DirInode* Load(::client::Session* session, dpo::common::ObjectId oid) {
+		DirInode*  dip;
+
+		if (session->omgr_->FindOrGetObject(oid, &(dip->rw_ref_)) < 0) {
+			delete dip;
+			return NULL;
+		}
+		dip = new DirInode();
+		return dip;
+	}
+
 
 	dpo::common::ObjectId oid() {
 		return rw_ref_.obj()->oid();	
