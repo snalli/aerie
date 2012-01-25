@@ -18,13 +18,17 @@
 
 using namespace client;
 
+
 // Object
 class Dummy: public dpo::cc::common::Object {
 public:
+	enum { 
+		kTypeID = 100 // make sure this does not conflict with any base container types 
+	};
 
 	Dummy() 
 	{ 
-		set_type(1);
+		set_type(kTypeID);
 		nlink_ = 0;
 	}
 	
@@ -79,25 +83,27 @@ SUITE(Object)
 {
 	TEST_FIXTURE(ObjectFixture, Test)
 	{
-		DummyRWReference dummy_rw_ref;
+		dpo::common::ObjectProxyReference* ref;
+		DummyRWReference*                  dummy_rw_ref;
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<Dummy>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>;
-		CHECK(global_omgr->RegisterType(1, dummy_mgr) == E_SUCCESS);
-		CHECK(global_omgr->GetObject(OID[1], &dummy_rw_ref) == E_SUCCESS);
+		CHECK(global_omgr->RegisterType(Dummy::kTypeID, dummy_mgr) == E_SUCCESS);
+		CHECK(global_omgr->GetObject(OID[1], &ref) == E_SUCCESS);
 		EVENT("BeforeLock");
-		dummy_rw_ref.obj()->Lock(lock_protocol::Mode::XL);
-		int nlink = dummy_rw_ref.obj()->interface()->nlink();
+		dummy_rw_ref = static_cast<DummyRWReference*>(ref);
+		dummy_rw_ref->obj()->Lock(lock_protocol::Mode::XL);
+		int nlink = dummy_rw_ref->obj()->interface()->nlink();
 		if (strcmp(SELF->Tag(), "C1:T1")==0) {
 			CHECK(nlink == 0);
 		} else {
 			CHECK(nlink == 1);
 		}
-		dummy_rw_ref.obj()->interface()->set_nlink(nlink+1);
-		dummy_rw_ref.obj()->Unlock();
+		dummy_rw_ref->obj()->interface()->set_nlink(nlink+1);
+		dummy_rw_ref->obj()->Unlock();
 		EVENT("AfterLock");
 		EVENT("End");
 	}

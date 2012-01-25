@@ -21,7 +21,8 @@ SUITE(ContainersNameContainer)
 {
 	TEST_FIXTURE(ObjectFixture, Test)
 	{
-		NameContainer::Reference rw_ref;
+		dpo::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
@@ -30,15 +31,16 @@ SUITE(ContainersNameContainer)
 		dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
 		CHECK(global_omgr->RegisterType(dpo::containers::T_NAME_CONTAINER, mgr) == E_SUCCESS);
 		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		EVENT("BeforeLock");
-		rw_ref.obj()->Lock(lock_protocol::Mode::XL);
+		rw_reft->obj()->Lock(lock_protocol::Mode::XL);
 		if (strcmp(SELF->Tag(), "C1:T1")==0) {
-			CHECK(rw_ref.obj()->interface()->Insert(session, "test", OID[2]) == E_SUCCESS);
+			CHECK(rw_reft->obj()->interface()->Insert(session, "test", OID[2]) == E_SUCCESS);
 		} else {
 			dpo::common::ObjectId oid;
-			CHECK(rw_ref.obj()->interface()->Find(session, "test", &oid) == E_SUCCESS);
+			CHECK(rw_reft->obj()->interface()->Find(session, "test", &oid) == E_SUCCESS);
 		}
-		rw_ref.obj()->Unlock();
+		rw_reft->obj()->Unlock();
 		EVENT("AfterLock");
 		EVENT("End");
 	}

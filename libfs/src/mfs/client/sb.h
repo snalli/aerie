@@ -11,15 +11,17 @@
 namespace mfs {
 namespace client {
 
+class SuperBlockFactory; // forward declaration
 
 class SuperBlock: public ::client::SuperBlock {
+friend class SuperBlockFactory;
 public:
 	::client::Inode* RootInode() {
 		return root_;
 	}
 	
-	SuperBlock()
-		: super_rw_ref_(this),
+	SuperBlock(dpo::common::ObjectProxyReference* ref)
+		: super_rw_ref_(static_cast<dpo::containers::client::SuperContainer::Reference*>(ref)),
 		  root_(NULL)
 	{ }
 
@@ -50,12 +52,12 @@ public:
 	}
 
 	dpo::common::ObjectId oid() {
-		return super_rw_ref_.obj()->oid();	
+		return super_rw_ref_->obj()->oid();	
 	}
 
 private:
-	dpo::containers::client::SuperContainer::Reference super_rw_ref_;
-	::client::Inode*                                   root_;
+	dpo::containers::client::SuperContainer::Reference* super_rw_ref_;
+	::client::Inode*                                    root_;
 };
 
 } // namespace client

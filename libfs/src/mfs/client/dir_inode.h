@@ -20,8 +20,8 @@ namespace client {
 class DirInode: public ::client::Inode
 {
 public:
-	DirInode()
-		: rw_ref_(this)
+	DirInode(dpo::common::ObjectProxyReference* ref)
+		: rw_ref_(static_cast<dpo::containers::client::NameContainer::Reference*>(ref))
 	{ }
 
 /*
@@ -35,7 +35,6 @@ public:
 		}
 		return dip;
 	}
-*/
 
 	static DirInode* Load(::client::Session* session, dpo::common::ObjectId oid) {
 		DirInode*  dip;
@@ -47,10 +46,11 @@ public:
 		dip = new DirInode();
 		return dip;
 	}
+*/
 
 
 	dpo::common::ObjectId oid() {
-		return rw_ref_.obj()->oid();	
+		return rw_ref_->obj()->oid();	
 	}
 
 	int Open(::client::Session* session, const char* path, int flags) { return 0; };
@@ -66,7 +66,7 @@ public:
 	int set_nlink(int nlink);
 
 private:
-	dpo::containers::client::NameContainer::Reference rw_ref_;
+	dpo::containers::client::NameContainer::Reference* rw_ref_;
 };
 
 

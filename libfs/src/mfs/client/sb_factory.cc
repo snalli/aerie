@@ -5,6 +5,8 @@
 #include "dpo/containers/name/container.h"
 #include "dpo/base/common/obj.h"
 #include "mfs/client/sb.h"
+#include "mfs/client/dir_inode.h"
+#include "mfs/client/inode_factory.h"
 
 namespace mfs {
 namespace client {
@@ -20,17 +22,28 @@ int
 SuperBlockFactory::Load(::client::Session* session, dpo::common::ObjectId oid, 
                         ::client::SuperBlock** sbp)
 {
-	int                                                ret;
-	SuperBlock*                                        sb; 
-	dpo::common::ObjectProxyReference*                 rw_ref;
+	int                                ret;
+	SuperBlock*                        sb; 
+	::client::Inode*                   dip;
+	dpo::common::ObjectProxyReference* ref;
+	dpo::common::ObjectId              root_oid;
 
-	printf("Load 1\n");
-	if ((ret = session->omgr_->FindObject(oid, &rw_ref)) == E_SUCCESS) {
-		sb = reinterpret_cast<SuperBlock*>(rw_ref->owner());
+	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
+		if (ref->owner()) {
+			sb = reinterpret_cast<SuperBlock*>(ref->owner());
+		} else {
+			sb = new SuperBlock(ref);
+		}
 	} else {
-		printf("Load 2\n");
-		sb = SuperBlock::Load(session, oid);
+		sb = new SuperBlock(ref);
 	}
+
+	root_oid = sb->super_rw_ref_->obj()->interface()->root(session);
+	if ((ret = InodeFactory::LoadDirInode(session, root_oid, &dip)) < 0) {
+		//FIXME: deallocate the allocated superblock and dirinode object
+		return ret;
+	}
+	sb->root_ = dip;
 	*sbp = sb;
 	return E_SUCCESS;
 }
@@ -41,22 +54,35 @@ SuperBlockFactory::Make(::client::Session* session, ::client::SuperBlock** sbp)
 {
 	int                                                ret;
 	SuperBlock*                                        sb; 
+	::client::Inode*                                   dip;
 	dpo::containers::client::SuperContainer::Object*   super_obj;
-	dpo::containers::client::SuperContainer::Proxy*    super_proxy;
 	dpo::containers::client::NameContainer::Object*    root_obj;
 
+	// first create the superblock object/proxy,
+	// second create the directory inode objext/proxy and set the root 
+	// of the superblock to point to the new directory inode.
+	
+	// superblock 
 	// FIXME: allocate object through the storage manager
 	if ((super_obj = new(session) dpo::containers::client::SuperContainer::Object) == NULL) {
-		return -E_NOMEM;
-	}
-	if ((root_obj = new(session) dpo::containers::client::NameContainer::Object) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((ret = Load(session, super_obj->oid(), sbp)) < 0) {
 		//FIXME: deallocate the allocated object
 		return ret;
 	}
-	//sbp->rw_ref_.obj()->interface()->set_root(session, root_obj->oid());
+	sb = static_cast<SuperBlock*>(*sbp);
+
+	// root directory inode
+	if ((root_obj = new(session) dpo::containers::client::NameContainer::Object) == NULL) {
+		return -E_NOMEM;
+	}
+	sb->super_rw_ref_->obj()->interface()->set_root(session, root_obj->oid());
+	if ((ret = InodeFactory::LoadDirInode(session, root_obj->oid(), &dip)) < 0) {
+		//FIXME: deallocate the allocated superblock and dirinode object
+		return ret;
+	}
+	sb->root_ = dip;
 	return E_SUCCESS;
 }
 

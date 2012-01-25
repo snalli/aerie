@@ -7,20 +7,30 @@
 namespace mfs {
 namespace client {
 
+pthread_mutex_t InodeFactory::mutex_ = PTHREAD_MUTEX_INITIALIZER;;
+
 int
 InodeFactory::LoadDirInode(::client::Session* session, dpo::common::ObjectId oid, 
                            ::client::Inode** ipp)
 {
-	int                                                ret = E_SUCCESS;
-	dpo::common::ObjectProxyReference*                 rw_ref;
-	dpo::containers::client::NameContainer::Reference* nrw_ref;
-	DirInode*                                          dip;
+	int                                ret = E_SUCCESS;
+	dpo::common::ObjectProxyReference* ref;
+	DirInode*                          dip;
 
-	if ((ret = session->omgr_->FindObject(oid, &rw_ref)) == E_SUCCESS) {
-		dip = reinterpret_cast<DirInode*>(rw_ref->owner());
+	// atomically get a reference to the persistent object and 
+	// create the in-core Inode 
+	pthread_mutex_lock(&mutex_);
+	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
+		if (ref->owner()) {
+			dip = reinterpret_cast<DirInode*>(ref->owner());
+		} else {
+			dip = new DirInode(ref);
+		}
 	} else {
-		dip = DirInode::Load(session, oid);
+		dip = new DirInode(ref);
 	}
+	pthread_mutex_unlock(&mutex_);
+
 	*ipp = dip;
 	return E_SUCCESS;
 }

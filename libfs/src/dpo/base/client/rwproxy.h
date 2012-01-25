@@ -29,7 +29,7 @@ public:
 	//FIXME: the use of session is confusing as we don't get a complete session 
 	// (for example the session has a NULL pointer as a pointer to the generic object manager 
 
-	dpo::client::ObjectProxy* Create(::client::Session* session, ObjectId oid) {
+	dpo::client::ObjectProxy* Load(::client::Session* session, ObjectId oid) {
 		return new ObjectProxy<Subject, VersionManager>(session, oid);
 	}
 

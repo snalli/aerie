@@ -29,7 +29,7 @@ class ObjectManager; // forward declaration
 class ObjectManagerOfType {
 friend class ObjectManager;
 public:
-	virtual ObjectProxy* Create(::client::Session* session, ObjectId oid) = 0;
+	virtual ObjectProxy* Load(::client::Session* session, ObjectId oid) = 0;
 	virtual void OnRelease(::client::Session* session, ObjectId oid) = 0;
 
 protected:	
@@ -45,7 +45,7 @@ public:
 	int RegisterType(ObjectType type_id, ObjectManagerOfType* mgr);
 	int FindOrGetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
 	int FindObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
-	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference* obj_ref);
+	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref);
 	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
 	int ReleaseObject(dpo::common::ObjectProxy* obj);
 	void OnRelease(dpo::cc::client::HLock* hlock);
