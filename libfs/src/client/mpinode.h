@@ -35,9 +35,11 @@ public:
 	
 	int nlink() { return 0; }
 	int set_nlink(int nlink) { return 0; }
-	SuperBlock* GetSuperBlock() { return NULL; }
-	void SetSuperBlock(SuperBlock* sb) { return; }
 
+	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode); 
+	int Lock(::client::Session* session, lock_protocol::Mode mode); 
+	int Unlock(::client::Session* session);
+	
 	struct Entry {
 		char   name_[64];
 		Inode* inode_;

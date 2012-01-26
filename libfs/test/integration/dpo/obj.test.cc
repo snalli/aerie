@@ -95,7 +95,7 @@ SUITE(Object)
 		CHECK(global_omgr->GetObject(OID[1], &ref) == E_SUCCESS);
 		EVENT("BeforeLock");
 		dummy_rw_ref = static_cast<DummyRWReference*>(ref);
-		dummy_rw_ref->obj()->Lock(lock_protocol::Mode::XL);
+		dummy_rw_ref->obj()->Lock(session, lock_protocol::Mode::XL);
 		int nlink = dummy_rw_ref->obj()->interface()->nlink();
 		if (strcmp(SELF->Tag(), "C1:T1")==0) {
 			CHECK(nlink == 0);
@@ -103,7 +103,7 @@ SUITE(Object)
 			CHECK(nlink == 1);
 		}
 		dummy_rw_ref->obj()->interface()->set_nlink(nlink+1);
-		dummy_rw_ref->obj()->Unlock();
+		dummy_rw_ref->obj()->Unlock(session);
 		EVENT("AfterLock");
 		EVENT("End");
 	}

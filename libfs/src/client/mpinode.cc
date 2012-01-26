@@ -58,4 +58,25 @@ MPInode::Link(Session* session, const char* name, Inode* inode, bool overwrite)
 	return 0;
 }
 
+int 
+MPInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
+{
+	return E_SUCCESS;
+}
+
+
+int 
+MPInode::Lock(::client::Session* session, lock_protocol::Mode mode)
+{
+	return E_SUCCESS;
+}
+
+
+int 
+MPInode::Unlock(::client::Session* session)
+{
+	return E_SUCCESS;
+}
+	
+
 } // namespace client

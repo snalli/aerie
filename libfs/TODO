@@ -1,3 +1,5 @@
+FIXME: Inode locking must be done via the type specific reference to properly call vOpen
+
 -superblock container
   - filesystem
   - free bitmaps

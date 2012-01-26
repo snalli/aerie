@@ -14,6 +14,29 @@ Inode::Inode()
 	pthread_mutex_init(&mutex_, NULL);
 }
 
+int 
+Inode::Get() 
+{ 
+	pthread_mutex_lock(&mutex_);
+	printf("Inode(%p)::Get %d -> %d\n", this, refcnt_, refcnt_ + 1);
+	refcnt_++; 
+	pthread_mutex_unlock(&mutex_);
+	return 0; 
+}
+
+
+int 
+Inode::Put() 
+{ 
+	pthread_mutex_lock(&mutex_);
+	printf("Inode(%p)::Put %d -> %d\n", this, refcnt_, refcnt_ - 1);
+	assert(refcnt_>0); 
+	refcnt_--; 
+	pthread_mutex_unlock(&mutex_);
+	return 0; 
+}
+
+#if 0
 
 int
 Inode::Lock(::client::Session* session, lock_protocol::Mode mode)
@@ -60,27 +83,6 @@ Inode::Unlock(::client::Session* session)
 	return E_SUCCESS;
 }
 
-
-int 
-Inode::Get() 
-{ 
-	pthread_mutex_lock(&mutex_);
-	printf("Inode(%p)::Get %d -> %d\n", this, refcnt_, refcnt_ + 1);
-	refcnt_++; 
-	pthread_mutex_unlock(&mutex_);
-	return 0; 
-}
-
-
-int 
-Inode::Put() 
-{ 
-	pthread_mutex_lock(&mutex_);
-	printf("Inode(%p)::Put %d -> %d\n", this, refcnt_, refcnt_ - 1);
-	assert(refcnt_>0); 
-	refcnt_--; 
-	pthread_mutex_unlock(&mutex_);
-	return 0; 
-}
+#endif
 
 } // namespace client

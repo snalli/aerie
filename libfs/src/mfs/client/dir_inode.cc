@@ -1,5 +1,6 @@
 #include "mfs/client/dir_inode.h"
 #include <stdint.h>
+#include "common/util.h"
 #include "client/backend.h"
 #include "client/inode.h"
 #include "client/session.h"
@@ -24,12 +25,19 @@ DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode**
 
 	assert(ref_ != NULL);
 
+	// special case: requesting parent (name=..) and parent_ points to a pseudo-inode
+	if (parent_ && str_is_dot(name) == 2) {
+		ip = parent_;
+		goto done;
+	}
+
 	if ((ret = rw_ref()->obj()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
 		return ret;
 	}
 	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
 		return ret;
 	}
+done:
 	ip->Get();
     *ipp = ip;
 	return E_SUCCESS;
@@ -40,10 +48,23 @@ int
 DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip, 
                bool overwrite)
 {
-	uint64_t ino = ip->ino();
-	
-	//FIXME: fix link count
-	return Link(session, name, ino, overwrite);
+	int ret; 
+
+	dbg_log (DBG_INFO, "In inode %lx, link %s to inode %lx\n", ino(), name, ip->ino());
+
+	// special case: if inode oid is zero then we link to a pseudo-inode. 
+	// keep this link in the in-core state parent_
+	if (ip->oid() == dpo::common::ObjectId(0)) {
+		pthread_mutex_lock(&mutex_);
+		parent_ = ip;
+		pthread_mutex_unlock(&mutex_);
+		return E_SUCCESS;
+	}
+
+	if ((ret = rw_ref()->obj()->interface()->Insert(session, name, ip->oid())) != E_SUCCESS) {
+		return ret;
+	}
+	return E_SUCCESS;
 }
 
 
@@ -210,6 +231,54 @@ int DirInode::set_nlink(int nlink)
 	return 0;
 }
 
+
+int
+DirInode::Lock(::client::Session* session, lock_protocol::Mode mode)
+{
+	dpo::containers::client::NameContainer::Proxy* cc_proxy;
+
+	if (ref_) {
+		cc_proxy = rw_ref()->proxy();	
+		return cc_proxy->Lock(session, mode);
+	}
+	return E_SUCCESS;
+}
+
+
+int
+DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
+{
+	dpo::containers::client::NameContainer::Proxy* cc_proxy;
+	dpo::containers::client::NameContainer::Proxy* cc_proxy_parent;
+
+	if (ref_) {
+		cc_proxy = rw_ref()->proxy();	
+		if (parent_inode->ref_) {
+			// the parent_inode must always be of DirInode type, 
+			// otherwise we can't do hierarchical locking right?
+			DirInode* parent_dir_inode = dynamic_cast<DirInode*>(parent_inode);
+			cc_proxy_parent = parent_dir_inode->rw_ref()->proxy();	
+			return cc_proxy->Lock(session, cc_proxy_parent, mode);
+		} else {
+			return cc_proxy->Lock(session, mode);
+		}
+	}
+
+	return E_SUCCESS;
+}
+
+
+int
+DirInode::Unlock(::client::Session* session)
+{
+	dpo::containers::client::NameContainer::Proxy* cc_proxy;
+
+	if (ref_) {
+		cc_proxy = rw_ref()->proxy();	
+		return cc_proxy->Unlock(session);
+	}
+	return E_SUCCESS;
+}
 
 
 } // namespace client

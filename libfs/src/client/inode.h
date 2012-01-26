@@ -29,10 +29,10 @@ public:
 	virtual int set_nlink(int nlink) = 0;
 
 	virtual int Publish(client::Session* session) = 0;
+	virtual int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode) = 0; 
+	virtual int Lock(::client::Session* session, lock_protocol::Mode mode) = 0; 
+	virtual int Unlock(::client::Session* session) = 0;
 
-	client::SuperBlock* GetSuperBlock() { return sb_;}
-	void SetSuperBlock(client::SuperBlock* sb) {sb_ = sb;}
-	
 	dpo::common::ObjectId oid() {
 		if (ref_) {
 			return ref_->obj()->oid();	
@@ -47,9 +47,6 @@ public:
 	/* non-polymorphic functions */
 	int Get();
 	int Put();
-	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode); 
-	int Lock(::client::Session* session, lock_protocol::Mode mode); 
-	int Unlock(::client::Session* session);
 	int type() {
 		return type_;
 	}

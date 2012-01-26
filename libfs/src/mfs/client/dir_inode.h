@@ -22,6 +22,7 @@ class DirInode: public ::client::Inode
 {
 public:
 	DirInode(dpo::common::ObjectProxyReference* ref)
+		: parent_(NULL)
 	{ 
 		ref_ = ref;
 		fs_type_ = ::common::fs::kMFS;
@@ -42,11 +43,16 @@ public:
 	int nlink();
 	int set_nlink(int nlink);
 
+	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode); 
+	int Lock(::client::Session* session, lock_protocol::Mode mode); 
+	int Unlock(::client::Session* session);
+
 private:
 	dpo::containers::client::NameContainer::Reference* rw_ref() {
 		return static_cast<dpo::containers::client::NameContainer::Reference*>(ref_);
 	}
-	int nlink_;
+	int              nlink_;
+	::client::Inode* parent_; // special case; see comment under link
 };
 
 

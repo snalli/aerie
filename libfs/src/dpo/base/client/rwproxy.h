@@ -34,11 +34,11 @@ public:
 	}
 
 	void OnRelease(::client::Session* session, ObjectId oid) {
-		ObjectProxy<Subject, VersionManager>* obj;
-		dpo::client::ObjectProxy*             obj2;
-		assert(oid2obj_map_.Lookup(oid, &obj2) == E_SUCCESS);
-		obj = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2);
-		assert(obj->vClose(session) == E_SUCCESS);
+		ObjectProxy<Subject, VersionManager>* obj_proxy;
+		dpo::client::ObjectProxy*             obj2_proxy;
+		assert(oid2obj_map_.Lookup(oid, &obj2_proxy) == E_SUCCESS);
+		obj_proxy = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2_proxy);
+		assert(obj_proxy->vClose(session) == E_SUCCESS);
 	}
 };
 
@@ -50,6 +50,11 @@ public:
 		: dpo::common::ObjectProxyReference(owner)
 	{ }
 
+	ObjectProxy<Subject, VersionManager>* proxy() { 
+		return static_cast<ObjectProxy<Subject, VersionManager>*>(obj_);
+	}
+
+	// deprecated
 	ObjectProxy<Subject, VersionManager>* obj() { 
 		return static_cast<ObjectProxy<Subject, VersionManager>*>(obj_);
 	}
@@ -64,20 +69,20 @@ public:
 	      session_(session)
 	{ }
 
-	int Lock(lock_protocol::Mode mode) {
+	int Lock(::client::Session* session, lock_protocol::Mode mode) {
 		int ret;
 		
-		if ((ret = dpo::cc::client::ObjectProxy::Lock(session_, mode)) != lock_protocol::OK) {
+		if ((ret = dpo::cc::client::ObjectProxy::Lock(session, mode)) != lock_protocol::OK) {
 			return ret;
 		}
 		assert((dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen() == 0));
 		return lock_protocol::OK;
 	}
 
-	int Lock(dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
+	int Lock(::client::Session* session, dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
 		int ret;
 		
-		if ((ret = dpo::cc::client::ObjectProxy::Lock(session_, parent, mode)) != lock_protocol::OK) {
+		if ((ret = dpo::cc::client::ObjectProxy::Lock(session, parent, mode)) != lock_protocol::OK) {
 			return ret;
 		}
 		assert((dpo::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen() == 0));
@@ -85,8 +90,8 @@ public:
 
 	}
 
-	int Unlock() {
-		return dpo::cc::client::ObjectProxy::Unlock(session_);
+	int Unlock(::client::Session* session) {
+		return dpo::cc::client::ObjectProxy::Unlock(session);
 	}
 
 private:
