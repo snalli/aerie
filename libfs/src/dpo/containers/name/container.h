@@ -39,11 +39,11 @@ public:
 }; 
 
 
-// we keep negative entries to indicate absence of the entry
+// In the entry cache we keep negative entries to indicate absence of the entry
 // (in contrast to the DLNC in Solaris and FreeBSD where the negative entry
 //  is used as a performance optimization, the negative entry in this system 
 //  is necessary for correctness)
-
+// Such entries are marked using FALSE
 class NameContainer::VersionManager: public dpo::vm::client::VersionManager<NameContainer::Object> {
 	typedef google::dense_hash_map<std::string, std::pair<bool, dpo::common::ObjectId> > EntryCache;
 
@@ -54,6 +54,8 @@ public:
 	int Find(::client::Session* session, const char* name, dpo::common::ObjectId* oidp);
 	int Insert(::client::Session* session, const char* name, dpo::common::ObjectId oid);
 	int Erase(::client::Session* session, const char* name);
+
+	int Size(::client::Session* session);
 
 	// do we need these?
 	// int Find(::client::Session* session, const char* name, NameContainer::Reference* oref);

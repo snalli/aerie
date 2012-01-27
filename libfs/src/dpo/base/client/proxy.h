@@ -99,7 +99,8 @@ template<class Subject>
 class VersionManager {
 public:
 	VersionManager(Subject* subject = NULL)
-		: subject_(subject)
+		: subject_(subject),
+		  nlink_(0)
 	{ }
 
 	void set_subject(Subject* subject) {
@@ -110,8 +111,28 @@ public:
 		return subject_;
 	}
 
+	int vOpen() {
+		nlink_ = subject_->nlink();
+		return 0;
+	}
+	
+	int vUpdate(::client::Session* session) {
+		subject_->set_nlink(nlink_);
+		return 0;
+	}
+
+	int nlink() {
+		return nlink_;
+	}
+
+	int set_nlink(int nlink) {
+		nlink_ = nlink;
+		return 0;
+	}
+
 protected:
 	Subject* subject_;
+	int      nlink_;
 };
 
 

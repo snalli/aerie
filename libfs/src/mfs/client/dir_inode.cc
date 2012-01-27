@@ -9,10 +9,8 @@
 namespace mfs {
 namespace client {
 
-
-//TODO thread safety: acquire/release mutex to protect volatile metadata/data structures
-//     persistent is protected by the lock. the caller should have already acquire the lock
-
+// FIXME: Should Link/Unlink increment/decrement the link count as well? currently the caller 
+// must do a separate call, which breaks encapsulation. 
 
 int 
 DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode** ipp) 
@@ -68,88 +66,16 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 }
 
 
-// FIXME: How do we shadow . and ..??? In the EntryCache? It should work.
-// FIXME: Should Link increment the link count as well? currently the caller 
-// must do a separate call but this breaks encapsulation. 
-int 
-DirInode::Link(::client::Session* session, const char* name, uint64_t ino, 
-               bool overwrite)
-{
-// FIXME: INODE
-/*
-	assert(overwrite == false);
-	EntryCache::iterator   it;
-	int                    ret;
-
-	dbg_log (DBG_INFO, "In pnode %lu, linking: %s -> %lu\n", ino_, name, ino);	
-
-	if (name[0] == '\0') {
-		return -1;
-	}
-
-	if ((it = entries_.find(name)) != entries_.end()) {
-		if (it->second.first == true) {
-			// name exists in the volatile cache
-			ino = it->second.second;
-			return -E_EXIST;
-		} else {
-			// found a negative entry indicating absence due to a previous 
-			// unlink. just overwrite.
-			it->second.first = true;
-			it->second.second = ino;
-			return E_SUCCESS;
-		}
-	}
-
-	//FIXME
-	//if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) == 0) {
-	//	// name exists in the persistent structure
-	//	return -E_EXIST;
-	//}
-	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(true, ino)));
-	assert(ret_pair.second == true);
-	printf("DirInode::Link (%s): DONE\n", name);
-*/
-	return 0;
-}
-
-
 int 
 DirInode::Unlink(::client::Session* session, const char* name)  
 {
+	int ret; 
 
-// FIXME: INODE
-/*
-	EntryCache::iterator   it;
-	int                    ret;
-	uint64_t               ino;
+	dbg_log (DBG_INFO, "In inode %lx, unlink %s\n", ino(), name);
 
-	if (name[0] == '\0') {
-		return -1;
+	if ((ret = rw_ref()->obj()->interface()->Erase(session, name)) != E_SUCCESS) {
+		return ret;
 	}
-
-	if ((it = entries_.find(name)) != entries_.end()) {
-		if (it->second.first == true) {
-			// name exists
-			it->second.first = false;
-			return E_SUCCESS;
-		} else {
-			// a negative entry indicating absence due to a previous unlink
-			return -E_NOENT;
-		}
-	}
-	
-	// FIXME
-	//if ((ret = ObjectProxy::subject()->Lookup(session, name, &ino)) != 0) {
-	//	// name does not exist in the persistent structure
-	//	return -E_EXIST;
-	//}
-	// add a negative directory entry when removing a directory entry from 
-	// the persistent data structure
-	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, uint64_t> >(name, std::pair<bool, uint64_t>(false, ino)));
-	neg_entries_count_++;
-	assert(ret_pair.second == true);
-*/
 	return E_SUCCESS;
 }
 
@@ -174,61 +100,15 @@ DirInode::Readdir()
 */
 
 
-int 
-DirInode::Publish(::client::Session* session)
-{
-// FIXME: INODE
-/*
-	// FIXME: Currently we publish by simply doing the updates in-place. 
-	// Normally this must be done via the trusted server using the journal 
-
-	EntryCache::iterator  it;
-	int                   ret;
-
-	printf("PUBLISH\n");
-	for (it = entries_.begin(); it != entries_.end(); it++) {
-		printf("PUBLISH: entry\n");
-		if (it->second.first == true) {
-			// normal entry -- link
-			// FIXME: if a link followed an unlink then the entry is 
-			// marked as valid (true). Adding this entry to the persistent 
-			// directory without removing the previous one is incorrect.
-			// however, currently we don't have a way to detect this case.
-			// consider modifying the cache.
-			// this case won't be a problem  when doing the publish through the server
-			// because there we replay the journal which has the unlink operation.
-			// so don't worry for now.
-			// TEST TestLinkPublish3 checks this case
-			printf("Publish: %s->%lu\n", it->first.c_str(), it->second.second);
-			// FIXME
-			//if ((ret = ObjectProxy::subject()->Link(session, it->first.c_str(), it->second.second)) != 0) {
-			//	return ret;
-			//}
-		} else {
-			// negative entry -- unlink
-			//FIXME
-			//if ((ret = ObjectProxy::subject()->Unlink(session, it->first.c_str())) != 0) {
-			//	return ret;
-			//}
-		}
-	}
-	printf("inode %lu: nlink_ = %d\n", ino_, nlink_);
-	//FIXME ObjectProxy::subject()->set_nlink(nlink_);
-*/
-	return 0;
-}
-
-
 int DirInode::nlink()
 {
-	return nlink_;
+	return rw_ref()->proxy()->interface()->nlink();
 }
 
 
 int DirInode::set_nlink(int nlink)
 {
-	nlink_ = nlink; 
-	return 0;
+	return rw_ref()->proxy()->interface()->set_nlink(nlink);
 }
 
 
@@ -278,6 +158,22 @@ DirInode::Unlock(::client::Session* session)
 		return cc_proxy->Unlock(session);
 	}
 	return E_SUCCESS;
+}
+
+
+int 
+DirInode::ioctl(::client::Session* session, int request, void* info)
+{
+	int ret = E_SUCCESS;
+	switch (request)
+	{
+		case 1: // is empty?
+			// empty if only entries is self (.) and parent (..)
+			bool isempty = (rw_ref()->proxy()->interface()->Size(session) > 2) ? false: true;
+			*((bool *) info) = isempty;
+			break;
+	}
+	return ret;
 }
 
 

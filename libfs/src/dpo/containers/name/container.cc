@@ -12,6 +12,7 @@ namespace client {
 int 
 NameContainer::VersionManager::vOpen()
 {
+	dpo::vm::client::VersionManager<NameContainer::Object>::vOpen();
 	entries_.set_empty_key("");
 	entries_.clear();
 	neg_entries_count_ = 0;
@@ -28,6 +29,8 @@ NameContainer::VersionManager::vUpdate(::client::Session* session)
 {
 	EntryCache::iterator  it;
 	int                   ret;
+
+	dpo::vm::client::VersionManager<NameContainer::Object>::vUpdate(session);
 
 	for (it = entries_.begin(); it != entries_.end(); it++) {
 		if (it->second.first == true) {
@@ -138,15 +141,15 @@ NameContainer::VersionManager::Erase(::client::Session* session, const char* nam
 		if (it->second.first == true) {
 			// name exists
 			it->second.first = false;
+			neg_entries_count_++;
 			return E_SUCCESS;
 		} else {
 			// found a negative entry indicating absence due to a previous unlink
 			return -E_NOENT;
 		}
 	}
-	
 	// check whether name exists in the persistent structure
-	if ((ret = subject()->Find(session, name, &oid)) == E_SUCCESS) {
+	if ((ret = subject()->Find(session, name, &oid)) != E_SUCCESS) {
 		return -E_NOENT;
 	}
 
@@ -159,6 +162,13 @@ NameContainer::VersionManager::Erase(::client::Session* session, const char* nam
 	return E_SUCCESS;
 }
 
+
+int
+NameContainer::VersionManager::Size(::client::Session* session)
+{
+	int pos_entries_count_ = entries_.size() - neg_entries_count_;
+	return pos_entries_count_ + (subject()->Size(session) - neg_entries_count_);
+}
 
 } // namespace dpo
 } // namespace containers

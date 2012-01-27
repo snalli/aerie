@@ -52,6 +52,8 @@ public:
 	int Insert(Session* session, const char* name, dpo::common::ObjectId oid);
 	int Erase(Session* session, const char* name);
 
+	int Size(Session* sesion);
+
 private:
 	HashTable<Session>* ht() {
 		return &ht_;
@@ -147,6 +149,19 @@ NameContainer::Object<Session>::Erase(Session* session, const char* name)
 
 	return ht()->Delete(session, name, strlen(name)+1);
 }
+
+
+template<typename Session>
+int 
+NameContainer::Object<Session>::Size(Session* session) 
+{
+	int size = 0;
+	size += (self_ != dpo::common::ObjectId(0)) ? 1: 0;
+	size += (parent_ != dpo::common::ObjectId(0)) ? 1: 0;
+	size += ht_.Size(session); 
+	return size;
+}
+
 
 } // namespace common
 } // namespace containers

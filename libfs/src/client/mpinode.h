@@ -31,7 +31,6 @@ public:
 	int Link(Session* session, const char* name, Inode* inode, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
 	int Unlink(client::Session* session, const char* name) { assert(0); }
-	int Publish(client::Session* session) { return 0; }
 	
 	int nlink() { return 0; }
 	int set_nlink(int nlink) { return 0; }
@@ -40,6 +39,8 @@ public:
 	int Lock(::client::Session* session, lock_protocol::Mode mode); 
 	int Unlock(::client::Session* session);
 	
+	int ioctl(::client::Session* session, int request, void* info) { return 0; }
+
 	struct Entry {
 		char   name_[64];
 		Inode* inode_;

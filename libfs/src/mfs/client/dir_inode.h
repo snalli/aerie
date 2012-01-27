@@ -7,7 +7,7 @@
 #include "common/types.h"
 #include "common/const.h"
 #include "client/inode.h"
-#include "mfs/hashtable.h"
+#include "dpo/containers/assoc/hashtable.h"
 #include "dpo/containers/name/container.h"
 #include "dpo/base/common/obj.h"
 
@@ -37,8 +37,7 @@ public:
 	int Unlink(::client::Session* session, const char* name);
 	int Lookup(::client::Session* session, const char* name, ::client::Inode** ipp);
 	int Link(::client::Session* session, const char* name, ::client::Inode* ip, bool overwrite);
-	int Link(::client::Session* session, const char* name, uint64_t ino, bool overwrite);
-	int Publish(::client::Session* session);
+	int Link(::client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
 
 	int nlink();
 	int set_nlink(int nlink);
@@ -47,6 +46,7 @@ public:
 	int Lock(::client::Session* session, lock_protocol::Mode mode); 
 	int Unlock(::client::Session* session);
 
+	int ioctl(::client::Session* session, int request, void* info);
 private:
 	dpo::containers::client::NameContainer::Reference* rw_ref() {
 		return static_cast<dpo::containers::client::NameContainer::Reference*>(ref_);

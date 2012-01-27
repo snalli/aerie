@@ -772,13 +772,14 @@ class HashTable {
 public:
 	HashTable()
 		: split_idx_(0),
-		  size_log2_(5)
-	{ }
+		  size_log2_(5),
+		  ncount_(0)
+	{ 
+	}
 
 	void* operator new(size_t nbytes, Session* session)
 	{
 		void* ptr;
-		
 		if (session->smgr_->Alloc(session, nbytes, typeid(HashTable), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
@@ -793,6 +794,7 @@ public:
 	int Search(Session* session, const char* key, int key_size, uint64_t* val);
 	int Delete(Session* session, const char* key, int key_size);
 	void Print();
+	int Size(Session* session) { return ncount_; }
 
 private:
 	class LinearSplit;
@@ -804,7 +806,8 @@ private:
 		return fh & mask;
 	}
 	
-	uint32_t         size_log2_;    // log2 of size 
+	uint32_t         ncount_;               // number of entries 
+	uint32_t         size_log2_;            // log2 of size 
 	uint32_t         split_idx_;
 	Bucket<Session>  buckets_[NUM_BUCKETS];
 };
@@ -840,6 +843,7 @@ HashTable<Session>::Init()
 {
 	split_idx_ = 0;
 	size_log2_ = 5;
+	ncount_ = 0;
 }
 
 
@@ -870,6 +874,7 @@ HashTable<Session>::Insert(Session* session, const char* key, int key_size,
 
 	idx = Index(session, key, key_size);
 	bucket = &buckets_[idx];
+	ncount_++;
 	if ((ret=bucket->Insert(session, key, key_size, val, val_size))==0) {
 		return 0;
 	}
@@ -931,6 +936,7 @@ HashTable<Session>::Delete(Session* session, const char* key, int key_size)
 
 	uint32_t idx = Index(session, key, key_size);
 	Bucket<Session>* bucket = &buckets_[idx];
+	ncount_--;
 	return bucket->Delete(session, key, key_size);
 }
 

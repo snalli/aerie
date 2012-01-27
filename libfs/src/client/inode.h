@@ -28,10 +28,11 @@ public:
 	virtual int nlink() = 0;
 	virtual int set_nlink(int nlink) = 0;
 
-	virtual int Publish(client::Session* session) = 0;
 	virtual int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode) = 0; 
 	virtual int Lock(::client::Session* session, lock_protocol::Mode mode) = 0; 
 	virtual int Unlock(::client::Session* session) = 0;
+
+	virtual int ioctl(::client::Session* session, int request, void* info) = 0;
 
 	dpo::common::ObjectId oid() {
 		if (ref_) {

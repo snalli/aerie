@@ -1,5 +1,6 @@
 #include "client/inode.h"
 #include "common/errno.h"
+#include "common/debug.h"
 #include "client/session.h"
 
 namespace client {
@@ -18,7 +19,7 @@ int
 Inode::Get() 
 { 
 	pthread_mutex_lock(&mutex_);
-	printf("Inode(%p)::Get %d -> %d\n", this, refcnt_, refcnt_ + 1);
+	dbg_log (DBG_INFO, "Inode(%p, oid=%lx)::Get %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ + 1);
 	refcnt_++; 
 	pthread_mutex_unlock(&mutex_);
 	return 0; 
@@ -29,7 +30,7 @@ int
 Inode::Put() 
 { 
 	pthread_mutex_lock(&mutex_);
-	printf("Inode(%p)::Put %d -> %d\n", this, refcnt_, refcnt_ - 1);
+	dbg_log (DBG_INFO, "Inode(%p, oid=%lx)::Put %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ - 1);
 	assert(refcnt_>0); 
 	refcnt_--; 
 	pthread_mutex_unlock(&mutex_);

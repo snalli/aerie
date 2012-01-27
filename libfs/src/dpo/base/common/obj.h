@@ -88,6 +88,11 @@ struct ObjectIdHashFcn {
 
 class Object {
 public:
+	Object()
+		: type_(0),
+		  nlink_(0)
+	{ }
+
 	ObjectId oid() {
 		return ObjectId(type_, this);
 	}
@@ -100,8 +105,17 @@ public:
 		type_ = type;
 	}
 
+	int nlink() {
+		return nlink_;
+	}
+
+	void set_nlink(int nlink) {
+		nlink_ = nlink;
+	}
+
 protected:
-	ObjectType type_; //!< Magic number identifying object type
+	ObjectType type_;  //!< Magic number identifying object type
+	int        nlink_; //!< Number of containers linking to this 
 };
 
 
@@ -111,7 +125,7 @@ protected:
 namespace cc {
 
 /**
- * We support concurrency control along two (orthogonal) dimensions:
+ * We support concurrency control in two (orthogonal) dimensions:
  * 1) hierarchy: flat or hierarchical
  *    - these two are mutually exclusive: an object cannot be controlled by
  *      both a flat and hierarchical lock. 

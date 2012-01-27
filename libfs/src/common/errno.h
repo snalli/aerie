@@ -8,7 +8,8 @@ enum {
 	E_NOENT,
 	E_INVAL,
 	E_KVFS,
-	E_BUSY
+	E_BUSY,
+	E_NOTEMPTY
 };
 
 #endif /* __ERRNO_H_JKA671 */

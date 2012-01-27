@@ -426,6 +426,7 @@ Client::Unlink(const char* pathname)
 	SuperBlock*   sb;
 	int           ret;
 
+	dbg_log (DBG_INFO, "Unlink: %s\n", pathname);	
 
 	// we do spider locking; when Nameiparent returns successfully, dp is 
 	// locked for writing. we release the lock on dp after we get the lock
@@ -449,20 +450,23 @@ Client::Unlink(const char* pathname)
 		return ret;
 	}
 	
-	// do we need recursive lock if file? 
+	// do we need recursive lock if ip is a file? 
 	ip->Lock(global_session, dp, lock_protocol::Mode::XR); 
 	assert(ip->nlink() > 0);
 
 	if (ip->type() == client::type::kDirInode) {
-		//TODO: make sure directory is empty
-		// dp->empty()
-		ip->Put();
-		ip->Unlock(global_session);
-		dp->Put();
-		dp->Unlock(global_session);
+		bool isempty;
+		assert(ip->ioctl(global_session, 1, &isempty) == E_SUCCESS);
+		if (!isempty) {
+			ip->Put();
+			ip->Unlock(global_session);
+			dp->Put();
+			dp->Unlock(global_session);
+			return -E_NOTEMPTY;
+		}
 	}
 
-	assert(dp->Unlink(global_session, name) == 0);
+	assert(dp->Unlink(global_session, name) == E_SUCCESS);
 	//FIXME: inode link/unlink should take care of the nlink
 	if (ip->type() == client::type::kDirInode) {
 		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's ..
@@ -471,7 +475,6 @@ Client::Unlink(const char* pathname)
 	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for child's ..
 	//FIXME: who deallocates the inode if nlink == 0 ???
 	
-	printf("DONEDONE\n");
 	dp->Put();
 	dp->Unlock(global_session);
 	ip->Put();

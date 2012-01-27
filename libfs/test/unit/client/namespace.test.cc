@@ -28,10 +28,15 @@ public:
 	int Link(client::Session* session, const char* name, client::Inode* inode, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
 	int Unlink(client::Session* session, const char* name) { assert(0); }
-	int Publish(client::Session* session) { assert(0); }
-
+	
 	int nlink() { return nlink_; }
 	int set_nlink(int nlink) { nlink_ = nlink; return 0; }
+
+	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode) { return 0; }
+	int Lock(::client::Session* session, lock_protocol::Mode mode) { return 0; }
+	int Unlock(::client::Session* session) { return 0; }
+
+	int ioctl(::client::Session* session, int request, void* info) { return 0; }
 
 private:
 	EntryCache  entries_;
