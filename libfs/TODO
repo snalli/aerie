@@ -1,39 +1,32 @@
-FIXME: Inode locking must be done via the type specific reference to properly call vOpen
-
 -superblock container
   - filesystem
   - free bitmaps
--superblock factory/inode
--
 
+-DPO
+  - implement protocol for transition between hierarchical and flat locks 
+  - implement read-only transactional concurrency control
+
+-rename
+  - port remame to DPO
+
+-RPC
+  - integrate Venkat's fast RPC
+
+-Mnemosyne
+  - integrate Mnemosyne's PCM model
+  - integrate Mnemosyne's primitives: including the RAWL which we probably 
+    have to re-write as the log manager code-base is crappy
 
 ===================================================================================
 ===================================================================================
--thread safety for MFS mutable directory inode
 -concurrent namespace operations (mkdir, rmdir, link, unlink, rename)
 -generic namemap: to be used by directory inodes and mount point pseudo-inodes
   - parameterized using a hashfunction (functor)
   - extend the hashtable interface to take the result of the hash-function as a hint 
     and verify that the hash is correct. is it cheaper to verify?
 -readdir
--factories and storage manager for persistent objects
--factories for volatile objects
 -files
 -journal
-
-================
--factory for superblock 
-   - create superblock given a persistent superblock
--factory for inodes 
-   - create inodes given a persistent inode
-
-
-factories for persistent structures
- - to be used by the storage manager so we need a common interface
-   to the structures. 
- - structures also need to use the same smgr interface to construct 
-   instances. 
- 
 
 
 Optimizations:
@@ -68,7 +61,7 @@ client/namespace.cc
 //to ask for a mutable inode
 
 
-client/imap.h
+InodeMap
 //TODO: USe a timestamp counter to signal to clients that an
 // immutable inode mapping they hold may be invalid (because someone
 // inserted a mutable one)

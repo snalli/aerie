@@ -115,7 +115,7 @@ public:
 
 protected:
 	ObjectType type_;  //!< Magic number identifying object type
-	int        nlink_; //!< Number of containers linking to this 
+	int        nlink_; //!< Number of containers linking to this container
 };
 
 

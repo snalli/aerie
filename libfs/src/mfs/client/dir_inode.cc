@@ -4,6 +4,7 @@
 #include "client/backend.h"
 #include "client/inode.h"
 #include "client/session.h"
+#include "client/const.h"
 #include "mfs/client/inode_factory.h"
 
 namespace mfs {
@@ -13,7 +14,7 @@ namespace client {
 // must do a separate call, which breaks encapsulation. 
 
 int 
-DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode** ipp) 
+DirInode::Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
 {
 	int                   ret;
 	::client::Inode*      ip;
@@ -29,17 +30,50 @@ DirInode::Lookup(::client::Session* session, const char* name, ::client::Inode**
 		goto done;
 	}
 
-	if ((ret = rw_ref()->obj()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
+	if ((ret = rw_ref()->proxy()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
 		return ret;
 	}
 	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
 		return ret;
 	}
+
 done:
 	ip->Get();
     *ipp = ip;
 	return E_SUCCESS;
 }
+
+
+int 
+DirInode::xLookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
+{
+	int                   ret;
+	::client::Inode*      ip;
+	dpo::common::ObjectId oid;
+	
+	dbg_log (DBG_INFO, "xLookup %s in inode %lx\n", name, ino());
+
+	assert(ref_ != NULL);
+
+	// special case: requesting parent (name=..) and parent_ points to a pseudo-inode
+	if (parent_ && str_is_dot(name) == 2) {
+		ip = parent_;
+		goto done;
+	}
+
+	if ((ret = rw_ref()->proxy()->xinterface()->Find(session, name, &oid)) != E_SUCCESS) {
+		return ret;
+	}
+	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
+		return ret;
+	}
+
+done:
+	ip->Get();
+    *ipp = ip;
+	return E_SUCCESS;
+}
+
 
 
 int 
@@ -59,7 +93,7 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 		return E_SUCCESS;
 	}
 
-	if ((ret = rw_ref()->obj()->interface()->Insert(session, name, ip->oid())) != E_SUCCESS) {
+	if ((ret = rw_ref()->proxy()->interface()->Insert(session, name, ip->oid())) != E_SUCCESS) {
 		return ret;
 	}
 	return E_SUCCESS;
@@ -73,7 +107,7 @@ DirInode::Unlink(::client::Session* session, const char* name)
 
 	dbg_log (DBG_INFO, "In inode %lx, unlink %s\n", ino(), name);
 
-	if ((ret = rw_ref()->obj()->interface()->Erase(session, name)) != E_SUCCESS) {
+	if ((ret = rw_ref()->proxy()->interface()->Erase(session, name)) != E_SUCCESS) {
 		return ret;
 	}
 	return E_SUCCESS;
@@ -157,6 +191,14 @@ DirInode::Unlock(::client::Session* session)
 		cc_proxy = rw_ref()->proxy();	
 		return cc_proxy->Unlock(session);
 	}
+	return E_SUCCESS;
+}
+ 
+
+int 
+DirInode::xOpenRO(::client::Session* session)
+{
+	rw_ref()->proxy()->xOpenRO();
 	return E_SUCCESS;
 }
 

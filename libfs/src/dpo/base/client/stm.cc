@@ -12,12 +12,10 @@ __thread Transaction* transaction_; // per thread transaction descriptor
 int
 Transaction::Init()
 {
-	//FIXME
-	//nesting_ = 0;
-	//rset_.set_empty_key(0);
+	nesting_ = 0;
+	rset_.set_empty_key(0);
 }
 
-/*
 
 int 
 Transaction::Start(JmpBuf* jmpbuf, uint32_t abort_flags)
@@ -43,7 +41,6 @@ Transaction::Commit()
 	return 0;
 }
 
-*/
 
 int
 Transaction::OpenRO(::dpo::cc::common::Object* obj)
@@ -60,17 +57,16 @@ Transaction::OpenRO(::dpo::cc::common::Object* obj)
 	return 0;
 }
 
-/*
 
 int 
 Transaction::Validate()
 {
-	ReadSet::iterator it;
-	Object*           obj;
+	ReadSet::iterator          it;
+	::dpo::cc::common::Object* obj;
 
 	for (it = rset_.begin(); it != rset_.end(); it++) {
 		obj = it->first;
-		if (obj->xVersion() > it->second.version_) {
+		if (obj->ccVersion() > it->second.version_) {
 			return -1;
 		}
 	}
@@ -102,10 +98,7 @@ Transaction::Rollback(int flags)
 
 	siglongjmp(jmpbuf_, flags);
 }
-*/
 
 } // namespace client
-
 } // namespace stm
-
 } // namespace dpo

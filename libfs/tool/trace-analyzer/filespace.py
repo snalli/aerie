@@ -260,10 +260,10 @@ class FileSpace:
                 print "%s: %s" % (map[k], inode_stat)
 
         print 'SUMMARY'
-        print 'total accesses      = ', total_accesses
-        print 'concurrent accesses = ', concurrent_rr_accesses + concurrent_rw_ww_accesses
-        print 'concurrent RR accesses = ', concurrent_rr_accesses
-        print 'concurrent RW/WW accesses = ', concurrent_rw_ww_accesses
-        print 'seq RR accesses histogram    = ', histogram_seq_rr_accesses
-        print 'seq RW/WW accesses histogram    = ', histogram_seq_rw_ww_accesses
+        print 'total file accesses      = ', total_accesses
+        print 'concurrent file accesses = ', concurrent_rr_accesses + concurrent_rw_ww_accesses
+        print 'concurrent RR file accesses = ', concurrent_rr_accesses
+        print 'concurrent RW/WW file accesses = ', concurrent_rw_ww_accesses
+        print 'seq RR file accesses histogram    = ', histogram_seq_rr_accesses
+        print 'seq RW/WW file accesses histogram    = ', histogram_seq_rw_ww_accesses
 

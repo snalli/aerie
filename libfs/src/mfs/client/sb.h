@@ -27,7 +27,7 @@ public:
 	}
 	
 	dpo::common::ObjectId oid() {
-		return super_rw_ref_->obj()->oid();	
+		return super_rw_ref_->proxy()->oid();	
 	}
 
 private:

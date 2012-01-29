@@ -20,7 +20,8 @@ public:
 	virtual int Open(client::Session* session, const char* path, int flags) = 0;
 	virtual int Write(client::Session* session, char* src, uint64_t off, uint64_t n) = 0;
 	virtual int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) = 0;
-	virtual int Lookup(client::Session* session, const char* name, Inode** ipp) = 0;
+	virtual int Lookup(client::Session* session, const char* name, int flags, Inode** ipp) = 0;
+	virtual int xLookup(client::Session* session, const char* name, int flags, Inode** ipp) = 0;
 	virtual int Link(client::Session* session, const char* name, Inode* inode, bool overwrite) = 0;
 	virtual int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) = 0;
 	virtual int Unlink(client::Session* session, const char* name) = 0;
@@ -31,12 +32,13 @@ public:
 	virtual int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode) = 0; 
 	virtual int Lock(::client::Session* session, lock_protocol::Mode mode) = 0; 
 	virtual int Unlock(::client::Session* session) = 0;
+	virtual int xOpenRO(::client::Session* session) = 0; 
 
 	virtual int ioctl(::client::Session* session, int request, void* info) = 0;
 
 	dpo::common::ObjectId oid() {
 		if (ref_) {
-			return ref_->obj()->oid();	
+			return ref_->proxy()->oid();	
 		}
 		return dpo::common::ObjectId(0);
 	}

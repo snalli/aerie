@@ -13,3 +13,5 @@ SEER format (http://www.lasr.cs.ucla.edu/seer/seer_traces.html)
 ===============================================================
 seer.py           Analyzes a seer trace file
 seer.example.log  An example seer trace file
+dumpobs           Reads a SEER file in the compressed binary format and 
+                  produces ASCII output. 

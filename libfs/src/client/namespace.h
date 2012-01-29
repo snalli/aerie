@@ -23,7 +23,7 @@ public:
 	int Init(Session* session);
 
 private:
-	int LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mode);
+	int LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode lock_mode);
 	int Namex(Session* session, const char* path, lock_protocol::Mode lock_mode, bool nameiparent, char* name, Inode**);
 
 	rpcc*        client_;

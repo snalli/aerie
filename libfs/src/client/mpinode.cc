@@ -6,7 +6,7 @@
 
 namespace client {
 
-int MPInode::Lookup(Session* session, const char* name, Inode** inodep)
+int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inodep)
 {
 	Inode* inode;
 	int    len;

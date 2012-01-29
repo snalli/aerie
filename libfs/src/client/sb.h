@@ -24,36 +24,6 @@ namespace client {
 
 class Session; // forward declaration
 
-#if 0
-class SuperBlock: public HLockUser {
-public:
-	SuperBlock(Session* session);
-	
-	virtual void* GetPSuperBlock() = 0;
-	int AllocInode(Session* session, int type, Inode* parent, Inode** ipp);
-	int GetInode(InodeNumber ino, Inode** ipp);
-	int PutInode(Inode* ip);
-
-	inline client::Inode* RootInode() {	return root_; }
-
-	// callbacks
-	void OnRelease(HLock* hlock);
-	void OnConvert(HLock* hlock);
-	int Revoke(HLock* hlock) { return 0; }
-
-protected:
-	pthread_mutex_t mutex_;
-	InodeMap*       imap_;
-	Inode*          root_;
-
-private:
-	// FIXME: these functions should really be replaced with an inode factory 
-	virtual int MakeInode(Session* session, int type, Inode** ipp) = 0;
-	virtual int LoadInode(InodeNumber ino, client::Inode** ipp) = 0;
-};
-#endif
-
-
 // Abstract class representing a file-system specific superblock
 class SuperBlock {
 public:

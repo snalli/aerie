@@ -41,7 +41,7 @@ SuperBlockFactory::Load(::client::Session* session, dpo::common::ObjectId oid,
 		sb = new SuperBlock(ref);
 	}
 
-	root_oid = sb->super_rw_ref_->obj()->interface()->root(session);
+	root_oid = sb->super_rw_ref_->proxy()->interface()->root(session);
 	if ((ret = InodeFactory::LoadDirInode(session, root_oid, &dip)) < 0) {
 		//FIXME: deallocate the allocated superblock and dirinode object
 		return ret;
@@ -81,7 +81,7 @@ SuperBlockFactory::Make(::client::Session* session, ::client::SuperBlock** sbp)
 	if ((root_obj = new(session) dpo::containers::client::NameContainer::Object) == NULL) {
 		return -E_NOMEM;
 	}
-	sb->super_rw_ref_->obj()->interface()->set_root(session, root_obj->oid());
+	sb->super_rw_ref_->proxy()->interface()->set_root(session, root_obj->oid());
 	if ((ret = InodeFactory::LoadDirInode(session, root_obj->oid(), &dip)) < 0) {
 		//FIXME: deallocate the allocated superblock and dirinode object
 		return ret;

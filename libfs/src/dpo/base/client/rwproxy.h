@@ -51,12 +51,7 @@ public:
 	{ }
 
 	ObjectProxy<Subject, VersionManager>* proxy() { 
-		return static_cast<ObjectProxy<Subject, VersionManager>*>(obj_);
-	}
-
-	// deprecated
-	ObjectProxy<Subject, VersionManager>* obj() { 
-		return static_cast<ObjectProxy<Subject, VersionManager>*>(obj_);
+		return static_cast<ObjectProxy<Subject, VersionManager>*>(proxy_);
 	}
 };
 

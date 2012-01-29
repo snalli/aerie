@@ -191,7 +191,6 @@ ObjectManager::PutObject(dpo::common::ObjectProxyReference& obj_ref)
 {
 	int                  ret = E_SUCCESS;
 	ObjectManagerOfType* mgr;
-	ObjectProxy*         obj = obj_ref.obj();
 
 	pthread_mutex_lock(&mutex_);
 	obj_ref.Reset(true);

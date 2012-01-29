@@ -25,14 +25,14 @@ SuperContainer::VersionManager::vUpdate(::client::Session* session)
 dpo::common::ObjectId 
 SuperContainer::VersionManager::root(::client::Session* session)
 {
-	return subject()->root(session);
+	return object()->root(session);
 }
 
 
 int 
 SuperContainer::VersionManager::set_root(::client::Session* session, dpo::common::ObjectId oid)
 {
-	return subject()->set_root(session, oid);
+	return object()->set_root(session, oid);
 }
 
 

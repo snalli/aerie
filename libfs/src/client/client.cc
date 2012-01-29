@@ -189,7 +189,7 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 		return ret;
 	}
 	printf("create: dp=%p\n", dp);
-	if ((ret = dp->Lookup(session, name, &ip)) == E_SUCCESS) {
+	if ((ret = dp->Lookup(session, name, 0, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
 		ip->Lock(session, dp, lock_protocol::Mode::XR); 
 		if (type == client::type::kFileInode && 
@@ -444,7 +444,7 @@ Client::Unlink(const char* pathname)
 		return -E_INVAL;
 	}
 
-	if ((ret = dp->Lookup(global_session, name, &ip)) != E_SUCCESS) {
+	if ((ret = dp->Lookup(global_session, name, 0, &ip)) != E_SUCCESS) {
 		dp->Put();
 		dp->Unlock(global_session);
 		return ret;

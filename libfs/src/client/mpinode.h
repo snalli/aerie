@@ -27,7 +27,8 @@ public:
 	int Open(Session* session, const char* path, int flags) { return 0; }
 	int Write(Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
 	int Read(Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
-	int Lookup(Session* session, const char* name, Inode** inode);
+	int Lookup(Session* session, const char* name, int flags, Inode** inode);
+	int xLookup(Session* session, const char* name, int flags, Inode** inode) { return 0; }
 	int Link(Session* session, const char* name, Inode* inode, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
 	int Unlink(client::Session* session, const char* name) { assert(0); }
@@ -38,6 +39,7 @@ public:
 	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode); 
 	int Lock(::client::Session* session, lock_protocol::Mode mode); 
 	int Unlock(::client::Session* session);
+	int xOpenRO(::client::Session* session) { return 0; } 
 	
 	int ioctl(::client::Session* session, int request, void* info) { return 0; }
 

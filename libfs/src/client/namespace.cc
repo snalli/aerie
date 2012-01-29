@@ -26,7 +26,7 @@
 //TODO: pathname resolution against current working directory, chdir
 //TODO: integrate LockInode
 //TODO: directory operations update object version
-//TODO: rename
+//TODO: port rename
 //TODO: test rename
 
 //TODO: extent the namei API to take as argument the type of lock on the resolved inode
@@ -132,7 +132,7 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 	
 	inode = root_;
 	while((path = SkipElem(path, name)) != 0) {
-		if ((ret = inode->Lookup(session, name, (Inode**) &inode_next)) < 0) {
+		if ((ret = inode->Lookup(session, name, 0, (Inode**) &inode_next)) < 0) {
 			if (typeid(*inode) != typeid(client::MPInode)) {
 				// cannot mount a filesystem on non-mount-point pseudo-inode  
 				return -1;
@@ -171,12 +171,11 @@ NameSpace::Unmount(Session* session, char* name)
 // caller does not hold any lock 
 // 
 // it relies on a read-only optimistic memory transaction to atomically 
-// traverse the chain up to the root and then acquire locks down till the inode
+// traverse the chain up to the root and then acquire locks down the path 
+// until it finds the inode
 int
-NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mode)
+NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode lock_mode)
 {
-// FIXME
-#if 0 
 	std::vector<Inode*> inode_chain;   // treated as a stack
 	std::vector<Inode*> locked_inodes; 
 	Inode*              tmp_inode;
@@ -185,51 +184,63 @@ NameSpace::LockInode(Session* session, Inode* inode, lock_protocol::Mode lock_mo
 	int                 ret;
 
 	STM_BEGIN()
-		// transaction does not automatically release any acquired locks 
+		// the transaction does not automatically release any acquired locks 
 		// so we need to do this manually
 		inode_chain.clear();
 		for (std::vector<Inode*>::iterator it = locked_inodes.begin();
 		     it != locked_inodes.end();
 			 it++)
 		{
-			(*it)->Unlock();
+			(*it)->Unlock(session);
 		}
 		locked_inodes.clear();
+		// optimistically find all the inodes that appear in the path that begins
+		// from the current inode up to the root inode
 		for (tmp_inode = inode; tmp_inode != root_; tmp_inode = parent_inode) {
 			inode_chain.push_back(tmp_inode);
-			tmp_inode = tmp_inode->xOpenRO();
-			ret = tmp_inode->Lookup(session, "..", &parent_inode);
+			tmp_inode->xOpenRO(session);
+			ret = tmp_inode->xLookup(session, "..", 0, &parent_inode);
 			if (ret != E_SUCCESS) {
 
 			}
 			STM_ABORT_IF_INVALID() // read-set consistency
 		}
-		// acquire locks on the inodes in the reverse order they appear 
-		// in the list 
+		// acquire hierarchical locks on the inodes in the reverse order they 
+		// appear in the list (i.e. root to leaf)
 		parent_inode = NULL;
 		for (std::vector<Inode*>::iterator it = inode_chain.end();
-		     it != locked_inodes.begin();
+		     it != inode_chain.begin();
 			 it--)
 		{
 			if (*it == inode) {
 				if (parent_inode) {
-					assert((*it)->Lock(parent_inode, lock_mode) == 0);
+					assert((*it)->Lock(session, parent_inode, lock_mode) == 0);
 				} else {
 					assert(*it == root_);
-					assert((*it)->Lock(lock_mode) == 0);
+					assert((*it)->Lock(session, lock_mode) == 0);
 				}
 			} else {
 				if (parent_inode) {
-					assert((*it)->Lock(parent_inode, lock_protocol::Mode::IX) == 0);
+					assert((*it)->Lock(session, parent_inode, lock_protocol::Mode::IX) == 0);
 				} else {
 					assert(*it == root_);
-					assert((*it)->Lock(lock_protocol::Mode::IX) == 0);
+					assert((*it)->Lock(session, lock_protocol::Mode::IX) == 0);
 				}
 			}
 			parent_inode = *it;
 		}
 	STM_END()
-#endif
+
+	// now release all the locks except the lock on the inode we were asked to lock
+	for (std::vector<Inode*>::iterator it = locked_inodes.begin();
+		 it != locked_inodes.end();
+		 it++)
+	{
+		if (*it != inode) {
+			(*it)->Unlock(session);
+		}
+	}
+	return E_SUCCESS;
 }
 
 
@@ -286,7 +297,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	// acquiring locks along the chain from the root to the inode ..
 	while (path != 0) {
 		printf("Namex: inode=%p (ino=%lu), name=%s\n", inode, inode->ino(), name);
-		if ((ret = inode->Lookup(session, name, &inode_next)) < 0) {
+		if ((ret = inode->Lookup(session, name, 0, &inode_next)) < 0) {
 			inode->Put();
 			inode->Unlock(session);
 			return ret;
@@ -310,9 +321,13 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		} else {
 			if (str_is_dot(old_name) == 2) {
 				// encountered a ..
+				// Cannot do hierarchical locking on the reverse order (i.e. acquire 
+				// parent under child) so we try to acquire the cached lock on .. 
+				// by not providing a parent hint for ..
+				// If this fails then we redo locking beginning from the root
 				inode->Unlock(session);
 				if (inode_next->Lock(session, lock_protocol::Mode::IXSL) != E_SUCCESS) {
-					LockInode(session, inode_next, lock_protocol::Mode::IXSL);
+					LockInodeReverse(session, inode_next, lock_protocol::Mode::IXSL);
 				}
 			} else {
 				assert(inode_next->Lock(session, inode, lock_protocol::Mode::IXSL) == E_SUCCESS);

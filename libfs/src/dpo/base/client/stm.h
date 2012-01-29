@@ -1,5 +1,5 @@
-#ifndef _TRANSACTION_CLIENT_STAMNOS_H_BMA567
-#define _TRANSACTION_CLIENT_STAMNOS_H_BMA567
+#ifndef __STAMNOS_DPO_CLIENT_TRANSACTION_H
+#define __STAMNOS_DPO_CLIENT_TRANSACTION_H
 
 #include <setjmp.h>
 #include <google/sparsehash/sparseconfig.h>
@@ -8,9 +8,7 @@
 #include "common/types.h"
 
 namespace dpo {
-
 namespace stm {
-
 namespace client {
 
 #define STM_BEGIN()                                                        \
@@ -40,25 +38,18 @@ enum {
 	ABORT_VALIDATE = 2,
 };
 
-typedef sigjmp_buf        JmpBuf;
-/*
-typedef dpo::stm::Object  Object;
-typedef dpo::stm::Version Version;
-
-*/
-typedef uint64_t Version;
+typedef sigjmp_buf  JmpBuf;
+typedef uint64_t    Version;
 
 class Transaction {
 public:
 	int Init();
-/*
 	int Start(JmpBuf* jmpbuf, uint32_t abort_flags);
 	int	Commit();
 	void AbortIfInvalid(); 
 	int Validate();
 	void Abort();
 	void Rollback(int flags);
-*/
 	int OpenRO(::dpo::cc::common::Object* obj);
 
 	JmpBuf* jmpbuf() {
@@ -92,9 +83,7 @@ Self()
 
 
 } // namespace client
-
 } // namespace stm
-
 } // namespace dpo
 
-#endif // TRANSACTION_CLIENT_STAMNOS_H_BMA567
+#endif // __STAMNOS_DPO_CLIENT_TRANSACTION_H

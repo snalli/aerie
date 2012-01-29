@@ -20,6 +20,10 @@ namespace client {
 //const int O_APPEND  = 0x2000;
 
 
+enum {
+	BYPASS_BUFFER = 1
+};
+
 namespace limits {
 
 const int kFileN = 1024;

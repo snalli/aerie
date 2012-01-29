@@ -17,12 +17,12 @@ class ObjectProxyReference {
 friend class ObjectProxy;
 public:
 	ObjectProxyReference(void* owner = NULL) 
-		: obj_(NULL),
+		: proxy_(NULL),
 		  owner_(owner)
 	{ }
 
-	ObjectProxy* obj() { 
-		return obj_;
+	ObjectProxy* proxy() { 
+		return proxy_;
 	}
 
 	void* owner() {
@@ -37,7 +37,7 @@ public:
 	inline void Reset(bool lock = true);
 
 protected:
-	ObjectProxy* obj_;
+	ObjectProxy* proxy_;
 	void*        owner_; // the volatile object that owns this reference 
 	                     // (has it embedded in its structure)
 };
@@ -49,7 +49,7 @@ friend class ObjectProxyReference;
 public:
 	ObjectProxy()
 		: refcnt_(0),
-		  subject_(NULL)  
+		  object_(NULL)  
 	{
 		pthread_mutex_init(&mutex_, NULL);
 	}
@@ -58,11 +58,15 @@ public:
 		: refcnt_(0)
 	{
 		pthread_mutex_init(&mutex_, NULL);
-		subject_ = static_cast<dpo::common::Object*>(oid.addr());
+		object_ = static_cast<dpo::common::Object*>(oid.addr());
 	}
 
 	dpo::common::ObjectId oid() {
-		return subject_->oid();
+		return object_->oid();
+	}
+
+	dpo::common::Object* object() {
+		return object_;
 	}
 
 	ObjectProxyReference* HeadReference() {
@@ -79,36 +83,36 @@ protected:
 	pthread_mutex_t                  mutex_;
 	std::list<ObjectProxyReference*> reflist_;   // list of references to this object proxy 
 	int                              refcnt_;
-	dpo::common::Object*             subject_;
+	dpo::common::Object*             object_;
 };
 
 
-void ObjectProxyReference::Set(ObjectProxy* obj, bool lock) {
+void ObjectProxyReference::Set(ObjectProxy* proxy, bool lock) {
 	if (lock) {
-		pthread_mutex_lock(&(obj->mutex_));
+		pthread_mutex_lock(&(proxy->mutex_));
 	}
-	assert(obj_ == NULL);
-	obj_ = obj;
-	obj_->refcnt_++;
-	obj_->reflist_.push_back(this);
+	assert(proxy_ == NULL);
+	proxy_ = proxy;
+	proxy_->refcnt_++;
+	proxy_->reflist_.push_back(this);
 	if (lock) {
-		pthread_mutex_unlock(&(obj->mutex_));
+		pthread_mutex_unlock(&(proxy->mutex_));
 	}
 }
 
 void ObjectProxyReference::Reset(bool lock) {
-	if (obj_ == NULL) {
+	if (proxy_ == NULL) {
 		return;
 	}
 	if (lock) {
-		pthread_mutex_lock(&(obj_->mutex_));
+		pthread_mutex_lock(&(proxy_->mutex_));
 	}
-	obj_->refcnt_++;
-	obj_->reflist_.remove(this);
+	proxy_->refcnt_++;
+	proxy_->reflist_.remove(this);
 	if (lock) {
-		pthread_mutex_unlock(&(obj_->mutex_));
+		pthread_mutex_unlock(&(proxy_->mutex_));
 	}
-	obj_ = NULL;
+	proxy_ = NULL;
 }
 
 

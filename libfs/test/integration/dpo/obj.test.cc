@@ -58,12 +58,12 @@ public:
 	}
 
 	int vOpen() {
-		nlink_ = subject()->nlink_;
+		nlink_ = object()->nlink_;
 		return E_SUCCESS;
 	}
 
 	int vUpdate(::client::Session* session) {
-		subject()->nlink_ = nlink_;
+		object()->nlink_ = nlink_;
 		return E_SUCCESS;
 	}
 private:
@@ -95,15 +95,15 @@ SUITE(Object)
 		CHECK(global_omgr->GetObject(OID[1], &ref) == E_SUCCESS);
 		EVENT("BeforeLock");
 		dummy_rw_ref = static_cast<DummyRWReference*>(ref);
-		dummy_rw_ref->obj()->Lock(session, lock_protocol::Mode::XL);
-		int nlink = dummy_rw_ref->obj()->interface()->nlink();
+		dummy_rw_ref->proxy()->Lock(session, lock_protocol::Mode::XL);
+		int nlink = dummy_rw_ref->proxy()->interface()->nlink();
 		if (strcmp(SELF->Tag(), "C1:T1")==0) {
 			CHECK(nlink == 0);
 		} else {
 			CHECK(nlink == 1);
 		}
-		dummy_rw_ref->obj()->interface()->set_nlink(nlink+1);
-		dummy_rw_ref->obj()->Unlock(session);
+		dummy_rw_ref->proxy()->interface()->set_nlink(nlink+1);
+		dummy_rw_ref->proxy()->Unlock(session);
 		EVENT("AfterLock");
 		EVENT("End");
 	}

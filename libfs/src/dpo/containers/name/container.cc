@@ -44,12 +44,12 @@ NameContainer::VersionManager::vUpdate(::client::Session* session)
 			// so don't worry for now.
 			// TEST TestLinkPublish3 checks this case
 			printf("Publish: %s->%lu\n", it->first.c_str(), it->second.second.u64());
-			if ((ret = subject()->Insert(session, it->first.c_str(), it->second.second)) != 0) {
+			if ((ret = object()->Insert(session, it->first.c_str(), it->second.second)) != 0) {
 				return ret;
 			}
 		} else {
 			// negative entry -- remove
-			if ((ret = subject()->Erase(session, it->first.c_str())) != 0) {
+			if ((ret = object()->Erase(session, it->first.c_str())) != 0) {
 				return ret;
 			}
 		}
@@ -76,7 +76,7 @@ NameContainer::VersionManager::Find(::client::Session* session,
 			return -E_NOENT;
 		}
 	} else {
-		if ((ret = subject()->Find(session, name, &tmp_oid)) < 0) {
+		if ((ret = object()->Find(session, name, &tmp_oid)) < 0) {
 			return ret;
 		}
 	}
@@ -116,7 +116,7 @@ NameContainer::VersionManager::Insert(::client::Session* session,
 	}
 
 	// check whether name exists in the persistent structure
-	if ((ret = subject()->Find(session, name, &tmp_oid)) == E_SUCCESS) {
+	if ((ret = object()->Find(session, name, &tmp_oid)) == E_SUCCESS) {
 		return -E_EXIST;
 	}
 
@@ -149,7 +149,7 @@ NameContainer::VersionManager::Erase(::client::Session* session, const char* nam
 		}
 	}
 	// check whether name exists in the persistent structure
-	if ((ret = subject()->Find(session, name, &oid)) != E_SUCCESS) {
+	if ((ret = object()->Find(session, name, &oid)) != E_SUCCESS) {
 		return -E_NOENT;
 	}
 
@@ -167,7 +167,7 @@ int
 NameContainer::VersionManager::Size(::client::Session* session)
 {
 	int pos_entries_count_ = entries_.size() - neg_entries_count_;
-	return pos_entries_count_ + (subject()->Size(session) - neg_entries_count_);
+	return pos_entries_count_ + (object()->Size(session) - neg_entries_count_);
 }
 
 } // namespace dpo

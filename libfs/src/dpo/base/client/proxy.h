@@ -58,7 +58,7 @@ public:
 		: ObjectProxy(session, oid)
 	{ }
 
-	Subject* subject() { return static_cast<Subject*>(subject_); }
+	Subject* object() { return static_cast<Subject*>(object_); }
 
 	Derived* xOpenRO(dpo::stm::client::Transaction* tx);
 	Derived* xOpenRO();
@@ -72,7 +72,7 @@ template<class Derived, class Subject>
 Derived* ObjectProxyTemplate<Derived, Subject>::xOpenRO(dpo::stm::client::Transaction* tx)
 {
 	Derived* derived = static_cast<Derived*>(this);
-	Subject* subj = derived->subject();
+	Subject* subj = derived->object();
 	tx->OpenRO(subj);
 	return derived;
 }
@@ -95,29 +95,35 @@ Derived* ObjectProxyTemplate<Derived, Subject>::xOpenRO()
 namespace vm {
 namespace client {
 
+
+// This class is inherited by the VersionManager class specific to each object. 
+// It must provide the same interface as the underlying object
 template<class Subject>
 class VersionManager {
 public:
-	VersionManager(Subject* subject = NULL)
-		: subject_(subject),
+	VersionManager(Subject* object = NULL)
+		: object_(object),
 		  nlink_(0)
 	{ }
 
-	void set_subject(Subject* subject) {
-		subject_ = subject;
+	void set_object(Subject* object) {
+		object_ = object;
 	}
 	
-	Subject* subject() {
-		return subject_;
+	Subject* object() {
+		return object_;
 	}
 
 	int vOpen() {
-		nlink_ = subject_->nlink();
+		nlink_ = object_->nlink();
 		return 0;
 	}
 	
 	int vUpdate(::client::Session* session) {
-		subject_->set_nlink(nlink_);
+		//FIXME: updates must go to the journal and done by the server
+		object_->set_nlink(nlink_);
+		//FIXME: version counter must be updated by the server
+		object_->ccSetVersion(object_->ccVersion() + 1);
 		return 0;
 	}
 
@@ -131,7 +137,7 @@ public:
 	}
 
 protected:
-	Subject* subject_;
+	Subject* object_;
 	int      nlink_;
 };
 
@@ -139,7 +145,7 @@ protected:
 // FIXME: Currently we rely on composition to parameterize 
 // ObjectProxy on the VersionManager. 
 // Can we make VersionManager a mixin layer instead? This would 
-// save us from the extra subject_ kept in the VersionManager class
+// save us from the extra object_ kept in the VersionManager class
 // and avoid the call to the ugly interface() to access the shadow object
 
 template<class Derived, class Subject, class VersionManager>
@@ -153,11 +159,19 @@ public:
 		// initializing in the initialization list is risky as we need to be 
 		// sure that dpo::cc::client::ObjectProxyTemplate<Derived, Subject>
 		// has been initialized first.
-		vm_.set_subject(dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::subject());
+		vm_.set_object(dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::object());
 	}
 
+	// provides access to the buffered state
 	VersionManager* interface() {
 		return &vm_;
+	}
+
+	// for accessing the object when using the RO-STM mechanism
+	// provides direct access to the underlying object. it bypasses any buffering
+	// done by the copy-on-right mechanism.
+	Subject* xinterface() {
+		return dpo::cc::client::ObjectProxyTemplate<Derived, Subject>::object();
 	}
 
 	int vOpen() {
