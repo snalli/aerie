@@ -1,4 +1,5 @@
-# parses a SEER syscall entry
+# ANALYZER FRONT END: 
+# parses a SEER syscall entry for further analysis by the analyzer backend
 
 import string
 import sys
@@ -7,7 +8,6 @@ import os
 import collections
 import bisect
 import util
-
 
 # inode that identifies a file
 # SEER does not provide with the inode number of each file so we need to build 
@@ -160,6 +160,8 @@ class Syscall:
 
     SYS_OPEN    = 'open'
     SYS_CLOSE   = 'close'
+    SYS_READ    = 'read'
+    SYS_WRITE    = 'write'
     SYS_RENAME  = 'rename'
     SYS_CHDIR   = 'chdir'
     SYS_MKDIR   = 'mkdir'
@@ -169,6 +171,8 @@ class Syscall:
     SYS_UNLINK  = 'unlink'
     SYS_FORK    = 'fork'
     SYS_EXIT    = 'exit'
+    SYS_DUP     = 'dup'
+    SYS_DUP2    = 'dup2'
     
     O_RDWR    = 0x2
     O_WRONLY  = 0x1
@@ -251,3 +255,4 @@ class Syscall:
 class SeerAnalyzer:
     syscall_class = Syscall
     inode_space = InodeSpace()
+    

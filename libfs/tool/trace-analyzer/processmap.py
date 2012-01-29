@@ -1,4 +1,3 @@
-
 # process state and info (cwd, open files)
 # we build state and info incrementally so it may not be complete 
 class Process:
@@ -21,7 +20,6 @@ class Process:
         if fd in self.files:
             del self.files[fd]
 
-
     def Files(self):
         return self.files
 
@@ -30,6 +28,16 @@ class Process:
             return None
         return self.files[fd]
 
+    def RemapFileDescriptor(self, old_fd, new_fd):
+        if old_fd in self.files:
+            file = self.files[old_fd]
+            file.fd = new_fd
+            self.files[new_fd] = file
+            del self.files[old_fd]
+    
+    def RemapFile(self, file, new_fd):
+        old_fd = file.fd
+        self.RemapFileDescriptor(old_fd, new_fd)
 
 # keeps track a map of known processes (PID to process)
 class ProcessMap:
@@ -86,13 +94,22 @@ class ProcessMap:
         if process:
             process.RemoveFile(file)
             
+    def RemapFileDescriptor(self, pid, old_fd, new_fd):
+        process = self.Process(pid, create=False)
+        if process:
+            process.RemapFileDescriptor(old_fd, new_fd)
+    
+    def RemapFile(self, file, new_fd):
+        pid = file.pid
+        process = self.Process(pid, create=False)
+        if process:
+            process.RemapFile(file, new_fd)
 
+#class PidFd2FileMap:
+#    def __init__(self):
+#        self.dict = {}
 
-class PidFd2FileMap:
-    def __init__(self):
-        self.dict = {}
-
-    def Remove(self, pid, fd):
-        f = self.__find(pid, fd)
-        if f:
-            del f
+#    def Remove(self, pid, fd):
+#        f = self.__find(pid, fd)
+#        if f:
+#            del f

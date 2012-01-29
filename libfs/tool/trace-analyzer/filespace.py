@@ -10,6 +10,7 @@ O_RDWR = 2
 O_WRONLY = 1
 O_RDONLY = 0
 
+
 # file instance 
 class File:
     def __init__(self, ts, pid, fd, inode, rdwr, active=False):
@@ -104,6 +105,16 @@ class FileSpace:
         self.inode2stat_dict = collections.defaultdict(InodeStatistic)
         self.accesses_ordby_ts = [] # contains tuples (ts, file)
 
+    # SEER traces appear to have a flaw where some open() system calls
+    # return 0 as the file descriptor instead of the true file descriptor number.
+    # We try to fix such cases by mapping an unknown file descriptor to the
+    # last open system call that returned 0. To guard against valid 0 file 
+    # descriptors we consider 0 file descriptors that have not been used a later
+    # system call.
+    def RemapFile(self, pid, new_fd):
+        old_fd = 0
+        self.process_map.RemapFileDescriptor(pid, 0, new_fd)
+
     def DropOlder(self, ts):
         del_elem = []
         for access in self.accesses_ordby_ts:
@@ -179,6 +190,21 @@ class FileSpace:
         stat = self.inode2stat_dict[inode]
         stat.total_accesses = stat.total_accesses + 1
 
+    def Dup(self, ts, old_pid, old_fd, new_pid, new_fd):
+        oldf = self.process_map.FindFile(old_pid, old_fd)
+        if oldf:
+            newf = File(ts, new_pid, new_fd, oldf.inode, oldf.rdwr, active=True)
+            self.process_map.InsertFile(newf)
+            self.inode2file_map.Update(newf)
+            stat = self.inode2stat_dict[oldf.inode]
+            stat.total_accesses = stat.total_accesses + 1
+
+    def Fork(self, ts, ppid, pid):
+        files = self.process_map.FindFile(ppid)
+        if files:
+            for fd, f in files.iteritems():
+                self.Dup(ts, ppid, fd, pid, fd)
+
     def Close(self, ts, pid, fd):
         f = self.process_map.FindFile(pid, fd)
         if f:
@@ -186,6 +212,18 @@ class FileSpace:
             f.ts = ts
             f.active = False
             self.accesses_ordby_ts.append((ts, f))
+        else:
+            self.RemapFile(pid, fd)
+
+    def Read(self, ts, pid, fd):
+        f = self.process_map.FindFile(pid, fd)
+        if not f:
+            self.RemapFile(pid, fd)
+
+    def Write(self, ts, pid, fd):
+        f = self.process_map.FindFile(pid, fd)
+        if not f:
+            self.RemapFile(pid, fd)
 
     def CloseFiles(self, ts, pid):
         files = self.process_map.FindFile(pid)
