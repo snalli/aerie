@@ -29,7 +29,6 @@ SUITE(ContainersNameContainer)
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
-		CHECK(global_omgr->RegisterType(dpo::containers::T_NAME_CONTAINER, mgr) == E_SUCCESS);
 		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		EVENT("BeforeLock");
