@@ -47,7 +47,7 @@ public:
 	static int DeleteDir(const char* path);
 	static int Rename(const char* oldpath, const char* newpath);
 	static int Link(const char* oldpath, const char* newpath);
-	static int Unlink(const char* pathname);
+	static int Unlink(const char* path);
 	static int SetCurWrkDir(const char* path);
 	static int GetCurWrkDir(const char* path, size_t size);
 	static uint64_t Seek(int fd, uint64_t offset, int whence);

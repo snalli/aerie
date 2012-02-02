@@ -17,6 +17,7 @@ static dpo::common::ObjectId OID[16];
 
 typedef dpo::containers::client::NameContainer NameContainer;
 
+
 SUITE(ContainersNameContainer)
 {
 	TEST_FIXTURE(ObjectFixture, Test)
@@ -28,7 +29,6 @@ SUITE(ContainersNameContainer)
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
 		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		EVENT("BeforeLock");

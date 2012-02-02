@@ -12,13 +12,12 @@
 #include <typeinfo>
 #include "common/util.h"
 #include "common/hrtime.h"
+#include "dpo/base/client/stm.h"
 #include "server/api.h"
 #include "client/client_i.h"
 #include "client/mpinode.h"
 #include "client/inode.h"
 #include "client/sb.h"
-#include "dpo/base/client/hlckmgr.h"
-//#include "dpo/client/stm.h"
 #include "common/debug.h"
 
 #include <typeinfo>
@@ -28,10 +27,6 @@
 //TODO: directory operations update object version
 //TODO: port rename
 //TODO: test rename
-
-//TODO: extent the namei API to take as argument the type of lock on the resolved inode
-// or expose to the caller what locks are held when the call is returned, and what locks
-// the caller should acquire.
 
 // LOCK PROTOCOL
 // 
@@ -247,6 +242,7 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 // Look up and return the inode for a path name.
 // If parent != 0, return the inode for the parent and copy the final
 // path element into name, which must have room for DIRSIZ bytes.
+// Inode is locked at mode lock_mode
 int
 NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_mode, 
                  bool nameiparent, char* name, Inode** inodep)
@@ -271,8 +267,8 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		inode = root_;
 	} else {
 		// TODO: if cwd is not assigned a lock then we need to re-acquire locks 
-		// on the along the chain from root to cwd. the lock manager should detect this
-		// case and bootstrap. LockInode?
+		// along the chain from root to cwd. the lock manager should detect this
+		// case and bootstrap. use LockInode?
 		// idup(cwd_inode)
 		assert(0 && "TODO");
 	}
@@ -367,14 +363,111 @@ NameSpace::Namei(Session* session, const char* path, lock_protocol::Mode lock_mo
 
 
 int
-NameSpace::Link(Session* session, const char *name, void *obj)
+NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+
+/*
+  char name[DIRSIZ], *new, *old;
+  struct inode *dp, *ip;
+
+  if(argstr(0, &old) < 0 || argstr(1, &new) < 0)
+    return -1;
+  if((ip = namei(old)) == 0)
+    return -1;
+  ilock(ip);
+  if(ip->type == T_DIR){
+    iunlockput(ip);
+    return -1;
+  }
+  ip->nlink++;
+  iupdate(ip);
+  iunlock(ip);
+
+  if((dp = nameiparent(new, name)) == 0)
+    goto bad;
+  ilock(dp);
+  if(dp->dev != ip->dev || dirlink(dp, name, ip->inum) < 0){
+    iunlockput(dp);
+    goto bad;
+  }
+  iunlockput(dp);
+  iput(ip);
+  return 0;
+
+bad:
+  ilock(ip);
+  ip->nlink--;
+  iupdate(ip);
+  iunlockput(ip);
+  return -1;
+}
+*/
 }
 
 
 int
-NameSpace::Unlink(Session* session, const char *name)
+NameSpace::Unlink(Session* session, const char *pathname)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	char          name[128];
+	Inode*        dp;
+	Inode*        ip;
+	SuperBlock*   sb;
+	int           ret;
+
+	dbg_log (DBG_INFO, "Unlink: %s\n", pathname);	
+
+	// we do spider locking; when Nameiparent returns successfully, dp is 
+	// locked for writing. we release the lock on dp after we get the lock
+	// on its child
+	if ((ret = global_namespace->Nameiparent(session, pathname, lock_protocol::Mode::XL, 
+	                                         name, &dp)) < 0) 
+	{
+		return ret;
+	}
+
+	// Cannot unlink "." or "..".
+	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+		dp->Put();
+		dp->Unlock(session);
+		return -E_INVAL;
+	}
+
+	if ((ret = dp->Lookup(session, name, 0, &ip)) != E_SUCCESS) {
+		dp->Put();
+		dp->Unlock(session);
+		return ret;
+	}
+	
+	// do we need recursive lock if ip is a file? 
+	ip->Lock(session, dp, lock_protocol::Mode::XR); 
+	assert(ip->nlink() > 0);
+
+	if (ip->type() == client::type::kDirInode) {
+		bool isempty;
+		assert(ip->ioctl(session, 1, &isempty) == E_SUCCESS);
+		if (!isempty) {
+			ip->Put();
+			ip->Unlock(session);
+			dp->Put();
+			dp->Unlock(session);
+			return -E_NOTEMPTY;
+		}
+	}
+
+	assert(dp->Unlink(session, name) == E_SUCCESS);
+	//FIXME: inode link/unlink should take care of the nlink
+	if (ip->type() == client::type::kDirInode) {
+		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's ..
+	}
+
+	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for child's ..
+	//FIXME: who deallocates the inode if nlink == 0 ???
+	
+	dp->Put();
+	dp->Unlock(session);
+	ip->Put();
+	ip->Unlock(session);
+
+	return E_SUCCESS;
 }

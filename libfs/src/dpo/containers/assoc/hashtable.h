@@ -908,8 +908,6 @@ HashTable<Session>::Search(Session* session, const char *key, int key_size,
 	uint32_t         idx;
 	Bucket<Session>* bucket;
 
-	printf("HashTable::Search key=%s\n", key);
-
 	idx = Index(session, key, key_size);
 	bucket = &buckets_[idx];
 	return bucket->Search(session, key, key_size, valp, val_sizep);

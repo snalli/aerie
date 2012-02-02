@@ -249,13 +249,13 @@ Client::Open(const char* path, int flags, int mode)
 	return fd;
 
 	if (flags & O_CREAT) {
-		if((ret = create(global_session, path, &ip, mode, client::type::kFileInode)) < 0) {
+		if ((ret = create(global_session, path, &ip, mode, client::type::kFileInode)) < 0) {
 			return ret;
 		}	
 	} else {
 		lock_protocol::Mode lock_mode; // FIXME: what lock_mode?
 
-		if((ret = global_namespace->Namei(global_session, path, lock_mode, &ip)) < 0) {
+		if ((ret = global_namespace->Namei(global_session, path, lock_mode, &ip)) < 0) {
 			return ret;
 		}	
 		printf("do_open: path=%s, ret=%d, ip=%p\n", path, ret, ip);
@@ -376,111 +376,14 @@ Client::Rename(const char* oldpath, const char* newpath)
 int 
 Client::Link(const char* oldpath, const char* newpath)
 {
-/*
-  char name[DIRSIZ], *new, *old;
-  struct inode *dp, *ip;
-
-  if(argstr(0, &old) < 0 || argstr(1, &new) < 0)
-    return -1;
-  if((ip = namei(old)) == 0)
-    return -1;
-  ilock(ip);
-  if(ip->type == T_DIR){
-    iunlockput(ip);
-    return -1;
-  }
-  ip->nlink++;
-  iupdate(ip);
-  iunlock(ip);
-
-  if((dp = nameiparent(new, name)) == 0)
-    goto bad;
-  ilock(dp);
-  if(dp->dev != ip->dev || dirlink(dp, name, ip->inum) < 0){
-    iunlockput(dp);
-    goto bad;
-  }
-  iunlockput(dp);
-  iput(ip);
-  return 0;
-
-bad:
-  ilock(ip);
-  ip->nlink--;
-  iupdate(ip);
-  iunlockput(ip);
-  return -1;
-}
-*/
-
-
+	return global_namespace->Link(global_session, oldpath, newpath);
 }
 
 
 int 
 Client::Unlink(const char* pathname)
 {
-	char          name[128];
-	Inode*        dp;
-	Inode*        ip;
-	SuperBlock*   sb;
-	int           ret;
-
-	dbg_log (DBG_INFO, "Unlink: %s\n", pathname);	
-
-	// we do spider locking; when Nameiparent returns successfully, dp is 
-	// locked for writing. we release the lock on dp after we get the lock
-	// on its child
-	if ((ret = global_namespace->Nameiparent(global_session, pathname, lock_protocol::Mode::XL, 
-	                                         name, &dp)) < 0) 
-	{
-		return ret;
-	}
-
-	// Cannot unlink "." or "..".
-	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
-		dp->Put();
-		dp->Unlock(global_session);
-		return -E_INVAL;
-	}
-
-	if ((ret = dp->Lookup(global_session, name, 0, &ip)) != E_SUCCESS) {
-		dp->Put();
-		dp->Unlock(global_session);
-		return ret;
-	}
-	
-	// do we need recursive lock if ip is a file? 
-	ip->Lock(global_session, dp, lock_protocol::Mode::XR); 
-	assert(ip->nlink() > 0);
-
-	if (ip->type() == client::type::kDirInode) {
-		bool isempty;
-		assert(ip->ioctl(global_session, 1, &isempty) == E_SUCCESS);
-		if (!isempty) {
-			ip->Put();
-			ip->Unlock(global_session);
-			dp->Put();
-			dp->Unlock(global_session);
-			return -E_NOTEMPTY;
-		}
-	}
-
-	assert(dp->Unlink(global_session, name) == E_SUCCESS);
-	//FIXME: inode link/unlink should take care of the nlink
-	if (ip->type() == client::type::kDirInode) {
-		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's ..
-	}
-
-	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for child's ..
-	//FIXME: who deallocates the inode if nlink == 0 ???
-	
-	dp->Put();
-	dp->Unlock(global_session);
-	ip->Put();
-	ip->Unlock(global_session);
-
-	return E_SUCCESS;
+	return global_namespace->Unlink(global_session, pathname);
 }
 
 
