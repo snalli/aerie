@@ -81,7 +81,7 @@ public:
 
 	uint64_t Size() { return size_; }
 
-	int LookupSlot(uint64_t bn, Slot<Session>* slot);
+	int LookupSlot(Session* session, uint64_t bn, Slot<Session>* slot);
 	int PatchSlot(Slot<Session>& link);
 
 
@@ -336,6 +336,7 @@ public:
 	Iterator() { }
 
 	Iterator(Session* session, Object<Session>* pinode, uint64_t bn = 0)
+		: session_(session)
 	{
 		Init(session, pinode, bn);
 	}
@@ -350,7 +351,7 @@ public:
 		current_.Init(session, pinode, bn);
 	}
 
-	inline int NextSlot() 
+	inline int NextSlot(Session* session) 
 	{
 		RadixTreeNode<Session>* node;
 		int                     height;
@@ -364,7 +365,7 @@ public:
 			current_.base_bn_++;
 			assert(current_.slot_height_ == 1);
 		} else if (current_.base_bn_ < N_DIRECT) {
-			ret = current_.pinode_->LookupSlot(current_.base_bn_+1, &current_); 
+			ret = current_.pinode_->LookupSlot(session, current_.base_bn_+1, &current_); 
 		} else {
 			// Check whether we stay within the same indirect block, which 
 			// happens if:
@@ -384,14 +385,14 @@ public:
 				current_.slot_offset_++;
 			} else {
 				current_.base_bn_+=bcount;
-				ret = current_.pinode_->LookupSlot(current_.base_bn_, &current_);
+				ret = current_.pinode_->LookupSlot(session, current_.base_bn_, &current_);
 			}
 		}
 		return ret;
 	}
 
-    void succ() { 
-		NextSlot();
+    void succ(Session* session) { 
+		NextSlot(session);
 	}
 
     const int terminate() const {
@@ -399,7 +400,7 @@ public:
     }
 
     void operator ++(int) {
-		succ();
+		succ(session_);
     }
 
 	Iterator<Session> &operator =(const Iterator<Session>& val) {
@@ -413,6 +414,7 @@ public:
 
 private:
 	Slot<Session> current_;
+	Session*      session_;
 }; // Iterator
 
 
@@ -490,6 +492,7 @@ int __Read(Session* session, T* obj, char* dst, uint64_t off, uint64_t n)
 
 template<typename Session>
 ByteContainer::Object<Session>::Object()
+	: size_(0)
 {
 	for (int i=0; i<N_DIRECT; i++) {
 		daddrs_[i] = (void*)0;
@@ -551,7 +554,7 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 				printf("radixtree_.height = %d\n", radixtree_.height_);
 				if (newheight > radixtree_.height_) {
 					bcount = 1 << ((newheight)*RADIX_TREE_MAP_SHIFT);
-					radixtree_.Extend(bcount-1);
+					radixtree_.Extend(session, bcount-1);
 				}
 				RadixTreeNode<Session>* node = region->radixtree_.rnode_;
 				assert(node->slots[0] == NULL);
@@ -604,7 +607,7 @@ ByteContainer::Object<Session>::ReadBlock(Session* session,
 	}
 	rn = min(n, l-off);
 
-	Region region(this, bn);
+	Region<Session> region(session, this, bn);
 	region.ReadBlock(session, dst, bn, off, rn);
 
 	if (n - rn > 0) {
@@ -627,17 +630,17 @@ ByteContainer::Object<Session>::WriteBlock(Session* session,
                                            int off, 
                                            int n)
 {
-	uint64_t       rbn;
-	void**         slot;
-	RadixTreeNode* node;
-	int            offset;
+	uint64_t                rbn;
+	void**                  slot;
+	RadixTreeNode<Session>* node;
+	int                     offset;
 	int            height;
 	int            ret;
 	char           buf[4096];
 
 	printf("FilePnode::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
-	Region region(this, bn);
+	Region<Session> region(session, this, bn);
 	if ( (ret = region.WriteBlock(session, src, bn, off, n)) < 0) {
 		return ret;
 	}
@@ -670,27 +673,29 @@ ByteContainer::Object<Session>::Read(Session* session, char* dst, uint64_t off, 
 
 template<typename Session>
 int 
-ByteContainer::Object<Session>::LookupSlot(uint64_t bn, Slot* slot)
+ByteContainer::Object<Session>::LookupSlot(Session* session, 
+                                           uint64_t bn, 
+                                           Slot<Session>* slot)
 {
-	uint64_t       rbn;
-	RadixTreeNode* node;
-	int            slot_offset;
-	int            slot_height;
-	int            ret;
-	uint64_t       bcount;
-	int            i;
+	uint64_t                rbn;
+	RadixTreeNode<Session>* node;
+	int                     slot_offset;
+	int                     slot_height;
+	int                     ret;
+	uint64_t                bcount;
+	int                     i;
 
 	if (!slot) {
 		return -E_INVAL;
 	}
-	return slot->Init(this, bn);
+	return slot->Init(session, this, bn);
 }
 
 
 
 /////////////////////////////////////////////////////////////////////////////
 // 
-// FilePnode::Region
+// ByteContainer::Region
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -699,14 +704,14 @@ ByteContainer::Object<Session>::LookupSlot(uint64_t bn, Slot* slot)
 // trusts the callee that it has already check that bn is out of range
 template<typename Session>
 int 
-ByteContainer::Region<Session>::Extend(uint64_t bn)
+ByteContainer::Region<Session>::Extend(Session* session, uint64_t bn)
 {
 	// can only extend a region if the region is not allocated to an 
 	// existing slot
 	if (slot_.slot_base_) {
 		return -1;
 	}
-	radixtree_.Extend(bn - base_bn_);
+	radixtree_.Extend(session, bn - base_bn_);
 	maxbcount_ = 1 << ((radixtree_.height_)*RADIX_TREE_MAP_SHIFT);
 	return 0;
 }
@@ -839,6 +844,7 @@ ByteContainer::Region<Session>::ReadBlock(Session* session,
 	return n;
 }
 
+
 template<typename Session>
 int 
 ByteContainer::Region<Session>::Read(Session* session, char* dst, uint64_t off, uint64_t n)
@@ -846,106 +852,6 @@ ByteContainer::Region<Session>::Read(Session* session, char* dst, uint64_t off, 
 	return __Read<Session, Region<Session> > (session, this, dst, off, n);
 }
 
-
-#if 0
-
-template<typename Session>
-int 
-NameContainer::Object<Session>::Find(Session* session, const char* name, dpo::common::ObjectId* oid)
-{
-	uint64_t u64;
-	int      ret;
-
-	if (name[0] == '\0') {
-		return -1;
-	}	
-
-	// handle special cases '.' and '..'
-	switch (str_is_dot(name)) {
-		case 1: // '.'
-			if (self_ == dpo::common::ObjectId(0)) {
-				return -E_EXIST;
-			}
-			*oid = self_;
-			return E_SUCCESS;
-		case 2: // '..'
-			if (parent_ == dpo::common::ObjectId(0)) {
-				return -E_EXIST;
-			}
-			*oid = parent_;
-			return E_SUCCESS;
-	}
-
-	if ((ret = ht()->Search(session, name, strlen(name)+1, &u64)) < 0) {
-		return ret;
-	}
-	*oid = dpo::common::ObjectId(u64);
-	return E_SUCCESS;
-}
-
-
-template<typename Session>
-int 
-NameContainer::Object<Session>::Insert(Session* session, const char* name, dpo::common::ObjectId oid)
-{
-	uint64_t u64;
-
-	if (name[0] == '\0') {
-		return -1;
-	}	
-	
-	// handle special cases '.' and '..'
-	switch (str_is_dot(name)) {
-		case 1: // '.'
-			self_ = oid;
-			return E_SUCCESS;
-		case 2: // '..'
-			parent_ = oid;
-			return E_SUCCESS;
-	}
-	
-	if (ht()->Search(session, name, strlen(name)+1, &u64)==0) {
-		return -E_EXIST;
-	}
-	return ht()->Insert(session, name, strlen(name)+1, oid.u64());
-}
-
-
-template<typename Session>
-int 
-NameContainer::Object<Session>::Erase(Session* session, const char* name)
-{
-	if (name[0] == '\0') {
-		return -1;
-	}	
-	
-	// handle special cases '.' and '..'
-	switch (str_is_dot(name)) {
-		case 1: // '.'
-			self_ = dpo::common::ObjectId(0);
-			return E_SUCCESS;
-		case 2: // '..'
-			parent_ = dpo::common::ObjectId(0);
-			return E_SUCCESS;
-	}
-
-	return ht()->Delete(session, name, strlen(name)+1);
-}
-
-
-template<typename Session>
-int 
-NameContainer::Object<Session>::Size(Session* session) 
-{
-	int size = 0;
-	size += (self_ != dpo::common::ObjectId(0)) ? 1: 0;
-	size += (parent_ != dpo::common::ObjectId(0)) ? 1: 0;
-	size += ht_.Size(session); 
-	return size;
-}
-
-
-#endif
 
 } // namespace common
 } // namespace containers

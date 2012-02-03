@@ -312,6 +312,7 @@ RadixTree<Session>::MapSlot(Session* session,
 		// Go a level down
 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
 		node = slot;
+		printf("radixtree::mapslot: slot=%p, offset=%d\n", node, offset);
 		slot = node->Slot(session, offset);
 		shift -= RADIX_TREE_MAP_SHIFT;
 		h--;

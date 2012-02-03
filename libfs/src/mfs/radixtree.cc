@@ -220,7 +220,6 @@ int RadixTree::MapSlot(uint64_t index, int min_height, int alloc,
 	h = height_;
 	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
 	offset = 0;			// uninitialised var warning
-	printf("h=%d\n", h);
 	while (h > 0) {
 		if (slot == NULL) {
 			if (alloc) {
