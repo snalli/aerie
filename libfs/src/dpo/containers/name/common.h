@@ -3,8 +3,6 @@
 //!
 
 
-// TODO: move factory code into a separate class/file
-
 #ifndef __STAMNOS_DPO_COMMON_NAME_CONTAINER_OBJECT_H
 #define __STAMNOS_DPO_COMMON_NAME_CONTAINER_OBJECT_H
 

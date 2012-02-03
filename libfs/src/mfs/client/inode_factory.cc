@@ -121,7 +121,7 @@ InodeFactory::LoadInode(::client::Session* session, dpo::common::ObjectId oid,
 		case dpo::containers::T_NAME_CONTAINER: // directory
 			ret = LoadDirInode(session, oid, ipp);
 			break;
-		case dpo::containers::T_FILE_CONTAINER:
+		case dpo::containers::T_BYTE_CONTAINER:
 			ret = LoadFileInode(session, oid, ipp);
 			break;
 		default: 

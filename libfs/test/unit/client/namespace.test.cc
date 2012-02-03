@@ -23,7 +23,8 @@ public:
 	int Open(client::Session* session, const char* path, int flags) { assert(0); }
 	int Write(client::Session* session, char* src, uint64_t off, uint64_t n) { assert(0); }
 	int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) { assert(0); }
-	int Lookup(client::Session* session, const char* name, client::Inode** inode);
+	int Lookup(client::Session* session, const char* name, int flag, client::Inode** inode);
+	int xLookup(client::Session* session, const char* name, int flag, client::Inode** inode) { assert(0); }
 	int Insert(client::Session* session, const char* name, client::Inode* inode) { assert(0); }
 	int Link(client::Session* session, const char* name, client::Inode* inode, bool overwrite);
 	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
@@ -35,6 +36,7 @@ public:
 	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode) { return 0; }
 	int Lock(::client::Session* session, lock_protocol::Mode mode) { return 0; }
 	int Unlock(::client::Session* session) { return 0; }
+	int xOpenRO(client::Session* session) { assert(0); }
 
 	int ioctl(::client::Session* session, int request, void* info) { return 0; }
 
@@ -50,7 +52,7 @@ PseudoDirInode::PseudoDirInode()
 }
 
 int
-PseudoDirInode::Lookup(client::Session* session, const char* name, client::Inode** inode) 
+PseudoDirInode::Lookup(client::Session* session, const char* name, int flag, client::Inode** inode) 
 { 
 	EntryCache::iterator  it;
 	

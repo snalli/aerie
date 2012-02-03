@@ -7,7 +7,7 @@ namespace containers {
 enum {
 	T_SUPER_CONTAINER = 1,
 	T_NAME_CONTAINER = 2,
-	T_FILE_CONTAINER = 3
+	T_BYTE_CONTAINER = 3  
 };
 
 } // namespace containers
