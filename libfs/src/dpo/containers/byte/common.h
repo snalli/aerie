@@ -2,13 +2,12 @@
 //! Definition of the name collection persistent object stored in SCM
 //!
 
-#ifndef __STAMNOS_DPO_COMMON_NAME_CONTAINER_OBJECT_H
-#define __STAMNOS_DPO_COMMON_NAME_CONTAINER_OBJECT_H
+#ifndef __STAMNOS_DPO_COMMON_BYTE_CONTAINER_OBJECT_H
+#define __STAMNOS_DPO_COMMON_BYTE_CONTAINER_OBJECT_H
 
 #include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
-#include "common/pnode.h"
 #include "dpo/containers/radix/radixtree.h"
 #include "dpo/containers/typeid.h"
 #include "dpo/base/common/obj.h"
@@ -100,12 +99,12 @@ class Slot {
 public:
 
 	Slot()
-		: pinode_(NULL),
+		: bcobj_(NULL),
 		  slot_base_(NULL)
 	{ }
 
 	Slot(const Slot<Session>& copy)
-		: pinode_(copy.pinode_),
+		: bcobj_(copy.bcobj_),
 		  slot_base_(copy.slot_base_),
 		  slot_offset_(copy.slot_offset_),
 		  slot_height_(copy.slot_height_),
@@ -113,19 +112,19 @@ public:
 	{ }	
 
 
-	Slot(Session* session, Object<Session>* pinode, uint64_t base_bn)
+	Slot(Session* session, Object<Session>* bcobj, uint64_t base_bn)
 	{
-		Init(session, pinode, base_bn);
+		Init(session, bcobj, base_bn);
 	}
 
 
 	int Init(Session* session,
-	         Object<Session>* pinode, 
+	         Object<Session>* bcobj, 
 	         void** slot_base, 
 	         int slot_offset, 
 	         int slot_height)
 	{
-		pinode_ = pinode;
+		bcobj_ = bcobj;
 		slot_base_ = slot_base;
 		slot_offset_ = slot_offset;
 		slot_height_ = slot_height;
@@ -134,7 +133,7 @@ public:
 	}
 
 
-	int Init(Session* session, Object<Session>* const pinode, uint64_t bn)
+	int Init(Session* session, Object<Session>* const bcobj, uint64_t bn)
 	{
 		uint64_t                rbn;
 		RadixTreeNode<Session>* node;
@@ -144,15 +143,15 @@ public:
 		uint64_t                bcount;
 		int                     i;
 
-		pinode_ = pinode;
+		bcobj_ = bcobj;
 		if (bn < N_DIRECT) {
 			base_bn_ = bn;
-			slot_base_ = pinode->daddrs_;
+			slot_base_ = bcobj->daddrs_;
 			slot_offset_ = bn;
 			slot_height_ = 1;
 		} else {
 			rbn = bn - N_DIRECT; 
-			if ( (ret = pinode->radixtree_.MapSlot(session, rbn, 1, 0, &node, 
+			if ( (ret = bcobj->radixtree_.MapSlot(session, rbn, 1, 0, &node, 
 			                                       &slot_offset, 
 			                                       &slot_height)) != 0) 
 			{
@@ -172,7 +171,7 @@ public:
 
 	Slot<Session>& operator=(const Slot<Session>& other)
 	{
-		pinode_ = other.pinode_;
+		bcobj_ = other.bcobj_;
 		slot_base_ = other.slot_base_;
 		slot_offset_ = other.slot_offset_;
 		slot_height_ = other.slot_height_;
@@ -187,7 +186,7 @@ public:
 	}
 
 	// physical information
-	Object<Session>* pinode_;
+	Object<Session>* bcobj_;
 	void**           slot_base_;
 	int              slot_offset_;
 	int              slot_height_;
@@ -212,9 +211,9 @@ public:
 	Region(const Region& copy)
 	{ }
 
-	Region(Session* session, Object<Session>* pinode, uint64_t base_bn) 
+	Region(Session* session, Object<Session>* bcobj, uint64_t base_bn) 
 	{
-		assert(Init(session, pinode, base_bn) == 0);
+		assert(Init(session, bcobj, base_bn) == 0);
 	}
 
 	Region(Session* session, Slot<Session>& slot)
@@ -239,14 +238,14 @@ public:
 
 	///
 	/// Initializes region to represent the region containing block BN of
-	/// persistent inode PINODE
+	/// persistent byte container bcobj
 	///
-	int Init(Session* session, Object<Session>* pinode, uint64_t bn) 
+	int Init(Session* session, Object<Session>* bcobj, uint64_t bn) 
 	{
-		slot_.Init(session, pinode, bn);
+		slot_.Init(session, bcobj, bn);
 
 		if (slot_.slot_base_ == NULL) {
-			// No slot. Create an orphan region larger than pinode.
+			// No slot. Create an orphan region larger than bcobj.
 			printf("Region::Init: no slot\n");
 			radixtree_.rnode_ = NULL;
 			radixtree_.Extend(session, bn - N_DIRECT);
@@ -277,7 +276,7 @@ public:
 			maxbcount_ = 1;
 			dblock_ = slot_.slot_base_[slot_.slot_offset_];
 			//printf("slot_.slot_base_[slot_.slot_offset_]=%p\n", slot_.slot_base_[slot_.slot_offset_]);
-			//printf("pinode->daddrs_[bn]=%p\n", pinode->daddrs_[bn]);
+			//printf("bcobj->daddrs_[bn]=%p\n", bcobj->daddrs_[bn]);
 		} else {
 			maxbcount_ = 1 << ((slot_.slot_height_-1)*RADIX_TREE_MAP_SHIFT);
 			printf("Region::Init: slot_base=%p\n", slot_.slot_base_);
@@ -335,20 +334,20 @@ class Iterator {
 public:
 	Iterator() { }
 
-	Iterator(Session* session, Object<Session>* pinode, uint64_t bn = 0)
+	Iterator(Session* session, Object<Session>* bcobj, uint64_t bn = 0)
 		: session_(session)
 	{
-		Init(session, pinode, bn);
+		Init(session, bcobj, bn);
 	}
 
     Iterator(const Iterator<Session>& val)
     //  	start_(val.start_), current_(val.current_) {}
 	{}
 
-	int Init(Session* session, Object<Session>* pinode, uint64_t bn = 0)
+	int Init(Session* session, Object<Session>* bcobj, uint64_t bn = 0)
 	{
-		assert(pinode);
-		current_.Init(session, pinode, bn);
+		assert(bcobj);
+		current_.Init(session, bcobj, bn);
 	}
 
 	inline int NextSlot(Session* session) 
@@ -365,7 +364,7 @@ public:
 			current_.base_bn_++;
 			assert(current_.slot_height_ == 1);
 		} else if (current_.base_bn_ < N_DIRECT) {
-			ret = current_.pinode_->LookupSlot(session, current_.base_bn_+1, &current_); 
+			ret = current_.bcobj_->LookupSlot(session, current_.base_bn_+1, &current_); 
 		} else {
 			// Check whether we stay within the same indirect block, which 
 			// happens if:
@@ -385,7 +384,7 @@ public:
 				current_.slot_offset_++;
 			} else {
 				current_.base_bn_+=bcount;
-				ret = current_.pinode_->LookupSlot(session, current_.base_bn_, &current_);
+				ret = current_.bcobj_->LookupSlot(session, current_.base_bn_, &current_);
 			}
 		}
 		return ret;
@@ -501,9 +500,6 @@ ByteContainer::Object<Session>::Object()
 }
 
 
-
-
-
 template<typename Session>
 int 
 ByteContainer::Object<Session>::InsertRegion(Session* session, 
@@ -535,14 +531,14 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 			printf("region->slot=%p\n", &region->slot_);
 			printf("region->slot_.slot_base=%p[%d]\n", region->slot_.slot_base_, region->slot_.slot_offset_);
 		} else {
-			// no slot, therefore region extends the pinode
+			// no slot, therefore region extends the bcobj
 			// TODO: journal this update
-			printf("extend the pinode\n");
+			printf("extend the bcobj\n");
 			printf("radixtree_.rnode_=%p\n", radixtree_.rnode_);
 			if (radixtree_.rnode_) {
-				// pinode's radixtree exists so we need to move it under the
+				// bcobj's radixtree exists so we need to move it under the
 				// new region's radixtree. To do so, we first need to extend
-				// the pinode's radixtree to reach the height of the new
+				// the bcobj's radixtree to reach the height of the new
 				// radixtree minus one. Then we can attach the old radixtree
 				// to the new one.
 				printf("radixtree_.height = %d\n", radixtree_.height_);

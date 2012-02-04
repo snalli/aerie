@@ -18,8 +18,11 @@ namespace client {
 namespace mfs {
 namespace client {
 
+class FileInode;
+
 class DirInode: public ::client::Inode
 {
+friend class FileInode;
 public:
 	DirInode(dpo::common::ObjectProxyReference* ref)
 		: parent_(NULL)
@@ -29,9 +32,6 @@ public:
 		type_ = ::client::type::kDirInode;
 	}
 
-	//static DirInode* Load(::client::Session* session, dpo::common::ObjectId oid);
-
-	int Open(::client::Session* session, const char* path, int flags) { return 0; };
 	int Read(::client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Write(::client::Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
 	int Unlink(::client::Session* session, const char* name);
@@ -49,6 +49,7 @@ public:
 	int xOpenRO(::client::Session* session); 
 
 	int ioctl(::client::Session* session, int request, void* info);
+
 private:
 	dpo::containers::client::NameContainer::Reference* rw_ref() {
 		return static_cast<dpo::containers::client::NameContainer::Reference*>(ref_);

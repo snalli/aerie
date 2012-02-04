@@ -27,9 +27,9 @@ SUITE(FileDescriptor)
 		CHECK(my_fmgr->AllocFd(fp)==1001);
 		CHECK(my_fmgr->AllocFd(fp)==1002);
 		CHECK(my_fmgr->AllocFd(fp)==1003);
-		CHECK(my_fmgr->AllocFd(fp)==-1);
-		CHECK(my_fmgr->Put(999)==-1);
-		CHECK(my_fmgr->Put(1004)==-1);
+		CHECK(my_fmgr->AllocFd(fp) < 0);
+		CHECK(my_fmgr->Put(999) < 0);
+		CHECK(my_fmgr->Put(1004) < 0);
 	}
 
 	TEST(AllocMultiple2)

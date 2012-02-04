@@ -9,12 +9,10 @@ def addUnitTestFilter(env, path, test_filter):
     suite = None
     test = None
     if test_filter:
-        m = re.search("suite=([A-Za-z0-9]*)", test_filter)
+        m = re.search("([A-Za-z0-9]*):([A-Za-z0-9]*)", test_filter)
         if m:
             suite = m.group(1)    
-        m = re.search("test=([A-Za-z0-9]*)", test_filter)
-        if m:
-            test = m.group(1)
+            test = m.group(2)
     if suite:
         args.append('-T,-suite=%s' % (suite))
     if test:

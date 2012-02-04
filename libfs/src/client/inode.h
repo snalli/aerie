@@ -17,7 +17,6 @@ class Inode {
 public:
 	Inode();
 
-	virtual int Open(client::Session* session, const char* path, int flags) = 0;
 	virtual int Write(client::Session* session, char* src, uint64_t off, uint64_t n) = 0;
 	virtual int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) = 0;
 	virtual int Lookup(client::Session* session, const char* name, int flags, Inode** ipp) = 0;
@@ -34,6 +33,10 @@ public:
 	virtual int Unlock(::client::Session* session) = 0;
 	virtual int xOpenRO(::client::Session* session) = 0; 
 
+	/** 
+	 * A generic interface method for functionality that doesn't fall under
+	 * any specific method
+	 */
 	virtual int ioctl(::client::Session* session, int request, void* info) = 0;
 
 	dpo::common::ObjectId oid() {

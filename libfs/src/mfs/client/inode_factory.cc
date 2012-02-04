@@ -3,6 +3,7 @@
 #include "client/backend.h"
 #include "dpo/containers/typeid.h"
 #include "mfs/client/dir_inode.h"
+#include "mfs/client/file_inode.h"
 
 namespace mfs {
 namespace client {
@@ -10,7 +11,8 @@ namespace client {
 pthread_mutex_t InodeFactory::mutex_ = PTHREAD_MUTEX_INITIALIZER;;
 
 int
-InodeFactory::LoadDirInode(::client::Session* session, dpo::common::ObjectId oid, 
+InodeFactory::LoadDirInode(::client::Session* session, 
+                           ::dpo::common::ObjectId oid, 
                            ::client::Inode** ipp)
 {
 	int                                ret = E_SUCCESS;
@@ -55,22 +57,32 @@ InodeFactory::MakeDirInode(::client::Session* session, ::client::Inode** ipp)
 
 
 int
-InodeFactory::LoadFileInode(::client::Session* session, dpo::common::ObjectId oid, 
+InodeFactory::LoadFileInode(::client::Session* session, 
+                            ::dpo::common::ObjectId oid, 
                             ::client::Inode** ipp)
 {
-	/* FIXME: FileContainer, FileInode
-	int                                               ret = E_SUCCESS;
-	::client::Inode*                                  ip;
-	dpo::containers::client::FileContainer::Reference rw_ref;
+	
+	int                                ret = E_SUCCESS;
+	dpo::common::ObjectProxyReference* ref;
+	FileInode*                         fip;
 
-	if ((ret = session->omgr_->GetObject(oid, &rw_ref)) < 0) {
-		//FIXME: deallocate the allocated object
-		return ret;
+	// atomically get a reference to the persistent object and 
+	// create the in-core Inode 
+	pthread_mutex_lock(&mutex_);
+	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
+		if (ref->owner()) {
+			// the in-core inode already exists; just return this and 
+			// we are done
+			fip = reinterpret_cast<FileInode*>(ref->owner());
+		} else {
+			fip = new FileInode(ref);
+		}
+	} else {
+		fip = new FileInode(ref);
 	}
-	ip = new FileInode(rw_ref);
-	*ipp = ip;
+	pthread_mutex_unlock(&mutex_);
+	*ipp = fip;
 	return ret;
-	*/
 }
 
 
@@ -78,13 +90,12 @@ int
 InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 {
 	int                                               ret = E_SUCCESS;
-	dpo::containers::client::NameContainer::Object*   obj;
+	dpo::containers::client::ByteContainer::Object*   obj;
 
-	// FIXME: FileContainer
-	//if ((obj = new(session) dpo::containers::client::FileContainer::Object) == NULL) {
-	//	return -E_NOMEM;
-	//}
-	if ((ret = LoadDirInode(session, obj->oid(), ipp)) < 0) {
+	if ((obj = new(session) dpo::containers::client::ByteContainer::Object) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = LoadFileInode(session, obj->oid(), ipp)) < 0) {
 		// FIXME: deallocate the allocated object
 		return ret;
 	}

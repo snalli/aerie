@@ -7,8 +7,7 @@ serverBuildEnv = buildEnv.Clone()
 # client backend
 
 clt_lib_target = 'mfsclt'
-clt_lib_sources = ['radixtree.cc', 
-                   'file_pnode.cc']
+clt_lib_sources = []
 clt_lib_sources += ['client/dir_inode.cc', 
                     'client/file_inode.cc', 
                     'client/inode_factory.cc', 

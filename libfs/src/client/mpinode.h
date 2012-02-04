@@ -23,8 +23,6 @@ public:
 		pthread_mutex_init(&mutex_, NULL);
 	}
 	
-	int Init(Session* session, uint64_t ino) { return 0; }
-	int Open(Session* session, const char* path, int flags) { return 0; }
 	int Write(Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
 	int Read(Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }
 	int Lookup(Session* session, const char* name, int flags, Inode** inode);

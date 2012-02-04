@@ -1,36 +1,56 @@
-#ifndef __MFS_CLIENT_FILE_INODE_H_AKE111
-#define __MFS_CLIENT_FILE_INODE_H_AKE111
+#ifndef __STAMNOS_MFS_CLIENT_FILE_INODE_H
+#define __STAMNOS_MFS_CLIENT_FILE_INODE_H
 
-#include <pthread.h>
 #include <stdint.h>
-#include "common/interval_tree.h"
-#include "mfs/file_pnode.h"
+#include "common/types.h"
+#include "common/const.h"
+#include "client/inode.h"
+#include "dpo/containers/byte/container.h"
+#include "dpo/base/common/obj.h"
 
-// FIXME: API needs a way to alloc new inode, 
+namespace client {
+	class Session; // forward declaration
+}
 
-class FileInode 
+namespace mfs {
+namespace client {
+
+class FileInode: public ::client::Inode
 {
 public:
-	FileInode();
-	FileInode(FilePnode*);
-	~FileInode();
+	FileInode(dpo::common::ObjectProxyReference* ref)
+	{ 
+		ref_ = ref;
+		fs_type_ = ::common::fs::kMFS;
+		type_ = ::client::type::kFileInode;
+	}
 
-	int Read(char*, uint64_t, uint64_t);
-	int Write(char*, uint64_t, uint64_t);
-	int Publish();
-	
+	int Read(::client::Session* session, char* dst, uint64_t off, uint64_t n); 
+	int Write(::client::Session* session, char* src, uint64_t off, uint64_t n); 
+	int Unlink(::client::Session* session, const char* name) { assert(0); }
+	int Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) { assert(0); }
+	int xLookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) { assert(0); }
+	int Link(::client::Session* session, const char* name, ::client::Inode* ip, bool overwrite) { assert(0); }
+	int Link(::client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
+
+	int nlink() { assert(0); }
+	int set_nlink(int nlink) { assert(0); }
+
+	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode); 
+	int Lock(::client::Session* session, lock_protocol::Mode mode); 
+	int Unlock(::client::Session* session);
+	int xOpenRO(::client::Session* session) { assert(0); }
+
+	int ioctl(::client::Session* session, int request, void* info);
 private:
-	int ReadImmutable(char*, uint64_t, uint64_t);
-	int ReadMutable(char*, uint64_t, uint64_t);
-	int WriteImmutable(char*, uint64_t, uint64_t);
-	int WriteMutable(char*, uint64_t, uint64_t);
-
-	pthread_mutex_t*   mutex_;
-	FilePnode*         pinode_;        // pinode
-	bool               pinodeism_;     // pinode is mutable
-	FilePnode::Region* region_;        // mutable region
-	IntervalTree*      intervaltree_;
-	uint64_t           size_;
+	dpo::containers::client::ByteContainer::Reference* rw_ref() {
+		return static_cast<dpo::containers::client::ByteContainer::Reference*>(ref_);
+	}
+	int              nlink_;
 };
 
-#endif /* __MFS_CLIENT_FILE_INODE_H_AKE111 */
+
+} // namespace client
+} // namespace mfs
+
+#endif // __STAMNOS_MFS_CLIENT_FILE_INODE_H

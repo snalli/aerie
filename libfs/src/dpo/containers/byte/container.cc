@@ -1,7 +1,6 @@
 #include "dpo/containers/byte/container.h"
 #include <stdint.h>
 #include <inttypes.h>
-//#include <bitset>
 #include <vector>
 #include "common/errno.h"
 #include "client/session.h"
@@ -57,7 +56,6 @@ public:
 	int Read(::client::Session* session, char*, uint64_t, uint64_t);
 
 protected:
-	//std::bitset<INTERVAL_MIN_SIZE> bitmap_;
 	uint64_t                       low_;
 	uint64_t                       high_;
 	ByteContainer::Region*         region_;     

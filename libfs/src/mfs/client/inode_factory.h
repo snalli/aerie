@@ -2,7 +2,7 @@
 #define __STAMNOS_MFS_CLIENT_INODE_FACTORY_H
 
 #include "common/types.h"
-#include "client/backend.h"
+//#include "client/backend.h"
 #include "client/inode_factory.h"
 #include "common/const.h"
 
