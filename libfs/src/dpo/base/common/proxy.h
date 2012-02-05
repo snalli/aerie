@@ -12,7 +12,6 @@ namespace common {
 
 class ObjectProxy; // forward reference
 
-
 class ObjectProxyReference {
 friend class ObjectProxy;
 public:
@@ -38,8 +37,8 @@ public:
 
 protected:
 	ObjectProxy* proxy_;
-	void*        owner_; // the volatile object that owns this reference 
-	                     // (has it embedded in its structure)
+	void*        owner_; //!< the volatile object that owns this reference 
+	                     //!< (has it embedded in its structure)
 };
 
 

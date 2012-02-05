@@ -3,7 +3,6 @@
 
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
-#include "client/libfs.h"
 #include "client/config.h"
 #include "client/client_i.h"
 

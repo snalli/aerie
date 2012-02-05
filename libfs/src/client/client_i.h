@@ -6,9 +6,9 @@
 #include "client/const.h"
 #include "client/namespace.h"
 #include "client/smgr.h"
-#include "client/file.h"
 
 class Registry;
+namespace client { class FileManager; } 
 namespace dpo { namespace client { class ObjectManager; } }
 namespace dpo { namespace cc { namespace client { class LockManager; } } }
 namespace dpo { namespace cc { namespace client { class HLockManager; } } }

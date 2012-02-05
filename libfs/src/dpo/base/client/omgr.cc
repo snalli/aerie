@@ -14,6 +14,7 @@
 #include "client/session.h"
 #include "dpo/containers/super/container.h"
 #include "dpo/containers/name/container.h"
+#include "dpo/containers/byte/container.h"
 
 //TODO: Fine-grain locking in GetObject/PutObject.
 
@@ -64,6 +65,14 @@ ObjectManager::RegisterBaseTypes()
 	// NameContainer
 	dpo::client::rw::ObjectManager<dpo::containers::client::NameContainer::Object, dpo::containers::client::NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<dpo::containers::client::NameContainer::Object, dpo::containers::client::NameContainer::VersionManager>;
     if ((ret = RegisterType(dpo::containers::T_NAME_CONTAINER, mgr)) < 0) {
+		return ret;
+	}
+	}
+
+	{
+	// ByteContainer
+	dpo::client::rw::ObjectManager<dpo::containers::client::ByteContainer::Object, dpo::containers::client::ByteContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<dpo::containers::client::ByteContainer::Object, dpo::containers::client::ByteContainer::VersionManager>;
+    if ((ret = RegisterType(dpo::containers::T_BYTE_CONTAINER, mgr)) < 0) {
 		return ret;
 	}
 	}

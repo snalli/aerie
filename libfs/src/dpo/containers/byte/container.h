@@ -56,6 +56,7 @@ private:
 	Region*            region_;        // mutable region
 	IntervalTree*      intervaltree_;
 	uint64_t           size_;
+	bool               mutable_;       // directly mutable
 };
 
 

@@ -210,12 +210,22 @@ ByteInterval::Read(::client::Session* session, char* dst, uint64_t off, uint64_t
 int 
 ByteContainer::VersionManager::vOpen()
 {
+	// FIXME: check if object is private or public. If private
+	// then mark it as directly mutable
+	
 	dpo::vm::client::VersionManager<ByteContainer::Object>::vOpen();
-	intervaltree_ = NULL;
+	
+	if (0 /* private */) {
+		mutable_ = true;
+		intervaltree_ = NULL;
+	} else {
+		mutable_ = false;
+		intervaltree_ = new IntervalTree();
+	}
 	region_ = NULL;
 	size_ = object()->Size();
 
-	return 0;
+	return E_SUCCESS;
 }
 
 
@@ -507,7 +517,7 @@ ByteContainer::VersionManager::Write(::client::Session* session,
 	int       ret1 = 0;
 	int       ret2 = 0;
 	int       w;
-
+	
 	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 " \n", off, off+n-1, n);
 
 	immmaxsize = object()->get_maxsize();

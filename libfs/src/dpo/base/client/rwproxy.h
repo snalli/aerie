@@ -67,6 +67,8 @@ public:
 	int Lock(::client::Session* session, lock_protocol::Mode mode) {
 		int ret;
 		
+		// FIXME: check if object is private or public. if public then lock. 
+
 		if ((ret = dpo::cc::client::ObjectProxy::Lock(session, mode)) != lock_protocol::OK) {
 			return ret;
 		}
@@ -77,6 +79,8 @@ public:
 	int Lock(::client::Session* session, dpo::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
 		int ret;
 		
+		// FIXME: check if object is private or public. if public then lock. 
+		
 		if ((ret = dpo::cc::client::ObjectProxy::Lock(session, parent, mode)) != lock_protocol::OK) {
 			return ret;
 		}
@@ -86,6 +90,7 @@ public:
 	}
 
 	int Unlock(::client::Session* session) {
+		// FIXME: check if object is private or public. if public then unlock. 
 		return dpo::cc::client::ObjectProxy::Unlock(session);
 	}
 
