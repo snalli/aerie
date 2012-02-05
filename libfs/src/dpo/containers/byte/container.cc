@@ -339,6 +339,9 @@ ByteContainer::VersionManager::ReadMutable(::client::Session* session,
 	}
 	vn = min(size_ - off, n);
 
+	if (mutable_) {
+		assert(region_ == NULL);
+		return object()->Read(session, dst, off, vn);
 	if (region_) {
 		return	region_->Read(session, dst, off, vn);
 	}
@@ -359,7 +362,7 @@ ByteContainer::VersionManager::Read(::client::Session* session,
 	int       ret2 = 0;
 	int       r;
 
-	immmaxsize = object()->get_maxsize();
+	immmaxsize = (!mutable_) ? object()->get_maxsize(): 0;
 
 	if (off + n < immmaxsize) 
 	{
@@ -407,6 +410,9 @@ ByteContainer::VersionManager::WriteMutable(::client::Session* session,
 	// 1) a swap operation to the new pinode if immutable pinode exists?
 	// 2) a swap to the radixtree...?
 
+	if (mutable_) {
+		assert(region_ == NULL);
+		return object()->Write(session, src, off, n);
 	if (!region_) {
 		bn = off/dpo::common::BLOCK_SIZE;
 		region_ = new ByteContainer::Region(session, object(), bn);
@@ -520,7 +526,7 @@ ByteContainer::VersionManager::Write(::client::Session* session,
 	
 	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 " \n", off, off+n-1, n);
 
-	immmaxsize = object()->get_maxsize();
+	immmaxsize = (!mutable_) ? object()->get_maxsize() : 0;
 
 	if (off + n < immmaxsize) 
 	{
