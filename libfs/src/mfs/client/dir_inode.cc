@@ -204,6 +204,13 @@ DirInode::xOpenRO(::client::Session* session)
 
 
 int 
+DirInode::Sync(::client::Session* session)
+{
+	return rw_ref()->proxy()->interface()->vUpdate(session);
+}
+
+
+int 
 DirInode::ioctl(::client::Session* session, int request, void* info)
 {
 	int ret = E_SUCCESS;

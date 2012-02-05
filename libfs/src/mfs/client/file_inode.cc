@@ -78,6 +78,13 @@ FileInode::Unlock(::client::Session* session)
  
 
 int 
+FileInode::Sync(::client::Session* session)
+{
+	return rw_ref()->proxy()->interface()->vUpdate(session);
+}
+
+
+int 
 FileInode::ioctl(::client::Session* session, int request, void* info)
 {
 	return E_SUCCESS;

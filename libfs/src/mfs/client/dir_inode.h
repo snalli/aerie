@@ -39,6 +39,7 @@ public:
 	int xLookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp);
 	int Link(::client::Session* session, const char* name, ::client::Inode* ip, bool overwrite);
 	int Link(::client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
+	int Sync(::client::Session* session);
 
 	int nlink();
 	int set_nlink(int nlink);

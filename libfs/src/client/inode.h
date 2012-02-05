@@ -24,6 +24,7 @@ public:
 	virtual int Link(client::Session* session, const char* name, Inode* inode, bool overwrite) = 0;
 	virtual int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) = 0;
 	virtual int Unlink(client::Session* session, const char* name) = 0;
+	virtual int Sync(::client::Session* session) = 0; 
 
 	virtual int nlink() = 0;
 	virtual int set_nlink(int nlink) = 0;

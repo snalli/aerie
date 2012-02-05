@@ -108,120 +108,197 @@ SUITE(MFSDirInode)
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		
 		dinode->Unlock(session);
+	}
+
+
+	TEST_FIXTURE(ObjectFixture, TestLink1_publisher)
+	{
+		::client::Inode*                   inode;
+		dpo::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
+		::mfs::client::DirInode*           dinode;
+		::mfs::client::DirInode*           child1;
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		EVENT("AfterMapObjects");
+		
+		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
+		dinode = new ::mfs::client::DirInode(rw_ref);
+	
+		EVENT("BeforeLock");
+		dinode->Lock(session, lock_protocol::Mode::XL);
+		EVENT("AfterLock");
+		InitNames(session, dinode);
+
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
+		
+		CHECK(global_omgr->GetObject(OID[5], &rw_ref) == E_SUCCESS);
+		child1 = new ::mfs::client::DirInode(rw_ref);
+		CHECK(dinode->Link(session, "media", child1, false) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
+		
+		dinode->Unlock(session);
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
+
+
+	TEST_FIXTURE(ObjectFixture, TestLink1_consumer)
+	{
+		::client::Inode*                   inode;
+		dpo::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
+		::mfs::client::DirInode*           dinode;
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		EVENT("AfterMapObjects");
+		
+		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
+		dinode = new ::mfs::client::DirInode(rw_ref);
+	
+		EVENT("BeforeLock");
+		dinode->Lock(session, lock_protocol::Mode::XL);
+
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
+		
+		dinode->Unlock(session);
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
+
+
+	TEST_FIXTURE(ObjectFixture, TestLink2_publisher)
+	{
+		::client::Inode*                   inode;
+		dpo::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
+		::mfs::client::DirInode*           dinode;
+		::mfs::client::DirInode*           child1;
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		EVENT("AfterMapObjects");
+		
+		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
+		dinode = new ::mfs::client::DirInode(rw_ref);
+	
+		EVENT("BeforeLock");
+		dinode->Lock(session, lock_protocol::Mode::XL);
+		EVENT("AfterLock");
+		InitNames(session, dinode);
+
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
+		
+		CHECK(dinode->Unlink(session, "foo") == E_SUCCESS);
+
+		CHECK(global_omgr->GetObject(OID[5], &rw_ref) == E_SUCCESS);
+		child1 = new ::mfs::client::DirInode(rw_ref);
+		CHECK(dinode->Link(session, "foo", child1, false) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		
+		dinode->Unlock(session);
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
+
+
+	TEST_FIXTURE(ObjectFixture, TestLink2_consumer)
+	{
+		::client::Inode*                   inode;
+		dpo::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
+		::mfs::client::DirInode*           dinode;
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		EVENT("AfterMapObjects");
+		
+		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
+		dinode = new ::mfs::client::DirInode(rw_ref);
+	
+		EVENT("BeforeLock");
+		dinode->Lock(session, lock_protocol::Mode::XL);
+
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
+		
+		dinode->Unlock(session);
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
+
+
+	TEST_FIXTURE(ObjectFixture, TestUnlink1_publisher)
+	{
+		::client::Inode*                   inode;
+		dpo::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
+		::mfs::client::DirInode*           dinode;
+		::mfs::client::DirInode*           child1;
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		EVENT("AfterMapObjects");
+		
+		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
+		dinode = new ::mfs::client::DirInode(rw_ref);
+	
+		EVENT("BeforeLock");
+		dinode->Lock(session, lock_protocol::Mode::XL);
+		EVENT("AfterLock");
+		InitNames(session, dinode);
+
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
+		
+		CHECK(dinode->Unlink(session, "foo") == E_SUCCESS);
+		
+		dinode->Unlock(session);
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
+
+	TEST_FIXTURE(ObjectFixture, TestUnlink1_consumer)
+	{
+		::client::Inode*                   inode;
+		dpo::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
+		::mfs::client::DirInode*           dinode;
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		EVENT("AfterMapObjects");
+		
+		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
+		dinode = new ::mfs::client::DirInode(rw_ref);
+	
+		EVENT("BeforeLock");
+		dinode->Lock(session, lock_protocol::Mode::XL);
+
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) != E_SUCCESS);
+		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
+		
+		dinode->Unlock(session);
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
+
 }
-
-
-#if 0
-	TEST_FIXTURE(ClientFixture, TestLinkPublish1)
-	{
-		client::Inode*                inode;
-		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
-		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
-		SuperBlock*                   sb;
-		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>*    child;
-		DirPnode<client::Session>*    child1;
-		DirPnode<client::Session>*    child2;
-		uint64_t                      ino;
-
-		psb->root_ = (uint64_t) rootpnode;
-		sb = new SuperBlock(session, psb);
-
-		InitNames(session, dirpnode);
-
-		DirInodeMutable* dinode = new DirInodeMutable(sb, dirpnode); 
-		CHECK(dinode->Lookup(session, "foo", &inode)==0);
-		CHECK(dinode->Lookup(session, "bar", &inode)==0);
-		CHECK(dinode->Lookup(session, "doc", &inode)==0);
-		
-		child1 = new(session) DirPnode<client::Session>;
-		CHECK(dinode->Link(session, "media", (uint64_t) child1, false)==0);
-		CHECK(dinode->Lookup(session, "media", &inode) == 0);
-	
-		child2 = new(session) DirPnode<client::Session>;
-		CHECK(dinode->Link(session, "music", (uint64_t) child2, false)==0);
-		CHECK(dinode->Lookup(session, "music", &inode) == 0);
-	
-		CHECK(dinode->Publish(session) == 0);
-		CHECK(dirpnode->Lookup(session, "media", &ino)==0);
-		CHECK(ino == (uint64_t) child1);	
-		CHECK(dirpnode->Lookup(session, "music", &ino)==0);
-		CHECK(ino == (uint64_t) child2);	
-	}
-
-	
-	TEST_FIXTURE(ClientFixture, TestLinkPublish2)
-	{
-		client::Inode*                inode;
-		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
-		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
-		SuperBlock*                   sb;
-		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>*    child;
-		DirPnode<client::Session>*    child1;
-		DirPnode<client::Session>*    child2;
-		uint64_t                      ino;
-
-		psb->root_ = (uint64_t) rootpnode;
-		sb = new SuperBlock(session, psb);
-
-		InitNames(session, dirpnode);
-
-		DirInodeMutable* dinode = new DirInodeMutable(sb, dirpnode); 
-		CHECK(dinode->Lookup(session, "foo", &inode)==0);
-		CHECK(dinode->Lookup(session, "bar", &inode)==0);
-		CHECK(dinode->Lookup(session, "doc", &inode)==0);
-		
-		CHECK(dinode->Unlink(session, "foo")==0);
-		CHECK(dinode->Lookup(session, "foo", &inode) != 0);
-		
-		child1 = new(session) DirPnode<client::Session>;
-		CHECK(dinode->Link(session, "media", (uint64_t) child1, false)==0);
-		CHECK(dinode->Lookup(session, "media", &inode) == 0);
-	
-		CHECK(dinode->Publish(session) == 0);
-		CHECK(dirpnode->Lookup(session, "media", &ino)==0);
-		CHECK(ino == (uint64_t) child1);	
-	}
-
-
-	// checks that publish handles correctly the case when we unlink and 
-	// then link the same name
-	TEST_FIXTURE(ClientFixture, TestLinkPublish3)
-	{
-		client::Inode*                inode;
-		DirPnode<client::Session>*    rootpnode = new(session) DirPnode<client::Session>;
-		PSuperBlock<client::Session>* psb = new(session) PSuperBlock<client::Session>;
-		SuperBlock*                   sb;
-		DirPnode<client::Session>*    dirpnode = new(session) DirPnode<client::Session>;
-		DirPnode<client::Session>*    child;
-		DirPnode<client::Session>*    child1;
-		DirPnode<client::Session>*    child2;
-		uint64_t                      ino;
-		
-		psb->root_ = (uint64_t) rootpnode;
-		sb = new SuperBlock(session, psb);
-
-		InitNames(session, dirpnode);
-
-		DirInodeMutable* dinode = new DirInodeMutable(sb, dirpnode); 
-		CHECK(dinode->Lookup(session, "foo", &inode)==0);
-		CHECK(dinode->Lookup(session, "bar", &inode)==0);
-		CHECK(dinode->Lookup(session, "doc", &inode)==0);
-		
-		CHECK(dinode->Unlink(session, "foo")==0);
-		CHECK(dinode->Lookup(session, "foo", &inode) != 0);
-		
-		child1 = new(session) DirPnode<client::Session>;
-		CHECK(dinode->Link(session, "foo", (uint64_t) child1, false)==0);
-		CHECK(dinode->Lookup(session, "foo", &inode) == 0);
-	
-		CHECK(dinode->Publish(session) == 0);
-		CHECK(dirpnode->Lookup(session, "foo", &ino)==0);
-		CHECK(ino == (uint64_t) child1);	
-	}
-#endif
-
-
-}
-

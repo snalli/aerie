@@ -14,6 +14,7 @@ NameContainer::VersionManager::vOpen()
 {
 	dpo::vm::client::VersionManager<NameContainer::Object>::vOpen();
 	entries_.set_empty_key("");
+	entries_.set_deleted_key("__#DELETED__KEY#__"); // this must not conflict with a real key
 	entries_.clear();
 	neg_entries_count_ = 0;
 
@@ -48,6 +49,7 @@ NameContainer::VersionManager::vUpdate(::client::Session* session)
 				return ret;
 			}
 		} else {
+			printf("REMOVE\n");
 			// negative entry -- remove
 			if ((ret = object()->Erase(session, it->first.c_str())) != 0) {
 				return ret;
@@ -140,8 +142,7 @@ NameContainer::VersionManager::Erase(::client::Session* session, const char* nam
 	if ((it = entries_.find(name)) != entries_.end()) {
 		if (it->second.first == true) {
 			// name exists
-			it->second.first = false;
-			neg_entries_count_++;
+			entries_.erase(name);
 			return E_SUCCESS;
 		} else {
 			// found a negative entry indicating absence due to a previous unlink
@@ -151,7 +152,7 @@ NameContainer::VersionManager::Erase(::client::Session* session, const char* nam
 	// check whether name exists in the persistent structure
 	if ((ret = object()->Find(session, name, &oid)) != E_SUCCESS) {
 		return -E_NOENT;
-	}
+	} 
 
 	// add a negative directory entry indicating absence when removing a 
 	// directory entry from the persistent data structure
