@@ -28,7 +28,7 @@ SuperBlockFactory::Load(::client::Session* session, dpo::common::ObjectId oid,
 	dpo::common::ObjectProxyReference* ref;
 	dpo::common::ObjectId              root_oid;
 
-	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
+	if ((ret = session->omgr_->FindObject(session, oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
 			// the in-core superblock already exists; just return this and 
 			// we are done

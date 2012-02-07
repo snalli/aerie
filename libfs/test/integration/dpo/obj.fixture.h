@@ -24,10 +24,7 @@ struct ObjectFixture: public LockRegionFixture, RPCFixture {
 	
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
-			delete global_smgr;
-			delete global_omgr;
-			delete global_hlckmgr;
-			delete global_lckmgr;
+			delete global_dpo_layer;
 			delete global_registry;
 		}
 	};
@@ -36,12 +33,10 @@ struct ObjectFixture: public LockRegionFixture, RPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_smgr = new StorageManager(client::rpc_client, 1);
-			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id);
-			global_hlckmgr = new HLockManager(global_lckmgr);
-			global_omgr = new dpo::client::ObjectManager(global_lckmgr, global_hlckmgr);
+			global_dpo_layer = new dpo::client::DpoLayer(client::rpc_client, client::rpc_server, client::id, client::principal_id_);
+			global_dpo_layer->Init();
 		    global_registry = new Registry(client::rpc_client, 1);
-			session = new Session(global_lckmgr, global_hlckmgr, global_smgr, global_omgr);
+			session = new Session(global_dpo_layer);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

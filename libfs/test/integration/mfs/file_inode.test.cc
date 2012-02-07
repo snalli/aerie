@@ -33,7 +33,7 @@ SUITE(MFSFileInode)
 		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<ByteContainer::Reference*>(rw_ref);
 		finode = new ::mfs::client::FileInode(rw_ref);
 		
@@ -61,7 +61,7 @@ SUITE(MFSFileInode)
 		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<ByteContainer::Reference*>(rw_ref);
 		finode = new ::mfs::client::FileInode(rw_ref);
 		

@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
-#include "common/pnode.h"
 #include "dpo/containers/typeid.h"
 #include "dpo/base/common/obj.h"
 #include "common/debug.h"

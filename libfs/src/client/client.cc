@@ -8,11 +8,8 @@
 #include "common/debug.h"
 #include "server/api.h"
 #include "client/config.h"
-#include "client/smgr.h"
 #include "client/fsomgr.h"
-#include "dpo/base/client/lckmgr.h"
-#include "dpo/base/client/hlckmgr.h"
-#include "dpo/base/client/omgr.h"
+#include "dpo/base/client/dpo.h"
 #include "dpo/base/client/stm.h"
 #include "chunkstore/registry.h"
 #include "mfs/client/mfs.h"
@@ -27,17 +24,14 @@ __thread Session* thread_session;
 FileSystemObjectManager* global_fsomgr;
 FileManager*             global_fmgr;
 NameSpace*               global_namespace;
-StorageManager*          global_smgr;
-LockManager*             global_lckmgr;
-HLockManager*            global_hlckmgr;
 Registry*                global_registry;
 rpcc*                    rpc_client;
 rpcs*                    rpc_server;
 std::string              id;
+int                      principal_id_;
 Session*                 global_session;
 
-dpo::client::ObjectManager*   global_omgr;
-
+dpo::client::DpoLayer*   global_dpo_layer;
 
 int 
 Client::InitRPC(int principal_id, const char* xdst)
@@ -70,14 +64,13 @@ Client::Init(int principal_id, const char* xdst)
 
 	Config::Init();
 	Client::InitRPC(principal_id, xdst);
+	principal_id_ = principal_id; 
 
-	// create necessary managers
+	// create main components
 	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
-	global_smgr = new StorageManager(rpc_client, principal_id);
-	global_lckmgr = new LockManager(rpc_client, rpc_server, id);
-	global_hlckmgr = new HLockManager(global_lckmgr);
-	global_omgr = new dpo::client::ObjectManager(global_lckmgr, global_hlckmgr);
-	global_session = new Session(global_lckmgr, global_hlckmgr, global_smgr, global_omgr);
+	global_dpo_layer = new dpo::client::DpoLayer(rpc_client, rpc_server, id, principal_id);
+	global_dpo_layer->Init();
+	global_session = new Session(global_dpo_layer);
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
@@ -99,12 +92,10 @@ int
 Client::Shutdown() 
 {
 	// TODO: properly destroy any state created
-	delete global_hlckmgr;
-	delete global_lckmgr;
-	global_hlckmgr = NULL; 
-	global_lckmgr = NULL;
+	delete global_dpo_layer;
 	return 0;
 }
+
 
 Session*
 Client::CurrentSession()
@@ -113,7 +104,7 @@ Client::CurrentSession()
 		return thread_session;
 	}
 
-	thread_session = new Session(global_lckmgr, global_hlckmgr, global_smgr, global_omgr);
+	thread_session = new Session(global_dpo_layer);
 	thread_session->tx_ = dpo::stm::client::Self();
 	return thread_session;
 }

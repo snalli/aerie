@@ -26,14 +26,11 @@ template<class Subject, class VersionManager> class ObjectProxy;
 template<class Subject, class VersionManager>
 class ObjectManager: public dpo::client::ObjectManagerOfType {
 public:
-	//FIXME: the use of session is confusing as we don't get a complete session 
-	// (for example the session has a NULL pointer as a pointer to the generic object manager 
-
 	dpo::client::ObjectProxy* Load(::client::Session* session, ObjectId oid) {
 		return new ObjectProxy<Subject, VersionManager>(session, oid);
 	}
-
-	void OnRelease(::client::Session* session, ObjectId oid) {
+	
+	void Publish(::client::Session* session, ObjectId oid) {
 		ObjectProxy<Subject, VersionManager>* obj_proxy;
 		dpo::client::ObjectProxy*             obj2_proxy;
 		assert(oid2obj_map_.Lookup(oid, &obj2_proxy) == E_SUCCESS);

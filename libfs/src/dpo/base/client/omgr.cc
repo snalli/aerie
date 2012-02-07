@@ -31,9 +31,7 @@ ObjectManager::ObjectManager(dpo::cc::client::LockManager* lckmgr,
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2mgr_map_.set_empty_key(0);
 	hlckmgr_->RegisterLockUser(this);
-	//FIXME: the use of session is confusing as we don't use a complete session 
-	// (for example this private session has a NULL pointer as a pointer to the generic object manager 
-	session_ = new ::client::Session(lckmgr, hlckmgr, NULL, NULL);
+	cb_session_ = new ::client::Session(lckmgr, hlckmgr);
 	assert(RegisterBaseTypes() == E_SUCCESS);
 }
 
@@ -110,7 +108,8 @@ done:
  * Otherwise it initializes the obj_ref to point to the object. 
  */
 int
-ObjectManager::GetObjectInternal(ObjectId oid, 
+ObjectManager::GetObjectInternal(::client::Session* session,
+                                 ObjectId oid, 
                                  dpo::common::ObjectProxyReference** obj_refp, 
                                  bool use_exist_obj_ref)
 {
@@ -132,7 +131,7 @@ ObjectManager::GetObjectInternal(ObjectId oid,
 	mgr = itr->second;
 	if ((ret = mgr->oid2obj_map_.Lookup(oid, &objproxy)) != E_SUCCESS) {
 		// create the object proxy
-		if ((objproxy = mgr->Load(session_, oid)) == NULL) {
+		if ((objproxy = mgr->Load(cb_session_, oid)) == NULL) {
 			ret = -E_NOMEM;
 			goto done;
 		}
@@ -171,12 +170,14 @@ done:
  *
  */
 int
-ObjectManager::FindObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref) 
+ObjectManager::FindObject(::client::Session* session, 
+                          ObjectId oid, 
+                          dpo::common::ObjectProxyReference** obj_ref) 
 {
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
 	
-	return GetObjectInternal(oid, obj_ref, true);
+	return GetObjectInternal(session, oid, obj_ref, true);
 }
 
 
@@ -186,17 +187,20 @@ ObjectManager::FindObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_
  *
  */
 int
-ObjectManager::GetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref) 
+ObjectManager::GetObject(::client::Session* session, 
+                         ObjectId oid, 
+                         dpo::common::ObjectProxyReference** obj_ref) 
 {
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
 	
-	return GetObjectInternal(oid, obj_ref, false);
+	return GetObjectInternal(session, oid, obj_ref, false);
 }
 
 
 int
-ObjectManager::PutObject(dpo::common::ObjectProxyReference& obj_ref)
+ObjectManager::PutObject(::client::Session* session, 
+                         dpo::common::ObjectProxyReference& obj_ref)
 {
 	int                  ret = E_SUCCESS;
 	ObjectManagerOfType* mgr;
@@ -208,22 +212,24 @@ ObjectManager::PutObject(dpo::common::ObjectProxyReference& obj_ref)
 }
 
 
-void 
-ObjectManager::OnRelease(dpo::cc::client::HLock* hlock)
+/**
+ * \brief Flushes the object to the world.
+ */
+int
+ObjectManager::PublishObject(::client::Session* session, ObjectId oid)
 {
-	ObjectId             oid(reinterpret_cast<uint64_t>(hlock->payload()));
+	int                  ret = E_SUCCESS;
 	ObjectManagerOfType* mgr;
 
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();
 	ObjectType2Manager::iterator itr;
 	if ((itr = objtype2mgr_map_.find(type)) == objtype2mgr_map_.end()) {
-		//ret = -E_INVAL; // unknown type id 
 		goto done;
 	}
 	mgr = itr->second;
 	
-	mgr->OnRelease(session_, oid);
+	mgr->Publish(session, oid);
 /*
 	if ((ret = mgr->oid2obj_map_.Remove(oid) != E_SUCCESS) {
 		ret = -E_EXIST; // does not exist
@@ -234,42 +240,32 @@ ObjectManager::OnRelease(dpo::cc::client::HLock* hlock)
 */
 done:
 	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
 
 
+/**
+ * \brief Call-back made by the lock manager when the lock is released 
+ */
+void 
+ObjectManager::OnRelease(dpo::cc::client::HLock* hlock)
+{
+	ObjectId oid(reinterpret_cast<uint64_t>(hlock->payload()));
+
+	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
+}
+
+
+/**
+ * \brief Call-back made by the lock manager when the lock is down-graded 
+ */
 void 
 ObjectManager::OnConvert(dpo::cc::client::HLock* hlock)
 {
-	assert(0);
+	ObjectId oid(reinterpret_cast<uint64_t>(hlock->payload()));
+
+	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
 }
-
-
-int
-ObjectManager::ReleaseObject(dpo::common::ObjectProxy* obj)
-{
-	int                  ret = E_SUCCESS;
-	ObjectManagerOfType* mgr;
-/*
-	pthread_mutex_lock(&mutex_);
-	ObjectType type = obj->oid.type();
-	ObjectType2Manager::iterator itr;
-	if ((itr = objtype2mgr_map_.find(type)) == objtype2mgr_map_.end()) {
-		ret = -E_INVAL; // unknown type id 
-		goto done;
-	}
-	mgr = itr->second;
-
-	if ((ret = mgr->oid2obj_map_.Remove(obj->oid())) != E_SUCCESS) {
-		ret = -E_EXIST; // does not exist
-		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_omgr), 
-				"Object reference points to an unknown object oid\n");
-	}
-	obj_ref.Reset(true);
-	pthread_mutex_unlock(&mutex_);
-	return ret;
-*/
-}
-
 
 
 } // namespace client

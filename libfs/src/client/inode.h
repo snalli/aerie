@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "common/types.h"
-#include "common/pnode.h"
 #include "client/const.h"
 #include "dpo/base/client/proxy.h"
 
@@ -61,9 +60,8 @@ public:
 		return fs_type_;
 	}
 
-	dpo::common::ObjectProxyReference* ref_;     // reference to the persistent object container
 //protected:
-	Pnode*                             pnode_;   // pointer to the immutable persistent inode structure
+	dpo::common::ObjectProxyReference* ref_;     // reference to the persistent object container
 	//! process-wide mutex; used for synchronizing access to the
 	//! volatile inode metadata
 	pthread_mutex_t                    mutex_;

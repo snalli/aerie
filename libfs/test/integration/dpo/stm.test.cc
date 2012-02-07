@@ -30,7 +30,7 @@ SUITE(STM)
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		EVENT("BeforeLock");
 		rw_reft->proxy()->Lock(session, lock_protocol::Mode::XL);
@@ -52,7 +52,7 @@ SUITE(STM)
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new dpo::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		STM_BEGIN()
 			dpo::common::ObjectId oid;

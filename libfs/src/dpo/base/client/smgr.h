@@ -1,5 +1,5 @@
-#ifndef __STAMNOS_FS_CLIENT_STORAGE_MANAGER_H
-#define __STAMNOS_FS_CLIENT_STORAGE_MANAGER_H
+#ifndef __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H
+#define __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H
 
 #include <stdlib.h>
 #include <typeinfo>
@@ -9,10 +9,12 @@
 //FIXME: The Storage Manager should use the kernel storage API instead of the 
 //chunkstore server when this facility becomes available.
 
-
 namespace client {
-
 class Session; // forward declaration
+} // namespace client
+
+namespace dpo {
+namespace client {
 
 class StorageManager {
 public:
@@ -24,8 +26,8 @@ public:
 		chunk_store.Init();
 	}		  
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
-	int Alloc(Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
-	int AllocExtent(Session* session, size_t nbytes, void** ptr);
+	int Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
+	int AllocExtent(::client::Session* session, size_t nbytes, void** ptr);
 
 private:
 	rpcc*        client_;
@@ -35,5 +37,6 @@ private:
 
 
 } // namespace client
+} // namespace dpo
 
-#endif // __STAMNOS_FS_CLIENT_STORAGE_MANAGER_H
+#endif // __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H

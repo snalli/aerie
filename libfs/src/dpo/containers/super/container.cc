@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "common/errno.h"
 #include "client/session.h"
-#include "client/smgr.h"
+#include "dpo/base/client/smgr.h"
 
 namespace dpo {
 namespace containers {

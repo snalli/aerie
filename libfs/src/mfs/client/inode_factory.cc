@@ -22,7 +22,7 @@ InodeFactory::LoadDirInode(::client::Session* session,
 	// atomically get a reference to the persistent object and 
 	// create the in-core Inode 
 	pthread_mutex_lock(&mutex_);
-	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
+	if ((ret = session->omgr_->FindObject(session, oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
 			// the in-core inode already exists; just return this and 
 			// we are done
@@ -69,7 +69,7 @@ InodeFactory::LoadFileInode(::client::Session* session,
 	// atomically get a reference to the persistent object and 
 	// create the in-core Inode 
 	pthread_mutex_lock(&mutex_);
-	if ((ret = session->omgr_->FindObject(oid, &ref)) == E_SUCCESS) {
+	if ((ret = session->omgr_->FindObject(session, oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
 			// the in-core inode already exists; just return this and 
 			// we are done

@@ -11,6 +11,7 @@
 #include "dpo/containers/radix/radixtree.h"
 #include "dpo/containers/typeid.h"
 #include "dpo/base/common/obj.h"
+#include "dpo/base/client/smgr.h"
 #include "dpo/base/common/const.h"
 #include "common/debug.h"
 #include "common/util.h"

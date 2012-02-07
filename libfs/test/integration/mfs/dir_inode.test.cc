@@ -31,15 +31,15 @@ SUITE(MFSDirInode)
 		::mfs::client::DirInode*             cinode;
 
 		/* foo */
-		CHECK(global_omgr->GetObject(OID[2], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[2], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
 		CHECK(dinode->Link(session, "foo", cinode, false) == 0);
 		/* bar */
-		CHECK(global_omgr->GetObject(OID[3], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[3], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
 		CHECK(dinode->Link(session, "bar", cinode, false) == 0);
 		/* doc */
-		CHECK(global_omgr->GetObject(OID[4], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[4], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
 		CHECK(dinode->Link(session, "doc", cinode, false) == 0);
 	}
@@ -56,7 +56,7 @@ SUITE(MFSDirInode)
 
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 		
@@ -67,7 +67,7 @@ SUITE(MFSDirInode)
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
 
-		CHECK(global_omgr->GetObject(OID[5], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
 		CHECK(dinode->Link(session, "media", cinode, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
@@ -87,7 +87,7 @@ SUITE(MFSDirInode)
 
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 		
@@ -102,7 +102,7 @@ SUITE(MFSDirInode)
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) != E_SUCCESS);
 
 
-		CHECK(global_omgr->GetObject(OID[5], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
 		CHECK(dinode->Link(session, "foo", cinode, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
@@ -123,7 +123,7 @@ SUITE(MFSDirInode)
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 	
@@ -136,7 +136,7 @@ SUITE(MFSDirInode)
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
 		
-		CHECK(global_omgr->GetObject(OID[5], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		child1 = new ::mfs::client::DirInode(rw_ref);
 		CHECK(dinode->Link(session, "media", child1, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
@@ -158,7 +158,7 @@ SUITE(MFSDirInode)
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 	
@@ -188,7 +188,7 @@ SUITE(MFSDirInode)
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 	
@@ -203,7 +203,7 @@ SUITE(MFSDirInode)
 		
 		CHECK(dinode->Unlink(session, "foo") == E_SUCCESS);
 
-		CHECK(global_omgr->GetObject(OID[5], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		child1 = new ::mfs::client::DirInode(rw_ref);
 		CHECK(dinode->Link(session, "foo", child1, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
@@ -225,7 +225,7 @@ SUITE(MFSDirInode)
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 	
@@ -254,7 +254,7 @@ SUITE(MFSDirInode)
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 	
@@ -285,7 +285,7 @@ SUITE(MFSDirInode)
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_omgr->GetObject(OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		dinode = new ::mfs::client::DirInode(rw_ref);
 	

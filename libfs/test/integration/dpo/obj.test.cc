@@ -7,6 +7,7 @@
 #include "tool/testfw/testfw.h"
 #include "dpo/base/client/rwproxy.h"
 #include "dpo/base/client/omgr.h"
+#include "dpo/base/client/smgr.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
 #include "obj.fixture.h"
@@ -91,8 +92,8 @@ SUITE(Object)
 		EVENT("AfterMapObjects");
 		
 		dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new dpo::client::rw::ObjectManager<Dummy, DummyVersionManager>;
-		CHECK(global_omgr->RegisterType(Dummy::kTypeID, dummy_mgr) == E_SUCCESS);
-		CHECK(global_omgr->GetObject(OID[1], &ref) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->RegisterType(Dummy::kTypeID, dummy_mgr) == E_SUCCESS);
+		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[1], &ref) == E_SUCCESS);
 		EVENT("BeforeLock");
 		dummy_rw_ref = static_cast<DummyRWReference*>(ref);
 		dummy_rw_ref->proxy()->Lock(session, lock_protocol::Mode::XL);

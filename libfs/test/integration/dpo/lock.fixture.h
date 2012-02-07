@@ -1,5 +1,5 @@
-#ifndef _LOCK_FIXTURE_HXX_AGL189
-#define _LOCK_FIXTURE_HXX_AGL189
+#ifndef __STAMNOS_TEST_DPO_LOCK_FIXTURE_H
+#define __STAMNOS_TEST_DPO_LOCK_FIXTURE_H
 
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
@@ -39,7 +39,7 @@ struct LockFixture: public LockRegionFixture, RPCFixture {
 
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
-			delete global_lckmgr;
+			delete global_dpo_layer;
 		}
 	};
 
@@ -47,7 +47,8 @@ struct LockFixture: public LockRegionFixture, RPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_lckmgr = new LockManager(client::rpc_client, client::rpc_server, client::id);
+			global_dpo_layer = new dpo::client::DpoLayer(client::rpc_client, client::rpc_server, client::id, client::principal_id_);
+			global_dpo_layer->Init();
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete
@@ -62,4 +63,4 @@ struct LockFixture: public LockRegionFixture, RPCFixture {
 };
 
 
-#endif /* _LOCK_FIXTURE_HXX_AGL189 */
+#endif // __STAMNOS_TEST_DPO_LOCK_FIXTURE_H

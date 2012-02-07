@@ -1,5 +1,5 @@
-#ifndef __MFS_CLIENT_DIRECTORY_INODE_H_KAL178
-#define __MFS_CLIENT_DIRECTORY_INODE_H_KAL178
+#ifndef __STAMNOS_MFS_SERVER_DIRECTORY_INODE_H
+#define __STAMNOS_MFS_SERVER_DIRECTORY_INODE_H
 
 #include <stdint.h>
 #include "client/sb.h"
@@ -91,4 +91,4 @@ private:
 
 } // namespace mfs
 
-#endif // __MFS_CLIENT_DIRECTORY_INODE_H_KAL178
+#endif // __STAMNOS_MFS_SERVER_DIRECTORY_INODE_H

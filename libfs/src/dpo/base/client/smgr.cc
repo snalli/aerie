@@ -1,10 +1,11 @@
-#include "client/smgr.h"
+#include "dpo/base/client/smgr.h"
 #include <stdlib.h>
 #include <typeinfo>
 #include "client/session.h"
 
-
+namespace dpo {
 namespace client {
+
 
 // Storage manager
 // It allocates storage for a new object:
@@ -26,7 +27,7 @@ StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 
 int 
-StorageManager::Alloc(Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageManager::Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	ChunkDescriptor* achunkdsc[16];
 	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
@@ -40,7 +41,7 @@ StorageManager::Alloc(Session* session, size_t nbytes, std::type_info const& typ
 
 
 int 
-StorageManager::AllocExtent(Session* session, size_t nbytes, void** ptr)
+StorageManager::AllocExtent(::client::Session* session, size_t nbytes, void** ptr)
 {
 	ChunkDescriptor* achunkdsc[16];
 	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
@@ -52,5 +53,5 @@ StorageManager::AllocExtent(Session* session, size_t nbytes, void** ptr)
 }
 
 
-
 } // namespace client
+} // namespace dpo

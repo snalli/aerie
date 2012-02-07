@@ -4,7 +4,7 @@
 #include <vector>
 #include "common/errno.h"
 #include "client/session.h"
-#include "client/smgr.h"
+#include "dpo/base/client/smgr.h"
 #include "common/interval_tree.h"
 
 namespace dpo {
@@ -201,7 +201,7 @@ ByteInterval::Read(::client::Session* session, char* dst, uint64_t off, uint64_t
 
 /////////////////////////////////////////////////////////////////////////////
 // 
-// ByteContainer Copy-On-Write 
+// ByteContainer Verion Manager: Logical Copy-On-Write 
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -342,7 +342,7 @@ ByteContainer::VersionManager::ReadMutable(::client::Session* session,
 	if (mutable_) {
 		assert(region_ == NULL);
 		return object()->Read(session, dst, off, vn);
-	if (region_) {
+	} else if (region_) {
 		return	region_->Read(session, dst, off, vn);
 	}
 
@@ -413,7 +413,7 @@ ByteContainer::VersionManager::WriteMutable(::client::Session* session,
 	if (mutable_) {
 		assert(region_ == NULL);
 		return object()->Write(session, src, off, n);
-	if (!region_) {
+	} else if (!region_) {
 		bn = off/dpo::common::BLOCK_SIZE;
 		region_ = new ByteContainer::Region(session, object(), bn);
 	}

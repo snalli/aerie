@@ -5,28 +5,22 @@
 
 #include "client/const.h"
 #include "client/namespace.h"
-#include "client/smgr.h"
 
 class Registry;
 namespace client { class FileManager; } 
-namespace dpo { namespace client { class ObjectManager; } }
-namespace dpo { namespace cc { namespace client { class LockManager; } } }
-namespace dpo { namespace cc { namespace client { class HLockManager; } } }
 
 namespace client {
 
 extern NameSpace*                         global_namespace;
-extern StorageManager*                    global_smgr;
 extern FileManager*                       global_fmgr;
-extern dpo::cc::client::LockManager*      global_lckmgr;
-extern dpo::cc::client::HLockManager*     global_hlckmgr;
-extern dpo::client::ObjectManager*        global_omgr;
 extern Session*                           global_session;
 extern Registry*                          global_registry;
+extern dpo::client::DpoLayer*             global_dpo_layer;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;
 extern std::string       id;
+extern int               principal_id_;
 
 
 class Client {

@@ -30,7 +30,7 @@ class ObjectManagerOfType {
 friend class ObjectManager;
 public:
 	virtual ObjectProxy* Load(::client::Session* session, ObjectId oid) = 0;
-	virtual void OnRelease(::client::Session* session, ObjectId oid) = 0;
+	virtual void Publish(::client::Session* session, ObjectId oid) = 0;
 
 protected:	
 	ObjectMap oid2obj_map_;
@@ -43,27 +43,27 @@ public:
 	ObjectManager(dpo::cc::client::LockManager* lckmgr, dpo::cc::client::HLockManager* hlckmgr);
 	~ObjectManager();
 	int RegisterType(ObjectType type_id, ObjectManagerOfType* mgr);
-	int FindOrGetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
-	int FindObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
-	int GetObject(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref);
-	int PutObject(dpo::common::ObjectProxyReference& obj_ref);
-	int ReleaseObject(dpo::common::ObjectProxy* obj);
+	int FindOrGetObject(::client::Session* session, ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
+	int FindObject(::client::Session* session, ObjectId oid, dpo::common::ObjectProxyReference** obj_ref); 
+	int GetObject(::client::Session* session, ObjectId oid, dpo::common::ObjectProxyReference** obj_ref);
+	int PutObject(::client::Session* session, dpo::common::ObjectProxyReference& obj_ref);
+	int PublishObject(::client::Session* session, ObjectId oid);
+	int id() { return hlckmgr_->id(); }
+	
+	// call-back methods
 	void OnRelease(dpo::cc::client::HLock* hlock);
 	void OnConvert(dpo::cc::client::HLock* hlock);
 	int Revoke(dpo::cc::client::HLock* hlock) { }
-	//ObjectProxy* Object(ObjectId oid);
-	//ObjectProxy* Object(ObjectId oid, ObjectProxy* obj);
-	int id() { return hlckmgr_->id(); }
 
 private:
-	int GetObjectInternal(ObjectId oid, dpo::common::ObjectProxyReference** obj_ref, bool use_exist_obj_ref);
+	int GetObjectInternal(::client::Session* session, ObjectId oid, dpo::common::ObjectProxyReference** obj_ref, bool use_exist_obj_ref);
 	int RegisterBaseTypes();
 	
 	pthread_mutex_t                mutex_;
 	ObjectType2Manager             objtype2mgr_map_; 
 	dpo::cc::client::LockManager*  lckmgr_;
 	dpo::cc::client::HLockManager* hlckmgr_;
-	::client::Session*             session_;
+	::client::Session*             cb_session_; /**< the session used when calling call-back methods */
 };
 
 

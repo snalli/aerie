@@ -7,7 +7,6 @@ namespace client {
 
 Inode::Inode()
 	: sb_(NULL),
-	  pnode_(NULL),
 	  refcnt_(0),
 	  ref_(NULL)
 { 
