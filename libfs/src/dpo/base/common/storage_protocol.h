@@ -39,13 +39,13 @@ public:
 // Marshalling functions for user-defined classes.
 // (these leave in the global namespace to be visible from rpc/
 
-marshall& operator<<(marshall &m, ::dpo::StorageProtocol::ContainerRequest &req) {
+inline marshall& operator<<(marshall &m, ::dpo::StorageProtocol::ContainerRequest &req) {
 	m << req.type;
 	return m;
 }
 
 
-unmarshall& operator>>(unmarshall &u, ::dpo::StorageProtocol::ContainerRequest &req) {
+inline unmarshall& operator>>(unmarshall &u, ::dpo::StorageProtocol::ContainerRequest &req) {
 	u >> req;
 	return u;
 }

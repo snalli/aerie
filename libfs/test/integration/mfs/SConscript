@@ -19,10 +19,8 @@ depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 serverDepLibs = [fssLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
-lockServerProgram = myTestEnv.Program('smain', \
+serverProgram = myTestEnv.Program('smain', \
 	source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
-hlockServerProgram = myTestEnv.Program('smain-hlock', \
-	source = myTestEnv['HLOCK_SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 testProgram = myTestEnv.Program('test', \
 	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], \
 	LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
@@ -41,7 +39,7 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFS:TestMkfs',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Namespace:TestMkfs')])
     },
@@ -51,7 +49,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFS:TestMkfsMountSingle',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Namespace:TestMkfsMount')])
     },
@@ -61,7 +59,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFS:TestMkfsMountConcurrent',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Namespace:TestMkfs')]),
         'C2': ( testProgram, [('T1', 'Namespace:TestMount')])
@@ -72,7 +70,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFS:TestMkdirRmdirConcurrent',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Namespace:TestMkfsMkdir')]),
         'C2': ( testProgram, [('T1', 'Namespace:TestRmdir')])
@@ -90,7 +88,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFSDirInode:TestLink',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink')])
     },
@@ -100,7 +98,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFSDirInode:TestUnlink',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'MFSDirInode:TestUnlink')])
     },
@@ -116,7 +114,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFSDirInode:TestLinkConcurrent1',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink1_publisher')]),
         'C2': ( testProgram, [('T1', 'MFSDirInode:TestLink1_consumer')])
@@ -132,7 +130,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFSDirInode:TestLinkConcurrent2',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink2_publisher')]),
         'C2': ( testProgram, [('T1', 'MFSDirInode:TestLink2_consumer')])
@@ -148,7 +146,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFSDirInode:TestUnlinkConcurrent1',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'MFSDirInode:TestUnlink1_publisher')]),
         'C2': ( testProgram, [('T1', 'MFSDirInode:TestUnlink1_consumer')])
@@ -169,7 +167,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFSFileInode:TestWriteReadSingle1',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'MFSFileInode:TestWrite1')])
     },
@@ -185,7 +183,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'MFSFileInode:TestWriteReadConcurrent1',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'MFSFileInode:TestWrite1')]),
         'C2': ( testProgram, [('T1', 'MFSFileInode:TestRead1')])

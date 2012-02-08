@@ -27,7 +27,8 @@
 // if there are any expired locks and collects such locks. 
 
 
-
+namespace dpo {
+namespace cc {
 namespace server {
 
 typedef dpo::cc::common::LockId LockId;
@@ -115,6 +116,8 @@ LockManager::Init(rpcs* rpc_server)
 {
 	pthread_t th;
 	int       r;
+
+	dbg_log(DBG_INFO, "Initializing Base Lock Manager\n");
 
 	if (!mutex_) {
 		mutex_ = new pthread_mutex_t;
@@ -613,3 +616,5 @@ LockManager::retryer()
 }
 
 } // namespace server
+} // namespace cc
+} // namespace dpo

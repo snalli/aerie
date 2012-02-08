@@ -24,19 +24,21 @@ private:
 };
 
 
-int
-StorageManager::Init(rpcs* rpc_server)
-{
-    rpc_server->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
-	                &::dpo::server::StorageManager::AllocateContainerVector);
-
-}
-
-
 StorageManager::StorageManager(rpcs* rpc_server)
+	: rpc_server_(rpc_server)
+{ }
+
+
+int
+StorageManager::Init()
 {
-	assert(Init(rpc_server) == 0);
+    rpc_server_->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
+	                 &::dpo::server::StorageManager::AllocateContainerVector);
+
 }
+
+
+
 
 #if 0
 

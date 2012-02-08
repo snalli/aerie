@@ -12,6 +12,8 @@
 #include "dpo/base/common/gtque.h"
 #include "dpo/base/common/lock_protocol.h"
 
+namespace dpo {
+namespace cc {
 namespace server {
 
 
@@ -113,5 +115,7 @@ private:
 
 
 } // namespace server
+} // namespace cc
+} // namespace dpo
 
 #endif // __STAMNOS_DPO_SERVER_LOCK_MANAGER_H

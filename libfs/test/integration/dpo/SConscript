@@ -19,10 +19,8 @@ depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 serverDepLibs = [fssLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
-lockServerProgram = myTestEnv.Program('smain', \
+serverProgram = myTestEnv.Program('smain', \
 	source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
-hlockServerProgram = myTestEnv.Program('smain-hlock', \
-	source = myTestEnv['HLOCK_SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 testProgram = myTestEnv.Program('test', \
 	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), \
                   Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), objects], \
@@ -42,7 +40,7 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockSingle',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
     },
@@ -53,7 +51,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockConcurrent1',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlock')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
@@ -66,7 +64,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockMultipleTimesConcurrent1',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
@@ -78,7 +76,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockMultipleTimesConcurrent2',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockUnlockMultipleTimes')])
@@ -97,7 +95,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockUnlockMultipleTimesConcurrent3',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockUnlockTwoTimes')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockUnlock')])
@@ -115,7 +113,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockConvert1',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSL')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockSL')])
@@ -133,7 +131,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockConvert2',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockXLConvertSLsynchronous')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockSL')])
@@ -148,7 +146,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestSharedLockUnlockConcurrentClients1',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestSharedLockUnlock')]),
         'C2': ( testProgram, [('T1', 'Lock:TestSharedLockUnlock')])
@@ -162,7 +160,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestSharedLockUnlockConcurrentClients1',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestSharedLockXLUnlockLockSLUnlock')]),
         'C2': ( testProgram, [('T1', 'Lock:TestSharedLockXLUnlockLockSLUnlock')])
@@ -179,7 +177,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockCancel1',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockBLockA')])
@@ -196,7 +194,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Lock:TestLockCancel2',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Lock:TestLockALockB'), ('T2', 'Lock:TestCancelLock')]),
         'C2': ( testProgram, [('T1', 'Lock:TestLockBUnlockB')])
@@ -222,7 +220,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestLockUnlockSingleClient',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXRUnlock')])
     },
@@ -234,7 +232,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestLockUnlockConcurrentClient1',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockXLUnlock')]),
         'C2': ( testProgram, [('T1', 'HLock:TestLockIXLockXLUnlock')])
@@ -249,7 +247,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestLockUnlockConcurrentClient2',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockISLockSLUnlock')]),
         'C2': ( testProgram, [('T1', 'HLock:TestLockISLockSLUnlock')])
@@ -265,7 +263,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'HLock:TestDeepLockUnlockConcurrentClient',
     init_script = None,
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'HLock:TestLockIXLockIXLockXLUnlockAll')]),
         'C2': ( testProgram, [('T1', 'HLock:TestLockXR')])
@@ -287,7 +285,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Object:Test',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Object:Test')]),
         'C2': ( testProgram, [('T1', 'Object:Test')])
@@ -304,7 +302,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'ContainersNameContainer:Test',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'ContainersNameContainer:Test')]),
         'C2': ( testProgram, [('T1', 'ContainersNameContainer:Test')])
@@ -324,7 +322,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'STM:Test',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'STM:TestPessimisticUpdate')]),
         'C2': ( testProgram, [('T1', 'STM:TestOptimisticRead')])
@@ -345,7 +343,7 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'Storage:Test',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = lockServerProgram,
+    testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'Storage:Test')]),
     },

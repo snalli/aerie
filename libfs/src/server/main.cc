@@ -12,16 +12,15 @@
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
-#include "dpo/base/server/lckmgr.h"
+#include "dpo/base/server/dpo.h"
 
-using namespace server;
 
-rpcs*           serverp;  // server rpc object
-int             port;
-pthread_attr_t  attr;
-ChunkServer*    chunk_server;
-RegistryServer* registry;
-LockManager*    lm;
+rpcs*                  serverp;  // server rpc object
+int                    port;
+pthread_attr_t         attr;
+ChunkServer*           chunk_server;
+RegistryServer*        registry;
+dpo::server::DpoLayer* dpo_layer;
 
 void register_handlers(rpcs* serverp);
 
@@ -36,8 +35,10 @@ void startserver()
 	registry->Init();
 
 	register_handlers(serverp);
-	lm = new LockManager(serverp);
+	dpo_layer = new ::dpo::server::DpoLayer(serverp);
+	dpo_layer->Init();
 }
+
 
 int
 main(int argc, char *argv[])

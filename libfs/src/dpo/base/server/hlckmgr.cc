@@ -5,6 +5,8 @@
 #include "dpo/base/common/lock_protocol.h"
 #include "dpo/base/server/lckmgr.h"
 
+namespace dpo {
+namespace cc {
 namespace server {
 
 //TODO: modify base lock manager to allocate locks as objects and use google's hash map
@@ -14,17 +16,26 @@ namespace server {
 typedef dpo::cc::common::LockId LockId;
 
 HLockManager::HLockManager(rpcs* rpc_server)
+	: rpc_server_(rpc_server),
+	  lm_(NULL)
+{ }
+
+
+int
+HLockManager::Init()
 {
+	dbg_log(DBG_INFO, "Initializing Hierachical Lock Manager\n");
+
 	pthread_mutex_init(&mutex_, NULL);
 
 	lm_ = new LockManager(NULL, &mutex_);
 
-	if (rpc_server) {
-		rpc_server->reg(lock_protocol::stat, this, &HLockManager::Stat);
-		rpc_server->reg(lock_protocol::acquire, this, &HLockManager::Acquire);
-		rpc_server->reg(lock_protocol::release, this, &HLockManager::Release);
-		rpc_server->reg(lock_protocol::convert, this, &HLockManager::Convert);
-		rpc_server->reg(lock_protocol::subscribe, this, &HLockManager::Subscribe);
+	if (rpc_server_) {
+		rpc_server_->reg(lock_protocol::stat, this, &HLockManager::Stat);
+		rpc_server_->reg(lock_protocol::acquire, this, &HLockManager::Acquire);
+		rpc_server_->reg(lock_protocol::release, this, &HLockManager::Release);
+		rpc_server_->reg(lock_protocol::convert, this, &HLockManager::Convert);
+		rpc_server_->reg(lock_protocol::subscribe, this, &HLockManager::Subscribe);
 	}
 }
 
@@ -147,3 +158,5 @@ HLockManager::OnRelease(Lock* lock, int flags)
 */
 
 } // namespace server
+} // namespace cc
+} // namespace dpo

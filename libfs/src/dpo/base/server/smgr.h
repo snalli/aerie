@@ -11,13 +11,13 @@ namespace server {
 
 class StorageManager {
 public:
-	explicit StorageManager(rpcs* serverp);
-	int Init(rpcs* rpc_server);
+	explicit StorageManager(rpcs* rpc_server);
+	int Init();
 
 	int AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, int& result);
+
 private:
-
-
+	rpcs* rpc_server_;
 };
 
 

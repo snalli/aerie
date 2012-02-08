@@ -12,15 +12,13 @@
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
-#include "dpo/base/server/lckmgr.h"
+#include "dpo/base/server/dpo.h"
 #include "api.h"
 
-using namespace server;
 
-extern ChunkServer*    chunk_server;
-extern RegistryServer* registry;
-extern LockManager*    lm;
-
+extern ChunkServer*           chunk_server;
+extern RegistryServer*        registry;
+extern dpo::server::DpoLayer* dpo_layer;
 
 // server-side handlers. they must be methods of some class
 // to simplify rpcs::reg(). a server process can have handlers
