@@ -212,12 +212,12 @@ HLock::WaitStatus(LockStatus old_sts)
 }
 
 
-HLockManager::HLockManager(LockManager* lm, HLockUser* hlu)
+HLockManager::HLockManager(LockManager* lm)
 	: lm_(lm),
-	  hlu_(hlu),
+	  hcb_(NULL),
 	  status_(NONE)
 {
-	lm_->RegisterLockUser(HLOCK_TYPE, this);
+	lm_->RegisterLockRevoke(HLock::TypeId, this);
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_cond_init(&status_cv_, NULL);
 	locks_.set_empty_key(LockId(0, 0));
@@ -230,7 +230,7 @@ HLockManager::~HLockManager()
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d] Shutting down Hierarchical Lock Manager\n", id());
 
-	lm_->UnregisterLockUser(HLOCK_TYPE);	
+	lm_->UnregisterLockRevoke(HLock::TypeId);	
 
 	// make sure no other thread is running inside this object 
 	// (e.g. a thread making a callback to Revoke)
@@ -992,8 +992,8 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 			pthread_mutex_lock(&hl->mutex_);
 			hl->WaitStatus(HLock::CONVERTING);
 			pthread_mutex_unlock(&hl->mutex_);
-			if (hlu_) {
-				hlu_->OnRelease(hl);
+			if (hcb_) {
+				hcb_->OnRelease(hl);
 			}
 			if (hl->lock_) {
 				assert(lm_->Release(hl->lock_, true) == lock_protocol::OK); 
@@ -1010,8 +1010,8 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 				    hl->mode_.String().c_str(), new_mode.String().c_str()); 
 			// even if lock is LOCKED we don't need to wait for it to be released because
 			// we are converting it to a mode compatible with the currently locked mode
-			if (hlu_) {
-				hlu_->OnConvert(hl);
+			if (hcb_) {
+				hcb_->OnConvert(hl);
 			}
 			if (hl->lock_) {
 				assert(lm_->Convert(hl->lock_, new_mode, true) == lock_protocol::OK); 

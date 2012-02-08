@@ -17,10 +17,6 @@ namespace client {
 
 class HLock; // forward declaration
 
-enum {
-	HLOCK_TYPE = 1 
-};
-
 struct HLockPtrLockModePair {
 	HLockPtrLockModePair(HLock* hlock, lock_protocol::Mode mode)
 		: hlock_(hlock),
@@ -37,7 +33,7 @@ typedef google::dense_hash_set<HLock*> HLockPtrSet;
  * A hierarchical lock is identified by an ID=(TYPE_ID, NUMBER)
  * Don't confuse the TYPE_ID of the hierarchical lock with the TYPE_ID
  * of the underlying base lock. The base lock TYPE_ID for the hierarchical
- * lock is HLOCK_TYPE.
+ * lock is HLock::TypeId.
  * 
  * The hierarchical lock keeps the locking mode to be able to acquire 
  * a base lock if it needs to (e.g. when the parent's base lock is 
@@ -49,6 +45,10 @@ typedef google::dense_hash_set<HLock*> HLockPtrSet;
  */
 class HLock {
 public:
+	enum {
+		TypeId = 1 
+	};
+
 	enum LockStatus {
 		NONE              = 0x0, 
 		FREE              = 0x1, 
@@ -72,7 +72,7 @@ public:
 	void set_status(LockStatus);
 	LockStatus status() const { return status_; }
 	LockId lid() const { return lid_; }
-	LockId base_lid() const { return LockId(HLOCK_TYPE, lid_.number()); }
+	LockId base_lid() const { return LockId(HLock::TypeId, lid_.number()); }
 	int AddChild(HLock* hlock);
 	int ChangeStatus(LockStatus old_sts, LockStatus new_sts);
 	int WaitStatus(LockStatus old_sts);
@@ -114,16 +114,15 @@ private:
 };
 
 
-class HLockUser {
+class HLockCallback {
 public:
 	virtual void OnRelease(HLock*) = 0;
 	virtual void OnConvert(HLock*) = 0;
-	virtual int Revoke(HLock*) = 0;
-	virtual ~HLockUser() {};
+	virtual ~HLockCallback() {};
 };
 
 
-class HLockManager: public LockUser {
+class HLockManager: public LockRevoke {
 	typedef google::dense_hash_map<LockId, HLock*, LockIdHashFcn> LockMap;
 public:
 	enum Status {
@@ -133,11 +132,9 @@ public:
 		SHUTTING_DOWN
 	};
 
-	HLockManager(LockManager*, HLockUser* = 0);
+	HLockManager(LockManager*);
 	~HLockManager();
 	
-	void OnRelease(Lock* l) { return; };
-	void OnConvert(Lock* l) { return; };
 	int Revoke(Lock* lock, lock_protocol::Mode mode);
 
 	HLock* FindOrCreateLock(LockId lid);
@@ -148,8 +145,8 @@ public:
 	lock_protocol::status Acquire(LockId lid, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Release(HLock* hlock);
 	lock_protocol::status Release(LockId lid);
-	void RegisterLockUser(HLockUser* hlu) { hlu_ = hlu; };
-	void UnregisterLockUser() { hlu_ = NULL; };
+	void RegisterLockCallback(HLockCallback* hcb) { hcb_ = hcb; };
+	void UnregisterLockCallback() { hcb_ = NULL; };
 
 	void PrintDebugInfo();
 	int id() { return lm_->id(); }
@@ -170,7 +167,7 @@ private:
 	pthread_mutex_t      mutex_;
 	Status               status_;
 	pthread_cond_t       status_cv_;
-	HLockUser*           hlu_;
+	HLockCallback*       hcb_;
 	LockManager*         lm_;
 	LockMap              locks_;
 };
@@ -189,9 +186,9 @@ HLock::AddChild(HLock* hlock)
 
 
 namespace client {
-	typedef ::dpo::cc::client::HLock        HLock;
-	typedef ::dpo::cc::client::HLockManager HLockManager;
-	typedef ::dpo::cc::client::HLockUser    HLockUser;
+	typedef ::dpo::cc::client::HLock         HLock;
+	typedef ::dpo::cc::client::HLockManager  HLockManager;
+	typedef ::dpo::cc::client::HLockCallback HLockCallback;
 } // namespace client
 
 

@@ -125,7 +125,8 @@ LockManager::LockManager(rpcc* rpc_client,
 	releaser_thread_running_ = true;
 
 	for (int i=0; i<LOCK_TYPE_COUNT; i++) {
-		lu_[i] = NULL;
+		lcb_[i] = NULL;
+		lrvk_[i] = NULL;
 	}
 	// register client's lock manager RPC handlers with srv2cl_
 	srv2cl_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
@@ -174,18 +175,34 @@ LockManager::~LockManager()
 
 
 void 
-LockManager::RegisterLockUser(LockType type, LockUser* lu)
+LockManager::RegisterLockCallback(LockType type, LockCallback* lcb)
 { 
 	assert(type < LOCK_TYPE_COUNT);
-	lu_[type] = lu; 
+	lcb_[type] = lcb; 
 }
 
 
 void 
-LockManager::UnregisterLockUser(LockType type) 
+LockManager::RegisterLockRevoke(LockType type, LockRevoke* lrvk)
+{ 
+	assert(type < LOCK_TYPE_COUNT);
+	lrvk_[type] = lrvk; 
+}
+
+
+void 
+LockManager::UnregisterLockCallback(LockType type) 
 {
 	assert(type < LOCK_TYPE_COUNT);
-	lu_[type] = NULL; 
+	lcb_[type] = NULL; 
+}
+
+
+void 
+LockManager::UnregisterLockRevoke(LockType type) 
+{
+	assert(type < LOCK_TYPE_COUNT);
+	lrvk_[type] = NULL; 
 }
 
 
@@ -270,7 +287,7 @@ LockManager::FindOrCreateLock(LockId lid)
 void 
 LockManager::Releaser()
 {
-	class LockUser* lu;
+	class LockRevoke* lrvk;
 
 	while (releaser_thread_running_) {
 		pthread_mutex_lock(&mutex_);
@@ -305,14 +322,14 @@ LockManager::Releaser()
 		// if there is a user manager registered with us then make a synchronous
 		// call to revoke the lock. otherwise wait for an asynchronous release 
 		assert(lid.type() < LOCK_TYPE_COUNT);
-		if (lu = lu_[lid.type()]) {
+		if (lrvk = lrvk_[lid.type()]) {
 			// drop lock to avoid any deadlocks caused by callbacks.
 			// releasing the lock is okay as state is consistent here. 
 			pthread_mutex_unlock(&mutex_);
 			// FIXME RACE: it's possible that some other thread unregisters the  
 			// lock user after we make the check above but before we make the call 
-			// to Revoke below. in such a case lu may point to a destroyed object.
-			lu->Revoke(l, static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
+			// to Revoke below. in such a case rvk may point to a destroyed object.
+			lrvk->Revoke(l, static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
 		} else {
 			lock_protocol::Mode new_mode = lock_protocol::Mode(static_cast<lock_protocol::Mode::Enum>(revoke2mode_table[l->revoke_type_]));
 			// wait until the lock is released or becomes compatible with the
@@ -931,17 +948,17 @@ LockManager::do_acquire(Lock* l,
 int 
 LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 {
-	int       r;
-	int       unused;
-	int       rpc_flags;
-	LockUser* lu;
+	int           r;
+	int           unused;
+	int           rpc_flags;
+	LockCallback* lcb;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] calling convert RPC for lock %s id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_.c_str(), cl2srv_->id(), l->seq_);
 	assert(l->lid_.type() < LOCK_TYPE_COUNT);
-	if (lu=lu_[l->lid_.type()]) {
-		lu->OnConvert(l);
+	if (lcb = lcb_[l->lid_.type()]) {
+		lcb->OnConvert(l);
 	}
 	rpc_flags = flags & (lock_protocol::FLG_NOQUE | lock_protocol::FLG_CAPABILITY);
 	r = cl2srv_->call(lock_protocol::convert, cl2srv_->id(), l->seq_, l->lid_.marshall(), 
@@ -953,16 +970,16 @@ LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 int 
 LockManager::do_release(Lock* l, int flags)
 {
-	int       r;
-	int       unused;
-	LockUser* lu;
+	int           r;
+	int           unused;
+	LockCallback* lcb;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] calling release RPC for lock %s id=%d seq=%d\n",
 	        cl2srv_->id(), l->lid_.c_str(), cl2srv_->id(), l->seq_);
 	assert(l->lid_.type() < LOCK_TYPE_COUNT);
-	if (lu = lu_[l->lid_.type()]) {
-		lu->OnRelease(l);
+	if (lcb = lcb_[l->lid_.type()]) {
+		lcb->OnRelease(l);
 	}
 
 	r = cl2srv_->call(lock_protocol::release, cl2srv_->id(), l->seq_, l->lid_.marshall(), 

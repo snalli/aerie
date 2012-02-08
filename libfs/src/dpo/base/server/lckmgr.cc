@@ -98,6 +98,7 @@ retrythread(void *x)
 	return 0;
 }
 
+
 // ISSUE: Bad software engineering: 
 // We want to be able to use LockManager as a building block
 // for other lock managers such as hierarchical lock manager.
@@ -255,6 +256,7 @@ LockManager::AcquireInternal(int clt, int seq, Lock* l,
 	
 	dbg_log(DBG_INFO, "clt %d seq %d acquiring lock %s (%s)\n", clt, seq, 
 	        LockId(l->lid_).c_str(), mode_set.String().c_str());
+	
 	mode = SelectMode(l, mode_set);
 	wq_len = l->waiting_list_.size();
 	dbg_log(DBG_INFO, "queue len for lock %s: %d\n", LockId(l->lid_).c_str(), wq_len);
@@ -614,6 +616,8 @@ LockManager::retryer()
 		//usleep(500);
 	}
 }
+
+
 
 } // namespace server
 } // namespace cc

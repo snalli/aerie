@@ -30,7 +30,8 @@ ObjectManager::ObjectManager(dpo::cc::client::LockManager* lckmgr,
 {
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2mgr_map_.set_empty_key(0);
-	hlckmgr_->RegisterLockUser(this);
+	hlckmgr_->RegisterLockCallback(this);
+	lckmgr_->RegisterLockCallback(::dpo::cc::client::Lock::TypeId, this);
 	cb_session_ = new ::client::Session(lckmgr, hlckmgr);
 	assert(RegisterBaseTypes() == E_SUCCESS);
 }
@@ -41,7 +42,8 @@ ObjectManager::~ObjectManager()
 //	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 //	        "[%d] Shutting down Object Manager\n", id());
 
-	hlckmgr_->UnregisterLockUser();
+	hlckmgr_->UnregisterLockCallback();
+	lckmgr_->UnregisterLockCallback(::dpo::cc::client::Lock::TypeId);
 
 }
 
@@ -86,7 +88,6 @@ ObjectManager::RegisterType(ObjectType type_id, ObjectManagerOfType* mgr)
 	ObjectType2Manager::iterator itr; 
 
 	pthread_mutex_lock(&mutex_);
-	printf("type_id = %d\n", type_id);
     if ((itr = objtype2mgr_map_.find(type_id)) != objtype2mgr_map_.end()) {
 		ret = -E_EXIST;
 		printf("EXISTS\n");
@@ -245,7 +246,7 @@ done:
 
 
 /**
- * \brief Call-back made by the lock manager when the lock is released 
+ * \brief Call-back made by the lock manager when a hierarchical lock is released 
  */
 void 
 ObjectManager::OnRelease(dpo::cc::client::HLock* hlock)
@@ -257,12 +258,36 @@ ObjectManager::OnRelease(dpo::cc::client::HLock* hlock)
 
 
 /**
- * \brief Call-back made by the lock manager when the lock is down-graded 
+ * \brief Call-back made by the lock manager when a hierarchical lock is down-graded 
  */
 void 
 ObjectManager::OnConvert(dpo::cc::client::HLock* hlock)
 {
 	ObjectId oid(reinterpret_cast<uint64_t>(hlock->payload()));
+
+	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
+}
+
+
+/**
+ * \brief Call-back made by the lock manager when a flat lock is released 
+ */
+void 
+ObjectManager::OnRelease(dpo::cc::client::Lock* lock)
+{
+	ObjectId oid(reinterpret_cast<uint64_t>(lock->payload()));
+
+	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
+}
+
+
+/**
+ * \brief Call-back made by the lock manager when a flat lock is down-graded 
+ */
+void 
+ObjectManager::OnConvert(dpo::cc::client::Lock* lock)
+{
+	ObjectId oid(reinterpret_cast<uint64_t>(lock->payload()));
 
 	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
 }

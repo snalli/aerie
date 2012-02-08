@@ -37,7 +37,9 @@ protected:
 };
 
 
-class ObjectManager: public dpo::cc::client::HLockUser {
+class ObjectManager: public dpo::cc::client::HLockCallback, 
+                     public dpo::cc::client::LockCallback 
+{
 	typedef google::dense_hash_map<ObjectType, ObjectManagerOfType*> ObjectType2Manager; 
 public:
 	ObjectManager(dpo::cc::client::LockManager* lckmgr, dpo::cc::client::HLockManager* hlckmgr);
@@ -53,7 +55,8 @@ public:
 	// call-back methods
 	void OnRelease(dpo::cc::client::HLock* hlock);
 	void OnConvert(dpo::cc::client::HLock* hlock);
-	int Revoke(dpo::cc::client::HLock* hlock) { }
+	void OnRelease(dpo::cc::client::Lock* lock);
+	void OnConvert(dpo::cc::client::Lock* lock);
 
 private:
 	int GetObjectInternal(::client::Session* session, ObjectId oid, dpo::common::ObjectProxyReference** obj_ref, bool use_exist_obj_ref);

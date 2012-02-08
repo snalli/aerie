@@ -9,9 +9,13 @@ namespace dpo {
 namespace cc {
 namespace server {
 
-//TODO: modify base lock manager to allocate locks as objects and use google's hash map
-//extent base lock manager to provide an API for use by this server which accepts a pointer to a object
-//collect all RPC under subclass RPC
+/**
+ * \todo Modify base lock manager to allocate locks as objects and 
+ *       use google's hash map
+ * \todo Extent base lock manager to provide an API for use by this 
+ *       server which accepts a pointer to a object collect all RPC 
+ *       under subclass RPC
+ */
 
 typedef dpo::cc::common::LockId LockId;
 
@@ -59,6 +63,15 @@ HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 	lock_protocol::Mode::Set           mode_set = lock_protocol::Mode::Set(mode_seti);
 	lock_protocol::Mode::Set::Iterator itr;
 	ClientRecord*                      cr;
+
+	dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %s (%s)\n",
+	        clt, seq, LockId(lid).c_str(), mode_set.String().c_str());
+
+	// just pass the lock request to the base lock manager
+	if (LockId(lid).type() == 0) {
+		return lm_->Acquire(clt, seq, lid, mode_seti, flags, arg, mode_granted);
+	}
+			
 
 	pthread_mutex_lock(&mutex_);
 	lock = lm_->FindOrCreateLockInternal(lid);

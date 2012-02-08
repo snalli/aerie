@@ -109,6 +109,10 @@ private:
 class Lock {
 
 public:
+	enum {
+		TypeId = 0 
+	};
+	
 	enum LockStatus {
 		NONE, 
 		FREE, 
@@ -170,14 +174,22 @@ private:
 };
 
 
-// Classes that inherit LockUser can override callback functions to 
+// Classes that inherit LockCallback can override callback functions to 
 // be notified of lock events
-class LockUser {
+class LockCallback {
 public:
 	virtual void OnRelease(Lock*) = 0;
 	virtual void OnConvert(Lock*) = 0;
+	virtual ~LockCallback() {};
+};
+
+
+// Classes that inherit LockRevoke can specialize the revoke function to 
+// take appropriate action
+class LockRevoke {
+public:
 	virtual int Revoke(Lock* lock, lock_protocol::Mode mode) = 0;
-	virtual ~LockUser() {};
+	virtual ~LockRevoke() {};
 };
 
 
@@ -205,8 +217,10 @@ public:
 	lock_protocol::status stat(LockId lid);
 	void Releaser();
 	void ShutdownReleaser();
-	void RegisterLockUser(LockType type, LockUser* lu);
-	void UnregisterLockUser(LockType type);
+	void RegisterLockCallback(LockType type, LockCallback* lu);
+	void RegisterLockRevoke(LockType type, LockRevoke* lu);
+	void UnregisterLockCallback(LockType type);
+	void UnregisterLockRevoke(LockType type);
 
 	rlock_protocol::status revoke(lock_protocol::LockId, int seq, int revoke_type, int& unused);
 	rlock_protocol::status retry(lock_protocol::LockId, int seq, int& current_seq);
@@ -225,7 +239,8 @@ private:
 	lock_protocol::Mode SelectMode(Lock* l, lock_protocol::Mode::Set mode_set);
 	lock_protocol::status CancelLockRequestInternal(Lock* l);
 
-	class LockUser*            lu_[LOCK_TYPE_COUNT];
+	class LockCallback*        lcb_[LOCK_TYPE_COUNT];
+	class LockRevoke*          lrvk_[LOCK_TYPE_COUNT];
 	std::string                hostname_;
 	std::string                id_;
 	/// the RPC object through which we receive callbacks from the server

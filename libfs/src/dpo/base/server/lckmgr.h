@@ -110,7 +110,7 @@ private:
 	/// Contains any locks that become available after a release or have being
 	/// acquired in shared mode (and thus waiting clients can grab them)
 	std::deque<lock_protocol::LockId>       available_locks_; 
-	class LockUser*                         lu_;
+	
 };
 
 
