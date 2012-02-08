@@ -1,15 +1,6 @@
-#ifndef __STAMNOS_RPC_PROTOCOL_H
-#define __STAMNOS_RPC_PROTOCOL_H
-
-class RpcProtocol {
-public:
-
-	enum RpcNumbers {
-		
-
-	};
-}; 
+#ifndef __STAMNOS_RPC_NUMBERS_H
+#define __STAMNOS_RPC_NUMBERS_H
 
 
-#endif // __STAMNOS_RPC_PROTOCOL_H
 
+#endif // __STAMNOS_RPC_NUMBERS_H

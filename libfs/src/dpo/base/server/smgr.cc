@@ -1,5 +1,5 @@
 #include "dpo/base/server/smgr.h"
-#include "common/rpc_protocol.h"
+#include "dpo/base/common/storage_protocol.h"
 
 
 namespace dpo {
@@ -27,14 +27,13 @@ private:
 int
 StorageManager::Init(rpcs* rpc_server)
 {
-    //rpc_server->reg(RpcProtocol::ALLOCATE_CONTAINER, this, &StorageManager::AllocateContainer);
-    rpc_server->reg(RpcProtocol::ALLOCATE_CONTAINER_VECTOR, this, 
-	                &StorageManager::AllocateContainerVector);
+    rpc_server->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
+	                &::dpo::server::StorageManager::AllocateContainerVector);
 
 }
 
 
-StorageManager::StorageManager(rpcs* serverp)
+StorageManager::StorageManager(rpcs* rpc_server)
 {
 	assert(Init(rpc_server) == 0);
 }
@@ -77,7 +76,7 @@ StorageManager::AllocateContainer(int clt, int type, int acl, int n)
 #endif
 
 int 
-StorageManager::AllocateContainerVector(int clt, int type, int acl)
+StorageManager::AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, int& result)
 {
 
 

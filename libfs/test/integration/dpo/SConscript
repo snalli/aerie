@@ -335,3 +335,19 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
                   ('C1:T1:End:block', 'C2:T1:End:block'),
     ]
 ))
+
+
+#
+# STORAGE/CONTAINER TESTS
+#
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Storage:Test',
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
+    testfw = testProgram, server = lockServerProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Storage:Test')]),
+    },
+    rendezvous = []
+))

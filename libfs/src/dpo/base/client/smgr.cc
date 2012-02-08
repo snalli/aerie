@@ -1,7 +1,12 @@
 #include "dpo/base/client/smgr.h"
 #include <stdlib.h>
 #include <typeinfo>
+#include <vector>
+#include "rpc/rpc.h"
+#include "dpo/base/common/storage_protocol.h"
 #include "client/session.h"
+
+
 
 namespace dpo {
 namespace client {
@@ -51,6 +56,23 @@ StorageManager::AllocExtent(::client::Session* session, size_t nbytes, void** pt
 
 	return 0;
 }
+
+
+
+
+int 
+StorageManager::AllocateContainerVector(::client::Session* session)
+{
+	int ret;
+	int r;
+	std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector;
+
+	ret = client_->call(dpo::StorageProtocol::kAllocateContainerVector, container_request_vector, r);
+
+	
+
+}
+
 
 
 } // namespace client

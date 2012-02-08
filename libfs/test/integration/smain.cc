@@ -14,6 +14,7 @@
 #include "common/debug.h"
 #include "dpo/base/server/lckmgr.h"
 #include "dpo/base/server/hlckmgr.h"
+#include "dpo/base/server/smgr.h"
 
 using namespace server;
 
@@ -24,6 +25,7 @@ ChunkServer*    chunk_server;
 RegistryServer* registry;
 LockManager*    lm;
 HLockManager*   hlm;
+dpo::server::StorageManager*  smgr;
 
 void register_handlers(rpcs* serverp);
 
@@ -43,6 +45,7 @@ void startserver()
 #else
 	lm = new LockManager(serverp);
 #endif
+	smgr = new dpo::server::StorageManager(serverp);
 }
 
 int
