@@ -15,7 +15,7 @@
 
 
 
-int FRONTAPI(init) (int principal_id, char* xdst);
+int FRONTAPI(init) (char* xdst);
 int FRONTAPI(shutdown) ();
 int FRONTAPI(open) (const char* path, int flags);
 int FRONTAPI(close) (int fd);

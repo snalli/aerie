@@ -14,7 +14,7 @@ public:
 	explicit StorageManager(rpcs* rpc_server);
 	int Init();
 
-	int AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, int& result);
+	int AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, std::vector<int>& result);
 
 private:
 	rpcs* rpc_server_;

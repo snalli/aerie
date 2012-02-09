@@ -50,9 +50,7 @@ const int NAMESIZ = 128;
 const int KERNEL_SUPERBLOCK = 0x1;
 
 
-NameSpace::NameSpace(rpcc* c, unsigned int principal_id, const char* namespace_name)
-	: client_(c), 
-	  principal_id_(principal_id)
+NameSpace::NameSpace(const char* namespace_name)
 {
 	strcpy(namespace_name_, namespace_name);
 }

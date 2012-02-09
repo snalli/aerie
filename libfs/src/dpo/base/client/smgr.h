@@ -19,10 +19,10 @@ namespace client {
 
 class StorageManager {
 public:
-	StorageManager(rpcc* c, unsigned int principal_id)
-		: client_(c), 
+	StorageManager(rpcc* cl2srv, unsigned int principal_id)
+		: cl2srv_(cl2srv), 
 		  principal_id_(principal_id),
-		  chunk_store(c, principal_id)
+		  chunk_store(cl2srv, principal_id)
 	{ 
 		chunk_store.Init();
 	}	
@@ -33,7 +33,7 @@ public:
 
 	int AllocateContainerVector(::client::Session* session);
 private:
-	rpcc*        client_;
+	rpcc*        cl2srv_;
 	unsigned int principal_id_;
 	ChunkStore   chunk_store;
 };

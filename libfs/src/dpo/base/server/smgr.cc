@@ -1,4 +1,6 @@
 #include "dpo/base/server/smgr.h"
+#include <stdio.h>
+#include "common/errno.h"
 #include "dpo/base/common/storage_protocol.h"
 
 
@@ -34,7 +36,6 @@ StorageManager::Init()
 {
     rpc_server_->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
 	                 &::dpo::server::StorageManager::AllocateContainerVector);
-
 }
 
 
@@ -78,10 +79,27 @@ StorageManager::AllocateContainer(int clt, int type, int acl, int n)
 #endif
 
 int 
-StorageManager::AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, int& result)
+StorageManager::AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap)
 {
 
 
+}
+
+
+int 
+StorageManager::AllocateContainerVector(int clt, 
+                                        std::vector< ::dpo::StorageProtocol::ContainerRequest> container_req_vec, 
+                                        std::vector< ::dpo::StorageProtocol::Capability>& result)
+{
+	std::vector< ::dpo::StorageProtocol::ContainerRequest>::iterator vit;
+	
+	for (vit = container_req_vec.begin(); vit != container_req_vec.end(); vit++) {
+		//printf("type: %d, num=%d\n", (*vit).type, (*vit).num);
+		
+		result.push_back(1);
+	}
+
+	return E_SUCCESS;
 }
 
 

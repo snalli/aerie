@@ -12,7 +12,7 @@ class Session;
 
 class NameSpace {
 public:
-	NameSpace(rpcc* c, unsigned int, const char*);
+	NameSpace(const char*);
 	int Lookup(Session* session, const char* name, void**);
 	int Link(Session* session, const char* oldpath, const char* newpath);
 	int Unlink(Session* session, const char* pathname);
@@ -26,8 +26,6 @@ private:
 	int LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode lock_mode);
 	int Namex(Session* session, const char* path, lock_protocol::Mode lock_mode, bool nameiparent, char* name, Inode**);
 
-	rpcc*        client_;
-	unsigned int principal_id_;
 	char         namespace_name_[128];
 	MPInode*     root_;
 };

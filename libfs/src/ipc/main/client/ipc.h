@@ -1,0 +1,9 @@
+
+class IpcLayer {
+public:
+
+private:
+
+
+};
+

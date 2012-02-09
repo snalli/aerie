@@ -14,6 +14,7 @@ public:
 	
 	class ContainerRequest;
 
+	class Capability;
 };
 
 
@@ -21,15 +22,17 @@ class StorageProtocol::ContainerRequest {
 public:
 
 	int type;
-	//int num;
-
-	marshall& operator<<(marshall &m) {
-		m << type;
-		return m;
-	}
-
-
+	int num;
 };
+
+
+class StorageProtocol::Capability {
+public:
+	
+private:
+	int id;
+
+}; 
 
 
 } // namespace dpo
@@ -37,16 +40,18 @@ public:
 
 
 // Marshalling functions for user-defined classes.
-// (these leave in the global namespace to be visible from rpc/
+// (these live in the global namespace to be visible from the rpc library
 
 inline marshall& operator<<(marshall &m, ::dpo::StorageProtocol::ContainerRequest &req) {
-	m << req.type;
+	m << (unsigned int) req.type;
+	m << (unsigned int) req.num;
 	return m;
 }
 
 
 inline unmarshall& operator>>(unmarshall &u, ::dpo::StorageProtocol::ContainerRequest &req) {
-	u >> req;
+	u >> req.type;
+	u >> req.num;
 	return u;
 }
 

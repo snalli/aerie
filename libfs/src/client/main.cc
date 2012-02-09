@@ -14,7 +14,6 @@
 
 
 pthread_attr_t attr;
-unsigned int principal_id;
 
 
 int
@@ -24,12 +23,10 @@ main(int argc, char *argv[])
 	setvbuf(stderr, NULL, _IONBF, 0);
     int   port;
 	int   debug_level = 0;
-	uid_t principal_id;
 	char  operation[16];
 	char  ch = 0;
 	char* xdst;
 
-	principal_id = getuid();
 
 	while ((ch = getopt(argc, argv, "d:h:li:o:s:"))!=-1) {
 		switch (ch) {
@@ -41,9 +38,6 @@ main(int argc, char *argv[])
 				break;
 			case 'l':
 				assert(setenv("RPC_LOSSY", "5", 1) == 0);
-				break;
-			case 'i':
-				principal_id = atoi(optarg);
 				break;
 			case 'o':
 				strcpy(operation, optarg); 
@@ -59,7 +53,7 @@ main(int argc, char *argv[])
 	
 	dbg_init(debug_level, NULL);
 
-	libfs_init(principal_id, xdst);
+	libfs_init(xdst);
 
 	if (strcmp(operation, "mkfs") == 0) {
 		libfs_mkfs("/superblock/A", "mfs", 0);

@@ -5,8 +5,7 @@
 
 namespace client {
 
-FileSystemObjectManager::FileSystemObjectManager(rpcc* rpc_client, 
-                                                 unsigned int principal_id)
+FileSystemObjectManager::FileSystemObjectManager()
 {
 	sb_factory_map_.set_empty_key(0);
 	inode_factory_map_.set_empty_key(0);

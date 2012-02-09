@@ -44,7 +44,7 @@ class FileSystemObjectManager {
 	typedef google::dense_hash_map<std::string, int>        FSTypeStrToIdMap;
 
 public:
-	FileSystemObjectManager(rpcc* rpc_client, unsigned int principal_id);
+	FileSystemObjectManager();
 	void Register(int type_id, const char* type_str, SuperBlockFactory* sb_factory, InodeFactory* inode_factory);
 	void Register(SuperBlockFactory* sb_factory, InodeFactory* inode_factory);
 	void Unregister(int type_id);

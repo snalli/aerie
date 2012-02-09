@@ -207,14 +207,18 @@ unmarshall& operator>>(unmarshall &, unsigned long long &);
 unmarshall& operator>>(unmarshall &, long long int &);
 unmarshall& operator>>(unmarshall &, std::string &);
 
+#include <stdio.h>
+
 template <class C> marshall &
 operator<<(marshall &m, std::vector<C> v)
 {
 	m << (unsigned int) v.size();
-	for(unsigned i = 0; i < v.size(); i++)
+	for(unsigned i = 0; i < v.size(); i++) {
 		m << v[i];
+	}
 	return m;
 }
+
 
 template <class C> unmarshall &
 operator>>(unmarshall &u, std::vector<C> &v)

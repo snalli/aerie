@@ -59,18 +59,28 @@ StorageManager::AllocExtent(::client::Session* session, size_t nbytes, void** pt
 
 
 
-
 int 
 StorageManager::AllocateContainerVector(::client::Session* session)
 {
 	int ret;
 	int r;
-	std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector;
+	std::vector< ::dpo::StorageProtocol::ContainerRequest> container_req_vec;
+	std::vector<int> rv;
+	std::vector<int>::iterator rvi;
 
-	ret = client_->call(dpo::StorageProtocol::kAllocateContainerVector, container_request_vector, r);
+	::dpo::StorageProtocol::ContainerRequest req;
 
-	
+	req.type = 1;
+	req.num = 2;
 
+	container_req_vec.push_back(req);
+
+	ret = cl2srv_->call(dpo::StorageProtocol::kAllocateContainerVector, 
+	                    cl2srv_->id(), container_req_vec, rv);
+
+	for (rvi = rv.begin(); rvi != rv.end(); rvi++) {
+		printf("%d\n", *rvi);
+	}
 }
 
 

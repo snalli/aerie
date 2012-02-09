@@ -19,14 +19,11 @@ extern dpo::client::DpoLayer*             global_dpo_layer;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;
-extern std::string       id;
-extern int               principal_id_;
 
 
 class Client {
 public:
-	static int InitRPC(int principal_id, const char* xdst);
-	static int Init(int principal_id, const char* xdst);
+	static int Init(const char* xdst);
 	static int Shutdown(); 
 	static Session* CurrentSession();
 	static int Mount(const char* source, const char* target, const char* fstype, uint32_t flags);

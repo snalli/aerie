@@ -11,9 +11,9 @@ using namespace client;
 
 
 int
-FRONTAPI(init) (int principal_id, char* xdst)
+FRONTAPI(init) (char* xdst)
 {
-	return Client::Init(principal_id, xdst);
+	return Client::Init(xdst);
 }
 
 

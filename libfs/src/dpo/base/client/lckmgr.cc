@@ -12,6 +12,16 @@
 #include "dpo/base/common/lock_protocol.h"
 #include "dpo/base/common/lock_protocol-static.h"
 
+/**
+ * \todo There is a deadlock scenario which may happen when using the lock manager
+ * by different lock types and acquiring a lock of one type requires releasing 
+ * a lock of the other type but revoke is deadlocked. This artificial deadlock
+ * may happen because the different lock types use the same mutex in the lock manager.
+ * To fix this, we need to extend the lock manager to keep different state for each 
+ * type (including mutex). Or use a different lock manager for each type, which I 
+ * think makes the best solution.
+ */
+
 namespace dpo {
 namespace cc {
 namespace client {

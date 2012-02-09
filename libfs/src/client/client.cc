@@ -25,50 +25,24 @@ FileSystemObjectManager* global_fsomgr;
 FileManager*             global_fmgr;
 NameSpace*               global_namespace;
 Registry*                global_registry;
-rpcc*                    rpc_client;
-rpcs*                    rpc_server;
-std::string              id;
-int                      principal_id_;
 Session*                 global_session;
 
 dpo::client::DpoLayer*   global_dpo_layer;
 
-int 
-Client::InitRPC(int principal_id, const char* xdst)
-{
-	struct sockaddr_in dst; //server's ip address
-	int                rport;
-	std::ostringstream host;
-	const char*        hname;
-
-	// setup RPC for making calls to the server
-	make_sockaddr(xdst, &dst);
-	rpc_client = new rpcc(dst);
-	assert (rpc_client->bind() == 0);
-
-	// setup RPC for receiving callbacks from the server
-	srandom(getpid());
-	rport = 20000 + (getpid() % 10000);
-	rpc_server = new rpcs(rport);
-	hname = "127.0.0.1";
-	host << hname << ":" << rport;
-	id = host.str();
-	std::cout << "Client: id="<<id<<std::endl;
-}
 
 
 int 
-Client::Init(int principal_id, const char* xdst) 
+Client::Init(const char* xdst) 
 {
 	struct rlimit      rlim_nofile;
 
 	Config::Init();
-	Client::InitRPC(principal_id, xdst);
-	principal_id_ = principal_id; 
+	
+	global_ipc_layer = new IpcLayer(xdst);
+	global_ipc_layer->Init();
 
-	// create main components
-	global_namespace = new NameSpace(rpc_client, principal_id, "GLOBAL");
-	global_dpo_layer = new dpo::client::DpoLayer(rpc_client, rpc_server, id, principal_id);
+
+	global_dpo_layer = new dpo::client::DpoLayer(global_ipc_layer);
 	global_dpo_layer->Init();
 	global_session = new Session(global_dpo_layer);
 	// file manager should allocate file descriptors outside OS's range
@@ -77,13 +51,13 @@ Client::Init(int principal_id, const char* xdst)
 	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
 								  
-	global_registry = new Registry(rpc_client, principal_id);
-
+	global_registry = new Registry(global_ipc_layer);
 
 	// register known file system backends
-	global_fsomgr = new FileSystemObjectManager(rpc_client, principal_id);
+	global_fsomgr = new FileSystemObjectManager();
 	mfs::client::RegisterBackend(global_fsomgr);
 
+	global_namespace = new NameSpace("GLOBAL");
 	return global_namespace->Init(global_session);
 }
 
