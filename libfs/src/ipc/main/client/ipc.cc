@@ -24,13 +24,13 @@ Ipc::Init()
 	
 	// setup RPC for making calls to the server
 	make_sockaddr(xdst_.c_str(), &dst);
-	cl2srv_ = new rpcc(dst);
-	assert (cl2srv_->bind() == 0);
+	rpcc_ = new rpcc(dst);
+	assert (rpcc_->bind() == 0);
 
 	// setup RPC for receiving callbacks from the server
 	srandom(getpid());
 	rport = 20000 + (getpid() % 10000);
-	srv2cl_ = new rpcs(rport);
+	rpcs_ = new rpcs(rport);
 	hname = "127.0.0.1";
 	host << hname << ":" << rport;
 	idstr = host.str();
@@ -38,11 +38,11 @@ Ipc::Init()
 
 	// contact the server and tell him my rpc address to subscribe 
 	// for async rpc response
-	if ((r = cl2srv_->call(IpcProtocol::kRpcSubscribe, cl2srv_->id(), idstr, unused)) !=
+	if ((r = rpcc_->call(IpcProtocol::kRpcSubscribe, rpcc_->id(), idstr, unused)) !=
 	    0) 
 	{
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
-		        "failed to subscribe client: %u\n", cl2srv_->id());
+		        "failed to subscribe client: %u\n", rpcc_->id());
 	}
 	return E_SUCCESS;
 }
@@ -65,7 +65,7 @@ int
 Ipc::Test()
 {
 	int r;
-	cl2srv_->call(IpcProtocol::kRpcServerIsAlive, 0, r);
+	rpcc_->call(IpcProtocol::kRpcServerIsAlive, 0, r);
 	return r;
 }
 

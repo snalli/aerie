@@ -14,8 +14,8 @@
 #include <google/dense_hash_map>
 #include "common/debug.h"
 #include "common/errno.h"
-#include "dpo/base/common/obj.h"
-#include "dpo/base/client/proxy.h"
+#include "dpo/main/common/obj.h"
+#include "dpo/main/client/proxy.h"
 
 namespace dpo {
 

@@ -12,7 +12,7 @@
 #include <typeinfo>
 #include "common/util.h"
 #include "common/hrtime.h"
-#include "dpo/base/client/stm.h"
+#include "dpo/main/client/stm.h"
 #include "server/api.h"
 #include "client/client_i.h"
 #include "client/mpinode.h"

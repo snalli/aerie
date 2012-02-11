@@ -351,6 +351,6 @@ private:
 	int value_;
 };
 
-#include "dpo/base/common/lock_protocol-inl.h"
+#include "dpo/main/common/lock_protocol-inl.h"
 
 #endif // __STAMNOS_DPO_LOCK_PROTOCOL_H

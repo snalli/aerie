@@ -2,6 +2,7 @@
 #define __STAMNOS_IPC_CLIENT_H
 
 #include "ipc/backend/rpc.h"
+#include "ipc/main/common/macros.h"
 
 namespace client {
 
@@ -11,20 +12,20 @@ public:
 
 	int Init();
 
-	rpcc* cl2srv() { return cl2srv_; }
-	rpcs* srv2cl() { return srv2cl_; }
-
-	unsigned int id() { return cl2srv_->id(); }
+	unsigned int id() { return rpcc_->id(); }
 
 	static int Create(const char* xdst);
 	int Test();
 
+	RPC_REGISTER_HANDLER(rpcs_)
+	RPC_CALL(rpcc_, rpcc::to_max)
+
 private:
 	std::string                xdst_;
 	/// the RPC object through which we make calls to the server
-	rpcc*                      cl2srv_;
+	rpcc*                      rpcc_;
 	/// the RPC object through which we receive callbacks from the server
-	rpcs*                      srv2cl_;
+	rpcs*                      rpcs_;
 };
 
 } // namespace client

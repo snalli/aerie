@@ -9,7 +9,7 @@
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
-#include "dpo/base/client/lckmgr.h"
+#include "dpo/main/client/lckmgr.h"
 
 namespace dpo {
 namespace cc {

@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include "ipc/backend/rpc.h"
+#include "ipc/main/common/macros.h"
 #include "ipc/main/server/cltdsc.h"
 
 namespace server {
@@ -22,12 +23,15 @@ public:
 	int Subscribe(int clt, std::string id, int& unused);
 	int Alive(const unsigned int principal_id, int& r);
 
+	RPC_REGISTER_HANDLER(rpcs_)
+
 private:
 	pthread_mutex_t                  mutex_;
 	std::map<int, ClientDescriptor*> clients_;
 	rpcs*                            rpcs_;
 	int                              port_;
 };
+
 
 } // namespace server
 

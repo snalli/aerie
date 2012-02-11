@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_CLIENT_INODE_FACTORY_H
 #define __STAMNOS_CLIENT_INODE_FACTORY_H
 
-#include "dpo/base/common/obj.h"
+#include "dpo/main/common/obj.h"
 
 namespace client {
 

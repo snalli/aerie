@@ -9,8 +9,8 @@
 #include <set>
 #include <vector>
 #include "ipc/ipc.h"
-#include "dpo/base/common/gtque.h"
-#include "dpo/base/common/lock_protocol.h"
+#include "dpo/main/common/gtque.h"
+#include "dpo/main/common/lock_protocol.h"
 
 namespace dpo {
 namespace cc {

@@ -6,7 +6,7 @@
 #define __STAMNOS_DPO_SERVER_HIERARCHICAL_LOCK_MANAGER_H
 
 #include <pthread.h>
-#include "dpo/base/server/lckmgr.h"
+#include "dpo/main/server/lckmgr.h"
 #include "ipc/ipc.h"
 
 

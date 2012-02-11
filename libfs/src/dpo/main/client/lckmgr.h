@@ -11,8 +11,8 @@
 #include <google/dense_hash_set>
 #include <set>
 #include "ipc/ipc.h"
-#include "dpo/base/common/cc.h"
-#include "dpo/base/common/gtque.h"
+#include "dpo/main/common/cc.h"
+#include "dpo/main/common/gtque.h"
 #include "common/bitmap.h"
 
 namespace dpo {

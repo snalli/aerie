@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 #include <list>
-#include "dpo/base/common/obj.h"
+#include "dpo/main/common/obj.h"
 
 
 namespace dpo {

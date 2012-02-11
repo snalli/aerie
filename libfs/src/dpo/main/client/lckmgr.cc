@@ -3,15 +3,15 @@
 //
 // The implementation is based on MIT 6.824 Labs. 
 
-#include "dpo/base/client/lckmgr.h"
+#include "dpo/main/client/lckmgr.h"
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
 #include "ipc/ipc.h"
 #include "common/errno.h"
 #include "common/debug.h"
-#include "dpo/base/common/lock_protocol.h"
-#include "dpo/base/common/lock_protocol-static.h"
+#include "dpo/main/common/lock_protocol.h"
+#include "dpo/main/common/lock_protocol-static.h"
 
 /**
  * \todo There is a deadlock scenario which may happen when using the lock manager
@@ -142,8 +142,8 @@ LockManager::Init()
 		lrvk_[i] = NULL;
 	}
 	// register client's lock manager RPC handlers with srv2cl_
-	ipc_->srv2cl()->reg(rlock_protocol::revoke, this, &LockManager::revoke);
-	ipc_->srv2cl()->reg(rlock_protocol::retry, this, &LockManager::retry);
+	ipc_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
+	ipc_->reg(rlock_protocol::retry, this, &LockManager::retry);
 	r = pthread_create(&releasethread_th_, NULL, &releasethread, (void *) this);
 	assert (r == 0);
 
@@ -930,9 +930,8 @@ LockManager::do_acquire(Lock* l,
 		arg = (unsigned long long) argv[0];
 	}
 	rpc_flags = flags & (lock_protocol::FLG_NOQUE | lock_protocol::FLG_CAPABILITY);
-	r = ipc_->cl2srv()->call(lock_protocol::acquire, id(), ++last_seq_, 
-	                         l->lid_.marshall(), mode_set.value(), 
-	                         rpc_flags, arg, retval);
+	r = ipc_->call(lock_protocol::acquire, id(), ++last_seq_, l->lid_.marshall(),
+	               mode_set.value(), rpc_flags, arg, retval);
 	l->seq_ = last_seq_;
 	if (r == lock_protocol::OK) {
 		// great! we have the lock
@@ -965,7 +964,7 @@ LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 		lcb->OnConvert(l);
 	}
 	rpc_flags = flags & (lock_protocol::FLG_NOQUE | lock_protocol::FLG_CAPABILITY);
-	r = ipc_->cl2srv()->call(lock_protocol::convert, id(), l->seq_, 
+	r = ipc_->call(lock_protocol::convert, id(), l->seq_, 
 	                         l->lid_.marshall(), mode.value(), rpc_flags, unused);
 	return r;
 }
@@ -986,8 +985,8 @@ LockManager::do_release(Lock* l, int flags)
 		lcb->OnRelease(l);
 	}
 
-	r = ipc_->cl2srv()->call(lock_protocol::release, id(), l->seq_, 
-	                         l->lid_.marshall(), flags, unused);
+	r = ipc_->call(lock_protocol::release, id(), l->seq_, 
+	               l->lid_.marshall(), flags, unused);
 	return r;
 }
 
@@ -996,7 +995,7 @@ int
 LockManager::stat(LockId lid)
 {
 	int r;
-	int ret = ipc_->cl2srv()->call(lock_protocol::stat, id(), lid.marshall(), r);
+	int ret = ipc_->call(lock_protocol::stat, id(), lid.marshall(), r);
 	
 	assert (ret == lock_protocol::OK);
 	return r;

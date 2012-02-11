@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <typeinfo>
 #include "dpo/containers/typeid.h"
-#include "dpo/base/common/obj.h"
+#include "dpo/main/common/obj.h"
 #include "common/debug.h"
 #include "common/util.h"
 

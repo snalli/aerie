@@ -4,7 +4,7 @@
 #include "tool/testfw/unittest.h"
 #include "common/errno.h"
 #include "common/types.h"
-#include "dpo/base/client/stm.h"
+#include "dpo/main/client/stm.h"
 #include "unit/fixture/client.fixture.h"
 
 #if 0

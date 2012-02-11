@@ -11,7 +11,7 @@
 #include "tool/testfw/integrationtest.h"
 #include "client/config.h"
 #include "chunkstore/registry.h"
-#include "dpo/base/client/omgr.h"
+#include "dpo/main/client/omgr.h"
 #include "test/integration/ipc/ipc.fixture.h"
 #include "lock.fixture.h"
 

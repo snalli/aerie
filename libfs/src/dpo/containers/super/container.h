@@ -16,8 +16,8 @@
 #include "client/session.h"
 #include "dpo/containers/assoc/hashtable.h"
 #include "dpo/containers/super/common.h"
-#include "dpo/base/common/obj.h"
-#include "dpo/base/client/rwproxy.h"
+#include "dpo/main/common/obj.h"
+#include "dpo/main/client/rwproxy.h"
 
 
 namespace dpo {

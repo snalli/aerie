@@ -1,9 +1,9 @@
-#include "dpo/base/server/hlckmgr.h"
+#include "dpo/main/server/hlckmgr.h"
 #include "ipc/ipc.h"
 #include "common/debug.h"
-#include "dpo/base/common/cc.h"
-#include "dpo/base/common/lock_protocol.h"
-#include "dpo/base/server/lckmgr.h"
+#include "dpo/main/common/cc.h"
+#include "dpo/main/common/lock_protocol.h"
+#include "dpo/main/server/lckmgr.h"
 
 namespace dpo {
 namespace cc {

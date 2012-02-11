@@ -11,8 +11,8 @@
 #include <typeinfo>
 #include "dpo/containers/assoc/hashtable.h"
 #include "dpo/containers/typeid.h"
-#include "dpo/base/client/smgr.h"
-#include "dpo/base/common/obj.h"
+#include "dpo/main/client/smgr.h"
+#include "dpo/main/common/obj.h"
 #include "common/debug.h"
 #include "common/util.h"
 

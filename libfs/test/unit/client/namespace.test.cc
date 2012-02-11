@@ -7,7 +7,7 @@
 #include "common/errno.h"
 #include "common/types.h"
 #include "unit/fixture/client.fixture.h"
-#include "dpo/base/common/obj.h"
+#include "dpo/main/common/obj.h"
 #include "client/namespace.h"
 #include "client/sb.h"
 #include "client/inode.h"

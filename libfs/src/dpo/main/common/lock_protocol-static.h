@@ -4,7 +4,7 @@
 #ifndef __STAMNOS_DPO_LOCK_PROTOCOL_STATIC_H
 #define __STAMNOS_DPO_LOCK_PROTOCOL_STATIC_H
 
-#include "dpo/base/common/lock_protocol.h"
+#include "dpo/main/common/lock_protocol.h"
 
 
 // compatibilities among access modes

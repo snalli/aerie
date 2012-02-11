@@ -11,7 +11,7 @@
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
-#include "dpo/base/server/dpo.h"
+#include "dpo/main/server/dpo.h"
 #include "api.h"
 
 

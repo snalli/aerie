@@ -1,10 +1,10 @@
 #ifndef __STAMNOS_DPO_CLIENT_OBJECT_PROXY_H
 #define __STAMNOS_DPO_CLIENT_OBJECT_PROXY_H
 
-#include "dpo/base/client/hlckmgr.h"
+#include "dpo/main/client/hlckmgr.h"
 #include "common/errno.h"
-#include "dpo/base/common/proxy.h"
-#include "dpo/base/client/stm.h"
+#include "dpo/main/common/proxy.h"
+#include "dpo/main/client/stm.h"
 #include "client/session.h"
 
 namespace dpo {

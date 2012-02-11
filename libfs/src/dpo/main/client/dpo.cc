@@ -1,9 +1,9 @@
-#include "dpo/base/client/dpo.h"
+#include "dpo/main/client/dpo.h"
 #include "common/errno.h"
-#include "dpo/base/client/smgr.h"
-#include "dpo/base/client/omgr.h"
-#include "dpo/base/client/lckmgr.h"
-#include "dpo/base/client/hlckmgr.h"
+#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/omgr.h"
+#include "dpo/main/client/lckmgr.h"
+#include "dpo/main/client/hlckmgr.h"
 
 
 namespace dpo {

@@ -5,7 +5,7 @@
 #include "common/types.h"
 #include "client/backend.h"
 #include "dpo/containers/super/container.h"
-#include "dpo/base/common/obj.h"
+#include "dpo/main/common/obj.h"
 #include "mfs/client/dir_inode.h"
 
 namespace mfs {

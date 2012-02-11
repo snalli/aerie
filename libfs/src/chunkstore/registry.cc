@@ -30,7 +30,7 @@ Registry::Lookup(const char *name, uint64_t* val)
 
 	name_str = std::string(name);
 
-	intret = ipc_->cl2srv()->call(RPC_REGISTRY_LOOKUP, ipc_->id(), name_str, r);
+	intret = ipc_->call(RPC_REGISTRY_LOOKUP, ipc_->id(), name_str, r);
 	if (intret) {
 		return -intret;
 	}
@@ -49,7 +49,7 @@ Registry::Add(const char *name, uint64_t val)
 
 	name_str = std::string(name);
 
-	intret = ipc_->cl2srv()->call(RPC_REGISTRY_ADD, ipc_->id(), name_str, (unsigned long long) val, r);
+	intret = ipc_->call(RPC_REGISTRY_ADD, ipc_->id(), name_str, (unsigned long long) val, r);
 	if (intret) {
 		return -intret;
 	}
@@ -67,7 +67,7 @@ Registry::Remove(const char *name)
 
 	name_str = std::string(name);
 
-	intret = ipc_->cl2srv()->call(RPC_REGISTRY_REMOVE, ipc_->id(), name_str, r);
+	intret = ipc_->call(RPC_REGISTRY_REMOVE, ipc_->id(), name_str, r);
 	if (intret) {
 		return -intret;
 	}

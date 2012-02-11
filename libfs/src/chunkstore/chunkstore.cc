@@ -49,7 +49,7 @@ ChunkStore::CreateChunk(size_t size, int type, ChunkDescriptor** chunkdscp)
 	unsigned long long r;
 	unsigned long long usize = (unsigned long long) size;
 
-	intret = ipc_->cl2srv()->call(RPC_CHUNK_CREATE, ipc_->id(), usize, type, r);
+	intret = ipc_->call(RPC_CHUNK_CREATE, ipc_->id(), usize, type, r);
 
 	if (r == 0) {
 		return -1;
@@ -73,7 +73,7 @@ ChunkStore::DeleteChunk(ChunkDescriptor* chunkdsc)
 		return -1;
 	}
 
-	intret = ipc_->cl2srv()->call(RPC_CHUNK_DELETE, ipc_->id(), chunkdsc_id, r);
+	intret = ipc_->call(RPC_CHUNK_DELETE, ipc_->id(), chunkdsc_id, r);
 
 	return 0;
 }
@@ -93,7 +93,7 @@ ChunkStore::AccessChunkList(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int p
 		vuchunkdsc.push_back((unsigned long long) chunkdsc[i]);
 	}
 
-	intret = ipc_->cl2srv()->call(RPC_CHUNK_ACCESS, ipc_->id(), vuchunkdsc, prot_flags, r);
+	intret = ipc_->call(RPC_CHUNK_ACCESS, ipc_->id(), vuchunkdsc, prot_flags, r);
 
 	if (r != 0) {
 		return r;
@@ -135,7 +135,7 @@ ChunkStore::ReleaseChunkList(ChunkDescriptor* chunkdsc[], size_t nchunkdsc)
 		vuchunkdsc.push_back((unsigned long long) chunkdsc[i]);
 	}
 
-	intret = ipc_->cl2srv()->call(RPC_CHUNK_RELEASE, ipc_->id(), vuchunkdsc, r);
+	intret = ipc_->call(RPC_CHUNK_RELEASE, ipc_->id(), vuchunkdsc, r);
 
 	if (r != 0) {
 		return r;

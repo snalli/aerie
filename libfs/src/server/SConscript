@@ -9,10 +9,10 @@ libLocalBuildEnv = buildEnv.Clone()
 
 lib_target = 'fss'
 lib_sources = [
-               '../dpo/base/server/dpo.cc',
-               '../dpo/base/server/hlckmgr.cc',
-               '../dpo/base/server/lckmgr.cc',
-               '../dpo/base/server/smgr.cc',
+               '../dpo/main/server/dpo.cc',
+               '../dpo/main/server/hlckmgr.cc',
+               '../dpo/main/server/lckmgr.cc',
+               '../dpo/main/server/smgr.cc',
                'handler.cc',
                'namespace.cc'
               ]

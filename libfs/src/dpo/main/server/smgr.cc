@@ -1,8 +1,8 @@
-#include "dpo/base/server/smgr.h"
+#include "dpo/main/server/smgr.h"
 #include <stdio.h>
 #include "common/errno.h"
 #include "ipc/ipc.h"
-#include "dpo/base/common/storage_protocol.h"
+#include "dpo/main/common/storage_protocol.h"
 
 
 namespace dpo {

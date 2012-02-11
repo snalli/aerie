@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "ipc/ipc.h"
-#include "dpo/base/common/storage_protocol.h"
+#include "dpo/main/common/storage_protocol.h"
 
 namespace dpo {
 namespace server {

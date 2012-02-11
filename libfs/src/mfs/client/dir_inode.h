@@ -9,7 +9,7 @@
 #include "client/inode.h"
 #include "dpo/containers/assoc/hashtable.h"
 #include "dpo/containers/name/container.h"
-#include "dpo/base/common/obj.h"
+#include "dpo/main/common/obj.h"
 
 namespace client {
 	class Session; // forward declaration

@@ -15,8 +15,8 @@
 #include "common/util.h"
 #include "client/session.h"
 #include "dpo/containers/name/common.h"
-#include "dpo/base/common/obj.h"
-#include "dpo/base/client/rwproxy.h"
+#include "dpo/main/common/obj.h"
+#include "dpo/main/client/rwproxy.h"
 
 //TODO: Optimistic Read-only proxy: enables faster access for read-only.
 // operations. It does an optimistic lookup and puts the result in inode.

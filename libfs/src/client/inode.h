@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "common/types.h"
 #include "client/const.h"
-#include "dpo/base/client/proxy.h"
+#include "dpo/main/client/proxy.h"
 
 namespace client {
 

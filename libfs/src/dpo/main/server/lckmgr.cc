@@ -1,6 +1,6 @@
 // the caching lock server implementation
 
-#include "dpo/base/server/lckmgr.h"
+#include "dpo/main/server/lckmgr.h"
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -9,10 +9,10 @@
 #include <arpa/inet.h>
 #include <vector>
 #include "ipc/ipc.h"
-#include "dpo/base/common/gtque.h"
-#include "dpo/base/common/cc.h"
-#include "dpo/base/common/lock_protocol.h"
-#include "dpo/base/common/lock_protocol-static.h"
+#include "dpo/main/common/gtque.h"
+#include "dpo/main/common/cc.h"
+#include "dpo/main/common/lock_protocol.h"
+#include "dpo/main/common/lock_protocol-static.h"
 #include "common/debug.h"
 
 // TODO: leases
@@ -135,10 +135,10 @@ LockManager::Init(bool register_handler)
 	assert (r == 0);
 	
 	if (register_handler) {
-		ipc_->rpc()->reg(lock_protocol::stat, this, &LockManager::Stat);
-		ipc_->rpc()->reg(lock_protocol::acquire, this, &LockManager::Acquire);
-		ipc_->rpc()->reg(lock_protocol::release, this, &LockManager::Release);
-		ipc_->rpc()->reg(lock_protocol::convert, this, &LockManager::Convert);
+		ipc_->reg(lock_protocol::stat, this, &LockManager::Stat);
+		ipc_->reg(lock_protocol::acquire, this, &LockManager::Acquire);
+		ipc_->reg(lock_protocol::release, this, &LockManager::Release);
+		ipc_->reg(lock_protocol::convert, this, &LockManager::Convert);
 	}
 
 	return 0;

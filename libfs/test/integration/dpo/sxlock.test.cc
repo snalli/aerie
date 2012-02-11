@@ -4,7 +4,7 @@
 #include "rpc/rpc.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
-#include "dpo/base/common/lock_protocol.h"
+#include "dpo/main/common/lock_protocol.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
 #include "lock.fixture.h"

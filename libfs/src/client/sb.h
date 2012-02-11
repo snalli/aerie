@@ -3,8 +3,8 @@
 
 #include "common/types.h"
 #include "client/inode.h"
-#include "dpo/base/client/hlckmgr.h"
-#include "dpo/base/common/obj.h"
+#include "dpo/main/client/hlckmgr.h"
+#include "dpo/main/common/obj.h"
 
 /**
  *

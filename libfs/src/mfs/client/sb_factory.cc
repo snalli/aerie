@@ -3,7 +3,7 @@
 #include "client/session.h"
 #include "dpo/containers/super/container.h"
 #include "dpo/containers/name/container.h"
-#include "dpo/base/common/obj.h"
+#include "dpo/main/common/obj.h"
 #include "mfs/client/sb.h"
 #include "mfs/client/dir_inode.h"
 #include "mfs/client/inode_factory.h"

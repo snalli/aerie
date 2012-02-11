@@ -1,8 +1,8 @@
-#include "dpo/base/server/dpo.h"
+#include "dpo/main/server/dpo.h"
 #include "common/errno.h"
 #include "common/debug.h"
-#include "dpo/base/server/smgr.h"
-#include "dpo/base/server/hlckmgr.h"
+#include "dpo/main/server/smgr.h"
+#include "dpo/main/server/hlckmgr.h"
 
 
 namespace dpo {

@@ -1,9 +1,9 @@
-#include "dpo/base/client/smgr.h"
+#include "dpo/main/client/smgr.h"
 #include <stdlib.h>
 #include <typeinfo>
 #include <vector>
 #include "ipc/ipc.h"
-#include "dpo/base/common/storage_protocol.h"
+#include "dpo/main/common/storage_protocol.h"
 #include "client/session.h"
 
 
@@ -75,8 +75,8 @@ StorageManager::AllocateContainerVector(::client::Session* session)
 
 	container_req_vec.push_back(req);
 
-	ret = ipc_->cl2srv()->call(dpo::StorageProtocol::kAllocateContainerVector, 
-	                           ipc_->id(), container_req_vec, rv);
+	ret = ipc_->call(dpo::StorageProtocol::kAllocateContainerVector, 
+	                 ipc_->id(), container_req_vec, rv);
 
 	for (rvi = rv.begin(); rvi != rv.end(); rvi++) {
 		printf("%d\n", *rvi);

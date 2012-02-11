@@ -3,7 +3,7 @@
 
 #include <sstream>
 #include <boost/functional/hash.hpp>
-#include "dpo/base/common/lock_protocol.h"
+#include "dpo/main/common/lock_protocol.h"
 
 
 namespace dpo {
