@@ -1,5 +1,5 @@
 #include "dpo/base/server/hlckmgr.h"
-#include "rpc/rpc.h"
+#include "ipc/ipc.h"
 #include "common/debug.h"
 #include "dpo/base/common/cc.h"
 #include "dpo/base/common/lock_protocol.h"
@@ -19,8 +19,8 @@ namespace server {
 
 typedef dpo::cc::common::LockId LockId;
 
-HLockManager::HLockManager(rpcs* rpc_server)
-	: rpc_server_(rpc_server),
+HLockManager::HLockManager(::server::Ipc* ipc)
+	: ipc_(ipc),
 	  lm_(NULL)
 { }
 
@@ -32,15 +32,13 @@ HLockManager::Init()
 
 	pthread_mutex_init(&mutex_, NULL);
 
-	lm_ = new LockManager(NULL, &mutex_);
+	lm_ = new LockManager(ipc_, false, &mutex_);
 
-	if (rpc_server_) {
-		rpc_server_->reg(lock_protocol::stat, this, &HLockManager::Stat);
-		rpc_server_->reg(lock_protocol::acquire, this, &HLockManager::Acquire);
-		rpc_server_->reg(lock_protocol::release, this, &HLockManager::Release);
-		rpc_server_->reg(lock_protocol::convert, this, &HLockManager::Convert);
-		rpc_server_->reg(lock_protocol::subscribe, this, &HLockManager::Subscribe);
-	}
+	assert(ipc_ != NULL);
+	ipc_->rpc()->reg(lock_protocol::stat, this, &HLockManager::Stat);
+	ipc_->rpc()->reg(lock_protocol::acquire, this, &HLockManager::Acquire);
+	ipc_->rpc()->reg(lock_protocol::release, this, &HLockManager::Release);
+	ipc_->rpc()->reg(lock_protocol::convert, this, &HLockManager::Convert);
 }
 
 
@@ -131,13 +129,6 @@ lock_protocol::status
 HLockManager::Stat(lock_protocol::LockId lid, int& r)
 {
 	return lm_->Stat(lid, r);
-}
-
-
-lock_protocol::status
-HLockManager::Subscribe(int clt, std::string id, int& unused)
-{
-	return lm_->Subscribe(clt, id, unused);
 }
 
 

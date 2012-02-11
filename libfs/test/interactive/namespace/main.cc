@@ -6,8 +6,7 @@
 #include <getopt.h>
 #include <iostream>
 #include <list>
-#include "rpc/rpc.h"
-#include "rpc/jsl_log.h"
+#include "common/debug.h"
 #include "client/libfs.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
@@ -20,7 +19,6 @@ main(int argc, char *argv[])
 	pthread_attr_t    attr;
 	int               ret;
 	int               debug_level = 0;
-	uid_t             principal_id;
 	char              ch = 0;
 	char*             xdst=NULL;
 	const char*       client_tag = "Client";	
@@ -28,8 +26,6 @@ main(int argc, char *argv[])
 	
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-
-	principal_id = getuid();
 
 	opterr=0;
 	while ((ch = getopt(argc, argv, "d:h:li:t:T:"))!=-1) {
@@ -45,9 +41,6 @@ main(int argc, char *argv[])
 				break;
 			case 'l':
 				assert(setenv("RPC_LOSSY", "5", 1) == 0);
-				break;
-			case 'i':
-				principal_id = atoi(optarg);
 				break;
 			case 't':
 				client_tag = optarg;
@@ -67,7 +60,7 @@ main(int argc, char *argv[])
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	libfs_init(principal_id, xdst);
+	libfs_init(xdst);
 
 	test(client_tag);
 

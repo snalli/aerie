@@ -1,6 +1,7 @@
 #include "dpo/base/server/smgr.h"
 #include <stdio.h>
 #include "common/errno.h"
+#include "ipc/ipc.h"
 #include "dpo/base/common/storage_protocol.h"
 
 
@@ -26,15 +27,15 @@ private:
 };
 
 
-StorageManager::StorageManager(rpcs* rpc_server)
-	: rpc_server_(rpc_server)
+StorageManager::StorageManager(::server::Ipc* ipc)
+	: ipc_(ipc)
 { }
 
 
 int
 StorageManager::Init()
 {
-    rpc_server_->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
+    ipc_->rpc()->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
 	                 &::dpo::server::StorageManager::AllocateContainerVector);
 }
 
@@ -89,7 +90,7 @@ StorageManager::AllocateContainer(int clt, int type, int num, ::dpo::StorageProt
 int 
 StorageManager::AllocateContainerVector(int clt, 
                                         std::vector< ::dpo::StorageProtocol::ContainerRequest> container_req_vec, 
-                                        std::vector< ::dpo::StorageProtocol::Capability>& result)
+                                        std::vector<int>& result)
 {
 	std::vector< ::dpo::StorageProtocol::ContainerRequest>::iterator vit;
 	

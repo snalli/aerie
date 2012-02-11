@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <iostream>
-#include "rpc/rpc.h"
 #include "client/file.h"
 #include "common/debug.h"
 #include "server/api.h"
@@ -26,8 +25,8 @@ FileManager*             global_fmgr;
 NameSpace*               global_namespace;
 Registry*                global_registry;
 Session*                 global_session;
-
-dpo::client::DpoLayer*   global_dpo_layer;
+Ipc*                     global_ipc_layer;
+dpo::client::Dpo*        global_dpo_layer;
 
 
 
@@ -38,11 +37,11 @@ Client::Init(const char* xdst)
 
 	Config::Init();
 	
-	global_ipc_layer = new IpcLayer(xdst);
+	global_ipc_layer = new Ipc(xdst);
 	global_ipc_layer->Init();
 
 
-	global_dpo_layer = new dpo::client::DpoLayer(global_ipc_layer);
+	global_dpo_layer = new dpo::client::Dpo(global_ipc_layer);
 	global_dpo_layer->Init();
 	global_session = new Session(global_dpo_layer);
 	// file manager should allocate file descriptors outside OS's range
@@ -356,13 +355,8 @@ Client::Unlink(const char* pathname)
 int
 Client::TestServerIsAlive()
 {
-	int r;
-
-	rpc_client->call(RPC_SERVER_IS_ALIVE, 0, r);
-	return r;
+	return global_ipc_layer->Test();
 }
-
-
 
 
 } // namespace client

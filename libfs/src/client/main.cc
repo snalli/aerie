@@ -5,8 +5,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <iostream>
-#include "rpc/rpc.h"
-#include "rpc/jsl_log.h"
+#include "common/debug.h"
 #include "server/api.h"
 #include "client/libfs.h"
 #include "client/inode.h"

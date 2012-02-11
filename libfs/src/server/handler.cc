@@ -7,8 +7,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <vector>
-#include "rpc/rpc.h"
-#include "rpc/jsl_log.h"
+#include "ipc/backend/rpc.h"
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
@@ -16,16 +15,15 @@
 #include "api.h"
 
 
-extern ChunkServer*           chunk_server;
-extern RegistryServer*        registry;
-extern dpo::server::DpoLayer* dpo_layer;
+extern ChunkServer*        chunk_server;
+extern RegistryServer*     registry;
+extern dpo::server::Dpo*   dpo_layer;
 
 // server-side handlers. they must be methods of some class
 // to simplify rpcs::reg(). a server process can have handlers
 // from multiple classes.
 class srv {
 	public:
-		int alive(const unsigned int principal_id, int& r);
 		int chunk_create(const unsigned int principal_id, const unsigned long long size, const int type, unsigned long long& r);
 		int chunk_delete(const unsigned int principal_id, unsigned long long chunkdsc, int & r);
 		int chunk_access(const unsigned int principal_id, std::vector<unsigned long long> vuchunkdsc, unsigned int, int& r);
@@ -40,14 +38,6 @@ class srv {
 };
 
 srv service;
-
-int 
-srv::alive(const unsigned int principal_id, int& r)
-{
-	r = 0;
-
-	return 0;
-}
 
 
 int
@@ -217,7 +207,6 @@ srv::namespace_mount(const unsigned int principal_id, const std::string name, un
 
 void register_handlers(rpcs* serverp)
 {
-	serverp->reg(RPC_SERVER_IS_ALIVE, &service, &srv::alive);
 	serverp->reg(RPC_CHUNK_CREATE, &service, &srv::chunk_create);
 	serverp->reg(RPC_CHUNK_DELETE, &service, &srv::chunk_delete);
 	serverp->reg(RPC_CHUNK_ACCESS, &service, &srv::chunk_access);

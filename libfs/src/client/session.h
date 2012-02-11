@@ -17,11 +17,12 @@ namespace client {
 
 class Session {
 public:
-	Session(dpo::client::DpoLayer* dpo_layer)
-		: lckmgr_(dpo_layer->lckmgr()),
-		  hlckmgr_(dpo_layer->hlckmgr()),
-		  smgr_(dpo_layer->smgr()),
-		  omgr_(dpo_layer->omgr())
+	Session(dpo::client::Dpo* dpo)
+		: lckmgr_(dpo->lckmgr()),
+		  hlckmgr_(dpo->hlckmgr()),
+		  smgr_(dpo->smgr()),
+		  omgr_(dpo->omgr()),
+		  dpo_(dpo)
 	{ }
 	
 	Session(dpo::cc::client::LockManager* lckmgr, dpo::cc::client::HLockManager* hlckmgr)
@@ -41,7 +42,7 @@ public:
 		  omgr_(omgr)
 	{ }
 
-
+	dpo::client::Dpo*                dpo_;
 	dpo::cc::client::LockManager*    lckmgr_;
 	dpo::cc::client::HLockManager*   hlckmgr_;
 	dpo::client::StorageManager*     smgr_;

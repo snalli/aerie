@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <vector>
+#include "ipc/ipc.h"
 #include "dpo/base/common/gtque.h"
 #include "dpo/base/common/cc.h"
 #include "dpo/base/common/lock_protocol.h"
@@ -105,15 +106,16 @@ retrythread(void *x)
 // That's why we need to construct some of the components of
 // the lock manager such as the global mutex.
 // this however breaks encapsulation.
-LockManager::LockManager(rpcs* rpc_server, pthread_mutex_t* mutex)
-	: mutex_(mutex)
+LockManager::LockManager(::server::Ipc* ipc, bool register_handler, pthread_mutex_t* mutex)
+	: mutex_(mutex),
+	  ipc_(ipc)
 {
-	assert(Init(rpc_server) == 0);
+	assert(Init(register_handler) == 0);
 }
 
 
 int
-LockManager::Init(rpcs* rpc_server)
+LockManager::Init(bool register_handler)
 {
 	pthread_t th;
 	int       r;
@@ -132,27 +134,19 @@ LockManager::Init(rpcs* rpc_server)
 	r = pthread_create(&th, NULL, &retrythread, (void *) this);
 	assert (r == 0);
 	
-	if (rpc_server) {
-		rpc_server->reg(lock_protocol::stat, this, &LockManager::Stat);
-		rpc_server->reg(lock_protocol::acquire, this, &LockManager::Acquire);
-		rpc_server->reg(lock_protocol::release, this, &LockManager::Release);
-		rpc_server->reg(lock_protocol::convert, this, &LockManager::Convert);
-		rpc_server->reg(lock_protocol::subscribe, this, &LockManager::Subscribe);
+	if (register_handler) {
+		ipc_->rpc()->reg(lock_protocol::stat, this, &LockManager::Stat);
+		ipc_->rpc()->reg(lock_protocol::acquire, this, &LockManager::Acquire);
+		ipc_->rpc()->reg(lock_protocol::release, this, &LockManager::Release);
+		ipc_->rpc()->reg(lock_protocol::convert, this, &LockManager::Convert);
 	}
+
 	return 0;
 }
 
 
 LockManager::~LockManager()
 {
-	std::map<int, rpcc*>::iterator itr;
-
-	pthread_mutex_lock(mutex_);
-	for (itr = clients_.begin(); itr != clients_.end(); ++itr) {
-		delete itr->second;
-	}
-	pthread_mutex_unlock(mutex_);
-	//pthread_mutex_destroy(mutex_);
 	pthread_cond_destroy(&revoke_cv_);
 	pthread_cond_destroy(&available_cv_);
 }
@@ -434,26 +428,6 @@ LockManager::Stat(lock_protocol::LockId lid, int& r)
 }
 
 
-lock_protocol::status
-LockManager::Subscribe(int clt, std::string id, int& unused)
-{
-	sockaddr_in           dstsock;
-	rpcc*                 cl;
-	lock_protocol::status r = lock_protocol::OK;
-
-	pthread_mutex_lock(mutex_);
-	make_sockaddr(id.c_str(), &dstsock);
-	cl = new rpcc(dstsock);
-	if (cl->bind() == 0) {
-		clients_[clt] = cl;
-	} else {
-		printf("failed to bind to clt %d\n", clt);
-	}
-	pthread_mutex_unlock(mutex_);
-	return r;
-}
-
-
 struct RevokeMsg {
 	RevokeMsg(int clt, int seq, int revoke_type)
 		: clt_(clt),
@@ -510,7 +484,7 @@ LockManager::revoker()
 		{
 			int           clt = (*itr_icr).first;
 			ClientRecord& cr = (*itr_icr).second;
-			rpcc*         cl = clients_[clt];
+			::server::ClientDescriptor* cl_dsc = ipc_->Client(clt);
 			revoke_type = revoke_table[cr.mode().value()][waiting_cr.mode().value()];
 			if (revoke_type == Lock::RVK_NO) {
 				// false alarm 
@@ -527,11 +501,11 @@ LockManager::revoker()
 		for (itr_r = revoke_msgs.begin(); itr_r != revoke_msgs.end(); itr_r++) {
 			int   unused;
 			int   clt = (*itr_r).clt_;
-			rpcc* cl = clients_[clt];
+			::server::ClientDescriptor* cl_dsc = ipc_->Client(clt);
 			dbg_log(DBG_INFO, "revoke client %d lock %s: revoke type = %d\n", 
 			        clt, LockId(lid).c_str(), (*itr_r).revoke_type_);
-			if (cl) {
-				if (cl->call(rlock_protocol::revoke, lid, (*itr_r).seq_, (*itr_r).revoke_type_, unused)
+			if (cl_dsc) {
+				if (cl_dsc->rpc()->call(rlock_protocol::revoke, lid, (*itr_r).seq_, (*itr_r).revoke_type_, unused)
 					!= rlock_protocol::OK) 
 				{
 					dbg_log(DBG_ERROR, "failed to send revoke\n");
@@ -579,8 +553,9 @@ LockManager::retryer()
 		if (cr) {
 			int accepted;
 			// TODO place a time limit on the retry for this client
-			if (clients_[cr->id()]->call(rlock_protocol::retry, lid, cr->seq_,
-				accepted) == rlock_protocol::OK) 
+			::server::ClientDescriptor* cl_dsc = ipc_->Client(cr->id());
+			if (cl_dsc->rpc()->call(rlock_protocol::retry, lid, cr->seq_, accepted) 
+			    == rlock_protocol::OK) 
 			{
 				dbg_log(DBG_INFO,
 				        "successfully sent a retry to clt %d seq %d for lck %s\n",

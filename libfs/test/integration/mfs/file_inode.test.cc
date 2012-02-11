@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "rpc/rpc.h"
 #include "common/errno.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"

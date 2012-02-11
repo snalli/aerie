@@ -1,0 +1,2 @@
+rpcLibrary, rpcLibraryObjects = SConscript('rpc-socket/SConscript')
+Return('rpcLibrary', 'rpcLibraryObjects')

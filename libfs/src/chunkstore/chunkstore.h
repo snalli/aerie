@@ -8,11 +8,14 @@
 #include "common/vistaheap.h"
 #include "chunkdsc.h"
 
+namespace client {
+class Ipc;
+} // namespace client
+
 struct ChunkStoreRoot {
 	int              _init;
 	struct list_head _chunkdsc_list;
 };
-
 
 
 class ChunkStore {
@@ -30,13 +33,12 @@ public:
 		return _pheap_root;
 	}
 
-	ChunkStore(rpcc*, id_t);
+	ChunkStore(::client::Ipc* ipc_layer);
 private:
-	id_t                  _principal_id;
-	PHeap*                _pheap; 
-	PHeap*                _pagepheap; 
-	ChunkStoreRoot*       _pheap_root;
-	rpcc*                 _client;
+	PHeap*           _pheap; 
+	PHeap*           _pagepheap; 
+	ChunkStoreRoot*  _pheap_root;
+	::client::Ipc*   ipc_;
 };
 
 

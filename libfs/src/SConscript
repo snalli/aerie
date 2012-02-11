@@ -8,8 +8,10 @@ buildEnv.Append(LIBS = ['config'])
 
 Export('buildEnv')
 
-rpcLibrary = SConscript('rpc/SConscript')
+rpcLibrary, ipcClientLibrary, ipcServerLibrary = SConscript('ipc/SConscript')
 Export('rpcLibrary')
+Export('ipcClientLibrary')
+Export('ipcServerLibrary')
 commonLibrary = SConscript('common/SConscript')
 Export('commonLibrary')
 chunkstoreLibrary = SConscript('chunkstore/SConscript')

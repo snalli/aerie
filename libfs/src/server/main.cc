@@ -7,35 +7,34 @@
 #include <stdint.h>
 #include <iostream>
 #include <vector>
-#include "rpc/rpc.h"
-#include "rpc/jsl_log.h"
+#include "ipc/ipc.h"
 #include "chunkstore/chunkserver.h"
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
 #include "dpo/base/server/dpo.h"
 
 
-rpcs*                  serverp;  // server rpc object
 int                    port;
 pthread_attr_t         attr;
 ChunkServer*           chunk_server;
 RegistryServer*        registry;
-dpo::server::DpoLayer* dpo_layer;
+dpo::server::Dpo*      dpo_layer;
+::server::Ipc*         ipc_layer;
 
 void register_handlers(rpcs* serverp);
 
 
 void startserver()
 {
-	serverp = new rpcs(port);
-	
 	chunk_server = new ChunkServer();
 	chunk_server->Init();
 	registry = new RegistryServer();
 	registry->Init();
 
-	register_handlers(serverp);
-	dpo_layer = new ::dpo::server::DpoLayer(serverp);
+	ipc_layer = new ::server::Ipc(port);
+	ipc_layer->Init();
+	register_handlers(ipc_layer->rpc());
+	dpo_layer = new ::dpo::server::Dpo(ipc_layer);
 	dpo_layer->Init();
 }
 

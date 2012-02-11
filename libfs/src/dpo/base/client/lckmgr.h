@@ -10,7 +10,7 @@
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
 #include <set>
-#include "rpc/rpc.h"
+#include "ipc/ipc.h"
 #include "dpo/base/common/cc.h"
 #include "dpo/base/common/gtque.h"
 #include "common/bitmap.h"
@@ -200,8 +200,9 @@ class LockManager {
 	typedef google::dense_hash_map<LockId, Lock*, LockIdHashFcn> LockMap;
 	typedef google::dense_hash_map<LockId, int, LockIdHashFcn>  RevokeMap;
 public:
-	LockManager(rpcc* rpc_client, rpcs* rpc_server, std::string id);
+	LockManager(::client::Ipc* ipc);
 	~LockManager();
+	int Init();
 	Lock* FindLock(LockId lid);
 	Lock* FindOrCreateLock(LockId lid);
 	lock_protocol::status Acquire(Lock* lock, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
@@ -225,7 +226,7 @@ public:
 	rlock_protocol::status revoke(lock_protocol::LockId, int seq, int revoke_type, int& unused);
 	rlock_protocol::status retry(lock_protocol::LockId, int seq, int& current_seq);
 
-	int id() { return cl2srv_->id(); }
+	unsigned int id() { return ipc_->id(); }
 
 private:
 	int do_acquire(Lock* l, lock_protocol::Mode::Set mode_set, int flags, int argc, void** argv, lock_protocol::Mode& mode_granted);
@@ -239,29 +240,24 @@ private:
 	lock_protocol::Mode SelectMode(Lock* l, lock_protocol::Mode::Set mode_set);
 	lock_protocol::status CancelLockRequestInternal(Lock* l);
 
-	class LockCallback*        lcb_[LOCK_TYPE_COUNT];
-	class LockRevoke*          lrvk_[LOCK_TYPE_COUNT];
-	std::string                hostname_;
-	std::string                id_;
-	/// the RPC object through which we receive callbacks from the server
-	rpcs*                      srv2cl_;
-	/// the RPC object through which we make calls to the server
-	rpcc*                      cl2srv_;
-
-	int                        last_seq_;
-	volatile bool              releaser_thread_running_;
+	class LockCallback*     lcb_[LOCK_TYPE_COUNT];
+	class LockRevoke*       lrvk_[LOCK_TYPE_COUNT];
+	
+	::client::Ipc*          ipc_;
+	int                     last_seq_;
+	volatile bool           releaser_thread_running_;
 
 	/// locks known to this lock manager
-	LockMap                    locks_;
+	LockMap                 locks_;
 
 	// global lock
-	pthread_mutex_t            mutex_;
+	pthread_mutex_t         mutex_;
 	// key: lock id; value: seq no. of the corresponding acquire
-	RevokeMap                  revoke_map_;
+	RevokeMap               revoke_map_;
 	// controls access to the revoke_map
-	pthread_mutex_t            revoke_mutex_;
-	pthread_cond_t             revoke_cv;
-	pthread_t                  releasethread_th_;
+	pthread_mutex_t         revoke_mutex_;
+	pthread_cond_t          revoke_cv;
+	pthread_t               releasethread_th_;
 };
 
 

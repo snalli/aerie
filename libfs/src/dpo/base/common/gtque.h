@@ -1,8 +1,9 @@
 #ifndef __STAMNOS_DPO_COMMON_GRANT_QUEUE_H
 #define __STAMNOS_DPO_COMMON_GRANT_QUEUE_H
 
-#include <iostream>
 #include <stdint.h>
+#include <assert.h>
+#include <iostream>
 #include <map>
 #include <vector>
 

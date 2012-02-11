@@ -12,9 +12,9 @@
 #include "common/debug.h"
 #include "common/util.h"
 #include "client/session.h"
+#include "dpo/base/client/rwproxy.h"
 #include "dpo/containers/byte/common.h"
 #include "dpo/base/common/obj.h"
-#include "dpo/base/client/rwproxy.h"
 
 class IntervalTree; // forward declaration
 

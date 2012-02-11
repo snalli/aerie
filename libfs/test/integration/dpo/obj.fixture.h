@@ -12,12 +12,12 @@
 #include "client/config.h"
 #include "chunkstore/registry.h"
 #include "dpo/base/client/omgr.h"
-#include "rpc.fixture.h"
+#include "test/integration/ipc/ipc.fixture.h"
 #include "lock.fixture.h"
 
 using namespace client;
 
-struct ObjectFixture: public LockRegionFixture, RPCFixture {
+struct ObjectFixture: public LockRegionFixture, IPCFixture {
 	static bool            initialized;
 	static pthread_mutex_t mutex;
 	Session*               session;
@@ -33,9 +33,9 @@ struct ObjectFixture: public LockRegionFixture, RPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_dpo_layer = new dpo::client::DpoLayer(client::rpc_client, client::rpc_server, client::id, client::principal_id_);
+			global_dpo_layer = new dpo::client::Dpo(global_ipc_layer);
 			global_dpo_layer->Init();
-		    global_registry = new Registry(client::rpc_client, 1);
+			global_registry = new Registry(global_ipc_layer);
 			session = new Session(global_dpo_layer);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 

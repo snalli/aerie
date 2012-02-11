@@ -10,9 +10,10 @@ namespace dpo {
 namespace client {
 
 int
-DpoLayer::Init()
+Dpo::Init()
 {
-	if ((lckmgr_ = new ::dpo::cc::client::LockManager(rpc_client_, rpc_server_, id_)) == NULL) {
+	printf("IPC: %p\n", ipc_);
+	if ((lckmgr_ = new ::dpo::cc::client::LockManager(ipc_)) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((hlckmgr_ = new ::dpo::cc::client::HLockManager(lckmgr_)) == NULL) {
@@ -24,7 +25,7 @@ DpoLayer::Init()
 		delete lckmgr_;
 		return -E_NOMEM;
 	}
-	if ((smgr_ = new StorageManager(rpc_client_, principal_id_)) == NULL) {
+	if ((smgr_ = new StorageManager(ipc_)) == NULL) {
 		delete omgr_;
 		delete hlckmgr_;
 		delete lckmgr_;
@@ -34,7 +35,7 @@ DpoLayer::Init()
 }
 
 
-DpoLayer::~DpoLayer()
+Dpo::~Dpo()
 {
 	delete hlckmgr_;
 	delete lckmgr_;

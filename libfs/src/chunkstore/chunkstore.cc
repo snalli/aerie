@@ -13,15 +13,14 @@
 #include "common/util.h"
 #include "common/vistaheap.h"
 #include "chunkdsc.h"
-
+#include "ipc/ipc.h"
 
 static const uint64_t kChunkStoreSize = 1024*1024*64;
 static const char*    kChunkStoreName = "chunkstore.vistaheap";
 
 
-ChunkStore::ChunkStore(rpcc* c, id_t principal_id):
-	_client(c), 
-	_principal_id(principal_id)
+ChunkStore::ChunkStore(::client::Ipc* ipc):
+	ipc_(ipc) 
 {
 }
 
@@ -50,7 +49,7 @@ ChunkStore::CreateChunk(size_t size, int type, ChunkDescriptor** chunkdscp)
 	unsigned long long r;
 	unsigned long long usize = (unsigned long long) size;
 
-	intret = _client->call(RPC_CHUNK_CREATE, _principal_id, usize, type, r);
+	intret = ipc_->cl2srv()->call(RPC_CHUNK_CREATE, ipc_->id(), usize, type, r);
 
 	if (r == 0) {
 		return -1;
@@ -74,7 +73,7 @@ ChunkStore::DeleteChunk(ChunkDescriptor* chunkdsc)
 		return -1;
 	}
 
-	intret = _client->call(RPC_CHUNK_DELETE, _principal_id, chunkdsc_id, r);
+	intret = ipc_->cl2srv()->call(RPC_CHUNK_DELETE, ipc_->id(), chunkdsc_id, r);
 
 	return 0;
 }
@@ -94,7 +93,7 @@ ChunkStore::AccessChunkList(ChunkDescriptor* chunkdsc[], size_t nchunkdsc, int p
 		vuchunkdsc.push_back((unsigned long long) chunkdsc[i]);
 	}
 
-	intret = _client->call(RPC_CHUNK_ACCESS, _principal_id, vuchunkdsc, prot_flags, r);
+	intret = ipc_->cl2srv()->call(RPC_CHUNK_ACCESS, ipc_->id(), vuchunkdsc, prot_flags, r);
 
 	if (r != 0) {
 		return r;
@@ -136,7 +135,7 @@ ChunkStore::ReleaseChunkList(ChunkDescriptor* chunkdsc[], size_t nchunkdsc)
 		vuchunkdsc.push_back((unsigned long long) chunkdsc[i]);
 	}
 
-	intret = _client->call(RPC_CHUNK_RELEASE, _principal_id, vuchunkdsc, r);
+	intret = ipc_->cl2srv()->call(RPC_CHUNK_RELEASE, ipc_->id(), vuchunkdsc, r);
 
 	if (r != 0) {
 		return r;

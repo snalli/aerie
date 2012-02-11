@@ -27,8 +27,8 @@ Import('fscLibrary')
 Import('mfsLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
-Import('rpcLibrary')
-depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
+Import('ipcClientLibrary')
+depLibs = [mfsLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
 
 source = [Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), 'main.cc']
 source += [Glob('*/*/*.test.cc'), Glob('*/*/*.fixture.cc'), Glob('*/*/*.helper.cc')]

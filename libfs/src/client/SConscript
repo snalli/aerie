@@ -1,5 +1,5 @@
 Import('buildEnv')
-Import('rpcLibrary')
+Import('ipcClientLibrary')
 Import('chunkstoreLibrary')
 Import('lockservLibrary')
 Import('commonLibrary')
@@ -29,7 +29,7 @@ lib_sources = [
 	       '../dpo/containers/byte/container.cc',
 	      ]
 #libLocalBuildEnv.Append(LIBS = mfsLibrary)
-#libLocalBuildEnv.Append(LIBS = rpcLibrary)
+#libLocalBuildEnv.Append(LIBS = ipcClientLibrary)
 #libLocalBuildEnv.Append(LIBS = chunkstoreLibrary)
 #libLocalBuildEnv.Append(LIBS = lockservLibrary)
 #libLocalBuildEnv.Append(LIBS = commonLibrary)
@@ -40,7 +40,7 @@ fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_so
 # Be careful with linkage order for static libraries
 localBuildEnv.Append(LIBS = mfsLibrary)
 localBuildEnv.Append(LIBS = fscLibrary)
-localBuildEnv.Append(LIBS = rpcLibrary)
+localBuildEnv.Append(LIBS = ipcClientLibrary)
 localBuildEnv.Append(LIBS = chunkstoreLibrary)
 localBuildEnv.Append(LIBS = lockservLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)

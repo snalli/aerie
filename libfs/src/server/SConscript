@@ -1,5 +1,5 @@
 Import('buildEnv')
-Import('rpcLibrary')
+Import('ipcServerLibrary')
 Import('chunkstoreLibrary')
 Import('lockservLibrary')
 Import('commonLibrary')
@@ -20,7 +20,7 @@ lib_sources = [
 fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 localBuildEnv.Append(LIBS = fssLibrary)
-localBuildEnv.Append(LIBS = rpcLibrary)
+localBuildEnv.Append(LIBS = ipcServerLibrary)
 localBuildEnv.Append(LIBS = chunkstoreLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])

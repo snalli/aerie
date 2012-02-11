@@ -8,7 +8,7 @@
 #include <deque>
 #include <set>
 #include <vector>
-#include "rpc/rpc.h"
+#include "ipc/ipc.h"
 #include "dpo/base/common/gtque.h"
 #include "dpo/base/common/lock_protocol.h"
 
@@ -78,9 +78,9 @@ struct Lock {
 class LockManager {
 	typedef google::dense_hash_map<lock_protocol::LockId, Lock*> LockMap;
 public:
-	LockManager(rpcs* rpc_server = NULL, pthread_mutex_t* mutex = NULL);
+	LockManager(::server::Ipc* ipc, bool register_handler, pthread_mutex_t* mutex = NULL);
 	~LockManager();
-	int Init(rpcs* rpc_server);
+	int Init(bool register_handler);
 	Lock* FindLock(lock_protocol::LockId lid);
 	Lock* FindOrCreateLock(lock_protocol::LockId lid);
 	lock_protocol::status Stat(lock_protocol::LockId, int&);
@@ -89,8 +89,6 @@ public:
 	lock_protocol::status Release(int clt, int seq, lock_protocol::LockId lid, int flags, int& unused);
 	lock_protocol::Mode  SelectMode(Lock* lock, lock_protocol::Mode::Set mode_set);
 
-	// subscribe for future notifications by telling the server the RPC addr
-	lock_protocol::status Subscribe(int, std::string, int&);
 	void revoker();
 	void retryer();
 
@@ -100,7 +98,6 @@ public:
 	lock_protocol::status ConvertInternal(int clt, int seq, Lock* l, lock_protocol::Mode mode, int flags, int& unused);
 
 private:
-	std::map<int, rpcc*>                    clients_;
 	LockMap                                 locks_;
 	std::set<lock_protocol::LockId>         revoke_set_;
 
@@ -110,7 +107,7 @@ private:
 	/// Contains any locks that become available after a release or have being
 	/// acquired in shared mode (and thus waiting clients can grab them)
 	std::deque<lock_protocol::LockId>       available_locks_; 
-	
+	::server::Ipc*                          ipc_;
 };
 
 

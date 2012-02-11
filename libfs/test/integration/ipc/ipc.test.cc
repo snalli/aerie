@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "rpc/rpc.h"
 #include "tool/testfw/integrationtest.h"
 #include "client/client_i.h"
-#include "rpc.fixture.h"
+#include "ipc.fixture.h"
 
 using namespace client;
 
-SUITE(RPC)
+SUITE(IPC)
 {
-	TEST_FIXTURE(RPCFixture, TestServerIsAlive)
+	TEST_FIXTURE(IPCFixture, TestServerIsAlive)
 	{
 		CHECK(Client::TestServerIsAlive()==0);
 	}

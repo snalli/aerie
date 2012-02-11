@@ -13,12 +13,13 @@ Import('fssLibrary')
 Import('mfsLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
-Import('rpcLibrary')
-depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
-serverDepLibs = [fssLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
+Import('ipcClientLibrary')
+Import('ipcServerLibrary')
+clientDepLibs = [mfsLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
+serverDepLibs = [fssLibrary, ipcServerLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
-testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
+testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)
 serverProgram = myTestEnv.Program('smain', source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 
@@ -28,11 +29,11 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 ############################################################################### 
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'RPC:TestServerIsAlive',
+    name = 'IPC:TestServerIsAlive',
     init_script = None,
     testfw = testProgram, server = serverProgram,
     clients = { 
-        'C1': ( testProgram, [('T1', 'RPC:TestServerIsAlive')])
+        'C1': ( testProgram, [('T1', 'IPC:TestServerIsAlive')])
     },
     rendezvous = []
 ))

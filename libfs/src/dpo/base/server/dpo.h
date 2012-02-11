@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_DPO_SERVER_DPO_LAYER_H
 #define __STAMNOS_DPO_SERVER_DPO_LAYER_H
 
-#include "rpc/rpc.h"
+#include "ipc/ipc.h"
 
 namespace dpo {
 
@@ -19,13 +19,13 @@ class ObjectManager;  // forward declaration
 class StorageManager; // forward declaration
 
 // Distributed Persistent Object Layer
-class DpoLayer {
+class Dpo {
 public:
-	DpoLayer(rpcs* rpc_server)
-		: rpc_server_(rpc_server)
+	Dpo(::server::Ipc* ipc)
+		: ipc_(ipc)
 	{ }
 
-	~DpoLayer();
+	~Dpo();
 
 	int Init();
 
@@ -34,7 +34,7 @@ public:
 	StorageManager* smgr() { return smgr_; }
 
 private:
-	rpcs*                           rpc_server_;
+	::server::Ipc*                  ipc_;
 	dpo::cc::server::HLockManager*  hlckmgr_;
 	dpo::cc::server::LockManager*   lckmgr_;
 	StorageManager*                 smgr_;

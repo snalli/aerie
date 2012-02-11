@@ -2,7 +2,7 @@
 #define __STAMNOS_DPO_BASE_SERVER_STORAGE_MANAGER_H
 
 #include <vector>
-#include "rpc/rpc.h"
+#include "ipc/ipc.h"
 #include "dpo/base/common/storage_protocol.h"
 
 namespace dpo {
@@ -11,13 +11,14 @@ namespace server {
 
 class StorageManager {
 public:
-	explicit StorageManager(rpcs* rpc_server);
+	explicit StorageManager(::server::Ipc* ipc);
 	int Init();
 
+	int AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap);
 	int AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, std::vector<int>& result);
 
 private:
-	rpcs* rpc_server_;
+	::server::Ipc* ipc_;
 };
 
 

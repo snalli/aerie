@@ -149,7 +149,7 @@ public:
 	void UnregisterLockCallback() { hcb_ = NULL; };
 
 	void PrintDebugInfo();
-	int id() { return lm_->id(); }
+	unsigned int id() { return lm_->id(); }
 
 private:
 	HLock* FindLockInternal(LockId lid);

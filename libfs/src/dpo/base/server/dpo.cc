@@ -9,15 +9,15 @@ namespace dpo {
 namespace server {
 
 int
-DpoLayer::Init()
+Dpo::Init()
 {
 	dbg_log(DBG_INFO, "Initializing DPO layer\n");
 
-	if ((hlckmgr_ = new ::dpo::cc::server::HLockManager(rpc_server_)) == NULL) {
+	if ((hlckmgr_ = new ::dpo::cc::server::HLockManager(ipc_)) == NULL) {
 		return -E_NOMEM;
 	}
 	hlckmgr_->Init();
-	if ((smgr_ = new StorageManager(rpc_server_)) == NULL) {
+	if ((smgr_ = new StorageManager(ipc_)) == NULL) {
 		delete hlckmgr_;
 		return -E_NOMEM;
 	}
@@ -26,7 +26,7 @@ DpoLayer::Init()
 }
 
 
-DpoLayer::~DpoLayer()
+Dpo::~Dpo()
 {
 	delete smgr_;
 	delete hlckmgr_;

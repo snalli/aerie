@@ -4,19 +4,21 @@
 #include <sys/types.h>
 #include "rpc/rpc.h"
 
+namespace client {
+
+class Ipc; // forward declaration
 
 class Registry {
 public:
-	Registry(rpcc *c, unsigned int);
+	Registry(Ipc* ipc_layer);
 	int Lookup(const char *name, uint64_t* val);
 	int Add(const char *name, uint64_t val);
 	int Remove(const char *name);
 
 private:
-	rpcc*        client_;
-	unsigned int principal_id_;
-
+	Ipc* ipc_;
 };
 
+} // namespace client
 
 #endif

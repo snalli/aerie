@@ -6,7 +6,7 @@
 #include "client/libfs.h"
 #include "client/config.h"
 #include "client/client_i.h"
-#include "rpc.fixture.h"
+#include "test/integration/ipc/ipc.fixture.h"
 
 using namespace client;
 
@@ -33,7 +33,7 @@ inline int LockRegionFixture::InitRegion(void* args)
 }
 
 
-struct LockFixture: public LockRegionFixture, RPCFixture {
+struct LockFixture: public LockRegionFixture, IPCFixture {
 	static bool            initialized;
 	static pthread_mutex_t mutex;
 
@@ -47,7 +47,7 @@ struct LockFixture: public LockRegionFixture, RPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_dpo_layer = new dpo::client::DpoLayer(client::rpc_client, client::rpc_server, client::id, client::principal_id_);
+			global_dpo_layer = new dpo::client::Dpo(global_ipc_layer);
 			global_dpo_layer->Init();
 			initialized = true;
 			// register a finalize action to be called by the test-framework 

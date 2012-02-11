@@ -6,16 +6,18 @@
 #include "client/const.h"
 #include "client/namespace.h"
 
-class Registry;
-namespace client { class FileManager; } 
 
 namespace client {
 
-extern NameSpace*                         global_namespace;
-extern FileManager*                       global_fmgr;
-extern Session*                           global_session;
-extern Registry*                          global_registry;
-extern dpo::client::DpoLayer*             global_dpo_layer;
+class Registry;    // forward declaration
+class FileManager; // forward declaration
+
+extern NameSpace*          global_namespace;
+extern FileManager*        global_fmgr;
+extern Session*            global_session;
+extern Registry*           global_registry;
+extern Ipc*                global_ipc_layer;        
+extern dpo::client::Dpo*   global_dpo_layer;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;

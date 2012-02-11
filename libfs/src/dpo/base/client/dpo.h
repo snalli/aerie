@@ -1,7 +1,10 @@
 #ifndef __STAMNOS_DPO_CLIENT_DPO_LAYER_H
 #define __STAMNOS_DPO_CLIENT_DPO_LAYER_H
 
-#include "rpc/rpc.h"
+namespace client {
+class Ipc;       // forward declaration
+} // namespace client
+
 
 namespace dpo {
 
@@ -19,16 +22,13 @@ class ObjectManager;  // forward declaration
 class StorageManager; // forward declaration
 
 // Distributed Persistent Object Layer
-class DpoLayer {
+class Dpo {
 public:
-	DpoLayer(rpcc* rpc_client, rpcs* rpc_server, std::string id, int principal_id)
-		: rpc_client_(rpc_client),
-		  rpc_server_(rpc_server),
-		  id_(id),
-		  principal_id_(principal_id)
+	Dpo(::client::Ipc* ipc)
+		: ipc_(ipc)
 	{ }
 
-	~DpoLayer();
+	~Dpo();
 
 	int Init();
 
@@ -38,14 +38,11 @@ public:
 	ObjectManager* omgr() { return omgr_; }
 
 private:
-	rpcc*                           rpc_client_;
-	rpcs*                           rpc_server_;
-	std::string                     id_;
-	int                             principal_id_;
-	dpo::cc::client::HLockManager*  hlckmgr_;
-	dpo::cc::client::LockManager*   lckmgr_;
+	::client::Ipc*                  ipc_;
 	StorageManager*                 smgr_;
 	ObjectManager*                  omgr_;
+	dpo::cc::client::HLockManager*  hlckmgr_;
+	dpo::cc::client::LockManager*   lckmgr_;
 };
 
 } // namespace client

@@ -101,7 +101,7 @@ SUITE(ClientNamespace)
 
 	TEST_FIXTURE(ClientFixture, TestMount)
 	{
-		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
+		client::NameSpace*  test_namespace = new client::NameSpace("TEST");
 		client::SuperBlock* sb = new PseudoSuperBlock();
 		client::Inode*      dirinode = new PseudoDirInode();
 		test_namespace->Init(session);
@@ -111,7 +111,7 @@ SUITE(ClientNamespace)
 	
 	TEST_FIXTURE(ClientFixture, TestMultipleMount)
 	{
-		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
+		client::NameSpace*  test_namespace = new client::NameSpace("TEST");
 		client::SuperBlock* sb1 = new PseudoSuperBlock();
 		client::SuperBlock* sb2 = new PseudoSuperBlock();
 		test_namespace->Init(session);
@@ -126,7 +126,7 @@ SUITE(ClientNamespace)
 	{
 		char                tmpname[128];
 		client::Inode*      inode;
-		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
+		client::NameSpace*  test_namespace = new client::NameSpace("TEST");
 		client::SuperBlock* sb = new PseudoSuperBlock();
 		test_namespace->Init(session);
 		
@@ -167,7 +167,7 @@ SUITE(ClientNamespace)
 	{
 		char                tmpname[128];
 		client::Inode*      inode;
-		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
+		client::NameSpace*  test_namespace = new client::NameSpace("TEST");
 		client::SuperBlock* sb = new PseudoSuperBlock();
 		client::Inode*      dirinode1 = new PseudoDirInode();
 		inode = sb->RootInode();
@@ -202,7 +202,7 @@ SUITE(ClientNamespace)
 	{
 		char                tmpname[128];
 		client::Inode*      inode;
-		client::NameSpace*  test_namespace = new client::NameSpace(NULL, 0, "TEST");
+		client::NameSpace*  test_namespace = new client::NameSpace("TEST");
 		client::SuperBlock* sb = new PseudoSuperBlock();
 		client::Inode*      dirinode1 = new PseudoDirInode();
 		inode = sb->RootInode();

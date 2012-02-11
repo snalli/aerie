@@ -422,8 +422,9 @@ private:
 }; // ByteContainer
 
 
-
-#define min(a,b) ((a) < (b)? (a) : (b))
+inline uint64_t min(uint64_t a, uint64_t b) {
+	return ((a) < (b)? (a) : (b));
+}
 
 
 inline uint64_t 

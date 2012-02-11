@@ -14,9 +14,10 @@ Import('fssLibrary')
 Import('mfsLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
-Import('rpcLibrary')
-depLibs = [mfsLibrary, fscLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
-serverDepLibs = [fssLibrary, rpcLibrary, chunkstoreLibrary, commonLibrary]
+Import('ipcClientLibrary')
+Import('ipcServerLibrary')
+clientDepLibs = [mfsLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
+serverDepLibs = [fssLibrary, ipcServerLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 serverProgram = myTestEnv.Program('smain', \
@@ -24,7 +25,7 @@ serverProgram = myTestEnv.Program('smain', \
 testProgram = myTestEnv.Program('test', \
 	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), \
                   Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), objects], \
-	LIBS=['UnitTest++', 'pthread', 'rt']+depLibs)
+	LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 
 

@@ -8,8 +8,8 @@
 #ifndef __STAMNOS_DPO_CLIENT_RW_PROXY_H
 #define __STAMNOS_DPO_CLIENT_RW_PROXY_H
 
-#include <assert.h>
 #include "dpo/base/client/proxy.h"
+#include <assert.h>
 #include "dpo/base/client/omgr.h"
 #include "client/session.h"
 

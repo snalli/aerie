@@ -10,7 +10,8 @@
 //chunkstore server when that facility becomes available.
 
 namespace client {
-class Session; // forward declaration
+class Ipc; // forward declaration
+class Session;  // forward declaration
 } // namespace client
 
 
@@ -19,10 +20,9 @@ namespace client {
 
 class StorageManager {
 public:
-	StorageManager(rpcc* cl2srv, unsigned int principal_id)
-		: cl2srv_(cl2srv), 
-		  principal_id_(principal_id),
-		  chunk_store(cl2srv, principal_id)
+	StorageManager(::client::Ipc* ipc)
+		: ipc_(ipc),
+		  chunk_store(ipc)
 	{ 
 		chunk_store.Init();
 	}	
@@ -33,9 +33,8 @@ public:
 
 	int AllocateContainerVector(::client::Session* session);
 private:
-	rpcc*        cl2srv_;
-	unsigned int principal_id_;
-	ChunkStore   chunk_store;
+	::client::Ipc*  ipc_;
+	ChunkStore      chunk_store;
 };
 
 } // namespace client

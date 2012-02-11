@@ -15,8 +15,8 @@ public:
 	class Mode;
 	enum xxstatus { 
 		OK,      // okay. no error
-		RETRY,   // expect a retry call
 		RPCERR,  // RPC frustrate error
+		RETRY,   // expect a retry call
 		NOENT,   // generic error
 		IOERR,   // IO error 
 		HRERR,   // Hierarchy violation
@@ -48,7 +48,6 @@ public:
 		acquirev,
 		release,
 		convert,
-		subscribe,
 		stat
 	};
 };

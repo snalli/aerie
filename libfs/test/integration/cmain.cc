@@ -6,8 +6,7 @@
 #include <getopt.h>
 #include <iostream>
 #include <list>
-#include "rpc/rpc.h"
-#include "rpc/jsl_log.h"
+#include "common/debug.h"
 #include "client/libfs.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"

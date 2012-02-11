@@ -23,7 +23,7 @@ struct MFSFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			libfs_init(1, "10000");
+			libfs_init("10000");
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

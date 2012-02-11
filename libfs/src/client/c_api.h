@@ -8,11 +8,8 @@
 
 #include <sys/types.h>
 #include <stdint.h>
-#include "rpc/rpc.h"
-#include "rpc/jsl_log.h"
 
 #define FRONTAPI(fname) libfs_##fname
-
 
 
 int FRONTAPI(init) (char* xdst);

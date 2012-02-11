@@ -6,8 +6,8 @@
 #include <getopt.h>
 #include <iostream>
 #include <list>
-#include "rpc/rpc.h"
-#include "rpc/jsl_log.h"
+#include "ipc/ipc.h"
+#include "common/debug.h"
 #include "client/libfs.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
@@ -29,8 +29,6 @@ main(int argc, char *argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
-	principal_id = getuid();
-
 	opterr=0;
 	while ((ch = getopt(argc, argv, "d:h:li:t:T:"))!=-1) {
 		switch (ch) {
@@ -45,9 +43,6 @@ main(int argc, char *argv[])
 				break;
 			case 'l':
 				assert(setenv("RPC_LOSSY", "5", 1) == 0);
-				break;
-			case 'i':
-				principal_id = atoi(optarg);
 				break;
 			case 't':
 				client_tag = optarg;
