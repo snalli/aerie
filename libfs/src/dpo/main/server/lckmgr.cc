@@ -505,7 +505,7 @@ LockManager::revoker()
 			dbg_log(DBG_INFO, "revoke client %d lock %s: revoke type = %d\n", 
 			        clt, LockId(lid).c_str(), (*itr_r).revoke_type_);
 			if (cl_dsc) {
-				if (cl_dsc->rpc()->call(rlock_protocol::revoke, lid, (*itr_r).seq_, (*itr_r).revoke_type_, unused)
+				if (cl_dsc->call(rlock_protocol::revoke, lid, (*itr_r).seq_, (*itr_r).revoke_type_, unused)
 					!= rlock_protocol::OK) 
 				{
 					dbg_log(DBG_ERROR, "failed to send revoke\n");
@@ -554,7 +554,7 @@ LockManager::retryer()
 			int accepted;
 			// TODO place a time limit on the retry for this client
 			::server::ClientDescriptor* cl_dsc = ipc_->Client(cr->id());
-			if (cl_dsc->rpc()->call(rlock_protocol::retry, lid, cr->seq_, accepted) 
+			if (cl_dsc->call(rlock_protocol::retry, lid, cr->seq_, accepted) 
 			    == rlock_protocol::OK) 
 			{
 				dbg_log(DBG_INFO,

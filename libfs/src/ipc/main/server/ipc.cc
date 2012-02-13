@@ -38,18 +38,19 @@ Ipc::Client(int clt)
 	return clients_[clt];
 }
 
+
 int
 Ipc::Subscribe(int clt, std::string id, int& unused)
 {
 	sockaddr_in          dstsock;
-	rpcc*                cl;
+	rpcc*                rpccl;
 	IpcProtocol::status  r = IpcProtocol::OK;
 
 	pthread_mutex_lock(&mutex_);
 	make_sockaddr(id.c_str(), &dstsock);
-	cl = new rpcc(dstsock);
-	ClientDescriptor* cl_dsc = new ClientDescriptor(clt, cl);
-	if (cl->bind() == 0) {
+	rpccl = new rpcc(dstsock);
+	ClientDescriptor* cl_dsc = new ClientDescriptor(clt, rpccl);
+	if (rpccl->bind() == 0) {
 		clients_[clt] = cl_dsc;
 	} else {
 		printf("failed to bind to client %d\n", clt);
@@ -57,6 +58,7 @@ Ipc::Subscribe(int clt, std::string id, int& unused)
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
+
 
 int 
 Ipc::Alive(const unsigned int principal_id, int& r)

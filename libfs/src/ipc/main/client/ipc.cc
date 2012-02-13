@@ -34,7 +34,7 @@ Ipc::Init()
 	hname = "127.0.0.1";
 	host << hname << ":" << rport;
 	idstr = host.str();
-	std::cout << "Client: id="<< idstr <<std::endl;
+	std::cout << "Client: id=" << idstr <<std::endl;
 
 	// contact the server and tell him my rpc address to subscribe 
 	// for async rpc response

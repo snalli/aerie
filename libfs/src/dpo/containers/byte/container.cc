@@ -40,6 +40,9 @@ public:
 			// Adjust the slot offset to be multiple of interval size
 			slot_.slot_offset_ &= ~(INTERVAL_MIN_SIZE-1);
 			block_array_ = new char *[INTERVAL_MIN_SIZE];
+			for (int i=0; i<INTERVAL_MIN_SIZE; i++) {
+				block_array_[i] = 0;
+			}
 			region_ = NULL;
 		} else {
 			block_array_ = NULL;
@@ -86,6 +89,7 @@ ByteInterval::WriteBlockNoRegion(::client::Session* session, char* src, uint64_t
 		// allocate new block, FIXME: need to journal the alloaction and link
 		block_array_[bn - low_] = (char*) malloc(dpo::common::BLOCK_SIZE); // FIXME: allocate a chunk
 		bp = block_array_[bn - low_];
+		
 		// TODO: Allocating and zeroing a chunk is done in other places in the 
 		// code as well. We should collapse this under a function that does the job
 		// (including any necessary journaling?)

@@ -3,6 +3,7 @@
 #include "common/errno.h"
 #include "ipc/ipc.h"
 #include "dpo/main/common/storage_protocol.h"
+#include "ipc/main/server/cltdsc.h"
 
 
 namespace dpo {
@@ -35,8 +36,11 @@ StorageManager::StorageManager(::server::Ipc* ipc)
 int
 StorageManager::Init()
 {
-    ipc_->rpc()->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
-	                 &::dpo::server::StorageManager::AllocateContainerVector);
+    ipc_->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
+	          &::dpo::server::StorageManager::AllocateContainerVector);
+
+	StorageDescriptor::Register();
+
 }
 
 

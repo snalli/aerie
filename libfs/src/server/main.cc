@@ -24,11 +24,6 @@ dpo::server::Dpo*      dpo_layer;
 void register_handlers(rpcs* serverp);
 
 
-class Storage: public ClientDescriptorTemplate<Storage> {
-public:
-
-};
-
 void startserver()
 {
 	chunk_server = new ChunkServer();
@@ -36,11 +31,10 @@ void startserver()
 	registry = new RegistryServer();
 	registry->Init();
 
-	::server::DescriptorTemplate1<Storage> dsc;
-
 	ipc_layer = new ::server::Ipc(port);
 	ipc_layer->Init();
 	register_handlers(ipc_layer->rpc());
+	
 	dpo_layer = new ::dpo::server::Dpo(ipc_layer);
 	dpo_layer->Init();
 }

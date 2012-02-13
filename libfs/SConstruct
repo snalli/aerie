@@ -11,6 +11,11 @@ AddOption("--test",
 	default = False,
 	help="run tests")
 
+AddOption("--test-clean",
+	action="store_true", dest="clean_tests",
+	default = False,
+	help="force a clean run of tests")
+
 AddOption("--test-integration",
 	action="store_true", dest="run_integration_tests",
 	default = False,

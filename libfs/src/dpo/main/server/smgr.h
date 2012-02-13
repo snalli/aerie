@@ -4,6 +4,8 @@
 #include <vector>
 #include "ipc/ipc.h"
 #include "dpo/main/common/storage_protocol.h"
+#include "ipc/main/server/cltdsc.h"
+
 
 namespace dpo {
 namespace server {
@@ -19,6 +21,17 @@ public:
 
 private:
 	::server::Ipc* ipc_;
+};
+
+
+struct StorageDescriptor: public ::server::ClientDescriptorTemplate<StorageDescriptor> {
+public:
+	StorageDescriptor() {
+		printf("StorageDescriptor: CONSTRUCTOR: %p\n", this);
+	}
+	int id;
+	int cap;
+	
 };
 
 
