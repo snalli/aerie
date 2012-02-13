@@ -12,7 +12,7 @@
 #include "chunkstore/registryserver.h"
 #include "common/debug.h"
 #include "dpo/main/server/dpo.h"
-
+#include "ipc/main/server/cltdsc.h"
 
 int                    port;
 pthread_attr_t         attr;
@@ -24,12 +24,19 @@ dpo::server::Dpo*      dpo_layer;
 void register_handlers(rpcs* serverp);
 
 
+class Storage: public ClientDescriptorTemplate<Storage> {
+public:
+
+};
+
 void startserver()
 {
 	chunk_server = new ChunkServer();
 	chunk_server->Init();
 	registry = new RegistryServer();
 	registry->Init();
+
+	::server::DescriptorTemplate1<Storage> dsc;
 
 	ipc_layer = new ::server::Ipc(port);
 	ipc_layer->Init();
