@@ -28,6 +28,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+// TODO: any allocations and assignments done by Mapslot must be journalled
+
 #ifndef __STAMNOS_DPO_COMMON_RADIXTREE_H
 #define __STAMNOS_DPO_COMMON_RADIXTREE_H
 

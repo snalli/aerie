@@ -3,6 +3,7 @@ Import('ipcServerLibrary')
 Import('chunkstoreLibrary')
 Import('lockservLibrary')
 Import('commonLibrary')
+Import('mfsServerLibrary')
 
 localBuildEnv = buildEnv.Clone()
 libLocalBuildEnv = buildEnv.Clone()
@@ -13,14 +14,17 @@ lib_sources = [
                '../dpo/main/server/hlckmgr.cc',
                '../dpo/main/server/lckmgr.cc',
                '../dpo/main/server/smgr.cc',
-               'handler.cc',
-               'namespace.cc'
+               '../dpo/main/server/registry.cc',
+               'fsmgr.cc',
+	       'handler.cc',
+               'namespace.cc',
               ]
 
 fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 localBuildEnv.Append(LIBS = fssLibrary)
 localBuildEnv.Append(LIBS = ipcServerLibrary)
+localBuildEnv.Append(LIBS = mfsServerLibrary)
 localBuildEnv.Append(LIBS = chunkstoreLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])

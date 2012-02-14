@@ -3,7 +3,7 @@ Import('buildEnv')
 localBuildEnv = buildEnv.Clone()
 
 lib_target = 'cstore'
-lib_sources = ['chunkstore.cc', 'chunkserver.cc', 'registry.cc', 'registryserver.cc']
+lib_sources = ['chunkstore.cc', 'chunkserver.cc']
 
 chunkstoreLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 Return('chunkstoreLibrary')

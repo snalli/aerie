@@ -28,7 +28,8 @@ void
 FileSystemObjectManager::Register(SuperBlockFactory* sb_factory, 
                                   InodeFactory* inode_factory)
 {
-	return Register(sb_factory->TypeID(), sb_factory->TypeStr().c_str(), sb_factory, inode_factory); 
+	return Register(sb_factory->TypeID(), sb_factory->TypeStr().c_str(), 
+	                sb_factory, inode_factory); 
 }
 
 

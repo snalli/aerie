@@ -1,28 +1,26 @@
-#include "registry.h"
+#include "dpo/main/client/registry.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cstring>
-#include "server/api.h"
 #include "common/util.h"
 #include "common/hrtime.h"
 #include "ipc/ipc.h"
+#include "dpo/main/common/registry_protocol.h"
 
+namespace dpo {
 namespace client {
 
-Registry::Registry(Ipc* ipc)
+Registry::Registry(::client::Ipc* ipc)
 	: ipc_(ipc)
-{
-}
-
+{ }
 
 int
-Registry::Lookup(const char *name, uint64_t* val)
+Registry::Lookup(const char *name, dpo::common::ObjectId* oid)
 {
 	std::string        name_str;
 	unsigned long long r;
@@ -30,18 +28,18 @@ Registry::Lookup(const char *name, uint64_t* val)
 
 	name_str = std::string(name);
 
-	intret = ipc_->call(RPC_REGISTRY_LOOKUP, ipc_->id(), name_str, r);
+	intret = ipc_->call(dpo::RegistryProtocol::kLookup, ipc_->id(), name_str, r);
 	if (intret) {
 		return -intret;
 	}
-	*val = r;
+	*oid = dpo::common::ObjectId(r);
 	
 	return 0;
 }
 
 
 int
-Registry::Add(const char *name, uint64_t val)
+Registry::Add(const char *name, dpo::common::ObjectId oid)
 {
 	std::string        name_str;
 	int                r;
@@ -49,7 +47,8 @@ Registry::Add(const char *name, uint64_t val)
 
 	name_str = std::string(name);
 
-	intret = ipc_->call(RPC_REGISTRY_ADD, ipc_->id(), name_str, (unsigned long long) val, r);
+	intret = ipc_->call(dpo::RegistryProtocol::kAdd, ipc_->id(), name_str, 
+	                    (unsigned long long) oid.u64(), r);
 	if (intret) {
 		return -intret;
 	}
@@ -67,7 +66,7 @@ Registry::Remove(const char *name)
 
 	name_str = std::string(name);
 
-	intret = ipc_->call(RPC_REGISTRY_REMOVE, ipc_->id(), name_str, r);
+	intret = ipc_->call(dpo::RegistryProtocol::kRemove, ipc_->id(), name_str, r);
 	if (intret) {
 		return -intret;
 	}
@@ -75,4 +74,6 @@ Registry::Remove(const char *name)
 	return 0;
 }
 
+
 } // namespace client
+} // namespace dpo

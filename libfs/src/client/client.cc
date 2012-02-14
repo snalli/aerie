@@ -10,7 +10,6 @@
 #include "client/fsomgr.h"
 #include "dpo/main/client/dpo.h"
 #include "dpo/main/client/stm.h"
-#include "chunkstore/registry.h"
 #include "mfs/client/mfs.h"
 
 // FIXME: Client should be a singleton. otherwise we lose control 
@@ -23,7 +22,6 @@ __thread Session* thread_session;
 FileSystemObjectManager* global_fsomgr;
 FileManager*             global_fmgr;
 NameSpace*               global_namespace;
-Registry*                global_registry;
 Session*                 global_session;
 Ipc*                     global_ipc_layer;
 dpo::client::Dpo*        global_dpo_layer;
@@ -50,8 +48,6 @@ Client::Init(const char* xdst)
 	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
 								  
-	global_registry = new Registry(global_ipc_layer);
-
 	// register known file system backends
 	global_fsomgr = new FileSystemObjectManager();
 	mfs::client::RegisterBackend(global_fsomgr);
@@ -96,9 +92,9 @@ Client::Mount(const char* source,
 	if (target == NULL || source == NULL || fstype == NULL) {
 		return -1;
 	}
-	if (global_registry->Lookup(source, &u64) < 0) {
-		return -1;
-	}
+	//if (global_dpo_layer->Open(source, &u64) < 0) {
+	//	return -1;
+	//}
 	dpo::common::ObjectId oid = dpo::common::ObjectId(u64);
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {
 		return -1;
@@ -124,7 +120,7 @@ Client::Mkfs(const char* target,
 	if ((ret = global_fsomgr->CreateSuperBlock(global_session, fstype, &sb)) < 0) {
 		return -1;
 	}
-	global_registry->Add(target, sb->oid().u64());
+	//global_registry->Add(target, sb->oid().u64());
 	dbg_log (DBG_INFO, "Mkfs %s (%lx)\n", target, sb->oid().u64());
 	return E_SUCCESS;
 }

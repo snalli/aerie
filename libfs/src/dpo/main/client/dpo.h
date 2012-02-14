@@ -20,6 +20,7 @@ namespace client {
 
 class ObjectManager;  // forward declaration
 class StorageManager; // forward declaration
+class Registry;       // forward declaration
 
 // Distributed Persistent Object Layer
 class Dpo {
@@ -36,11 +37,13 @@ public:
 	dpo::cc::client::LockManager* lckmgr() { return lckmgr_; }
 	StorageManager* smgr() { return smgr_; }
 	ObjectManager* omgr() { return omgr_; }
+	Registry* registry() { return registry_; }
 
 private:
 	::client::Ipc*                  ipc_;
 	StorageManager*                 smgr_;
 	ObjectManager*                  omgr_;
+	Registry*                       registry_;
 	dpo::cc::client::HLockManager*  hlckmgr_;
 	dpo::cc::client::LockManager*   lckmgr_;
 };

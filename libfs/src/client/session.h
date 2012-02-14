@@ -25,7 +25,8 @@ public:
 		  dpo_(dpo)
 	{ }
 	
-	Session(dpo::cc::client::LockManager* lckmgr, dpo::cc::client::HLockManager* hlckmgr)
+	Session(dpo::cc::client::LockManager* lckmgr, 
+	        dpo::cc::client::HLockManager* hlckmgr)
 		: lckmgr_(lckmgr),
 		  hlckmgr_(hlckmgr),
 		  smgr_(NULL),

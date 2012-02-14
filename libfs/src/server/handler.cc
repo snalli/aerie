@@ -9,14 +9,12 @@
 #include <vector>
 #include "ipc/backend/rpc.h"
 #include "chunkstore/chunkserver.h"
-#include "chunkstore/registryserver.h"
 #include "common/debug.h"
 #include "dpo/main/server/dpo.h"
 #include "api.h"
 
 
 extern ChunkServer*        chunk_server;
-extern RegistryServer*     registry;
 extern dpo::server::Dpo*   dpo_layer;
 
 // server-side handlers. they must be methods of some class
@@ -31,10 +29,6 @@ class srv {
         int name_lookup(const unsigned int principal_id, const std::string name, unsigned long long& r);
         int name_link(const unsigned int principal_id, const std::string name, unsigned long long inode, int& r);
 		int name_unlink(const unsigned int principal_id, const std::string name, int &r);
-        int registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long& obj);
-        int registry_add(const unsigned int principal_id, const std::string name, unsigned long long obj, int& r);
-		int registry_remove(const unsigned int principal_id, const std::string name, int &r);
-        int namespace_mount(const unsigned int principal_id, const std::string name, unsigned long long superblock, int& r);
 };
 
 srv service;
@@ -148,63 +142,6 @@ srv::name_unlink(const unsigned int principal_id, const std::string name, int &r
 }
 
 
-int
-srv::registry_lookup(const unsigned int principal_id, const std::string name, unsigned long long &r)
-{
-	int       ret;
-	uint64_t  obj;
-	ret = registry->Lookup(name.c_str(), &obj);
-	if (ret<0) {
-		return -ret;
-	}
-	r = (unsigned long long) obj;
-	return 0;
-}
-
-
-int
-srv::registry_add(const unsigned int principal_id, const std::string name, unsigned long long obj, int &r)
-{
-	int ret;
-
-	ret = registry->Add(name, obj);
-	if (ret<0) {
-		return -ret;
-	}
-	return 0;
-}
-
-
-int
-srv::registry_remove(const unsigned int principal_id, const std::string name, int &r)
-{
-	int ret;
-
-	ret = registry->Remove(name);
-	if (ret<0) {
-		return -ret;
-	}
-	return 0;
-}
-
-
-int
-srv::namespace_mount(const unsigned int principal_id, const std::string name, unsigned long long superblock, int &r)
-{
-	int ret;
-
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-
-	/*
-	ret = name_space->Mount(name.c_str(), (void*) superblock);
-	if (ret<0) {
-		return -ret;
-	}
-	return 0;
-	*/
-}
-
-
 void register_handlers(rpcs* serverp)
 {
 	serverp->reg(RPC_CHUNK_CREATE, &service, &srv::chunk_create);
@@ -214,8 +151,4 @@ void register_handlers(rpcs* serverp)
 	serverp->reg(RPC_NAME_LOOKUP, &service, &srv::name_lookup);
 	serverp->reg(RPC_NAME_LINK, &service, &srv::name_link);
 	serverp->reg(RPC_NAME_UNLINK, &service, &srv::name_unlink);
-	serverp->reg(RPC_REGISTRY_LOOKUP, &service, &srv::registry_lookup);
-	serverp->reg(RPC_REGISTRY_ADD, &service, &srv::registry_add);
-	serverp->reg(RPC_REGISTRY_REMOVE, &service, &srv::registry_remove);
-	serverp->reg(RPC_NAMESPACE_MOUNT, &service, &srv::namespace_mount);
 }

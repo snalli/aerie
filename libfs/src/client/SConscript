@@ -3,7 +3,7 @@ Import('ipcClientLibrary')
 Import('chunkstoreLibrary')
 Import('lockservLibrary')
 Import('commonLibrary')
-Import('mfsLibrary')
+Import('mfsClientLibrary')
 
 localBuildEnv = buildEnv.Clone()
 libLocalBuildEnv = buildEnv.Clone()
@@ -24,11 +24,12 @@ lib_sources = [
 	       '../dpo/main/client/omgr.cc',
 	       '../dpo/main/client/smgr.cc',
 	       '../dpo/main/client/stm.cc',
+	       '../dpo/main/client/registry.cc',
 	       '../dpo/containers/name/container.cc',
 	       '../dpo/containers/super/container.cc',
 	       '../dpo/containers/byte/container.cc',
 	      ]
-#libLocalBuildEnv.Append(LIBS = mfsLibrary)
+#libLocalBuildEnv.Append(LIBS = mfsClientLibrary)
 #libLocalBuildEnv.Append(LIBS = ipcClientLibrary)
 #libLocalBuildEnv.Append(LIBS = chunkstoreLibrary)
 #libLocalBuildEnv.Append(LIBS = lockservLibrary)
@@ -38,7 +39,7 @@ lib_sources = [
 fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 # Be careful with linkage order for static libraries
-localBuildEnv.Append(LIBS = mfsLibrary)
+localBuildEnv.Append(LIBS = mfsClientLibrary)
 localBuildEnv.Append(LIBS = fscLibrary)
 localBuildEnv.Append(LIBS = ipcClientLibrary)
 localBuildEnv.Append(LIBS = chunkstoreLibrary)

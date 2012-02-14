@@ -11,12 +11,12 @@ myTestEnv = testEnv.Clone()
 
 Import('fscLibrary')
 Import('fssLibrary')
-Import('mfsLibrary')
+Import('mfsClientLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('ipcClientLibrary')
 Import('ipcServerLibrary')
-clientDepLibs = [mfsLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
+clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
 serverDepLibs = [fssLibrary, ipcServerLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 

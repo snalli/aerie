@@ -24,11 +24,11 @@ thedir = os.path.join(Dir('#').abspath, 'test/unit')
 dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
 
 Import('fscLibrary')
-Import('mfsLibrary')
+Import('mfsClientLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('ipcClientLibrary')
-depLibs = [mfsLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
+depLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
 
 source = [Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), 'main.cc']
 source += [Glob('*/*/*.test.cc'), Glob('*/*/*.fixture.cc'), Glob('*/*/*.helper.cc')]
@@ -41,8 +41,8 @@ if testEnv['TEST_FILTER']:
 		# just ignore the exception; it is most likely raised because the file 
 		# does not exist
 		pass
-	runtests = testEnv.Command("test.filter.passed", ['test', mfsLibrary], runUnitTests)
+	runtests = testEnv.Command("test.filter.passed", ['test', mfsClientLibrary], runUnitTests)
 else:
-	runtests = testEnv.Command("test.passed", ['test', mfsLibrary], runUnitTests)
+	runtests = testEnv.Command("test.passed", ['test', mfsClientLibrary], runUnitTests)
 
 testEnv.addUnitTestFilter(test[0].path, testEnv['TEST_FILTER'])

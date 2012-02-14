@@ -31,7 +31,8 @@ public:
 	}
 
 	Object()
-		: root_(dpo::common::ObjectId(0))
+		: root_(dpo::common::ObjectId(0)),
+		  free_(dpo::common::ObjectId(0))
 	{ 
 		set_type(T_SUPER_CONTAINER);
 	}
@@ -54,7 +55,8 @@ public:
 
 private:
 	int                    magic_;
-	dpo::common::ObjectId  root_;  // entry '..'
+	dpo::common::ObjectId  root_;  // 
+	dpo::common::ObjectId  free_;  // the object containing the free block list
 };
 
 }; // class SuperContainer

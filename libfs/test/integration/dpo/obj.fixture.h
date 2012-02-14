@@ -10,7 +10,7 @@
 #include <sstream>
 #include "tool/testfw/integrationtest.h"
 #include "client/config.h"
-#include "chunkstore/registry.h"
+#include "dpo/main/client/registry.h"
 #include "dpo/main/client/omgr.h"
 #include "test/integration/ipc/ipc.fixture.h"
 #include "lock.fixture.h"
@@ -25,7 +25,6 @@ struct ObjectFixture: public LockRegionFixture, IPCFixture {
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
 			delete global_dpo_layer;
-			delete global_registry;
 		}
 	};
 
@@ -35,7 +34,6 @@ struct ObjectFixture: public LockRegionFixture, IPCFixture {
 		if (!initialized) {
 			global_dpo_layer = new dpo::client::Dpo(global_ipc_layer);
 			global_dpo_layer->Init();
-			global_registry = new Registry(global_ipc_layer);
 			session = new Session(global_dpo_layer);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
@@ -62,14 +60,14 @@ MapObjects(Session* session, testfw::Test* test, dpo::common::ObjectId* oid_tabl
 		for (int i=0; i<16; i++) {
 			T* optr = new(session) T;
 			sprintf(buf, "Object_%d", i);
-			global_registry->Add(buf, optr->oid().u64());
+			global_dpo_layer->registry()->Add(buf, optr->oid());
 		}
 	}
 	for (int i=0; i<16; i++) {
-		uint64_t u64;
+		dpo::common::ObjectId oid;
 		sprintf(buf, "Object_%d", i);
-		assert(global_registry->Lookup(buf, &u64) == 0);
-		oid_table[i] = dpo::common::ObjectId(u64);
+		assert(global_dpo_layer->registry()->Lookup(buf, &oid) == 0);
+		oid_table[i] = oid;
 	}
 	return 0;
 }

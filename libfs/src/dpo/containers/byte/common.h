@@ -2,6 +2,8 @@
 //! Definition of the name collection persistent object stored in SCM
 //!
 
+// TODO: any allocations and assignments done by Mapslot must be journalled
+
 #ifndef __STAMNOS_DPO_COMMON_BYTE_CONTAINER_OBJECT_H
 #define __STAMNOS_DPO_COMMON_BYTE_CONTAINER_OBJECT_H
 
@@ -751,7 +753,6 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 		slot = &dblock_;
 	} else {
 		rbn = bn - base_bn_;
-		// TODO: any allocations and assignments done by Mapslot must be journalled
 		if ((ret = radixtree_.MapSlot(session, rbn, 1, 1, &node, &offset, &height)) == 0) {
 			slot = &node->slots[offset];
 		} else {
@@ -759,9 +760,13 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 		}
 	}	
 	if (*slot == (void*)0) {
-		//FIXME: we should allocate a chunk instead of using malloc
-		//journal allocation and assignment
-		*slot = malloc(dpo::common::BLOCK_SIZE);
+		void* ptr;
+		if ((ret = session->smgr_->AllocateRaw(session, 
+		                                       dpo::common::BLOCK_SIZE, &ptr)) < 0)
+		{ 
+			return ret;
+		}
+		*slot = ptr; // FIXME: journal this 
 		bp = (char*) (*slot);
 		printf("FilePnode::Region::WriteBlock block=%p\n", *slot);
 		// TODO: Allocating and zeroing a chunk is done in other places in the 

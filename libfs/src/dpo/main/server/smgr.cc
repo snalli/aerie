@@ -1,9 +1,11 @@
 #include "dpo/main/server/smgr.h"
 #include <stdio.h>
+#include <stddef.h>
 #include "common/errno.h"
 #include "ipc/ipc.h"
 #include "dpo/main/common/storage_protocol.h"
 #include "ipc/main/server/cltdsc.h"
+#include "server/session.h"
 
 
 namespace dpo {
@@ -41,6 +43,7 @@ StorageManager::Init()
 
 	StorageDescriptor::Register();
 
+	return E_SUCCESS;
 }
 
 
@@ -82,6 +85,14 @@ StorageManager::AllocateContainer(int clt, int type, int acl, int n)
 }
 
 #endif
+
+
+int
+StorageManager::AllocateRaw(::server::Session* session, size_t size, void** ptr)
+{
+
+
+}
 
 int 
 StorageManager::AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap)

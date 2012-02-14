@@ -4,7 +4,7 @@
 #include "dpo/main/client/omgr.h"
 #include "dpo/main/client/lckmgr.h"
 #include "dpo/main/client/hlckmgr.h"
-
+#include "dpo/main/client/registry.h"
 
 namespace dpo {
 namespace client {
@@ -12,7 +12,6 @@ namespace client {
 int
 Dpo::Init()
 {
-	printf("IPC: %p\n", ipc_);
 	if ((lckmgr_ = new ::dpo::cc::client::LockManager(ipc_)) == NULL) {
 		return -E_NOMEM;
 	}
@@ -29,6 +28,13 @@ Dpo::Init()
 		delete omgr_;
 		delete hlckmgr_;
 		delete lckmgr_;
+		return -E_NOMEM;
+	}
+	if ((registry_ = new Registry(ipc_)) == NULL) {
+		delete omgr_;
+		delete hlckmgr_;
+		delete lckmgr_;
+		delete smgr_;
 		return -E_NOMEM;
 	}
 	return E_SUCCESS;

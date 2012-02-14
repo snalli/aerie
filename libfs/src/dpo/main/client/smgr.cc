@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <typeinfo>
 #include <vector>
+#include "common/errno.h"
 #include "ipc/ipc.h"
 #include "dpo/main/common/storage_protocol.h"
 #include "client/session.h"
@@ -21,6 +22,14 @@ namespace client {
 // the allocation function should take a transaction id as argument
 // to ensure the atomicity of the operation
 //
+
+
+int
+StorageManager::AllocateRaw(::client::Session* session, size_t size, void** ptr)
+{
+	*ptr = malloc(size);
+	return E_SUCCESS;
+}
 
 
 

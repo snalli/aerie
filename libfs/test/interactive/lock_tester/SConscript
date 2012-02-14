@@ -7,10 +7,10 @@ Import('mainEnv', 'testEnv')
 myTestEnv = testEnv.Clone()
 
 Import('fscLibrary')
-Import('mfsLibrary')
+Import('mfsClientLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('ipcClientLibrary')
-depLibs = [mfsLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
+depLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
 
 #myTestEnv.Program('lock_tester', source = [Glob('*.cc')], LIBS=['pthread', 'rt']+depLibs)

@@ -9,7 +9,6 @@
 #include <vector>
 #include "ipc/ipc.h"
 #include "chunkstore/chunkserver.h"
-#include "chunkstore/registryserver.h"
 #include "common/debug.h"
 #include "dpo/main/server/dpo.h"
 
@@ -17,7 +16,6 @@
 int                    port;
 pthread_attr_t         attr;
 ChunkServer*           chunk_server;
-RegistryServer*        registry;
 dpo::server::Dpo*      dpo_layer;
 ::server::Ipc*         ipc_layer;
 
@@ -28,8 +26,6 @@ void startserver()
 {
 	chunk_server = new ChunkServer();
 	chunk_server->Init();
-	registry = new RegistryServer();
-	registry->Init();
 
 	ipc_layer = new ::server::Ipc(port);
 	ipc_layer->Init();

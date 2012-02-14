@@ -3,14 +3,13 @@
 
 #include <stdlib.h>
 #include <typeinfo>
-#include "rpc/rpc.h"
 #include "chunkstore/chunkstore.h"
 
 //FIXME: The Storage Manager should use the kernel storage API instead of the 
 //chunkstore server when that facility becomes available.
 
 namespace client {
-class Ipc; // forward declaration
+class Ipc;      // forward declaration
 class Session;  // forward declaration
 } // namespace client
 
@@ -27,6 +26,7 @@ public:
 		chunk_store.Init();
 	}	
 
+	int AllocateRaw(::client::Session* session, size_t size, void** ptr);
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
 	int AllocExtent(::client::Session* session, size_t nbytes, void** ptr);

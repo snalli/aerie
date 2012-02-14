@@ -17,6 +17,8 @@ namespace server {
 
 class ObjectManager;  // forward declaration
 class StorageManager; // forward declaration
+class Registry;       // forward declaration
+
 
 // Distributed Persistent Object Layer
 class Dpo {
@@ -38,6 +40,7 @@ private:
 	dpo::cc::server::HLockManager*  hlckmgr_;
 	dpo::cc::server::LockManager*   lckmgr_;
 	StorageManager*                 smgr_;
+	Registry*                       registry_;
 };
 
 } // namespace server

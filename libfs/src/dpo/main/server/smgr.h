@@ -1,10 +1,14 @@
-#ifndef __STAMNOS_DPO_BASE_SERVER_STORAGE_MANAGER_H
-#define __STAMNOS_DPO_BASE_SERVER_STORAGE_MANAGER_H
+#ifndef __STAMNOS_DPO_MAIN_SERVER_STORAGE_MANAGER_H
+#define __STAMNOS_DPO_MAIN_SERVER_STORAGE_MANAGER_H
 
 #include <vector>
 #include "ipc/ipc.h"
-#include "dpo/main/common/storage_protocol.h"
 #include "ipc/main/server/cltdsc.h"
+#include "dpo/main/common/storage_protocol.h"
+
+namespace server {
+class Session;  // forward declaration
+} // namespace client
 
 
 namespace dpo {
@@ -16,6 +20,7 @@ public:
 	explicit StorageManager(::server::Ipc* ipc);
 	int Init();
 
+	int AllocateRaw(::server::Session* session, size_t size, void** ptr);
 	int AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap);
 	int AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, std::vector<int>& result);
 
@@ -41,4 +46,4 @@ public:
 
 
 
-#endif // __STAMNOS_DPO_BASE_SERVER_MANAGER_H
+#endif // __STAMNOS_DPO_MAIN_SERVER_MANAGER_H

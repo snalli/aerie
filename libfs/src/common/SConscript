@@ -3,7 +3,7 @@ Import('buildEnv')
 localBuildEnv = buildEnv.Clone()
 
 lib_target = 'common'
-lib_sources = ['config.c', 'hash.c', 'pheap.cc', 'vistaheap.c', 'debug.c', 'stack.c', 'rbt.c', 'interval_tree.cc']
+lib_sources = ['config.c', 'hash.c', 'pheap.cc', 'vistaheap.c', 'debug.c', 'stack.c', 'interval_tree.cc']
 
 localBuildEnv.Append(CPPPATH = ['#src/common'])
 

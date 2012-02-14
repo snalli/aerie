@@ -15,10 +15,17 @@ clt_lib_sources += ['client/dir_inode.cc',
 		    'client/sb_factory.cc'
 		   ]
 
-mfsLibrary = clientBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources)
+mfsClientLibrary = clientBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources)
 
 
 # server backend
 
+srv_lib_target = 'mfssrv'
+srv_lib_sources = []
+srv_lib_sources += [
+		    'server/fs_factory.cc'
+		   ]
 
-Return('mfsLibrary')
+mfsServerLibrary = serverBuildEnv.SharedLibrary(target = srv_lib_target, source = srv_lib_sources)
+
+Return('mfsClientLibrary', 'mfsServerLibrary')

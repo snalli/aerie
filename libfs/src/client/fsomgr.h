@@ -1,5 +1,5 @@
 /**
- * \file fsmgr.h
+ * \file fsomgr.h
  *
  * \brief File System Object manager
  *
@@ -23,8 +23,8 @@
  *  - 
  */
 
-#ifndef __STAMNOS_CLIENT_FILE_SYSTEM_OBJECT_MANAGER_H
-#define __STAMNOS_CLIENT_FILE_SYSTEM_OBJECT_MANAGER_H
+#ifndef __STAMNOS_PXFS_CLIENT_FILE_SYSTEM_OBJECT_MANAGER_H
+#define __STAMNOS_PXFS_CLIENT_FILE_SYSTEM_OBJECT_MANAGER_H
 
 #include <string>
 #include <google/sparsehash/sparseconfig.h>
@@ -64,4 +64,4 @@ private:
 
 } // namespace client
 
-#endif // __STAMNOS_CLIENT_FILE_SYSTEM_OBJECT_MANAGER_H
+#endif // __STAMNOS_PXFS_CLIENT_FILE_SYSTEM_OBJECT_MANAGER_H
