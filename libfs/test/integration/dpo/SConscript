@@ -12,12 +12,13 @@ myTestEnv = testEnv.Clone()
 Import('fscLibrary')
 Import('fssLibrary')
 Import('mfsClientLibrary')
+Import('mfsServerLibrary')
 Import('commonLibrary')
 Import('chunkstoreLibrary')
 Import('ipcClientLibrary')
 Import('ipcServerLibrary')
 clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, chunkstoreLibrary, commonLibrary]
-serverDepLibs = [fssLibrary, ipcServerLibrary, chunkstoreLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, chunkstoreLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 serverProgram = myTestEnv.Program('smain', \
@@ -333,6 +334,22 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
                   ('C1:T1:BeforeUnlock:block', 'C2:T1:AfterFind:block'),
                   ('C1:T1:End:block', 'C2:T1:End:block'),
     ]
+))
+
+
+#
+# REGISTRY TESTS
+#
+
+
+myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
+    name = 'Registry:Test',
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
+    testfw = testProgram, server = serverProgram,
+    clients = { 
+        'C1': ( testProgram, [('T1', 'Registry:Test')]),
+    },
+    rendezvous = []
 ))
 
 

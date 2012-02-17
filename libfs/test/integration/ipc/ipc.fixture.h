@@ -24,7 +24,6 @@ struct IPCFixture {
 		} else {
 			principal_id = atoi(principal_str.c_str());
 		}
-		printf("IPCFIXTURE\n");
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
 			initialized = true;

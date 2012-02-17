@@ -41,7 +41,7 @@ public:
 	{
 		void* ptr;
 		
-		if (session->smgr_->Alloc(session, nbytes, typeid(Object<Session>), &ptr) < 0) {
+		if (session->smgr()->Alloc(session, nbytes, typeid(Object<Session>), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;

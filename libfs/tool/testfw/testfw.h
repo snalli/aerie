@@ -363,7 +363,8 @@ inline int
 TestFramework::RunTests()
 {
 	int ret;
-	
+	int test_failed_count = 0;
+
 	numthreads_ = test_set_.size();
 	for (std::set<Test*>::iterator it = test_set_.begin();
 		 it != test_set_.end();
@@ -382,7 +383,11 @@ TestFramework::RunTests()
 		 ++it)
 	{
 		Test* t = *it;
-		pthread_join(t->thread_, NULL);
+		void* retval;
+		pthread_join(t->thread_, &retval);
+		if (retval) {
+			test_failed_count++;
+		}
 	}
 	// now do any cleanup requested by tests by executing finalize functors
 	// in reverse order (stack)
@@ -402,6 +407,9 @@ TestFramework::RunTests()
 		if (t->deferred_) {
 			std::cerr << t->oss_.str() << std::endl;
 		}
+	}
+	if (test_failed_count > 0) {
+		return 1;
 	}
 	return 0;
 }

@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <typeinfo>
 #include "chunkstore/chunkstore.h"
+#include "ipc/main/client/ipc-opaque.h"
 
 //FIXME: The Storage Manager should use the kernel storage API instead of the 
 //chunkstore server when that facility becomes available.
 
 namespace client {
-class Ipc;      // forward declaration
 class Session;  // forward declaration
 } // namespace client
 

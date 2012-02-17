@@ -85,7 +85,7 @@
         int call(unsigned int proc, const A1 & a1, const A2 & a2, const A3 & a3,    \
                  R & r, TO to = to_max)                                             \
     {                                                                               \
-	    return RPCC->call(proc, a1, a2, a3, r, to);                                 \
+		return RPCC->call(proc, a1, a2, a3, r, to);                                 \
 	}                                                                               \
                                                                                     \
     template<class R, class A1, class A2, class A3, class A4>                       \

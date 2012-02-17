@@ -3,11 +3,12 @@
 
 #include "ipc/ipc.h"
 
-class FilesystemProtocol {
+class FileSystemProtocol {
 public:
 	
 	enum RpcNumbers {
-		kCreateFilesystem = 5000	
+		kCreateFileSystem = 4500,
+		kMountFileSystem	
 	};
 };
 

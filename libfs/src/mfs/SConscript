@@ -23,7 +23,8 @@ mfsClientLibrary = clientBuildEnv.SharedLibrary(target = clt_lib_target, source 
 srv_lib_target = 'mfssrv'
 srv_lib_sources = []
 srv_lib_sources += [
-		    'server/fs_factory.cc'
+		    'server/fs_factory.cc',
+		    'server/mfs.cc'
 		   ]
 
 mfsServerLibrary = serverBuildEnv.SharedLibrary(target = srv_lib_target, source = srv_lib_sources)

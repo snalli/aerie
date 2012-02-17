@@ -10,6 +10,7 @@
 #include "common/util.h"
 #include "common/hrtime.h"
 #include "ipc/ipc.h"
+#include "dpo/main/common/obj.h"
 #include "dpo/main/common/registry_protocol.h"
 
 namespace dpo {
@@ -22,17 +23,17 @@ Registry::Registry(::client::Ipc* ipc)
 int
 Registry::Lookup(const char *name, dpo::common::ObjectId* oid)
 {
-	std::string        name_str;
-	unsigned long long r;
-	int                intret;
+	std::string           name_str;
+	dpo::common::ObjectId oid_tmp;
+	int                   intret;
 
 	name_str = std::string(name);
 
-	intret = ipc_->call(dpo::RegistryProtocol::kLookup, ipc_->id(), name_str, r);
+	intret = ipc_->call(dpo::RegistryProtocol::kLookup, ipc_->id(), name_str, oid_tmp);
 	if (intret) {
 		return -intret;
 	}
-	*oid = dpo::common::ObjectId(r);
+	*oid = oid_tmp;
 	
 	return 0;
 }
@@ -47,8 +48,7 @@ Registry::Add(const char *name, dpo::common::ObjectId oid)
 
 	name_str = std::string(name);
 
-	intret = ipc_->call(dpo::RegistryProtocol::kAdd, ipc_->id(), name_str, 
-	                    (unsigned long long) oid.u64(), r);
+	intret = ipc_->call(dpo::RegistryProtocol::kAdd, ipc_->id(), name_str, oid, r);
 	if (intret) {
 		return -intret;
 	}
@@ -60,9 +60,9 @@ Registry::Add(const char *name, dpo::common::ObjectId oid)
 int
 Registry::Remove(const char *name)
 {
-	std::string        name_str;
-	int                r;
-	int                intret;
+	std::string name_str;
+	int         r;
+	int         intret;
 
 	name_str = std::string(name);
 

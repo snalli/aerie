@@ -1,26 +1,12 @@
 #ifndef __STAMNOS_DPO_CLIENT_DPO_LAYER_H
 #define __STAMNOS_DPO_CLIENT_DPO_LAYER_H
 
-namespace client {
-class Ipc;       // forward declaration
-} // namespace client
+#include "ipc/main/client/ipc-opaque.h"
+#include "dpo/main/client/dpo-opaque.h"
 
 
 namespace dpo {
-
-namespace cc {
 namespace client {
-class LockManager;    // forward declaration
-class HLockManager;   // forward declaration
-} // namespace client
-} // namespace cc
-
-
-namespace client {
-
-class ObjectManager;  // forward declaration
-class StorageManager; // forward declaration
-class Registry;       // forward declaration
 
 // Distributed Persistent Object Layer
 class Dpo {

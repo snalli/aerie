@@ -5,8 +5,8 @@
  * file system backend implementations. 
  */
 
-#ifndef __STAMNOS_FS_CLIENT_BACKEND_H
-#define __STAMNOS_FS_CLIENT_BACKEND_H
+#ifndef __STAMNOS_PXFS_CLIENT_BACKEND_H
+#define __STAMNOS_PXFS_CLIENT_BACKEND_H
 
 #include "client/client_i.h"
 #include "client/session.h"
@@ -15,4 +15,4 @@
 #include "client/fsomgr.h"
 #include "client/const.h"
 
-#endif  /* __STAMNOS_FS_CLIENT_BACKEND_H */
+#endif  /* __STAMNOS_PXFS_CLIENT_BACKEND_H */

@@ -2,13 +2,8 @@
 #define __STAMNOS_FS_CLIENT_SESSION_H
 
 #include "dpo/main/client/dpo.h"
+#include "dpo/main/client/dpo-opaque.h"
 #include "dpo/main/client/stm.h"
-
-namespace dpo { 
-namespace client { 
-class ObjectManager;   // forward declaration
-} // namespace client
-} // namespace dpo
 
 
 class StorageManager;
@@ -42,6 +37,9 @@ public:
 		  smgr_(smgr),
 		  omgr_(omgr)
 	{ }
+
+
+	dpo::client::StorageManager* smgr() { return dpo_->smgr(); }
 
 	dpo::client::Dpo*                dpo_;
 	dpo::cc::client::LockManager*    lckmgr_;

@@ -1,7 +1,9 @@
 // General macros and constants used by the file system
 
-#ifndef _MFS_CONST_H_ADF102
-#define _MFS_CONST_H_ADF102
+#ifndef __STAMNOS_MFS_CONST_H
+#define __STAMNOS_MFS_CONST_H
+
+#include <stdint.h>
 
 namespace mfs {
 
@@ -16,4 +18,4 @@ const uint32_t kFileInode  = 0x00010002;
 } // namespace mfs
 
 
-#endif  /* _MFS_CONST_H_ADF102 */
+#endif // __STAMNOS_MFS_CONST_H

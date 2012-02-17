@@ -1,7 +1,6 @@
 Import('buildEnv')
 Import('ipcServerLibrary')
 Import('chunkstoreLibrary')
-Import('lockservLibrary')
 Import('commonLibrary')
 Import('mfsServerLibrary')
 
@@ -16,8 +15,9 @@ lib_sources = [
                '../dpo/main/server/smgr.cc',
                '../dpo/main/server/registry.cc',
                'fsmgr.cc',
-	       'handler.cc',
+               'handler.cc',
                'namespace.cc',
+               'server.cc',
               ]
 
 fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)

@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include "ipc/ipc.h"
+#include "dpo/main/common/obj.h"
 
 
 namespace dpo {
@@ -16,28 +17,27 @@ class Registry {
 public:
 	Registry(::server::Ipc* ipc);
 	int Init();
-	int Lookup(std::string name, uint64_t*);
-	int Add(std::string name, uint64_t);
+	int Lookup(std::string name, ::dpo::common::ObjectId* oid);
+	int Add(std::string name, ::dpo::common::ObjectId oid);
 	int Remove(std::string name);
 
 	class IpcHandlers {
 	public:
-		IpcHandlers(Registry* registry)
-			: registry_(registry)
-		{ }
-
-		int Init();
+		int Register(Registry* registry);
 		
-		int Lookup(int clt, const std::string name, unsigned long long &r);
+		int Lookup(unsigned int clt, const std::string name, ::dpo::common::ObjectId &r);
+		int Add(unsigned int clt, const std::string name, ::dpo::common::ObjectId oid, int &r);
+		int Remove(unsigned int clt, const std::string name, int &r);
+	
 	private:
 		Registry* registry_;
 	};
 
 private:
-	pthread_mutex_t                 mutex_;
-	std::map<std::string, uint64_t> map_;
-	::server::Ipc*                  ipc_;
-	IpcHandlers                     ipc_handlers_;
+	pthread_mutex_t                                mutex_;
+	std::map<std::string, ::dpo::common::ObjectId> map_;
+	::server::Ipc*                                 ipc_;
+	IpcHandlers                                    ipc_handlers_;
 };
 
 } // namespace server

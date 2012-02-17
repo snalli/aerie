@@ -20,6 +20,8 @@ public:
 	explicit StorageManager(::server::Ipc* ipc);
 	int Init();
 
+	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
+	int Alloc(::server::Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
 	int AllocateRaw(::server::Session* session, size_t size, void** ptr);
 	int AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap);
 	int AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, std::vector<int>& result);

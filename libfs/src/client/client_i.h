@@ -9,13 +9,11 @@
 
 namespace client {
 
-class Registry;    // forward declaration
 class FileManager; // forward declaration
 
 extern NameSpace*          global_namespace;
 extern FileManager*        global_fmgr;
 extern Session*            global_session;
-extern Registry*           global_registry;
 extern Ipc*                global_ipc_layer;        
 extern dpo::client::Dpo*   global_dpo_layer;
 

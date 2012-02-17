@@ -33,6 +33,7 @@ StorageManager::AllocateRaw(::client::Session* session, size_t size, void** ptr)
 
 
 
+// OBSOLETE
 int 
 StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 {
@@ -40,6 +41,7 @@ StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 }
 
 
+// OBSOLETE
 int 
 StorageManager::Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {

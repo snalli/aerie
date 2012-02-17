@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <boost/functional/hash.hpp>
 #include "common/types.h"
+#include "ipc/ipc.h"
 
 namespace dpo {
 namespace common {
@@ -164,5 +165,21 @@ protected:
 } // namespace cc
 } // namespace dpo
 
+
+// Marshalling/unmarshalling functions for Object Identifier.
+// (these live in the global namespace to be visible from the rpc library
+
+inline marshall& operator<<(marshall &m, ::dpo::common::ObjectId oid) {
+	m << (unsigned long long) oid.u64();
+	return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, ::dpo::common::ObjectId& oid) {
+	unsigned long long u64;
+	u >> u64;
+	oid = ::dpo::common::ObjectId(u64);
+	return u;
+}
 
 #endif // __STAMNOS_DPO_COMMON_OBJECT_H

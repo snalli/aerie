@@ -3,10 +3,7 @@
 
 #include <sys/types.h>
 #include "dpo/main/common/obj.h"
-
-namespace client {
-class Ipc; // forward declaration
-} // namespace client
+#include "ipc/main/client/ipc-opaque.h"
 
 
 namespace dpo {

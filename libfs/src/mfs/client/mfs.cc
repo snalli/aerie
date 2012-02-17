@@ -11,11 +11,11 @@ void
 RegisterBackend(::client::FileSystemObjectManager* fsomgr)
 {
 	SuperBlockFactory* sb_factory = new SuperBlockFactory();
-	InodeFactory* inode_factory = new InodeFactory();
+	InodeFactory*      inode_factory = new InodeFactory();
 	fsomgr->Register(sb_factory, inode_factory);
 	
-	// register any file system specific container types with the main 
-	// client object manager
+	// register any file system specific container types with the
+	// client dpo object manager
 	// DONE: no file system specific container types
 }
 

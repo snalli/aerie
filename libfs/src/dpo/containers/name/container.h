@@ -14,6 +14,7 @@
 #include "common/debug.h"
 #include "common/util.h"
 #include "client/session.h"
+#include "server/session.h"
 #include "dpo/containers/name/common.h"
 #include "dpo/main/common/obj.h"
 #include "dpo/main/client/rwproxy.h"
@@ -71,5 +72,24 @@ private:
 } // namespace client
 } // namespace containers
 } // namespace dpo
+
+
+
+
+namespace dpo {
+namespace containers {
+namespace server {
+
+
+class NameContainer {
+public:
+	typedef dpo::containers::common::NameContainer::Object< ::server::Session> Object;
+}; 
+
+
+} // namespace server
+} // namespace containers
+} // namespace dpo
+
 
 #endif // __STAMNOS_DPO_NAME_CONTAINER_PROXY_H

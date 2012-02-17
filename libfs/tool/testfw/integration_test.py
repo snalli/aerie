@@ -164,6 +164,7 @@ class IntegrationTest:
             # analyze output to find whether tests had any CHECKS failed
             self.test_results = []
             for t in scheduler.task_list:
+                # consider process_status==9 as valid; it is due to KILL signal we send
                 if t.process_status > 0 and t.process_status != 9:
                     # ubnormal termination caused by unknown reason
                     itest_has_failure = True

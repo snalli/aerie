@@ -8,7 +8,7 @@ DEPENDENCIES
   http://pypi.python.org/pypi/sysv_ipc
 
 STYLE GUIDE
-* We follow Google C++ Style Guide
+* We follow Google C++ Style Guide. Yes, we do. Live with it!
   http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
 
 SOURCE CODE OVERVIEW

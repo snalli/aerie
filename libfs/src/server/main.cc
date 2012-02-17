@@ -8,32 +8,11 @@
 #include <iostream>
 #include <vector>
 #include "ipc/ipc.h"
-#include "chunkstore/chunkserver.h"
 #include "common/debug.h"
-#include "dpo/main/server/dpo.h"
-#include "ipc/main/server/cltdsc.h"
+#include "server/server.h"
 
 int                    port;
 pthread_attr_t         attr;
-ChunkServer*           chunk_server;
-dpo::server::Dpo*      dpo_layer;
-::server::Ipc*         ipc_layer;
-
-void register_handlers(rpcs* serverp);
-
-
-void startserver()
-{
-	chunk_server = new ChunkServer();
-	chunk_server->Init();
-
-	ipc_layer = new ::server::Ipc(port);
-	ipc_layer->Init();
-	register_handlers(ipc_layer->rpc());
-	
-	dpo_layer = new ::dpo::server::Dpo(ipc_layer);
-	dpo_layer->Init();
-}
 
 
 int
@@ -73,7 +52,7 @@ main(int argc, char *argv[])
 
 	printf("Starting file system server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
 
-	startserver();
+	server::Server::Instance()->Start(port);
 
 	while (1) {
 		sleep(1);

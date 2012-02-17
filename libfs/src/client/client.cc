@@ -11,6 +11,8 @@
 #include "dpo/main/client/dpo.h"
 #include "dpo/main/client/stm.h"
 #include "mfs/client/mfs.h"
+#include "pxfs/common/fs_protocol.h"
+
 
 // FIXME: Client should be a singleton. otherwise we lose control 
 // over instantiation and destruction of the global variables below, which
@@ -48,7 +50,7 @@ Client::Init(const char* xdst)
 	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
 								  
-	// register known file system backends
+	// register statically known file system backends
 	global_fsomgr = new FileSystemObjectManager();
 	mfs::client::RegisterBackend(global_fsomgr);
 
@@ -88,18 +90,28 @@ Client::Mount(const char* source,
 	client::SuperBlock*   sb;
 	char*                 path = const_cast<char*>(target);
 	uint64_t              u64;
+	dpo::common::ObjectId oid;
 
+	dbg_log (DBG_INFO, "Mount file system %s of type %s to %s\n", source, fstype, target);
+	
 	if (target == NULL || source == NULL || fstype == NULL) {
 		return -1;
 	}
-	//if (global_dpo_layer->Open(source, &u64) < 0) {
-	//	return -1;
-	//}
-	dpo::common::ObjectId oid = dpo::common::ObjectId(u64);
+
+	if ((ret = global_ipc_layer->call(FileSystemProtocol::kMountFileSystem, 
+	                                  global_ipc_layer->id(), std::string(target), 
+	                                  std::string(fstype),
+	                                  flags, oid)) < 0) 
+	{
+		return -E_IPC;
+	}
+	if (ret > 0) {
+		return -ret;
+	}
+	printf("MOUNT: %lu\n", oid.u64());
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {
 		return -1;
 	}
-	dbg_log (DBG_INFO, "Mount %s (%lx) to %s\n", source, u64, target);
 	return global_namespace->Mount(global_session, path, sb);
 }
 
@@ -113,16 +125,22 @@ Client::Mkfs(const char* target,
 	client::SuperBlock* sb;
 	char*               path = const_cast<char*>(target);
 
+	dbg_log (DBG_INFO, "Create file system of type %s in %s\n", fstype, target);
+	
 	if (target == NULL || fstype == NULL) {
 		return -1;
 	}
 	
-	if ((ret = global_fsomgr->CreateSuperBlock(global_session, fstype, &sb)) < 0) {
-		return -1;
+	int oid;
+
+	if ((ret = global_ipc_layer->call(FileSystemProtocol::kCreateFileSystem, 
+	                                  global_ipc_layer->id(), std::string(target), 
+	                                  std::string(fstype),
+	                                  flags, oid)) < 0) 
+	{
+		return -E_IPC;
 	}
-	//global_registry->Add(target, sb->oid().u64());
-	dbg_log (DBG_INFO, "Mkfs %s (%lx)\n", target, sb->oid().u64());
-	return E_SUCCESS;
+	return -ret;
 }
 
 

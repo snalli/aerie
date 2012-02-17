@@ -14,6 +14,7 @@
 #include "common/debug.h"
 #include "common/util.h"
 #include "client/session.h"
+#include "server/session.h"
 #include "dpo/containers/assoc/hashtable.h"
 #include "dpo/containers/super/common.h"
 #include "dpo/main/common/obj.h"
@@ -48,6 +49,21 @@ private:
 
 
 } // namespace client
+} // namespace containers
+} // namespace dpo
+
+
+namespace dpo {
+namespace containers {
+namespace server {
+
+class SuperContainer {
+public:
+	typedef dpo::containers::common::SuperContainer::Object< ::server::Session> Object;
+}; 
+
+
+} // namespace server
 } // namespace containers
 } // namespace dpo
 
