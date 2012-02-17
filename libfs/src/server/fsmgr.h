@@ -33,14 +33,14 @@ public:
 	void Unregister(int type_id);
 	int CreateFileSystem(Session* session, const char* target, int fs_type, unsigned int flags); 
 	int CreateFileSystem(Session* session, const char* target, const char* fs_type, unsigned int flags); 
-	int MountFileSystem(Session* session, const char* target, int fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
-	int MountFileSystem(Session* session, const char* target, const char* fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
+	int MountFileSystem(Session* session, const char* source, const char* target, int fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
+	int MountFileSystem(Session* session, const char* source, const char* target, const char* fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
 
 	class IpcHandlers {
 	public:
 		int Register(FileSystemManager* module);
 		int CreateFileSystem(unsigned int clt, std::string target, std::string fs_type, unsigned int flags, int& r);
-		int MountFileSystem(unsigned int clt, std::string target, std::string fs_type, unsigned int flags, dpo::common::ObjectId& r);
+		int MountFileSystem(unsigned int clt, std::string source, std::string target, std::string fs_type, unsigned int flags, dpo::common::ObjectId& r);
 
 	private:
 		FileSystemManager* module_;

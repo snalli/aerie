@@ -99,8 +99,8 @@ Client::Mount(const char* source,
 	}
 
 	if ((ret = global_ipc_layer->call(FileSystemProtocol::kMountFileSystem, 
-	                                  global_ipc_layer->id(), std::string(target), 
-	                                  std::string(fstype),
+	                                  global_ipc_layer->id(), std::string(source), 
+	                                  std::string(target), std::string(fstype),
 	                                  flags, oid)) < 0) 
 	{
 		return -E_IPC;
@@ -108,7 +108,6 @@ Client::Mount(const char* source,
 	if (ret > 0) {
 		return -ret;
 	}
-	printf("MOUNT: %lu\n", oid.u64());
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {
 		return -1;
 	}

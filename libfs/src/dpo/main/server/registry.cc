@@ -54,6 +54,7 @@ Registry::Add(std::string name, ::dpo::common::ObjectId oid)
 {
 	int                                                                       i;
 	std::pair<std::map<std::string, ::dpo::common::ObjectId>::iterator, bool> pairret;
+	
 	pthread_mutex_lock(&mutex_);
 	pairret = map_.insert(std::pair<std::string, ::dpo::common::ObjectId>(name, oid));
 	if (pairret.second != true) {

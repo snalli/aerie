@@ -1,9 +1,11 @@
 #include <string>
 #include "common/errno.h"
 #include "ipc/ipc.h"
+#include "dpo/main/server/registry.h"
+#include "pxfs/common/fs_protocol.h"
 #include "server/fsmgr.h"
 #include "server/fs_factory.h"
-#include "pxfs/common/fs_protocol.h"
+#include "server/session.h"
 
 
 //FIXME: do we pass session? or client descriptor which has session?
@@ -78,12 +80,10 @@ FileSystemManager::CreateFileSystem(Session* session, const char* target,
 		return -1;
 	}
 	fs_factory = it->second;
-	
 	if ((ret = fs_factory->Make(session, &oid)) < 0) {
 		return ret;
 	}
-
-	return E_SUCCESS;
+	return dpo_->registry()->Add(target, oid);
 }
 
 
@@ -98,32 +98,35 @@ FileSystemManager::CreateFileSystem(Session* session, const char* target,
 
 
 int 
-FileSystemManager::MountFileSystem(Session* session, const char* target, 
+FileSystemManager::MountFileSystem(Session* session, const char* source, 
+                                   const char* target, 
                                    int fs_type, unsigned int flags,
                                    dpo::common::ObjectId* oid) 
 {
 	FileSystemFactoryMap::iterator it;
 	FileSystemFactory*             fs_factory; 
+	int                            ret;
 
 	it = fs_factory_map_.find(fs_type);
 	if (it == fs_factory_map_.end()) {
 		return -1;
 	}
-
-	printf("MOUNT MOUNT MOUNT\n");
-	
-	return -1;
+	if ((ret=dpo_->registry()->Lookup(source, oid)) < 0) {
+		return ret;
+	}
+	return E_SUCCESS;
 }
 
 
 int 
-FileSystemManager::MountFileSystem(Session* session, const char* target, 
+FileSystemManager::MountFileSystem(Session* session, const char* source, 
+                                   const char* target, 
                                    const char* fs_type, unsigned int flags, 
                                    dpo::common::ObjectId* oid)
 {
 	int fs_type_id = FSTypeStrToId(fs_type);
 
-	return MountFileSystem(session, target, fs_type_id, flags, oid);
+	return MountFileSystem(session, source, target, fs_type_id, flags, oid);
 }
 
 
@@ -150,7 +153,8 @@ FileSystemManager::IpcHandlers::CreateFileSystem(unsigned int clt,
 	int ret;
 
 	//FIXME: we pass NULL as session
-	if ((ret = module_->CreateFileSystem(NULL, target.c_str(), fs_type.c_str(), 
+	Session session(module_->dpo_);
+	if ((ret = module_->CreateFileSystem(&session, target.c_str(), fs_type.c_str(), 
 	                                     flags)) < 0) 
 	{
 		return -ret;
@@ -161,6 +165,7 @@ FileSystemManager::IpcHandlers::CreateFileSystem(unsigned int clt,
 
 int
 FileSystemManager::IpcHandlers::MountFileSystem(unsigned int clt, 
+                                                std::string source, 
                                                 std::string target, 
                                                 std::string fs_type, 
                                                 unsigned int flags,
@@ -170,43 +175,15 @@ FileSystemManager::IpcHandlers::MountFileSystem(unsigned int clt,
 	dpo::common::ObjectId  tmp_oid;
 
 	//FIXME: we pass NULL as session
-	if ((ret = module_->MountFileSystem(NULL, target.c_str(), fs_type.c_str(), 
-	                                    flags, &tmp_oid)) < 0) 
+	Session session(module_->dpo_);
+	if ((ret = module_->MountFileSystem(&session, source.c_str(), target.c_str(), 
+	                                    fs_type.c_str(), flags, &tmp_oid)) < 0) 
 	{
 		return -ret;
 	}
 	r = tmp_oid;
 	return 0;
 }
-
-
-
-/*
-int 
-FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId oid, 
-                                        int fs_type, SuperBlock** sbp)
-{
-	SuperBlockFactoryMap::iterator it;
-	SuperBlockFactory*             sb_factory; 
-
-	it = sb_factory_map_.find(fs_type);
-	if (it == sb_factory_map_.end()) {
-		return -1;
-	}
-	sb_factory = it->second;
-	return sb_factory->Load(session, oid, sbp);
-}
-
-
-int 
-FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId oid, 
-                                        const char* fs_type, SuperBlock** sbp)
-{
-	int fs_type_id = FSTypeStrToId(fs_type);
-	
-	return LoadSuperBlock(session, oid, fs_type_id, sbp);
-}
-*/
 
 
 } // namespace server
