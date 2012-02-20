@@ -1,5 +1,9 @@
-#ifndef _BITMAP_H_AKL183
-#define _BITMAP_H_AKL183
+/**
+ * \brief Fixed size bitset container
+ */
+
+#ifndef __STAMNOS_BITMAP_H
+#define __STAMNOS_BITMAP_H
 
 #include <stdint.h>
 
@@ -11,13 +15,13 @@ typedef uint8_t  bitmap8;
 template<class T>
 class Bitmap {
 public:
-	static inline T Set(int bit) { return 1 << bit;	}
+	static inline T Set(int bit) { return 1 << bit; }
 	static inline bool IsSet(T bm, int bit) {
-		return (((1 << bit) & bm) ? true: false); 
+		return (((1 << bit) & bm) ? true: false);
 	}
 	static inline T Reset(T bm, int bit) {
-		return ((~(1 << bit)) & bm); 
-	}
+    	return ((~(1 << bit)) & bm);
+    }
 };
 
 
@@ -26,4 +30,4 @@ public:
 
 //Bitmap<b64>::Set(1);
 
-#endif /* _BITMAP_H_AKL183 */
+#endif /* __STAMNOS_BITMAP_H */

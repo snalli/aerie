@@ -95,7 +95,7 @@
  *	Alternately, 'base' could point somewhere into a file already mapped.
  *	In this case, 'limit' should point to the end of the mapped region.
  */
-void* vistaheap_init(VistaHeap* h, void* base, void *hardlimit, VistaHeap* allocator, int fd)
+void* vistaheap_init(VistaHeap* h, void* base, void *hardlimit, VistaHeap* allocator)
 {
 	int	i;
 
@@ -105,7 +105,7 @@ void* vistaheap_init(VistaHeap* h, void* base, void *hardlimit, VistaHeap* alloc
 	h->base = base;
 	h->limit = base;
 	h->hardlimit = hardlimit;
-	h->fd = fd;
+	h->fd = 0;
 	h->key = NULL;
 	h->nlist = NULL;
 	h->root = NULL;

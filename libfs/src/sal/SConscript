@@ -8,6 +8,16 @@ lib_sources = [
                'pheap/vistaheap.c'	       
               ]
 
+pool_user_sources = [
+                     'pool/user/pool.cc'
+                    ]
+
+pool_kernel_sources = [
+                       'pool/kernel/pool.cc'
+                      ]
+
+lib_sources += pool_user_sources
+
 salLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 

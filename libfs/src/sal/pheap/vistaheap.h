@@ -59,12 +59,12 @@ typedef struct vistaheap_s {
 	char*               limit;
 	char*               hardlimit;
 	volatile void*      key;	   /* can point to a vista_segment (volatile) */
-	int	                fd;
+	int	                fd;        /* Stamnos: deprecated: we don't use this field */
 	struct vistaheap_s* allocator; /* VistaHeap from which to alloc internal data */
 	void*               root;      /* pointer to VistaHeap root */
 } VistaHeap;
 
-extern void* vistaheap_init(VistaHeap*, void*, void*, VistaHeap*, int);
+extern void* vistaheap_init(VistaHeap*, void*, void*, VistaHeap*);
 extern void* vistaheap_malloc(VistaHeap*, int);
 extern void  vistaheap_free(VistaHeap* h, void* p, int size);
 extern void* morecore(VistaHeap* h, int pages);

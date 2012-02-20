@@ -25,10 +25,16 @@ const int kBlockSize  = (1 << kBlockShift);
 
 class PersistentRegion {
 public:
+	enum Flags {
+		kCreate = 1,
+		kExclusive = 2
+	};
+	
 	struct Header;
 	
-	static int Create(const char* filename, size_t size);
-	static int Open(const char* filename, PersistentRegion** pregion);
+	static int Create(const char* pathname, size_t size);
+	static int Open(const char* pathname, size_t size, int flags, PersistentRegion** pregion);
+	static int Open(const char* pathname, PersistentRegion** pregion);
 	
 	int Close();
 	inline void* Payload();
@@ -39,7 +45,7 @@ public:
 	uint64_t Size() { return length_; }
 
 private:
-	static int CreateInternal(const char* filename, size_t nblocks, size_t block_size, size_t align_size);
+	static int CreateInternal(const char* pathname, size_t nblocks, size_t block_size, size_t align_size, int flags);
 
 	uint64_t base_;
 	uint64_t length_;
