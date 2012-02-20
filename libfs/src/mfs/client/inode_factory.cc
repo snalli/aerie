@@ -45,7 +45,7 @@ InodeFactory::MakeDirInode(::client::Session* session, ::client::Inode** ipp)
 	int                                               ret = E_SUCCESS;
 	dpo::containers::client::NameContainer::Object*   obj;
 
-	if ((obj = new(session) dpo::containers::client::NameContainer::Object) == NULL) {
+	if ((obj = dpo::containers::client::NameContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((ret = LoadDirInode(session, obj->oid(), ipp)) < 0) {
@@ -92,7 +92,7 @@ InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 	int                                               ret = E_SUCCESS;
 	dpo::containers::client::ByteContainer::Object*   obj;
 
-	if ((obj = new(session) dpo::containers::client::ByteContainer::Object) == NULL) {
+	if ((obj = dpo::containers::client::ByteContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((ret = LoadFileInode(session, obj->oid(), ipp)) < 0) {

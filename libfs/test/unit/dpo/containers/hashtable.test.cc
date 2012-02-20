@@ -18,24 +18,22 @@ SUITE(ContainersHashTableEntry)
 		char            b[buffer_size];
 		Entry<Session>* entry; 
 
-		entry = Entry<Session>::MakeEntry(b);
-		CHECK(entry->Init(true, buffer_size-TAG_SIZE) == 0);
+		CHECK((entry = Entry<Session>::Make(b, true, buffer_size-TAG_SIZE)) != NULL);
 		CHECK(entry->IsFree() == true);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry = Entry<Session>::MakeEntry(b);
+		entry = Entry<Session>::Load(b);
 		CHECK(entry->IsFree() == true);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry = Entry<Session>::MakeEntry(b);
-		CHECK(entry->Init(false, buffer_size-TAG_SIZE) == 0);
+		CHECK((entry = Entry<Session>::Make(b, false, buffer_size-TAG_SIZE)) != NULL);
 		CHECK(entry->IsFree() == false);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry = Entry<Session>::MakeEntry(b);
+		entry = Entry<Session>::Load(b);
 		CHECK(entry->IsFree() == false);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
@@ -48,15 +46,14 @@ SUITE(ContainersHashTableEntry)
 		Entry<Session>* entry; 
 		Entry<Session>* entry2; 
 
-		entry = Entry<Session>::MakeEntry(b);
-		CHECK(entry->Init(true, buffer_size-TAG_SIZE) == 0);
+		CHECK((entry = Entry<Session>::Make(b, true, buffer_size-TAG_SIZE)) != NULL);
 		CHECK(entry->IsFree() == true);
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry2 = Entry<Session>::MakeEntry(entry, buffer_size-TAG_SIZE+1);
+		entry2 = Entry<Session>::Split(entry, buffer_size-TAG_SIZE+1);
 		CHECK(entry2==NULL);
-		entry2 = Entry<Session>::MakeEntry(entry, 18);
+		entry2 = Entry<Session>::Split(entry, 18);
 		CHECK(entry2!=NULL);
 		CHECK(entry2->IsFree() == true);
 		CHECK(entry2->get_size() == (entry->get_size() - 18));
@@ -516,5 +513,4 @@ SUITE(ContainersHashTable)
 		}
 
 	}
-
 }

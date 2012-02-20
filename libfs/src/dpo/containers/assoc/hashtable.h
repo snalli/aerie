@@ -73,10 +73,17 @@ const int NUM_BUCKETS = 128;
 template<typename Session>
 class Entry {
 public:
-	static inline Entry* MakeEntry(volatile char* b) {
+	// Creates an entry at address b (entry is initialized)
+	static inline Entry* Make(volatile char* b, bool free, int payload_size) {
+		Entry* e = (Entry*) b;
+		return (e->Init(free, payload_size) == 0) ? e : NULL;
+	}
+	// Loads the entry located at address b
+	static inline Entry* Load(volatile char* b) {
 		return (Entry*) b;
 	}
-	static inline Entry* MakeEntry(Entry* entry, int offset) {
+	// Splits the entry into two entries: [base, base+offset) and [base+offset,base+sizeof(entry))
+	static inline Entry* Split(Entry* entry, int offset) {
 		Entry*          new_entry;
 		volatile char*  b;
 		int             new_payload_size;
@@ -155,7 +162,7 @@ public:
 
 	// Assumes callee checked boundary is within bucket_page
 	inline Entry* NextEntry() {
-		return Entry::MakeEntry(&tag_[get_size()]);
+		return Entry::Load(&tag_[get_size()]);
 	}
 private:
 	volatile char tag_[TAG_SIZE];
@@ -172,11 +179,13 @@ public:
 	}
 
 	int Init() {
-		Entry<Session>* entry = Entry<Session>::MakeEntry(&b_[0]);
 		int             payload_size = PAGE_SIZE - sizeof(next_) - TAG_SIZE;
-
+		
 		next_ = 0x0;
-		return entry->Init(true, payload_size);
+		if (Entry<Session>::Make(&b_[0], true, payload_size) == NULL) {
+			return -1;
+		}
+		return 0;
 	}	
 
 	void* operator new(size_t nbytes, Session* session)
@@ -189,17 +198,13 @@ public:
 		return ptr;
 	}
 
-	Page* MakePage(char* b) {
-		Page* page = (Page*) b;
-		return page;
-	}
 
 	Entry<Session>* GetEntry(int pos) {
-		return Entry<Session>::MakeEntry(&b_[pos]);
+		return Entry<Session>::Load(&b_[pos]);
 	}
 	
 	bool IsEmpty() {
-		Entry<Session>* entry = Entry<Session>::MakeEntry(&b_[0]);
+		Entry<Session>* entry = Entry<Session>::Load(&b_[0]);
 		return (entry->get_size() == PAGE_SIZE - sizeof(next_) 
 		        ? true : false);
 	}
@@ -273,7 +278,7 @@ Page<Session>::Insert(Session* session, const char* key, int key_size,
 		// free entry
 		int max_payload_size = free_entry->get_payload_size();
 		if (max_payload_size - payload_size - TAG_SIZE >= 0) {
-			Entry<Session>::MakeEntry(free_entry, TAG_SIZE+payload_size);
+			Entry<Session>::Split(free_entry, TAG_SIZE+payload_size);
 		}
 
 		uval = *((uint64_t*) val);

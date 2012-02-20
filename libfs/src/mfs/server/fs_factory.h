@@ -13,7 +13,7 @@ namespace server {
 class FileSystemFactory: public ::server::FileSystemFactory {
 public:
 	FileSystemFactory();
-	int Make(::server::Session* session, dpo::common::ObjectId* oid);
+	int Make(::server::Session* session, void* partition, dpo::common::ObjectId* oid);
 	int TypeID() {
 		return ::common::fs::kMFS;
 	}

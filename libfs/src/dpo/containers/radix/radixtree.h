@@ -86,7 +86,7 @@ public:
 	void* operator new(size_t nbytes, Session* session)
 	{
 		void* ptr;
-		if (session->smgr_->Alloc(session, nbytes, typeid(RadixTreeNode<Session>), &ptr) < 0) {
+		if (session->smgr()->Alloc(session, nbytes, typeid(RadixTreeNode<Session>), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return ptr;

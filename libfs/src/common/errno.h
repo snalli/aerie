@@ -1,5 +1,5 @@
-#ifndef __ERRNO_H_JKA671
-#define __ERRNO_H_JKA671
+#ifndef __STAMNOS_ERRNO_H
+#define __STAMNOS_ERRNO_H
 
 enum {
 	E_SUCCESS = 0,
@@ -10,7 +10,8 @@ enum {
 	E_KVFS,
 	E_BUSY,
 	E_NOTEMPTY,
-	E_IPC
+	E_IPC,
+	E_ERRNO     // caller should check errno variable for the error returned 
 };
 
-#endif /* __ERRNO_H_JKA671 */
+#endif /* __STAMNOS_ERRNO_H */

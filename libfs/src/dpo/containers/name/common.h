@@ -25,6 +25,19 @@ public:
 template<typename Session>
 class Object: public dpo::cc::common::Object {
 public:
+	static Object* Make(Session* session) {
+		void* ptr;
+		
+		if (session->smgr_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+		return new(ptr) Object();
+	}
+
+	static Object* Make(Session* session, volatile char* ptr) {
+		return new(ptr) Object();
+	}
+
 	static Object* Load(dpo::common::ObjectId oid) {
 		return reinterpret_cast<Object*>(oid.addr());
 	}
@@ -34,16 +47,6 @@ public:
 		  parent_(dpo::common::ObjectId(0))
 	{ 
 		set_type(T_NAME_CONTAINER);
-	}
-
-	void* operator new(size_t nbytes, Session* session)
-	{
-		void* ptr;
-		
-		if (session->smgr()->Alloc(session, nbytes, typeid(Object<Session>), &ptr) < 0) {
-			dbg_log(DBG_ERROR, "No storage available");
-		}
-		return ptr;
 	}
 
 	int Find(Session* session, const char* name, dpo::common::ObjectId* oid);

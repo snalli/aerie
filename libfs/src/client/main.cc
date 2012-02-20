@@ -20,14 +20,14 @@ main(int argc, char *argv[])
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-    int   port;
-	int   debug_level = 0;
-	char  operation[16];
-	char  ch = 0;
-	char* xdst;
+    int          port;
+	int          debug_level = 0;
+	char         operation[16];
+	char         ch = 0;
+	char*        xdst;
+	unsigned int nblocks;
 
-
-	while ((ch = getopt(argc, argv, "d:h:li:o:s:"))!=-1) {
+	while ((ch = getopt(argc, argv, "d:h:li:o:n:"))!=-1) {
 		switch (ch) {
 			case 'd':
 				debug_level = atoi(optarg);
@@ -40,6 +40,9 @@ main(int argc, char *argv[])
 				break;
 			case 'o':
 				strcpy(operation, optarg); 
+				break;
+			case 'n':
+				nblocks = atoi(optarg);
 				break;
 			default:
 				break;
@@ -55,7 +58,7 @@ main(int argc, char *argv[])
 	libfs_init(xdst);
 
 	if (strcmp(operation, "mkfs") == 0) {
-		libfs_mkfs("/superblock/A", "mfs", 0);
+		libfs_mkfs("/superblock/A", "mfs", nblocks, 0);
 	} else {
 		// unknown
 	}

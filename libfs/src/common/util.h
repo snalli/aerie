@@ -10,6 +10,13 @@ inline int num_pages(size_t size)
 	return ((size % kPageSize) == 0 ? 0 : 1) + size/kPageSize;
 }
 
+inline int NumOfBlocks(size_t size, size_t block_size)
+{
+	return ((size % block_size) == 0 ? 0 : 1) + size/block_size;
+}
+
+
+
 inline int 
 str_is_dot(const char* str) 
 {

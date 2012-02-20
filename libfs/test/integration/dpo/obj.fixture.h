@@ -58,7 +58,7 @@ MapObjects(Session* session, testfw::Test* test, dpo::common::ObjectId* oid_tabl
 
 	if (strcmp(test->Tag(), "C1:T1") == 0) {
 		for (int i=0; i<16; i++) {
-			T* optr = new(session) T;
+			T* optr = T::Make(session);
 			sprintf(buf, "Object_%d", i);
 			global_dpo_layer->registry()->Add(buf, optr->oid());
 		}

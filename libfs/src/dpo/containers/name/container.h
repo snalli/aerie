@@ -13,9 +13,9 @@
 #include <google/dense_hash_map>
 #include "common/debug.h"
 #include "common/util.h"
-#include "client/session.h"
-#include "server/session.h"
 #include "dpo/containers/name/common.h"
+#include "dpo/main/client/session.h"
+#include "dpo/main/server/session.h"
 #include "dpo/main/common/obj.h"
 #include "dpo/main/client/rwproxy.h"
 

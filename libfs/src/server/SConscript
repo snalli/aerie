@@ -14,6 +14,7 @@ lib_sources = [
                '../dpo/main/server/lckmgr.cc',
                '../dpo/main/server/smgr.cc',
                '../dpo/main/server/registry.cc',
+	       '../dpo/containers/set/container-server.cc',
                'fsmgr.cc',
                'handler.cc',
                'namespace.cc',

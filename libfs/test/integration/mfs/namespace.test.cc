@@ -13,7 +13,7 @@ SUITE(Namespace)
 {
 	TEST_FIXTURE(MFSFixture, TestMkfs)
 	{
-		CHECK(libfs_mkfs("/superblock/A", "mfs", 0) == 0);
+		CHECK(libfs_mkfs("/superblock/A", "mfs", 1024, 0) == 0);
 		EVENT("MkfsAfter");
 	}
 
@@ -25,7 +25,7 @@ SUITE(Namespace)
 
 	TEST_FIXTURE(MFSFixture, TestMkfsMount)
 	{
-		CHECK(libfs_mkfs("/superblock/A", "mfs", 0) == 0);
+		CHECK(libfs_mkfs("/superblock/A", "mfs", 1024, 0) == 0);
 		CHECK(libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0) == 0);
 		EVENT("MountAfter");
 	}
@@ -33,7 +33,7 @@ SUITE(Namespace)
 	TEST_FIXTURE(MFSFixture, TestMkfsMkdir)
 	{
 		EVENT("E1");
-		CHECK(libfs_mkfs("/superblock/A", "mfs", 0) == 0);
+		CHECK(libfs_mkfs("/superblock/A", "mfs", 1024, 0) == 0);
 		CHECK(libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0) == 0);
 		CHECK(libfs_mkdir("/home/hvolos/dir", 0) == 0);
 		CHECK(libfs_mkdir("/home/hvolos/dir/test", 0) == 0);

@@ -68,7 +68,7 @@ SuperBlockFactory::Make(::client::Session* session, ::client::SuperBlock** sbp)
 	
 	// superblock 
 	// FIXME: allocate object through the storage manager
-	if ((super_obj = new(session) dpo::containers::client::SuperContainer::Object) == NULL) {
+	if ((super_obj = dpo::containers::client::SuperContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((ret = Load(session, super_obj->oid(), sbp)) < 0) {
@@ -78,7 +78,7 @@ SuperBlockFactory::Make(::client::Session* session, ::client::SuperBlock** sbp)
 	sb = static_cast<SuperBlock*>(*sbp);
 
 	// root directory inode
-	if ((root_obj = new(session) dpo::containers::client::NameContainer::Object) == NULL) {
+	if ((root_obj = dpo::containers::client::NameContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	sb->super_rw_ref_->proxy()->interface()->set_root(session, root_obj->oid());

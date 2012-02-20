@@ -9,6 +9,7 @@
 namespace dpo {
 namespace server {
 
+
 int
 Dpo::Init()
 {
@@ -18,7 +19,7 @@ Dpo::Init()
 		return -E_NOMEM;
 	}
 	hlckmgr_->Init();
-	if ((smgr_ = new StorageManager(ipc_)) == NULL) {
+	if ((smgr_ = new StorageManager(ipc_, this)) == NULL) {
 		delete hlckmgr_;
 		return -E_NOMEM;
 	}

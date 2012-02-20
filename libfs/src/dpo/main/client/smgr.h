@@ -26,11 +26,12 @@ public:
 		chunk_store.Init();
 	}	
 
-	int AllocateRaw(::client::Session* session, size_t size, void** ptr);
+	int AllocateRaw(::client::Session* session, size_t nbytes, void** ptr);
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
 	int AllocExtent(::client::Session* session, size_t nbytes, void** ptr);
 
+	int AllocateContainer(::client::Session* session);
 	int AllocateContainerVector(::client::Session* session);
 private:
 	::client::Ipc*  ipc_;

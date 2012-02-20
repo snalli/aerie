@@ -12,11 +12,13 @@ namespace client {
 class Ipc;
 } // namespace client
 
+#ifndef CHUNKSTOREROOT_DEFINED
+#define CHUNKSTOREROOT_DEFINED
 struct ChunkStoreRoot {
 	int              _init;
 	struct list_head _chunkdsc_list;
 };
-
+#endif
 
 class ChunkStore {
 public:

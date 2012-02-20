@@ -27,7 +27,7 @@ SUITE(ContainersByteContainer)
 	{
 		char                            src[BLOCK_SIZE];
 		char                            dst[BLOCK_SIZE];
-		ByteContainer::Object<Session>* byte_container = new(session) ByteContainer::Object<Session>;
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
 
 		src[0] = 'a';
 		byte_container->WriteBlock(session, src, 0, 0, BLOCK_SIZE);
@@ -42,7 +42,7 @@ SUITE(ContainersByteContainer)
 	{
 		char                            src[BLOCK_SIZE];
 		char                            dst[BLOCK_SIZE];
-		ByteContainer::Object<Session>* byte_container = new(session) ByteContainer::Object<Session>;
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
 
 		src[0] = 'a';
 		byte_container->WriteBlock(session, src, 12, 0, BLOCK_SIZE);
@@ -77,7 +77,7 @@ SUITE(ContainersByteContainer)
 		char    zeros[BLOCK_SIZE];
 		int     ret;
 
-		ByteContainer::Object<Session>* byte_container = new(session) ByteContainer::Object<Session>;
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
 
 		memset(zeros, 0, BLOCK_SIZE);
 
@@ -114,7 +114,7 @@ SUITE(ContainersByteContainer)
 		char                             zeros[BLOCK_SIZE];
 		int                              ret;
 		int                              i;
-		ByteContainer::Object<Session>*  byte_container = new(session) ByteContainer::Object<Session>;
+		ByteContainer::Object<Session>*  byte_container = ByteContainer::Object<Session>::Make(session);
 
 		start.Init(session, byte_container, 0);
 
@@ -179,7 +179,7 @@ SUITE(ContainersByteContainer)
 		int                             ret;
 		ByteContainer::Region<Session>* region;
 		ByteContainer::Region<Session>* new_region;
-		ByteContainer::Object<Session>* byte_container = new(session) ByteContainer::Object<Session>;
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
 		
 		fillbuf(src, BLOCK_SIZE, 300);
 		CHECK(byte_container->WriteBlock(session, src, 300, 0, BLOCK_SIZE) >= 0);
@@ -204,7 +204,7 @@ SUITE(ContainersByteContainer)
 		int                             ret;
 		ByteContainer::Region<Session>* region;
 		ByteContainer::Region<Session>* new_region;
-		ByteContainer::Object<Session>* byte_container = new(session) ByteContainer::Object<Session>;
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
 	
 		new_region = new ByteContainer::Region<Session>(session, byte_container, (uint64_t) 400);
 

@@ -28,6 +28,7 @@ lib_sources = [
 	       '../dpo/containers/name/container.cc',
 	       '../dpo/containers/super/container.cc',
 	       '../dpo/containers/byte/container.cc',
+	       '../dpo/containers/set/container-client.cc',
 	      ]
 #libLocalBuildEnv.Append(LIBS = mfsClientLibrary)
 #libLocalBuildEnv.Append(LIBS = ipcClientLibrary)

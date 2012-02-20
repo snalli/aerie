@@ -2,6 +2,7 @@ import os, subprocess, string, re
 from xml.etree.ElementTree import ElementTree
 import xml
 import re
+import tempfile
 
 def addUnitTestFilter(env, path, test_filter):
     args = []
@@ -47,8 +48,8 @@ def runUnitTests(source, target, env, verbose=False):
         stdout_file = None
         stderr_file = None
     else:
-        stdout_file = subprocess.PIPE
-        stderr_file = subprocess.PIPE
+        stdout_file = tempfile.TemporaryFile()
+        stderr_file = tempfile.TemporaryFile()
     for test in env['UNIT_TEST_CMDS']:
         osenv = os.environ 
         osenv.update(test[0])
@@ -59,10 +60,11 @@ def runUnitTests(source, target, env, verbose=False):
         utest = subprocess.Popen([path] + args, shell=False,
                                  stdin=subprocess.PIPE,
                                  stdout=stdout_file,
-                                 stderr=stderr_file, close_fds=True, env=osenv)
+                                 stderr=stderr_file, close_fds=False, env=osenv)
         ret = os.waitpid(utest.pid, 0)
         if stdout_file or stderr_file:
-            lines = utest.stderr.readlines()
+            stderr_file.seek(0)
+            lines = stderr_file.readlines()
             if len(lines) > 0 and re.search("xml", lines[0]):
                 xmlout = string.join(lines)
                 tree = xml.etree.ElementTree.XML(xmlout)

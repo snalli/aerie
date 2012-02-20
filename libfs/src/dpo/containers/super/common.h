@@ -26,29 +26,34 @@ public:
 template<typename Session>
 class Object: public dpo::cc::common::Object {
 public:
+	static Object* Make(Session* session) {
+		void* ptr;
+		
+		if (session->smgr_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+		return new(ptr) Object();
+	}
+
+	static Object* Make(Session* session, volatile char* ptr) {
+		return new(ptr) Object();
+	}
+
 	static Object* Load(dpo::common::ObjectId oid) {
 		return reinterpret_cast<Object*>(oid.addr());
 	}
 
 	Object()
 		: root_(dpo::common::ObjectId(0)),
-		  free_(dpo::common::ObjectId(0))
+		  freelist_(dpo::common::ObjectId(0))
 	{ 
 		set_type(T_SUPER_CONTAINER);
 	}
 
-	void* operator new(size_t nbytes, Session* session)
-	{
-		void* ptr;
-		
-		if (session->smgr()->Alloc(session, nbytes, typeid(Object<Session>), &ptr) < 0) {
-			dbg_log(DBG_ERROR, "No storage available");
-		}
-		return ptr;
-	}
-
 	dpo::common::ObjectId root(Session* session);
 	int set_root(Session* session, dpo::common::ObjectId oid);
+	dpo::common::ObjectId freelist(Session* session);
+	int set_freelist(Session* session, dpo::common::ObjectId oid);
 
 	//int magic(Session* session);
 	//int set_magic(Session* session, int magic);
@@ -56,7 +61,7 @@ public:
 private:
 	int                    magic_;
 	dpo::common::ObjectId  root_;  // 
-	dpo::common::ObjectId  free_;  // the object containing the free block list
+	dpo::common::ObjectId  freelist_;  // the object containing the free block list
 };
 
 }; // class SuperContainer
@@ -78,6 +83,21 @@ SuperContainer::Object<Session>::set_root(Session* session, dpo::common::ObjectI
 	root_ = oid;
 }
 
+
+template<typename Session>
+dpo::common::ObjectId 
+SuperContainer::Object<Session>::freelist(Session* session)
+{
+	return freelist_;
+}
+
+
+template<typename Session>
+int 
+SuperContainer::Object<Session>::set_freelist(Session* session, dpo::common::ObjectId oid)
+{
+	freelist_ = oid;
+}
 
 
 } // namespace common

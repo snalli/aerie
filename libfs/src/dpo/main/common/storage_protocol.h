@@ -9,7 +9,8 @@ class StorageProtocol {
 public:
 	
 	enum RpcNumbers {
-		kAllocateContainerVector = 40	
+		kAllocateContainerVector = 40,
+		kAllocateContainer
 	};
 	
 	class ContainerRequest;

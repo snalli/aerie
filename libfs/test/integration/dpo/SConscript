@@ -5,6 +5,7 @@ import string
 import testfw
 import copy
 from integration_test import runIntegrationTests
+#sys.path.append('%s/test/integration/dpo' % (Dir('#').abspath))
 
 Import('mainEnv', 'testEnv')
 myTestEnv = testEnv.Clone()
@@ -317,53 +318,11 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 ))
 
 
-#
-# OPTIMISTIC READS (TRANSACTION) TESTS
-#
 
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'STM:Test',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'STM:TestPessimisticUpdate')]),
-        'C2': ( testProgram, [('T1', 'STM:TestOptimisticRead')])
-    },
-    rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
-                  ('C1:T1:BeforeUnlock:block', 'C2:T1:AfterFind:block'),
-                  ('C1:T1:End:block', 'C2:T1:End:block'),
-    ]
-))
+import test.integration.dpo.stm
+import test.integration.dpo.registry
+import test.integration.dpo.storage
 
-
-#
-# REGISTRY TESTS
-#
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'Registry:Test',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'Registry:Test')]),
-    },
-    rendezvous = []
-))
-
-
-#
-# STORAGE/CONTAINER TESTS
-#
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'Storage:Test',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'Storage:Test')]),
-    },
-    rendezvous = []
-))
+test.integration.dpo.stm.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.dpo.registry.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.dpo.storage.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)

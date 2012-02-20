@@ -61,12 +61,12 @@ ChunkServer::Init()
 	_pheap_root = (ChunkStoreRoot*) _pheap->get_root();
 
 	if (!_pheap_root->_init) {
-		INIT_LIST_HEAD(&(_pheap_root->chunk_dsc_list_));
+		INIT_LIST_HEAD(&(_pheap_root->_chunkdsc_list));
 		_pheap_root->_init = 1;
 	}
 
 	// Populate the volatile maps with previously created chunk descriptors
-	list_for_each_entry(chunkdsc, &(_pheap_root->chunk_dsc_list_), _list) 
+	list_for_each_entry(chunkdsc, &(_pheap_root->_chunkdsc_list), _list) 
 	{
 		chunk = chunkdsc->chunk_;
 		pairret = _addr2chunkdsc_map.insert(std::pair<unsigned long long, ChunkDescriptor*>((unsigned long long) chunk, chunkdsc));
@@ -110,7 +110,7 @@ ChunkServer::CreateChunk(int principal_id, size_t size, int type, ChunkDescripto
 	chunkdsc->_size = round_size;
 	chunkdsc->_type = type;
 
-	list_add_tail(&(chunkdsc->_list), &(_pheap_root->chunk_dsc_list_));
+	list_add_tail(&(chunkdsc->_list), &(_pheap_root->_chunkdsc_list));
 
 	/* Keeping the chunk intervals in a map is okay as they don't overlap */
 	pairret = _addr2chunkdsc_map.insert(std::pair<unsigned long long, ChunkDescriptor*>((unsigned long long) chunk, chunkdsc));

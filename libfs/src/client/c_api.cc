@@ -45,9 +45,10 @@ FRONTAPI(umount) (const char* target)
 int 
 FRONTAPI(mkfs) (const char* target, 
                 const char* fstype, 
+                uint32_t nblocks,
                 uint32_t flags)
 {
-	return Client::Mkfs(target, fstype, flags);
+	return Client::Mkfs(target, fstype, nblocks, flags);
 }
 
 

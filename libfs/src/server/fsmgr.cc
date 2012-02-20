@@ -2,6 +2,7 @@
 #include "common/errno.h"
 #include "ipc/ipc.h"
 #include "dpo/main/server/registry.h"
+#include "dpo/main/server/smgr.h"
 #include "pxfs/common/fs_protocol.h"
 #include "server/fsmgr.h"
 #include "server/fs_factory.h"
@@ -68,7 +69,7 @@ FileSystemManager::FSTypeStrToId(const char* fs_type)
 
 int 
 FileSystemManager::CreateFileSystem(Session* session, const char* target, 
-                                    int fs_type, unsigned int flags) 
+                                    int fs_type, unsigned int nblocks, unsigned int flags) 
 {
 	FileSystemFactoryMap::iterator it;
 	FileSystemFactory*             fs_factory; 
@@ -80,7 +81,11 @@ FileSystemManager::CreateFileSystem(Session* session, const char* target,
 		return -1;
 	}
 	fs_factory = it->second;
-	if ((ret = fs_factory->Make(session, &oid)) < 0) {
+
+	void* partition;
+	session->smgr()->AllocateRaw(session, 4096, &partition);
+
+	if ((ret = fs_factory->Make(session, partition, &oid)) < 0) {
 		return ret;
 	}
 	return dpo_->registry()->Add(target, oid);
@@ -89,11 +94,11 @@ FileSystemManager::CreateFileSystem(Session* session, const char* target,
 
 int 
 FileSystemManager::CreateFileSystem(Session* session, const char* target, 
-                                    const char* fs_type, unsigned int flags)
+                                    const char* fs_type, unsigned int nblocks, unsigned int flags)
 {
 	int fs_type_id = FSTypeStrToId(fs_type);
 
-	return CreateFileSystem(session, target, fs_type_id, flags);
+	return CreateFileSystem(session, target, fs_type_id, nblocks, flags);
 }
 
 
@@ -147,16 +152,18 @@ int
 FileSystemManager::IpcHandlers::CreateFileSystem(unsigned int clt, 
                                                  std::string target, 
                                                  std::string fs_type, 
+                                                 unsigned int nblocks, 
                                                  unsigned int flags, 
 												 int& r)
 {
 	int ret;
 
-	//FIXME: we pass NULL as session
+	//FIXME: we should get session for the client descriptor
+	
+
 	Session session(module_->dpo_);
 	if ((ret = module_->CreateFileSystem(&session, target.c_str(), fs_type.c_str(), 
-	                                     flags)) < 0) 
-	{
+	                                     nblocks, flags)) < 0) {
 		return -ret;
 	}
 	return 0;
@@ -174,7 +181,7 @@ FileSystemManager::IpcHandlers::MountFileSystem(unsigned int clt,
 	int                    ret;
 	dpo::common::ObjectId  tmp_oid;
 
-	//FIXME: we pass NULL as session
+	//FIXME: we should get session for the client descriptor
 	Session session(module_->dpo_);
 	if ((ret = module_->MountFileSystem(&session, source.c_str(), target.c_str(), 
 	                                    fs_type.c_str(), flags, &tmp_oid)) < 0) 

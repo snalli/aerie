@@ -118,6 +118,7 @@ Client::Mount(const char* source,
 int 
 Client::Mkfs(const char* target, 
              const char* fstype, 
+             uint32_t nblocks,
              uint32_t flags)
 {
 	int                 ret;
@@ -134,9 +135,8 @@ Client::Mkfs(const char* target,
 
 	if ((ret = global_ipc_layer->call(FileSystemProtocol::kCreateFileSystem, 
 	                                  global_ipc_layer->id(), std::string(target), 
-	                                  std::string(fstype),
-	                                  flags, oid)) < 0) 
-	{
+	                                  std::string(fstype), nblocks,
+	                                  flags, oid)) < 0) {
 		return -E_IPC;
 	}
 	return -ret;
@@ -161,8 +161,7 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 	// on its child
 	if ((ret = global_namespace->Nameiparent(session, path, 
 	                                         lock_protocol::Mode::XL, 
-	                                         name, &dp)) < 0) 
-	{
+	                                         name, &dp)) < 0) {
 		return ret;
 	}
 	printf("create: dp=%p\n", dp);

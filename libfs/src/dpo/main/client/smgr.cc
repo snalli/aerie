@@ -25,10 +25,15 @@ namespace client {
 
 
 int
-StorageManager::AllocateRaw(::client::Session* session, size_t size, void** ptr)
+StorageManager::AllocateRaw(::client::Session* session, size_t nbytes, void** ptr)
 {
-	*ptr = malloc(size);
-	return E_SUCCESS;
+	ChunkDescriptor* achunkdsc[16];
+	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
+
+	chunk_store.CreateChunk(roundup_bytes, 0, &achunkdsc[0]);
+	*ptr = achunkdsc[0]->chunk_;
+
+	return 0;
 }
 
 
@@ -69,15 +74,35 @@ StorageManager::AllocExtent(::client::Session* session, size_t nbytes, void** pt
 }
 
 
+int 
+StorageManager::AllocateContainer(::client::Session* session)
+{
+	int ret;
+	int r;
+
+	int type = 1;
+	int num = 2;
+
+	if ((ret = ipc_->call(dpo::StorageProtocol::kAllocateContainer, 
+	                      ipc_->id(), type, num, r)) < 0) {
+		return ret;
+	} else if (ret > 0) {
+		return -ret;
+	}
+	
+
+	return E_SUCCESS;
+}
+
 
 int 
 StorageManager::AllocateContainerVector(::client::Session* session)
 {
-	int ret;
-	int r;
+	int                                                    ret;
+	int                                                    r;
 	std::vector< ::dpo::StorageProtocol::ContainerRequest> container_req_vec;
-	std::vector<int> rv;
-	std::vector<int>::iterator rvi;
+	std::vector<int>                                       rv;
+	std::vector<int>::iterator                             rvi;
 
 	::dpo::StorageProtocol::ContainerRequest req;
 

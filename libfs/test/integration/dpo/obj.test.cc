@@ -33,16 +33,19 @@ public:
 		nlink_ = 0;
 	}
 	
-	void* operator new(size_t nbytes, Session* session)
+	static Dummy* Make(Session* session)
     {
 		void* ptr;
 
-        if (session->smgr_->AllocExtent(session, nbytes, &ptr) < 0) {
+        if (session->smgr_->AllocExtent(session, sizeof(Dummy), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
-        return ptr;
+        return new(ptr) Dummy();
     }
 
+	static Dummy* Make(Session* session, void* ptr) {
+		return new(ptr) Dummy();
+	}
 
 	int nlink_;
 };

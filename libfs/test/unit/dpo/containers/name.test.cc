@@ -13,13 +13,12 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestInsertLookup)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = new(session) NameContainer::Object<Session>;
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(1)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(2)) == 0);
 		CHECK(name_container->Insert(session, "foo", dpo::common::ObjectId(3)) == 0);
 		CHECK(name_container->Insert(session, "bar", dpo::common::ObjectId(4)) == 0);
-		
 		CHECK(name_container->Find(session, ".", &oid) == 0);
 		CHECK(oid == dpo::common::ObjectId(1));
 		CHECK(name_container->Find(session, "..", &oid) == 0);
@@ -33,7 +32,7 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestEraseDot)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = new(session) NameContainer::Object<Session>;
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(2)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(1)) == 0);
@@ -53,7 +52,7 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestErase)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = new(session) NameContainer::Object<Session>;
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(1)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(2)) == 0);
@@ -98,7 +97,7 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestInsertOverwrite)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = new(session) NameContainer::Object<Session>;
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(1)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(2)) == 0);

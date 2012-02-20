@@ -13,10 +13,14 @@
 #include "chunkdsc.h"
 
 
+#ifndef CHUNKSTOREROOT_DEFINED
+#define CHUNKSTOREROOT_DEFINED
 struct ChunkStoreRoot {
 	int              _init;
-	struct list_head chunk_dsc_list_;
+	struct list_head _chunkdsc_list;
 };
+#endif
+
 
 
 class ChunkServer {

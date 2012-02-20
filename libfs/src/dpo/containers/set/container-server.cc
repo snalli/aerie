@@ -1,7 +1,10 @@
-#include "dpo/main/server/stcnr.h"
+#include "dpo/containers/set/container.h"
 
+namespace dpo {
+namespace containers {
 namespace server {
 
+/*
 int
 StorageContainer::Create(Session* session)
 {
@@ -9,6 +12,8 @@ StorageContainer::Create(Session* session)
 
 	}
 }
-
+*/
 
 } // namespace server
+} // namespace containers 
+} // namespace dpo

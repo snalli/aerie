@@ -40,22 +40,24 @@ class Region;
 template<typename Session>
 class Object: public dpo::cc::common::Object {
 public:
-	
+	static Object* Make(Session* session) {
+		void* ptr;
+		
+		if (session->smgr()->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
+			dbg_log(DBG_ERROR, "No storage available");
+		}
+		return new(ptr) Object();
+	}
+
+	static Object* Make(Session* session, volatile char* ptr) {
+		return new(ptr) Object();
+	}
+
 	static Object* Load(dpo::common::ObjectId oid) {
 		return reinterpret_cast<Object*>(oid.addr());
 	}
 	
 	Object();
-
-	void* operator new(size_t nbytes, Session* session)
-	{
-		void* ptr;
-		
-		if (session->smgr_->Alloc(session, nbytes, typeid(Object<Session>), &ptr) < 0) {
-			dbg_log(DBG_ERROR, "No storage available");
-		}
-		return ptr;
-	}
 
 	int InsertRegion(Session* session, Region<Session>* region);
 	int AllocateRegion(Session* session, uint64_t start_bn, uint64_t end_bn);
@@ -278,7 +280,8 @@ public:
 		if (base_bn_ < N_DIRECT) {
 			maxbcount_ = 1;
 			dblock_ = slot_.slot_base_[slot_.slot_offset_];
-			//printf("slot_.slot_base_[slot_.slot_offset_]=%p\n", slot_.slot_base_[slot_.slot_offset_]);
+			printf("dblock=%p\n", dblock_);
+			//printf("Region::Init: slot_.slot_base_[slot_.slot_offset_]=%p\n", slot_.slot_base_[slot_.slot_offset_]);
 			//printf("bcobj->daddrs_[bn]=%p\n", bcobj->daddrs_[bn]);
 		} else {
 			maxbcount_ = 1 << ((slot_.slot_height_-1)*RADIX_TREE_MAP_SHIFT);
@@ -602,6 +605,7 @@ ByteContainer::Object<Session>::ReadBlock(Session* session,
 	printf("FilePnode::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
 
 	l = min(dpo::common::BLOCK_SIZE, size_ - bn*dpo::common::BLOCK_SIZE);
+	printf("size_=%d, l=%d\n", size_, l);
 	if (l < off) {
 		return 0;
 	}
@@ -609,7 +613,9 @@ ByteContainer::Object<Session>::ReadBlock(Session* session,
 
 	Region<Session> region(session, this, bn);
 	region.ReadBlock(session, dst, bn, off, rn);
-
+	for (int i=0; i<n; i++) {
+		printf("dst[%d]=%x\n", i, dst[i]);
+	}
 	if (n - rn > 0) {
 		memset(&dst[rn], 0, n-rn);
 	}	
@@ -648,8 +654,8 @@ ByteContainer::Object<Session>::WriteBlock(Session* session,
 	InsertRegion(session, &region);
 
 	printf("FilePnode::WriteBlock: DONE\n");
-	if ( (bn*dpo::common::BLOCK_SIZE + n) > size_ ) {
-		size_ = bn*dpo::common::BLOCK_SIZE + n;
+	if ( (bn*dpo::common::BLOCK_SIZE + off + n) > size_ ) {
+		size_ = bn*dpo::common::BLOCK_SIZE + off + n;
 	}
 	return n;
 }
@@ -761,8 +767,8 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	}	
 	if (*slot == (void*)0) {
 		void* ptr;
-		if ((ret = session->smgr_->AllocateRaw(session, 
-		                                       dpo::common::BLOCK_SIZE, &ptr)) < 0)
+		if ((ret = session->smgr()->AllocateRaw(session, 
+		                                        dpo::common::BLOCK_SIZE, &ptr)) < 0)
 		{ 
 			return ret;
 		}

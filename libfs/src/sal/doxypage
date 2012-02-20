@@ -1,0 +1,21 @@
+/*****************************************************************************
+ *                         STORAGE ABSTRACTION LAYER                         *
+ *****************************************************************************/ 
+
+/**
+
+@section sal_overview Overview
+
+The Storage Abstraction Layer (SAL) provides the basic low-level persistent 
+storage abstractions for use by applications.
+
+
+POOL
+----
+An SCM partition we can allocate storage from.
+
+There are two implementations
+-user: based on a persistent heap
+-kernel: just a shim; wraps the kernel API
+
+*/

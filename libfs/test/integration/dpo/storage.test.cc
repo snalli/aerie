@@ -17,7 +17,8 @@ SUITE(Storage)
 {
 	TEST_FIXTURE(ObjectFixture, Test)
 	{
-		global_dpo_layer->smgr()->AllocateContainerVector(session);
+		CHECK(libfs_mkfs("/superblock/A", "mfs", 1024, 0) == 0);
+		global_dpo_layer->smgr()->AllocateContainer(session);
 
 	}
 

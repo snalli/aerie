@@ -22,7 +22,7 @@ static lock_protocol::LockId g = 8;
 void test11(const char* tag)
 {
 	printf("%s\n", __FUNCTION__);
-	libfs_mkfs("/superblock/A", "mfs", 0);
+	libfs_mkfs("/superblock/A", "mfs", 1024, 0);
 	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
 	libfs_mkdir("/home/hvolos/dir", 0);
 	libfs_mkdir("/home/hvolos/dir/test", 0);
