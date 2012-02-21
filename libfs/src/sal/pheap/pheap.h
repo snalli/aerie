@@ -24,8 +24,8 @@ public:
 
 	static int Open(const char* filename, size_t maxsize,
 					PersistentHeap* allocatorp, int flags, PersistentHeap** pheap);
-	int Map(const char* filename, size_t maxsize, int prot_flags);
-	int Close();
+	static int Close(PersistentHeap* pheap);
+
 	inline int Alloc(size_t size, void **pp);
 	inline void Free(void *p, size_t size);
 	inline VistaHeap* vistaheap(); 

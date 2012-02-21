@@ -169,7 +169,8 @@ PersistentRegion::Open(const char* pathname, size_t size, int flags,
 	(*pregion)->base_ = (uint64_t) base_addr;
 	(*pregion)->length_ = (uint64_t) header.length();
 	(*pregion)->header_ = (PersistentRegion::Header*) header_mmap_addr;
-	
+	(*pregion)->fd_ = fd;
+
 	// store the mmapped address for reincarnation
 	(*pregion)->header_->set_base_addr((uint64_t) base_addr);
 
@@ -178,7 +179,6 @@ done:
 	if (flock(fd, LOCK_UN) < 0) {
 		return -E_ERRNO;
 	}
-	close(fd);
 	return ret;
 }
 
@@ -191,16 +191,35 @@ PersistentRegion::Open(const char* pathname, PersistentRegion** pregion)
 
 
 int
-PersistentRegion::Close()
+PersistentRegion::Close(PersistentRegion* pregion)
 {
-	if (munmap((void*) base_, length_) < 0) {
+	if (munmap((void*) pregion->base_, pregion->length_) < 0) {
 		return -E_ERRNO;
 	}
-	if (munmap((void*) header_, header_->gap()) < 0) {
+	if (munmap((void*) pregion->header_, pregion->header_->gap()) < 0) {
+		return -E_ERRNO;
+	}
+	close(pregion->fd_);
+	delete pregion;
+	return E_SUCCESS;
+}
+
+
+int
+PersistentRegion::Lock()
+{
+	if (flock(fd_, LOCK_EX) < 0) {
 		return -E_ERRNO;
 	}
 	return E_SUCCESS;
 }
 
 
-
+int
+PersistentRegion::Unlock()
+{
+	if (flock(fd_, LOCK_UN) < 0) {
+		return -E_ERRNO;
+	}
+	return E_SUCCESS;
+}

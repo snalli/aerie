@@ -35,18 +35,21 @@ public:
 	static int Create(const char* pathname, size_t size);
 	static int Open(const char* pathname, size_t size, int flags, PersistentRegion** pregion);
 	static int Open(const char* pathname, PersistentRegion** pregion);
-	
-	int Close();
+	static int Close(PersistentRegion* pregion);
+
 	inline void* Payload();
 	inline size_t PayloadMaxSize();
 
 	uint64_t base() { return base_; }
 	uint64_t length() { return length_; }
 	uint64_t Size() { return length_; }
+	int Lock();
+	int Unlock();
 
 private:
 	static int CreateInternal(const char* pathname, size_t nblocks, size_t block_size, size_t align_size, int flags);
 
+	int      fd_;
 	uint64_t base_;
 	uint64_t length_;
 	Header*  header_; // where header is memory mmapped

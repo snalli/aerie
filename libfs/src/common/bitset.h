@@ -57,7 +57,7 @@ public:
 		return bset;
 	}
 	
-	static DynamicBitSet* Load(void* b, int size) {
+	static DynamicBitSet* Load(void* b) {
 		return reinterpret_cast<DynamicBitSet*>(b);
 	}
 	
@@ -85,6 +85,11 @@ public:
 	BitReference operator[](int pos)
 	{
 		return BitReference(byte(), pos);
+	}
+
+	// returns the number of bytes the bitset will occupy to sore nbits
+	static uint64_t Sizeof(int nbits) {
+		return sizeof(DynamicBitSet) + ( (nbits / (8*sizeof(char))) + (nbits % sizeof(char) ? 1 : 0));
 	}
 
 private:

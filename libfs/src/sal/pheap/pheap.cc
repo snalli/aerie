@@ -46,8 +46,12 @@ PersistentHeap::Open(const char* filename, size_t size, PersistentHeap* allocato
 }
 
 
-int
-PersistentHeap::Close()
+int 
+PersistentHeap::Close(PersistentHeap* pheap) 
 {
-	return pregion_->Close();
+	int ret;
+	if ((ret=PersistentRegion::Close(pheap->pregion_)) < 0) {
+		return ret;
+	}
+	delete pheap;
 }

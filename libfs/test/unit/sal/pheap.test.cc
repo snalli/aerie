@@ -16,14 +16,14 @@ SUITE(SAL)
 		
 		CHECK(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
 		*ptr1 = 0xc0ffee;
-		pheap->Close();
+		CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
 		
 		// reincarnate the heap
 		CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024*1024, 
 		                           NULL, 0, &pheap) == E_SUCCESS);
 		
 		CHECK(*ptr1 == 0xc0ffee);
-		pheap->Close();
+		CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
 
 	}
 	
@@ -38,7 +38,7 @@ SUITE(SAL)
 		
 		CHECK(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
 		*ptr1 = 0xc0ffee;
-		pheap->Close();
+		CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
 		
 		// reincarnate the heap
 		CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024*1024, 
@@ -50,7 +50,7 @@ SUITE(SAL)
 		*ptr2 = 0xbeef;
 		CHECK(*ptr1 == 0xc0ffee);
 		CHECK(*ptr2 == 0xbeef);
-		pheap->Close();
+		CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
 	}
 
 	TEST(TestPersistentHeapRoot)
@@ -65,12 +65,12 @@ SUITE(SAL)
 		CHECK(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
 		*ptr1 = 0xc0ffee;
 		pheap->set_root((void*) ptr1);
-		pheap->Close();
+		CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
 		
 		// reincarnate the heap
 		CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024*1024, 
 		                           NULL, 0, &pheap) == E_SUCCESS);
 		CHECK(pheap->root() == (void*) ptr1);
-		pheap->Close();
+		CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
 	}
 }
