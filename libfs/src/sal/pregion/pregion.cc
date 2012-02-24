@@ -105,7 +105,8 @@ PersistentRegion::Open(const char* pathname, size_t size, int flags,
 	
 	if (flags & PersistentRegion::kCreate) {
 		if (flags & PersistentRegion::kExclusive) {
-			if ((ret = PersistentRegion::CreateInternal(pathname, size, kBlockSize, 
+			size_t nblocks = NumOfBlocks(size, kBlockSize);
+			if ((ret = PersistentRegion::CreateInternal(pathname, nblocks, kBlockSize, 
 														kBlockSize, flags)) < 0) {
 				if (ret == -E_ERRNO && errno == EEXIST) {
 					// fall through: we open the existing file
@@ -115,7 +116,8 @@ PersistentRegion::Open(const char* pathname, size_t size, int flags,
 			}
 			fd = ret;
 		} else {
-			if ((ret = PersistentRegion::CreateInternal(pathname, size, kBlockSize, 
+			size_t nblocks = NumOfBlocks(size, kBlockSize);
+			if ((ret = PersistentRegion::CreateInternal(pathname, nblocks, kBlockSize, 
 														kBlockSize, flags)) < 0) {
 				return ret;
 			}

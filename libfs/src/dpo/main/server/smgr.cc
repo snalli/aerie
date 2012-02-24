@@ -7,10 +7,6 @@
 #include "dpo/containers/set/container.h"
 #include "ipc/main/server/cltdsc.h"
 #include "server/session.h"
-#include "chunkstore/chunkserver.h"
-
-//TO DEPRECATE
-extern ::ChunkServer* chunk_server;
 
 
 namespace dpo {
@@ -112,6 +108,8 @@ StorageManager::AllocateContainer(int clt, int type, int acl, int n)
 int
 StorageManager::AllocateRaw(::server::Session* session, size_t nbytes, void** ptr)
 {
+	assert(0);
+	/*
 	ChunkDescriptor* achunkdsc[16];
 	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
 
@@ -119,6 +117,7 @@ StorageManager::AllocateRaw(::server::Session* session, size_t nbytes, void** pt
 	*ptr = achunkdsc[0]->chunk_;
 
 	return 0;
+	*/
 }
 
 
@@ -134,6 +133,8 @@ StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 int 
 StorageManager::Alloc(::server::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
+	assert(0);
+	/*
 	ChunkDescriptor* achunkdsc[16];
 	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
 
@@ -142,6 +143,7 @@ StorageManager::Alloc(::server::Session* session, size_t nbytes, std::type_info 
 	*ptr = achunkdsc[0]->chunk_;
 
 	return 0;
+	*/
 }
 
 

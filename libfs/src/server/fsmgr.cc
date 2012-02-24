@@ -82,6 +82,8 @@ FileSystemManager::CreateFileSystem(Session* session, const char* target,
 	}
 	fs_factory = it->second;
 
+	
+
 	void* partition;
 	session->smgr()->AllocateRaw(session, 4096, &partition);
 
