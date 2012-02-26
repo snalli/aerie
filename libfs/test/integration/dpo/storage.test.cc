@@ -7,7 +7,7 @@
 #include "tool/testfw/testfw.h"
 #include "dpo/main/client/rwproxy.h"
 #include "dpo/main/client/omgr.h"
-#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/salloc.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
 #include "obj.fixture.h"
@@ -19,7 +19,7 @@ SUITE(Storage)
 	{
 		//FIXME
 		//CHECK(libfs_mkfs("/superblock/A", "mfs", 1024, 0) == 0);
-		//global_dpo_layer->smgr()->AllocateContainer(session);
+		//global_dpo_layer->salloc()->AllocateContainer(session);
 
 	}
 

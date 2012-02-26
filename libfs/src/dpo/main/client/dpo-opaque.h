@@ -11,7 +11,7 @@ namespace dpo {
 namespace client {
 class Dpo;
 class Registry;
-class StorageManager;
+class StorageAllocator;
 class ObjectManager;
 } // namespace client
 

@@ -13,7 +13,7 @@
 #include "dpo/containers/radix/radixtree.h"
 #include "dpo/containers/typeid.h"
 #include "dpo/main/common/obj.h"
-#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/salloc.h"
 #include "dpo/main/common/const.h"
 #include "common/debug.h"
 #include "common/util.h"
@@ -43,7 +43,7 @@ public:
 	static Object* Make(Session* session) {
 		void* ptr;
 		
-		if (session->smgr()->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
+		if (session->salloc()->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return new(ptr) Object();
@@ -767,7 +767,7 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	}	
 	if (*slot == (void*)0) {
 		void* ptr;
-		if ((ret = session->smgr()->AllocateRaw(session, 
+		if ((ret = session->salloc()->AllocateRaw(session, 
 		                                        dpo::common::BLOCK_SIZE, &ptr)) < 0)
 		{ 
 			return ret;

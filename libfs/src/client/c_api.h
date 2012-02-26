@@ -20,8 +20,7 @@ int FRONTAPI(dup) (int oldfd);
 int FRONTAPI(dup2) (int oldfd, int newfd);
 int FRONTAPI(mount) (const char* source, const char* target, const char* fstype, uint32_t flags);
 int FRONTAPI(umount) (const char* target);
-int FRONTAPI(mkfs) (const char* target, const char* fstype, uint32_t nblocks, uint32_t flags);
-
+int FRONTAPI(mkfs) (const char* target, const char* fstype, uint32_t nblocks, uint32_t block_size, uint32_t flags);
 int FRONTAPI(mkdir) (const char* path, int mode);
 int FRONTAPI(rmdir) (const char* path);
 int FRONTAPI(chdir) (const char* path);

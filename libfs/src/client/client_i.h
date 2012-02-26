@@ -27,7 +27,7 @@ public:
 	static int Shutdown(); 
 	static Session* CurrentSession();
 	static int Mount(const char* source, const char* target, const char* fstype, uint32_t flags);
-	static int Mkfs(const char* target, const char* fstype, uint32_t nblocks, uint32_t flags);
+	static int Mkfs(const char* target, const char* fstype, uint32_t nblocks, uint32_t block_size, uint32_t flags);
 	static int Open(const char* path, int flags, int mode);
 	static int Close(int fd);
 	static int Duplicate(int oldfd);

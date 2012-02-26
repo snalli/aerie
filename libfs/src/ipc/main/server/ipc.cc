@@ -59,6 +59,13 @@ Ipc::Subscribe(int clt, std::string id, int& unused)
 	return r;
 }
 
+/* TODO
+int
+Ipc::ClientToSession(int clt, IpcSession** session)
+{
+	return sessionmgr_->ClientToSession(clt, session);
+}
+*/
 
 int 
 Ipc::Alive(const unsigned int principal_id, int& r)

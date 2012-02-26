@@ -10,6 +10,7 @@
 #include "client/fsomgr.h"
 #include "dpo/main/client/dpo.h"
 #include "dpo/main/client/stm.h"
+#include "sal/pool/pool.h"
 #include "mfs/client/mfs.h"
 #include "pxfs/common/fs_protocol.h"
 
@@ -91,11 +92,12 @@ Client::Mount(const char* source,
 	char*                 path = const_cast<char*>(target);
 	uint64_t              u64;
 	dpo::common::ObjectId oid;
+	StoragePool*          pool;
 
 	dbg_log (DBG_INFO, "Mount file system %s of type %s to %s\n", source, fstype, target);
 	
 	if (target == NULL || source == NULL || fstype == NULL) {
-		return -1;
+		return -E_INVAL;
 	}
 
 	if ((ret = global_ipc_layer->call(FileSystemProtocol::kMountFileSystem, 
@@ -108,8 +110,12 @@ Client::Mount(const char* source,
 	if (ret > 0) {
 		return -ret;
 	}
+	if ((ret = StoragePool::Open(source, &pool)) < 0) {
+		return ret;
+	}
+
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {
-		return -1;
+		return ret;
 	}
 	return global_namespace->Mount(global_session, path, sb);
 }
@@ -119,8 +125,10 @@ int
 Client::Mkfs(const char* target, 
              const char* fstype, 
              uint32_t nblocks,
+			 uint32_t block_size,
              uint32_t flags)
 {
+	int                 r;
 	int                 ret;
 	client::SuperBlock* sb;
 	char*               path = const_cast<char*>(target);
@@ -131,12 +139,10 @@ Client::Mkfs(const char* target,
 		return -1;
 	}
 	
-	int oid;
-
 	if ((ret = global_ipc_layer->call(FileSystemProtocol::kCreateFileSystem, 
 	                                  global_ipc_layer->id(), std::string(target), 
-	                                  std::string(fstype), nblocks,
-	                                  flags, oid)) < 0) {
+	                                  std::string(fstype), nblocks, block_size,
+	                                  flags, r)) < 0) {
 		return -E_IPC;
 	}
 	return -ret;

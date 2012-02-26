@@ -4,7 +4,7 @@
 #include <vector>
 #include "common/errno.h"
 #include "client/session.h"
-#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/salloc.h"
 #include "common/interval_tree.h"
 
 namespace dpo {

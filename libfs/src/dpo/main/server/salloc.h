@@ -1,5 +1,5 @@
-#ifndef __STAMNOS_DPO_MAIN_SERVER_STORAGE_MANAGER_H
-#define __STAMNOS_DPO_MAIN_SERVER_STORAGE_MANAGER_H
+#ifndef __STAMNOS_DPO_MAIN_SERVER_STORAGE_ALLOCATOR_H
+#define __STAMNOS_DPO_MAIN_SERVER_STORAGE_ALLOCATOR_H
 
 #include <vector>
 #include "ipc/ipc.h"
@@ -17,16 +17,22 @@ namespace dpo {
 namespace server {
 
 
-const int kMaxStorageDescriptorCount = 8;
+class StorageAllocatorManager; // forward declaration
 
-class StorageDescriptor; // forward declaration
-
-class StorageManager {
+/**
+ * \brief Allocates containers from a storage pool.
+ * 
+ * We keep a single storage allocator for each storage pool.
+ *
+ */
+class StorageAllocator {
+friend class StorageAllocatorManager;
 public:
-	StorageManager(::server::Ipc* ipc, dpo::server::Dpo* dpo);
-	int Init();
+	static int Open(const char* pathname, size_t size, int flags, StorageAllocator** salloc);
+	static int Close(StorageAllocator* salloc);
 
-	int RegisterPartition(const char* dev, dpo::common::ObjectId stcnr);
+	StorageAllocator(::server::Ipc* ipc, dpo::server::Dpo* dpo);
+	int Init();
 
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(::server::Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
@@ -35,33 +41,22 @@ public:
 
 	class IpcHandlers {
 	public:
-		int Register(StorageManager* smgr);
+		int Register(StorageAllocator* salloc);
 
 		int AllocateContainer(int clt, int type, int num, int& r);
 		int AllocateContainerVector(int clt, std::vector< ::dpo::StorageProtocol::ContainerRequest> container_request_vector, std::vector<int>& result);
 
 	private:
-		StorageManager* smgr_;
+		StorageAllocator* salloc_;
 	}; 
 
 private:
-	::server::Ipc*     ipc_;
-	dpo::server::Dpo*  dpo_;
-	IpcHandlers        ipc_handlers_;
-	StorageDescriptor* descriptor_[kMaxStorageDescriptorCount];
-	int                descriptor_count_;
-	
-};
-
-// holds per storage partition information 
-class StorageDesriptor {
-public:
-
-
-private:
-	//dpo::containers::server::SetContainer<dpo::common::ObjectId>::Object* stcnr_;
-	const char* dev_;
-	int ref_cnt_;
+	// private interface for use by the StorageAllocatorManager to prevent accidental 
+	// construction of multiple storage allocators on top of a single storage pool
+	::server::Ipc*                ipc_;
+	dpo::server::Dpo*             dpo_;
+	StorageAllocator::IpcHandlers ipc_handlers_;
+	int descriptor_count_; // deprecated
 };
 
 
@@ -78,9 +73,11 @@ public:
 
 
 
+
+
 } // namespace server
 } // namespace dpo
 
 
 
-#endif // __STAMNOS_DPO_MAIN_SERVER_MANAGER_H
+#endif // __STAMNOS_DPO_MAIN_SERVER_ALLOCATOR_H

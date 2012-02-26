@@ -29,7 +29,7 @@ public:
 	static Object* Make(Session* session) {
 		void* ptr;
 		
-		if (session->smgr_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
+		if (session->salloc_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return new(ptr) Object();
@@ -41,6 +41,10 @@ public:
 
 	static Object* Load(dpo::common::ObjectId oid) {
 		return reinterpret_cast<Object*>(oid.addr());
+	}
+
+	static Object* Load(void* ptr) {
+		return reinterpret_cast<Object*>(ptr);
 	}
 
 	Object()

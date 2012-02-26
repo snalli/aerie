@@ -44,7 +44,7 @@ int my_config_lookup_string(config_t *cfg, char *name, char **value);
 int my_config_lookup_valid_bool(config_t *cfg, char *name, int *value, int validity_check, ...);
 int my_config_lookup_valid_int(config_t *cfg, char *name, int *value, int validity_check, ...);
 int my_config_lookup_valid_string(config_t *cfg, char *name, char **value, int validity_check, ...);
-int my_config_init(config_t *cfg, char *config_file);
+int my_config_init(config_t *cfg, const char *config_file);
 
 #ifdef __cplusplus
 }

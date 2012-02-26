@@ -6,7 +6,7 @@
 #include "dpo/main/client/stm.h"
 
 
-class StorageManager;
+class StorageAllocator;
 
 namespace client {
 
@@ -15,7 +15,7 @@ public:
 	Session(dpo::client::Dpo* dpo)
 		: lckmgr_(dpo->lckmgr()),
 		  hlckmgr_(dpo->hlckmgr()),
-		  smgr_(dpo->smgr()),
+		  salloc_(dpo->salloc()),
 		  omgr_(dpo->omgr()),
 		  dpo_(dpo)
 	{ }
@@ -24,27 +24,27 @@ public:
 	        dpo::cc::client::HLockManager* hlckmgr)
 		: lckmgr_(lckmgr),
 		  hlckmgr_(hlckmgr),
-		  smgr_(NULL),
+		  salloc_(NULL),
 		  omgr_(NULL)
 	{ }
 
 	Session(dpo::cc::client::LockManager* lckmgr, 
 	        dpo::cc::client::HLockManager* hlckmgr,
-	        dpo::client::StorageManager* smgr,
+	        dpo::client::StorageAllocator* salloc,
 	        dpo::client::ObjectManager* omgr)
 		: lckmgr_(lckmgr),
 		  hlckmgr_(hlckmgr),
-		  smgr_(smgr),
+		  salloc_(salloc),
 		  omgr_(omgr)
 	{ }
 
 
-	dpo::client::StorageManager* smgr() { return dpo_->smgr(); }
+	dpo::client::StorageAllocator* salloc() { return dpo_->salloc(); }
 
 	dpo::client::Dpo*                dpo_;
 	dpo::cc::client::LockManager*    lckmgr_;
 	dpo::cc::client::HLockManager*   hlckmgr_;
-	dpo::client::StorageManager*     smgr_;
+	dpo::client::StorageAllocator*     salloc_;
 	dpo::client::ObjectManager*      omgr_;
 	dpo::stm::client::Transaction*   tx_;
 };

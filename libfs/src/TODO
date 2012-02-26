@@ -1,0 +1,43 @@
+we need a session manager in the IPC layer. 
+Session structure is organized using inheritance:
+IpcSession <- DpoSession <- PxfsSession
+
+The IpcSession has:
+-user id
+-effective acl (when creating storage)
+
+The DpoSession has pointers to stuff like:
+-journal
+-storage allocator
+
+The Session Object is created by the top layer, that is the file system layer. 
+To create the Session Object via the session manager (which is located in the IPC layer)
+the FS layer creates a factory object, which it registers with the session manager
+
+
+Session factory
+we need a way to find the storage allocator:
+-the filesystem manager has a file system object, so it knows the storage allocator
+used by the filesystem. Store a pointer to the storage allocator in the DpoSession 
+
+
+
+Session Manager:
+-keep a list of sessions per client id. (to simplify the implementation, we may keep a single session but the API should not make this restriction)
+-whenever a client mounts a new file system we create a new session for that client/file system.
+-whenever we see a request from a client, we can quickly find the session for that client
+
+
+===========
+
+MFS factory:
+-we need to create a storage allocator on top of the storage pool of the file system 
+-store a pointer to the storage allocator in the file system object.
+
+
+
+===============
+Storage Allocator Manager
+-handles IPC requests and forwards them to the proper storage allocator. 
+Remember, each cliene/filesystem paier is identified by a session. We can find the storage allocator by looking into the ssession. 
+

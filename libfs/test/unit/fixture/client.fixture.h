@@ -6,10 +6,10 @@
 namespace dpo {
 namespace client {
 
-#define __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H // ugly trick to prevent smgr.h from redefining 
+#define __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H // ugly trick to prevent salloc.h from redefining 
 
-// StorageManager
-class StorageManager {
+// StorageAllocator
+class StorageAllocator {
 public:
 	int Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
 	{
@@ -26,13 +26,13 @@ struct ClientFixture
 	ClientFixture() 
 		: session(NULL)
 	{ 
-		dpo::client::StorageManager* smgr = new dpo::client::StorageManager();
-		session = new client::Session(NULL, NULL, smgr, NULL);
+		dpo::client::StorageAllocator* salloc = new dpo::client::StorageAllocator();
+		session = new client::Session(NULL, NULL, salloc, NULL);
 	}
 
 	~ClientFixture() 
 	{
-		delete session->smgr_;
+		delete session->salloc_;
 		delete session;
 	}
 	

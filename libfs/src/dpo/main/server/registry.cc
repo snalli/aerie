@@ -27,7 +27,9 @@ Registry::Registry(::server::Ipc* ipc)
 int 
 Registry::Init()
 {
-	return ipc_handlers_.Register(this);
+	if (ipc_) {
+		return ipc_handlers_.Register(this);
+	}
 }
 
 

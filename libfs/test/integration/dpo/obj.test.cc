@@ -7,7 +7,7 @@
 #include "tool/testfw/testfw.h"
 #include "dpo/main/client/rwproxy.h"
 #include "dpo/main/client/omgr.h"
-#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/salloc.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
 #include "obj.fixture.h"
@@ -37,7 +37,7 @@ public:
     {
 		void* ptr;
 
-        if (session->smgr_->AllocExtent(session, sizeof(Dummy), &ptr) < 0) {
+        if (session->salloc_->AllocExtent(session, sizeof(Dummy), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
         return new(ptr) Dummy();

@@ -1,0 +1,22 @@
+Import('buildEnv')
+Import('salLibrary')
+Import('fssLibrary')
+Import('ipcServerLibrary')
+Import('mfsServerLibrary')
+Import('commonLibrary')
+
+
+localBuildEnv = buildEnv.Clone()
+
+sources = [
+           'main.cc',
+           'mkfs.cc',
+          ]
+localBuildEnv.Append(LIBS = fssLibrary)
+localBuildEnv.Append(LIBS = ipcServerLibrary)
+localBuildEnv.Append(LIBS = mfsServerLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = mfsServerLibrary)
+localBuildEnv.Append(LIBS = salLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program(target = 'pxfs', source = sources)

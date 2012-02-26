@@ -11,7 +11,7 @@ public:
 		: dpo_(dpo)
 	{ }
 
-	dpo::server::StorageManager* smgr() { return dpo_->smgr(); }
+	dpo::server::StorageAllocator* salloc() { return dpo_->salloc(); }
 
 private:
 	dpo::server::Dpo* dpo_;

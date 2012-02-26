@@ -1,4 +1,4 @@
-#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/salloc.h"
 #include <stdlib.h>
 #include <typeinfo>
 #include <vector>
@@ -25,7 +25,7 @@ namespace client {
 
 
 int
-StorageManager::AllocateRaw(::client::Session* session, size_t nbytes, void** ptr)
+StorageAllocator::AllocateRaw(::client::Session* session, size_t nbytes, void** ptr)
 {
 	assert(0);
 	// FIXME
@@ -44,7 +44,7 @@ StorageManager::AllocateRaw(::client::Session* session, size_t nbytes, void** pt
 
 // OBSOLETE
 int 
-StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
 }
@@ -52,7 +52,7 @@ StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 // OBSOLETE
 int 
-StorageManager::Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
 	//FIXME
@@ -70,7 +70,7 @@ StorageManager::Alloc(::client::Session* session, size_t nbytes, std::type_info 
 
 
 int 
-StorageManager::AllocExtent(::client::Session* session, size_t nbytes, void** ptr)
+StorageAllocator::AllocExtent(::client::Session* session, size_t nbytes, void** ptr)
 {
 	assert(0);
 	//FIXME
@@ -87,7 +87,7 @@ StorageManager::AllocExtent(::client::Session* session, size_t nbytes, void** pt
 
 
 int 
-StorageManager::AllocateContainer(::client::Session* session)
+StorageAllocator::AllocateContainer(::client::Session* session)
 {
 	int ret;
 	int r;
@@ -107,7 +107,7 @@ StorageManager::AllocateContainer(::client::Session* session)
 
 
 int 
-StorageManager::AllocateContainerVector(::client::Session* session)
+StorageAllocator::AllocateContainerVector(::client::Session* session)
 {
 	int                                                    ret;
 	int                                                    r;

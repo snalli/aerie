@@ -21,14 +21,14 @@ public:
 
 	dpo::cc::server::HLockManager* hlckmgr() { return hlckmgr_; }
 	dpo::cc::server::LockManager* lckmgr() { return lckmgr_; }
-	StorageManager* smgr() { return smgr_; }
+	StorageAllocator* salloc() { return salloc_; }
 	Registry* registry() { return registry_; }
 
 private:
 	::server::Ipc*                  ipc_;
 	dpo::cc::server::HLockManager*  hlckmgr_;
 	dpo::cc::server::LockManager*   lckmgr_;
-	StorageManager*                 smgr_;
+	StorageAllocator*                 salloc_;
 	Registry*                       registry_;
 };
 

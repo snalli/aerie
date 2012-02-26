@@ -12,7 +12,7 @@ namespace server {
 class Dpo;               
 class Registry;          
 class ObjectManager;     
-class StorageManager;    
+class StorageAllocator;    
 } // namespace server
 } // namespace dpo
 

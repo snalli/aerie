@@ -22,7 +22,7 @@ lib_sources = [
                '../dpo/main/client/hlckmgr.cc',
                '../dpo/main/client/lckmgr.cc',
 	       '../dpo/main/client/omgr.cc',
-	       '../dpo/main/client/smgr.cc',
+	       '../dpo/main/client/salloc.cc',
 	       '../dpo/main/client/stm.cc',
 	       '../dpo/main/client/registry.cc',
 	       '../dpo/containers/name/container.cc',
@@ -30,6 +30,7 @@ lib_sources = [
 	       '../dpo/containers/byte/container.cc',
 	       '../dpo/containers/set/container-client.cc',
 	      ]
+
 #libLocalBuildEnv.Append(LIBS = mfsClientLibrary)
 #libLocalBuildEnv.Append(LIBS = ipcClientLibrary)
 #libLocalBuildEnv.Append(LIBS = salLibrary)

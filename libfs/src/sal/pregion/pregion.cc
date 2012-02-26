@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include "sal/const.h"
 #include "common/errno.h"
 #include "common/util.h"
 

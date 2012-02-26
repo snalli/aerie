@@ -134,7 +134,7 @@ LockManager::Init(bool register_handler)
 	r = pthread_create(&th, NULL, &retrythread, (void *) this);
 	assert (r == 0);
 	
-	if (register_handler) {
+	if (register_handler && ipc_) {
 		ipc_->reg(lock_protocol::stat, this, &LockManager::Stat);
 		ipc_->reg(lock_protocol::acquire, this, &LockManager::Acquire);
 		ipc_->reg(lock_protocol::release, this, &LockManager::Release);

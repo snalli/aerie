@@ -57,12 +57,6 @@ main(int argc, char *argv[])
 
 	libfs_init(xdst);
 
-	if (strcmp(operation, "mkfs") == 0) {
-		libfs_mkfs("/superblock/A", "mfs", nblocks, 0);
-	} else {
-		// unknown
-	}
-
 	libfs_shutdown();
 
 	return 0;

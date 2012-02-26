@@ -18,6 +18,7 @@
     ACTION(E_BUSY, "Resource busy")                                          \
     ACTION(E_NOTEMPTY, "Not empty")                                          \
     ACTION(E_IPC, "Interprocess communication error")                        \
+    ACTION(E_UNKNOWNFS, "Unknown file system type")                          \
     ACTION(E_ERRNO, "Standard C library error; check errno for details")     \
 
 

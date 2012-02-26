@@ -4,6 +4,7 @@
 #include "ipc/main/server/ipc.h"
 #include "mfs/server/mfs.h"
 #include "server/fsmgr.h"
+//#include "server/session_factory.h"
 
 
 namespace server {
@@ -33,6 +34,10 @@ Server::Start(int port)
 
 	fsmgr_ = new ::server::FileSystemManager(ipc_layer_, dpo_layer_);
 	fsmgr_->Init();
+
+	//session_factory = new SessionFactory;
+
+	//ipc_layer_->Register(session_factory);
 	
 	// register statically known file system backends
 	mfs::server::RegisterBackend(fsmgr_);

@@ -1,7 +1,7 @@
 #include "dpo/main/server/dpo.h"
 #include "common/errno.h"
 #include "common/debug.h"
-#include "dpo/main/server/smgr.h"
+#include "dpo/main/server/salloc.h"
 #include "dpo/main/server/hlckmgr.h"
 #include "dpo/main/server/registry.h"
 
@@ -9,6 +9,13 @@
 namespace dpo {
 namespace server {
 
+/*
+int
+Dpo::Open(const char* pathname)
+{
+
+}
+*/
 
 int
 Dpo::Init()
@@ -19,13 +26,13 @@ Dpo::Init()
 		return -E_NOMEM;
 	}
 	hlckmgr_->Init();
-	if ((smgr_ = new StorageManager(ipc_, this)) == NULL) {
+	if ((salloc_ = new StorageAllocator(ipc_, this)) == NULL) {
 		delete hlckmgr_;
 		return -E_NOMEM;
 	}
-	smgr_->Init();
+	salloc_->Init();
 	if ((registry_ = new Registry(ipc_)) == NULL) {
-		delete smgr_;
+		delete salloc_;
 		delete hlckmgr_;
 	}
 	registry_->Init();
@@ -36,7 +43,7 @@ Dpo::Init()
 Dpo::~Dpo()
 {
 	delete registry_;
-	delete smgr_;
+	delete salloc_;
 	delete hlckmgr_;
 }
 

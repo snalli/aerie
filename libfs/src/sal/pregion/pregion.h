@@ -19,10 +19,6 @@
 const uint64_t  kPersistentHoleLowBound = 0x0000100000000000LLU;
 const uint64_t  kPersistentHoleSize     = 0x0000010000000000LLU; /* 1 TB */
 
-const int kBlockShift = 12;
-const int kBlockSize  = (1 << kBlockShift);
-
-
 class PersistentRegion {
 public:
 	enum Flags {

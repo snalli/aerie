@@ -24,6 +24,7 @@ srv_lib_target = 'mfssrv'
 srv_lib_sources = []
 srv_lib_sources += [
 		    'server/fs_factory.cc',
+		    'server/fs.cc',
 		    'server/mfs.cc'
 		   ]
 

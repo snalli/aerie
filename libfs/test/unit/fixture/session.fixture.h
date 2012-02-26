@@ -3,7 +3,7 @@
 
 class Session;
 
-class StorageManager {
+class StorageAllocator {
 public:
 	int AllocateRaw(Session* session, size_t nbytes, void** ptr)
 	{
@@ -20,8 +20,8 @@ public:
 
 class Session {
 public:
-	StorageManager* smgr() { return smgr_; };
-	StorageManager* smgr_;
+	StorageAllocator* salloc() { return salloc_; };
+	StorageAllocator* salloc_;
 };
 
 struct SessionFixture 
@@ -30,12 +30,12 @@ struct SessionFixture
 		: session(NULL)
 	{ 
 		session = new Session();
-		session->smgr_ = new StorageManager();
+		session->salloc_ = new StorageAllocator();
 	}
 
 	~SessionFixture() 
 	{
-		delete session->smgr_;
+		delete session->salloc_;
 		delete session;
 	}
 	

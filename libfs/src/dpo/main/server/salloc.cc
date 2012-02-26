@@ -1,4 +1,4 @@
-#include "dpo/main/server/smgr.h"
+#include "dpo/main/server/salloc.h"
 #include <stdio.h>
 #include <stddef.h>
 #include "common/errno.h"
@@ -31,7 +31,7 @@ private:
 };
 
 
-StorageManager::StorageManager(::server::Ipc* ipc, dpo::server::Dpo* dpo)
+StorageAllocator::StorageAllocator(::server::Ipc* ipc, dpo::server::Dpo* dpo)
 	: ipc_(ipc),
 	  dpo_(dpo),
 	  descriptor_count_(0)
@@ -39,27 +39,20 @@ StorageManager::StorageManager(::server::Ipc* ipc, dpo::server::Dpo* dpo)
 
 
 int
-StorageManager::Init()
+StorageAllocator::Init()
 {
 	int                   ret;
 
-	StorageClientDescriptor::Register();
-
-	return ipc_handlers_.Register(this);
-}
-
-
-int
-StorageManager::RegisterPartition(const char* dev, dpo::common::ObjectId stcnr)
-{
-	//TODO: this registers the partition we allocate raw blocks from
+	if (ipc_) {
+		return ipc_handlers_.Register(this);
+	}
 	return E_SUCCESS;
 }
 
 
 /*
 int
-StorageManager::RegisterStorageContainer(dpo::common::ObjectId oid)
+StorageAllocator::RegisterStorageContainer(dpo::common::ObjectId oid)
 {
 	stcnr_oid_ = oid;
 	return E_SUCCESS;
@@ -71,7 +64,7 @@ StorageManager::RegisterStorageContainer(dpo::common::ObjectId oid)
 
 // Makes the OS dependent call to allocate space
 int
-StorageManager::CreateExtent(int acl)
+StorageAllocator::CreateExtent(int acl)
 {
 	
 
@@ -79,7 +72,7 @@ StorageManager::CreateExtent(int acl)
 
 
 int
-StorageManager::CreateStorageContainer()
+StorageAllocator::CreateStorageContainer()
 {
 
 
@@ -87,7 +80,7 @@ StorageManager::CreateStorageContainer()
 
 
 int 
-StorageManager::AllocateContainerInternal(int clt, int type, int acl)
+StorageAllocator::AllocateContainerInternal(int clt, int type, int acl)
 {
 
 
@@ -96,7 +89,7 @@ StorageManager::AllocateContainerInternal(int clt, int type, int acl)
 
 
 int 
-StorageManager::AllocateContainer(int clt, int type, int acl, int n)
+StorageAllocator::AllocateContainer(int clt, int type, int acl, int n)
 {
 
 
@@ -106,7 +99,7 @@ StorageManager::AllocateContainer(int clt, int type, int acl, int n)
 
 
 int
-StorageManager::AllocateRaw(::server::Session* session, size_t nbytes, void** ptr)
+StorageAllocator::AllocateRaw(::server::Session* session, size_t nbytes, void** ptr)
 {
 	assert(0);
 	/*
@@ -123,7 +116,7 @@ StorageManager::AllocateRaw(::server::Session* session, size_t nbytes, void** pt
 
 // OBSOLETE
 int 
-StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
 }
@@ -131,7 +124,7 @@ StorageManager::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 // OBSOLETE
 int 
-StorageManager::Alloc(::server::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(::server::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
 	/*
@@ -148,7 +141,7 @@ StorageManager::Alloc(::server::Session* session, size_t nbytes, std::type_info 
 
 
 int 
-StorageManager::AllocateContainer(::server::Session* session, int type, int num)
+StorageAllocator::AllocateContainer(::server::Session* session, int type, int num)
 {
 	/*
 	dpo::containers::server::SetContainer<dpo::common::ObjectId>::Object* stcnr = 
@@ -173,38 +166,37 @@ StorageManager::AllocateContainer(::server::Session* session, int type, int num)
 
 
 int
-StorageManager::IpcHandlers::Register(StorageManager* smgr)
+StorageAllocator::IpcHandlers::Register(StorageAllocator* salloc)
 {
-	smgr_ = smgr;
-    smgr_->ipc_->reg(::dpo::StorageProtocol::kAllocateContainer, this, 
-	                 &::dpo::server::StorageManager::IpcHandlers::AllocateContainer);
-    smgr_->ipc_->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
-	                 &::dpo::server::StorageManager::IpcHandlers::AllocateContainerVector);
-
+	salloc_ = salloc;
+    salloc_->ipc_->reg(::dpo::StorageProtocol::kAllocateContainer, this, 
+	                 &::dpo::server::StorageAllocator::IpcHandlers::AllocateContainer);
+    salloc_->ipc_->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
+	                 &::dpo::server::StorageAllocator::IpcHandlers::AllocateContainerVector);
 
 	return E_SUCCESS;
 }
 
 
 //FIXME: what do we return? a capability, a hint, oid?
-//StorageManager::AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap)
+//StorageAllocator::AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap)
 int 
-StorageManager::IpcHandlers::AllocateContainer(int clt, int type, int num, int& r)
+StorageAllocator::IpcHandlers::AllocateContainer(int clt, int type, int num, int& r)
 {
 	int ret;
 
-	::server::Session session(smgr_->dpo_);
+	//::server::Session session(salloc_->dpo_);
 
 	//FIXME: we should get session for the client descriptor
-	if ((ret = smgr_->AllocateContainer(&session, type, num)) < 0) {
-		return -ret;
-	}
+	//if ((ret = salloc_->AllocateContainer(&session, type, num)) < 0) {
+	//	return -ret;
+	//}
 	return E_SUCCESS;
 }
 
 
 int 
-StorageManager::IpcHandlers::AllocateContainerVector(int clt, 
+StorageAllocator::IpcHandlers::AllocateContainerVector(int clt,
                                                      std::vector< ::dpo::StorageProtocol::ContainerRequest> container_req_vec, 
                                                      std::vector<int>& result)
 {

@@ -49,11 +49,11 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
 ))
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFS:TestMkfsMountSingle',
+    name = 'MFS:TestMountSingle',
     init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
     testfw = testProgram, server = serverProgram,
     clients = { 
-        'C1': ( testProgram, [('T1', 'Namespace:TestMkfsMount')])
+        'C1': ( testProgram, [('T1', 'Namespace:TestMount')])
     },
     rendezvous = []
 ))

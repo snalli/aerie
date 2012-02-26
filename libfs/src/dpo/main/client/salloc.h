@@ -1,5 +1,5 @@
-#ifndef __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H
-#define __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H
+#ifndef __STAMNOS_DPO_CLIENT_STORAGE_ALLOCATOR_H
+#define __STAMNOS_DPO_CLIENT_STORAGE_ALLOCATOR_H
 
 #include <stdlib.h>
 #include <typeinfo>
@@ -14,9 +14,9 @@ class Session;  // forward declaration
 namespace dpo {
 namespace client {
 
-class StorageManager {
+class StorageAllocator {
 public:
-	StorageManager(::client::Ipc* ipc)
+	StorageAllocator(::client::Ipc* ipc)
 		: ipc_(ipc)
 	{ }	
 
@@ -34,4 +34,4 @@ private:
 } // namespace client
 } // namespace dpo
 
-#endif // __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H
+#endif // __STAMNOS_DPO_CLIENT_STORAGE_ALLOCATOR_H

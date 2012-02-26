@@ -5,6 +5,7 @@
 #include "server/fs_factory.h"
 #include "server/session.h"
 #include "dpo/main/common/obj.h"
+#include "sal/pool/pool.h"
 #include "common/const.h"
 
 namespace mfs {
@@ -13,7 +14,8 @@ namespace server {
 class FileSystemFactory: public ::server::FileSystemFactory {
 public:
 	FileSystemFactory();
-	int Make(::server::Session* session, void* partition, dpo::common::ObjectId* oid);
+	int Make(StoragePool* pool, size_t nblocks, size_t block_size, int flags);
+	int Load(StoragePool* pool, int flags, ::server::FileSystem** filesystem);
 	int TypeID() {
 		return ::common::fs::kMFS;
 	}

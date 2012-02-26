@@ -21,6 +21,6 @@ lib_sources += pool_user_sources
 salLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 
-localBuildEnv.Program(target = 'tool/spool/spool', source = lib_sources + ['tool/spool/main.cc'])
+localBuildEnv.Program(target = 'tool/pool/pool', source = lib_sources + ['tool/pool/main.cc', 'tool/pool/mkpool.cc'])
 
 Return('salLibrary')

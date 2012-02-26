@@ -34,11 +34,12 @@ HLockManager::Init()
 
 	lm_ = new LockManager(ipc_, false, &mutex_);
 
-	assert(ipc_ != NULL);
-	ipc_->rpc()->reg(lock_protocol::stat, this, &HLockManager::Stat);
-	ipc_->rpc()->reg(lock_protocol::acquire, this, &HLockManager::Acquire);
-	ipc_->rpc()->reg(lock_protocol::release, this, &HLockManager::Release);
-	ipc_->rpc()->reg(lock_protocol::convert, this, &HLockManager::Convert);
+	if (ipc_) {
+		ipc_->reg(lock_protocol::stat, this, &HLockManager::Stat);
+		ipc_->reg(lock_protocol::acquire, this, &HLockManager::Acquire);
+		ipc_->reg(lock_protocol::release, this, &HLockManager::Release);
+		ipc_->reg(lock_protocol::convert, this, &HLockManager::Convert);
+	}
 }
 
 

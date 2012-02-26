@@ -231,7 +231,7 @@ my_config_lookup_valid_string(config_t *cfg,
 
 
 int 
-my_config_init(config_t *cfg, char *config_file)
+my_config_init(config_t *cfg, const char *config_file)
 {
 	char  buf[128];
 	char* env_config_file;

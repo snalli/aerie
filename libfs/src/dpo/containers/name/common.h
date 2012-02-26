@@ -11,7 +11,7 @@
 #include <typeinfo>
 #include "dpo/containers/assoc/hashtable.h"
 #include "dpo/containers/typeid.h"
-#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/salloc.h"
 #include "dpo/main/common/obj.h"
 #include "common/debug.h"
 #include "common/util.h"
@@ -28,7 +28,7 @@ public:
 	static Object* Make(Session* session) {
 		void* ptr;
 		
-		if (session->smgr_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
+		if (session->salloc_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return new(ptr) Object();

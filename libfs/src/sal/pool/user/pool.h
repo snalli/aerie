@@ -10,11 +10,15 @@ class DynamicBitSet;    // forward declaration
 class StoragePool {
 public:
 	
-	static int Create(const char* pathname, size_t size);
-	static int Open(const char* pathname, StoragePool** pool);
+	static int Create(const char* path, size_t size);
+	static int Open(const char* path, StoragePool** pool);
 	static int Close(StoragePool* pool);
+	static int Identity(const char* path, uint64_t* identity);
 
 	int AllocateExtent(uint64_t size, void** ptr);
+
+	void set_root(void* root);
+	void* root();
 
 private:
 	struct Header;

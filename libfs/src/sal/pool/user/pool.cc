@@ -5,8 +5,14 @@
  */
 
 #include "sal/pool/user/pool_i.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <assert.h>
+#include <stdint.h>
+#include <errno.h>
 #include "sal/pregion/pregion.h"
+#include "sal/const.h"
 #include "common/util.h"
 #include "common/bitset.h"
 #include "common/errno.h"
@@ -23,7 +29,7 @@ StoragePool::StoragePool(PersistentRegion* pregion, Header* header)
 // RAW SPACE: size
 // METADATA : sizeof(bitset to track each page of RAW space)
 int
-StoragePool::Create(const char* pathname, size_t size)
+StoragePool::Create(const char* path, size_t size)
 {
 	int               ret;
 	int               region_flags;
@@ -35,7 +41,7 @@ StoragePool::Create(const char* pathname, size_t size)
 	uint64_t          normalized_size = (npages + bitset_npages) * kBlockSize;
 	
 	region_flags = PersistentRegion::kCreate;
-	if ((ret = PersistentRegion::Open(pathname, normalized_size, region_flags, &pregion)) < 0) {
+	if ((ret = PersistentRegion::Open(path, normalized_size, region_flags, &pregion)) < 0) {
 		return ret;
 	}
 	if (DynamicBitSet::Make((void*) pregion->base(), bitset_size) == NULL) {
@@ -46,13 +52,13 @@ StoragePool::Create(const char* pathname, size_t size)
 
 
 int
-StoragePool::Open(const char* pathname, StoragePool** pool)
+StoragePool::Open(const char* path, StoragePool** pool)
 {
 	PersistentRegion* pregion;
 	uint64_t          bitset_npages;
 	int               ret;
 
-	if ((ret = PersistentRegion::Open(pathname, &pregion)) < 0) {
+	if ((ret = PersistentRegion::Open(path, &pregion)) < 0) {
 		return ret;
 	}
 	StoragePool::Header* header = StoragePool::Header::Load(pregion->Payload());
@@ -100,6 +106,7 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 	return E_SUCCESS;
 }
 
+
 int 
 StoragePool::Close(StoragePool* pool)
 {
@@ -109,4 +116,37 @@ StoragePool::Close(StoragePool* pool)
 	}
 	delete pool;
 	return E_SUCCESS;
+}
+
+
+/**
+ * \brief Returns a unique 64-bit number identifying the storage pool
+ * at path
+ */
+int
+StoragePool::Identity(const char* path, uint64_t* identity) 
+{
+	int         ret;
+	struct stat buf;
+	
+	if ((ret = stat(path, &buf)) < 0) {
+		printf("%s\n", strerror(errno));
+		return -E_ERRNO;
+	}
+	*identity = buf.st_ino;
+	return E_SUCCESS;
+}
+
+
+void 
+StoragePool::set_root(void* root)
+{
+	header_->set_root(root);
+}
+
+
+void* 
+StoragePool::root()
+{
+	return header_->root();
 }

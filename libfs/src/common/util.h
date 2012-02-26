@@ -1,9 +1,13 @@
-#ifndef _UTIL_H_AKL112
-#define _UTIL_H_AKL112
+#ifndef __STAMNOS_COMMON_UTIL_H
+#define __STAMNOS_COMMON_UTIL_H
 
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+
+static const char  __whitespaces[] = "                                                              ";
+#define WHITESPACE(len) &__whitespaces[sizeof(__whitespaces) - (len) -1]
+
 
 const int kPageSize = 4096;
 
@@ -18,12 +22,12 @@ inline int NumOfBlocks(size_t size, size_t block_size)
 }
 
 
-static uint64_t 
+static size_t
 StringToSize(const char* cstr)
 {
-	uint64_t factor = 1;
-	uint64_t size;
-	int      last = strlen(cstr) - 1;
+	size_t factor = 1;
+	size_t size;
+	int    last = strlen(cstr) - 1;
 
 	switch (cstr[last]) {
 		case 'K': case 'k':
@@ -67,4 +71,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif // __STAMNOS_COMMON_UTIL_H

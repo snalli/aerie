@@ -1,6 +1,6 @@
 #include "dpo/main/client/dpo.h"
 #include "common/errno.h"
-#include "dpo/main/client/smgr.h"
+#include "dpo/main/client/salloc.h"
 #include "dpo/main/client/omgr.h"
 #include "dpo/main/client/lckmgr.h"
 #include "dpo/main/client/hlckmgr.h"
@@ -24,7 +24,7 @@ Dpo::Init()
 		delete lckmgr_;
 		return -E_NOMEM;
 	}
-	if ((smgr_ = new StorageManager(ipc_)) == NULL) {
+	if ((salloc_ = new StorageAllocator(ipc_)) == NULL) {
 		delete omgr_;
 		delete hlckmgr_;
 		delete lckmgr_;
@@ -34,7 +34,7 @@ Dpo::Init()
 		delete omgr_;
 		delete hlckmgr_;
 		delete lckmgr_;
-		delete smgr_;
+		delete salloc_;
 		return -E_NOMEM;
 	}
 	return E_SUCCESS;
