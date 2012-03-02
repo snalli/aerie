@@ -83,7 +83,7 @@ namespace server {
 
 class NameContainer {
 public:
-	typedef dpo::containers::common::NameContainer::Object< ::server::Session> Object;
+	typedef dpo::containers::common::NameContainer::Object< ::dpo::server::DpoSession> Object;
 }; 
 
 

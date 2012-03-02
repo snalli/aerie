@@ -14,6 +14,7 @@ public:
 	static int Open(const char* path, StoragePool** pool);
 	static int Close(StoragePool* pool);
 	static int Identity(const char* path, uint64_t* identity);
+	uint64_t Identity() { return identity_; }
 
 	int AllocateExtent(uint64_t size, void** ptr);
 
@@ -29,6 +30,7 @@ private:
 	Header*           header_;
 	DynamicBitSet*    bitset_;
 	uint64_t          extents_base_;
+	uint64_t          identity_;
 };
 
 #endif // __STAMNOS_SAL_POOL_USER_H

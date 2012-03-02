@@ -10,6 +10,7 @@
 #include "client/fsomgr.h"
 #include "dpo/main/client/dpo.h"
 #include "dpo/main/client/stm.h"
+#include "dpo/main/client/salloc.h"
 #include "sal/pool/pool.h"
 #include "mfs/client/mfs.h"
 #include "pxfs/common/fs_protocol.h"
@@ -113,7 +114,9 @@ Client::Mount(const char* source,
 	if ((ret = StoragePool::Open(source, &pool)) < 0) {
 		return ret;
 	}
-
+	if ((ret = global_dpo_layer->salloc()->Load(pool)) < 0) {
+		return ret;
+	}
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {
 		return ret;
 	}

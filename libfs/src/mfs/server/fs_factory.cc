@@ -79,7 +79,6 @@ FileSystemFactory::Load(StoragePool* pool, int flags, ::server::FileSystem** fil
 	void*                                                                 b;
 	::server::Session*                                                    session = NULL; // we need no journaling and storage allocator
 	
-
 	if ((b = pool->root()) == 0) {
 		return -E_NOENT;
 	}

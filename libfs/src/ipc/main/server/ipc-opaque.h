@@ -7,7 +7,8 @@
 #define __STAMNOS_IPC_SERVER_IPC_OPAQUE_H
 
 namespace server {
-class Ipc;               
+class Ipc;
+class BaseSessionManager;
 } // namespace server
 
 

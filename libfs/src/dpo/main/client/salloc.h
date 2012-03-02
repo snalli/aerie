@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <typeinfo>
 #include "ipc/main/client/ipc-opaque.h"
+#include "sal/pool/pool.h"
 
 
 namespace client {
@@ -19,6 +20,7 @@ public:
 	StorageAllocator(::client::Ipc* ipc)
 		: ipc_(ipc)
 	{ }	
+	int Load(StoragePool* pool);
 
 	int AllocateRaw(::client::Session* session, size_t nbytes, void** ptr);
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
@@ -29,6 +31,7 @@ public:
 	int AllocateContainerVector(::client::Session* session);
 private:
 	::client::Ipc*  ipc_;
+	StoragePool*    pool_;
 };
 
 } // namespace client

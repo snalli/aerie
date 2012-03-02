@@ -23,10 +23,16 @@ class FileSystemFactory; // forward declaration
 class FileSystem;        // forward declaration
 class Session;           // forward declaration
 
+
+/**
+ * Each server supports a single file system instance.  
+ * We favor this for several reasons:
+ * 1. don't need extra layer of indirection to support multiple file system instances. 
+ * 2. better reliability as a fault in one file system doesn't affect others 
+ */
 class FileSystemManager {
 	typedef google::dense_hash_map<int, FileSystemFactory*> FileSystemFactoryMap;
 	typedef google::dense_hash_map<std::string, int>        FSTypeStrToIdMap;
-	typedef google::dense_hash_map<uint64_t, FileSystem*>   FileSystemMap;
 	
 public:
 	FileSystemManager(Ipc* ipc, dpo::server::Dpo* dpo);
@@ -36,8 +42,8 @@ public:
 	void Unregister(int type_id);
 	int CreateFileSystem(const char* target, int fs_type, size_t nblocks, size_t block_size, int flags); 
 	int CreateFileSystem(const char* target, const char* fs_type, size_t nblocks, size_t block_size, int flags); 
-	int MountFileSystem(Session* session, const char* source, const char* target, int fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
-	int MountFileSystem(Session* session, const char* source, const char* target, const char* fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
+	int MountFileSystem(int clt, const char* source, const char* target, int fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
+	int MountFileSystem(int clt, const char* source, const char* target, const char* fs_type, unsigned int flags, dpo::common::ObjectId* oid); 
 
 	class IpcHandlers {
 	public:
@@ -52,13 +58,13 @@ public:
 private:
 	int FSTypeStrToId(const char* fs_type);
 	
-	pthread_mutex_t       mutex_;
-	FileSystemFactoryMap  fs_factory_map_;
-	FSTypeStrToIdMap      fstype_str_to_id_map_;
-	Ipc*                  ipc_;
-	dpo::server::Dpo*     dpo_;
-	IpcHandlers           ipc_handlers_;
-	FileSystemMap         mounted_fs_map_;
+	pthread_mutex_t      mutex_;
+	FileSystemFactoryMap fs_factory_map_;
+	FSTypeStrToIdMap     fstype_str_to_id_map_;
+	Ipc*                 ipc_;
+	dpo::server::Dpo*    dpo_;
+	IpcHandlers          ipc_handlers_;
+	FileSystem*          mounted_fs_;
 };
 
 } // namespace server

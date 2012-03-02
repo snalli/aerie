@@ -26,7 +26,7 @@ Dpo::Init()
 		return -E_NOMEM;
 	}
 	hlckmgr_->Init();
-	if ((salloc_ = new StorageAllocator(ipc_, this)) == NULL) {
+	if ((salloc_ = new StorageAllocator(ipc_)) == NULL) {
 		delete hlckmgr_;
 		return -E_NOMEM;
 	}

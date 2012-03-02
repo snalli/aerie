@@ -5,8 +5,10 @@
 #include "ipc/ipc.h"
 #include "ipc/main/server/cltdsc.h"
 #include "dpo/main/server/dpo-opaque.h"
-#include "dpo/main/common/storage_protocol.h"
 #include "dpo/main/common/obj.h"
+#include "dpo/main/common/storage_protocol.h"
+#include "dpo/containers/set/container.h"
+#include "sal/pool/pool.h"
 
 namespace server {
 class Session;  // forward declaration
@@ -17,8 +19,6 @@ namespace dpo {
 namespace server {
 
 
-class StorageAllocatorManager; // forward declaration
-
 /**
  * \brief Allocates containers from a storage pool.
  * 
@@ -26,19 +26,18 @@ class StorageAllocatorManager; // forward declaration
  *
  */
 class StorageAllocator {
-friend class StorageAllocatorManager;
 public:
-	static int Open(const char* pathname, size_t size, int flags, StorageAllocator** salloc);
-	static int Close(StorageAllocator* salloc);
 
-	StorageAllocator(::server::Ipc* ipc, dpo::server::Dpo* dpo);
+	StorageAllocator(::server::Ipc* ipc);
 	int Init();
+	int Load(StoragePool* pool);
+	//static int Close(StorageAllocator* salloc);
 
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(::server::Session* session, size_t nbytes, std::type_info const& typid, void** ptr);
 	int AllocateRaw(::server::Session* session, size_t size, void** ptr);
 	int AllocateContainer(::server::Session* session, int type, int num);
-
+	
 	class IpcHandlers {
 	public:
 		int Register(StorageAllocator* salloc);
@@ -51,33 +50,16 @@ public:
 	}; 
 
 private:
-	// private interface for use by the StorageAllocatorManager to prevent accidental 
-	// construction of multiple storage allocators on top of a single storage pool
-	::server::Ipc*                ipc_;
-	dpo::server::Dpo*             dpo_;
-	StorageAllocator::IpcHandlers ipc_handlers_;
-	int descriptor_count_; // deprecated
+	::server::Ipc*                                                        ipc_;
+	StorageAllocator::IpcHandlers                                         ipc_handlers_;
+	pthread_mutex_t                                                       mutex_;
+	StoragePool*                                                          pool_;
+	dpo::containers::server::SetContainer<dpo::common::ObjectId>::Object* freeset_;
 };
-
-
-// holds per client storage session information
-struct StorageClientDescriptor: public ::server::ClientDescriptorTemplate<StorageClientDescriptor> {
-public:
-	StorageClientDescriptor() {
-		printf("StorageDescriptor: CONSTRUCTOR: %p\n", this);
-	}
-	int id;
-	int cap;
-	
-};
-
-
-
 
 
 } // namespace server
 } // namespace dpo
-
 
 
 #endif // __STAMNOS_DPO_MAIN_SERVER_ALLOCATOR_H

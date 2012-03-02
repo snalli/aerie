@@ -2,19 +2,18 @@
 #define __STAMNOS_FS_SERVER_SESSION_H
 
 #include "dpo/main/server/dpo.h"
+#include "dpo/main/server/session.h"
 
 namespace server {
 
-class Session {
+class Session: public dpo::server::DpoSession {
 public:
-	Session(dpo::server::Dpo* dpo)
-		: dpo_(dpo)
+	Session()
 	{ }
 
-	dpo::server::StorageAllocator* salloc() { return dpo_->salloc(); }
+	int Init(int clt, dpo::server::Dpo* dpo);
 
 private:
-	dpo::server::Dpo* dpo_;
 	int               acl;
 };
 

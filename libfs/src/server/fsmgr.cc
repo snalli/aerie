@@ -9,17 +9,19 @@
 #include "server/fs_factory.h"
 #include "server/fs.h"
 #include "server/session.h"
+#include "server/server.h"
+#include "server/sessionmgr.h"
 
 
 namespace server {
 
 FileSystemManager::FileSystemManager(Ipc* ipc, dpo::server::Dpo* dpo)
 	: ipc_(ipc),
-	  dpo_(dpo)
+	  dpo_(dpo),
+	  mounted_fs_(NULL)
 {
 	fs_factory_map_.set_empty_key(0);
 	fstype_str_to_id_map_.set_empty_key("");
-	mounted_fs_map_.set_empty_key(0);
 	pthread_mutex_init(&mutex_, NULL);
 }
 
@@ -117,24 +119,20 @@ FileSystemManager::CreateFileSystem(const char* target, const char* fs_type,
 }
 
 
-/**
- * \todo Currently we support a single storage pool per server so we ignore the 
- * source string. 
- */
 int 
-FileSystemManager::MountFileSystem(Session* session, const char* source, 
+FileSystemManager::MountFileSystem(int clt, const char* source, 
                                    const char* target, 
                                    int fs_type, unsigned int flags,
                                    dpo::common::ObjectId* oid) 
 {
 	FileSystemFactoryMap::iterator it;
 	FileSystemFactory*             fs_factory; 
-	FileSystemMap::iterator        it_fs;
 	FileSystem*                    fs;
 	dpo::common::ObjectId          tmp_oid;
 	int                            ret;
 	uint64_t                       identity;
 	StoragePool*                   pool;
+	Session*                       session;
 
 	pthread_mutex_lock(&mutex_);
 	
@@ -142,26 +140,38 @@ FileSystemManager::MountFileSystem(Session* session, const char* source,
 		goto done;
 	}
 	
-	// if the filesystem is not already loaded then load it, create a 
-	// file system object and put it in the list of mounted file systems
-	if ((it_fs = mounted_fs_map_.find(identity)) == mounted_fs_map_.end()) {
-		if ((it = fs_factory_map_.find(fs_type)) == fs_factory_map_.end()) {
+	if ((it = fs_factory_map_.find(fs_type)) == fs_factory_map_.end()) {
 			ret = -E_UNKNOWNFS;
+	}
+	fs_factory = it->second;
+
+	// if a filesystem is not already loaded then load it.
+	// we allow a single file system instance
+	if (mounted_fs_) {
+		if (mounted_fs_->pool_->Identity() == identity) {
+			fs = mounted_fs_;
+		} else {
+			ret = -E_NOTEMPTY;
 			goto done;
 		}
-		fs_factory = it->second;
+	} else {
 		if ((ret = StoragePool::Open(source, &pool)) < 0) {
 			goto done;
 		}
 		if ((ret = fs_factory->Load(pool, flags, &fs)) < 0) {
 			goto done;
 		}
-		mounted_fs_map_[identity] = fs;
-	} else {
-		fs = it_fs->second;
+		fs->pool_ = pool;
+		fs->salloc_ = dpo_->salloc();
+		if ((ret = fs->salloc_->Load(pool)) < 0) {
+			goto done;
+		}
 	}
 
-	// put the file system in the client's table of mounted file systems
+	if ((ret = Server::Instance()->session_manager()->Create(clt, &session)) < 0) {
+		return -ret;
+	}
+
 
 	*oid = fs->superblock();
 	ret = E_SUCCESS;
@@ -173,14 +183,14 @@ done:
 
 
 int 
-FileSystemManager::MountFileSystem(Session* session, const char* source, 
+FileSystemManager::MountFileSystem(int clt, const char* source, 
                                    const char* target, 
                                    const char* fs_type, unsigned int flags, 
                                    dpo::common::ObjectId* oid)
 {
 	int fs_type_id = FSTypeStrToId(fs_type);
 
-	return MountFileSystem(session, source, target, fs_type_id, flags, oid);
+	return MountFileSystem(clt, source, target, fs_type_id, flags, oid);
 }
 
 
@@ -232,13 +242,8 @@ FileSystemManager::IpcHandlers::MountFileSystem(unsigned int clt,
 {
 	int                   ret;
 	dpo::common::ObjectId tmp_oid;
-	Session*              session;
 	
-	//FIXME
-	//if ((ret = ipc_->CreateSession(clt, &session)) < 0) {
-	//	return -ret;
-	//}
-	if ((ret = module_->MountFileSystem(session, source.c_str(), target.c_str(), 
+	if ((ret = module_->MountFileSystem(clt, source.c_str(), target.c_str(), 
 	                                    fs_type.c_str(), flags, &tmp_oid)) < 0)	{
 		return -ret;
 	}

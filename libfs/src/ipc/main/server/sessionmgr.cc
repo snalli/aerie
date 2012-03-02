@@ -1,10 +1,8 @@
 #include "ipc/main/server/sessionmgr.h"
+#include "ipc/main/server/session.h"
+#include "common/errno.h"
 
-SessionManager::
-
-
-
-SessionManager::CreateSession(
+namespace server {
 
 
-
+} // namespace server

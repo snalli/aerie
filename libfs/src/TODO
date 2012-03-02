@@ -41,3 +41,7 @@ Storage Allocator Manager
 -handles IPC requests and forwards them to the proper storage allocator. 
 Remember, each cliene/filesystem paier is identified by a session. We can find the storage allocator by looking into the ssession. 
 
+
+------------------------
+
+Pregion should be built on top of a sparse storage pool 

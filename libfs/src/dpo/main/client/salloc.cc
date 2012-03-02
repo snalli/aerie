@@ -24,20 +24,18 @@ namespace client {
 //
 
 
+int 
+StorageAllocator::Load(StoragePool* pool) 
+{
+	pool_ = pool;
+	return E_SUCCESS;
+}
+
+
 int
 StorageAllocator::AllocateRaw(::client::Session* session, size_t nbytes, void** ptr)
 {
-	assert(0);
-	// FIXME
-	/*
-	ChunkDescriptor* achunkdsc[16];
-	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
-
-	chunk_store.CreateChunk(roundup_bytes, 0, &achunkdsc[0]);
-	*ptr = achunkdsc[0]->chunk_;
-
-	return 0;
-	*/
+	return pool_->AllocateExtent(nbytes, ptr);
 }
 
 
@@ -72,17 +70,7 @@ StorageAllocator::Alloc(::client::Session* session, size_t nbytes, std::type_inf
 int 
 StorageAllocator::AllocExtent(::client::Session* session, size_t nbytes, void** ptr)
 {
-	assert(0);
-	//FIXME
-	/*
-	ChunkDescriptor* achunkdsc[16];
-	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
-
-	chunk_store.CreateChunk(roundup_bytes, CHUNK_TYPE_EXTENT, &achunkdsc[0]);
-	*ptr = achunkdsc[0]->chunk_;
-
-	return 0;
-	*/
+	return pool_->AllocateExtent(nbytes, ptr);
 }
 
 

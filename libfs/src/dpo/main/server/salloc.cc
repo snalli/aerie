@@ -5,6 +5,7 @@
 #include "ipc/ipc.h"
 #include "dpo/main/common/storage_protocol.h"
 #include "dpo/containers/set/container.h"
+#include "dpo/containers/super/container.h"
 #include "ipc/main/server/cltdsc.h"
 #include "server/session.h"
 
@@ -30,18 +31,42 @@ private:
 
 };
 
+StorageAllocator::StorageAllocator(::server::Ipc* ipc)
+	: ipc_(ipc)
+{ 
+	pthread_mutex_init(&mutex_, NULL);
+}
 
-StorageAllocator::StorageAllocator(::server::Ipc* ipc, dpo::server::Dpo* dpo)
-	: ipc_(ipc),
-	  dpo_(dpo),
-	  descriptor_count_(0)
-{ }
+
+int 
+StorageAllocator::Load(StoragePool* pool) 
+{
+	void*                                                                 b;
+	dpo::containers::server::SuperContainer::Object*                      super_obj;
+	dpo::containers::server::SetContainer<dpo::common::ObjectId>::Object* set_obj;
+	
+	if ((b = pool->root()) == 0) {
+		return -E_NOENT;
+	}
+	if ((super_obj = dpo::containers::server::SuperContainer::Object::Load(b)) == NULL) {
+		return -E_NOMEM;
+	}
+	dpo::common::ObjectId freelist_oid = super_obj->freelist(NULL); // we don't need journaling
+	if ((set_obj = dpo::containers::server::SetContainer<dpo::common::ObjectId>::Object::Load(freelist_oid)) == NULL) {
+		return -E_NOMEM;
+	}
+	
+	pool_ = pool;
+	freeset_ = set_obj;
+	
+	return E_SUCCESS;
+}
 
 
 int
 StorageAllocator::Init()
 {
-	int                   ret;
+	int ret;
 
 	if (ipc_) {
 		return ipc_handlers_.Register(this);
@@ -163,23 +188,20 @@ StorageAllocator::AllocateContainer(::server::Session* session, int type, int nu
 }
 
 
-
-
 int
 StorageAllocator::IpcHandlers::Register(StorageAllocator* salloc)
 {
 	salloc_ = salloc;
     salloc_->ipc_->reg(::dpo::StorageProtocol::kAllocateContainer, this, 
-	                 &::dpo::server::StorageAllocator::IpcHandlers::AllocateContainer);
+	                   &::dpo::server::StorageAllocator::IpcHandlers::AllocateContainer);
     salloc_->ipc_->reg(::dpo::StorageProtocol::kAllocateContainerVector, this, 
-	                 &::dpo::server::StorageAllocator::IpcHandlers::AllocateContainerVector);
+	                   &::dpo::server::StorageAllocator::IpcHandlers::AllocateContainerVector);
 
 	return E_SUCCESS;
 }
 
 
 //FIXME: what do we return? a capability, a hint, oid?
-//StorageAllocator::AllocateContainer(int clt, int type, int num, ::dpo::StorageProtocol::Capability& cap)
 int 
 StorageAllocator::IpcHandlers::AllocateContainer(int clt, int type, int num, int& r)
 {
@@ -197,8 +219,8 @@ StorageAllocator::IpcHandlers::AllocateContainer(int clt, int type, int num, int
 
 int 
 StorageAllocator::IpcHandlers::AllocateContainerVector(int clt,
-                                                     std::vector< ::dpo::StorageProtocol::ContainerRequest> container_req_vec, 
-                                                     std::vector<int>& result)
+                                                              std::vector< ::dpo::StorageProtocol::ContainerRequest> container_req_vec, 
+                                                              std::vector<int>& result)
 {
 	std::vector< ::dpo::StorageProtocol::ContainerRequest>::iterator vit;
 	

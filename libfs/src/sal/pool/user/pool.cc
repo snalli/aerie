@@ -67,7 +67,7 @@ StoragePool::Open(const char* path, StoragePool** pool)
 	(*pool)->bitset_ = bitset;
 	bitset_npages = NumOfBlocks(bitset->Size(), kBlockSize);
 	(*pool)->extents_base_ = pregion->base() + bitset_npages * kBlockSize;
-	return E_SUCCESS;
+	return StoragePool::Identity(path, &((*pool)->identity_));
 }
 
 

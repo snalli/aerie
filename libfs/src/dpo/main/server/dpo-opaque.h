@@ -9,10 +9,10 @@
 
 namespace dpo {
 namespace server {
-class Dpo;               
-class Registry;          
-class ObjectManager;     
-class StorageAllocator;    
+class Dpo;
+class Registry;
+class ObjectManager;
+class StorageAllocator;
 } // namespace server
 } // namespace dpo
 

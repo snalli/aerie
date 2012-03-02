@@ -14,10 +14,13 @@ lib_sources = [
                '../dpo/main/server/lckmgr.cc',
                '../dpo/main/server/salloc.cc',
                '../dpo/main/server/registry.cc',
+               '../dpo/main/server/session.cc',
 	       '../dpo/containers/set/container-server.cc',
                'fsmgr.cc',
                'namespace.cc',
                'server.cc',
+	       'session.cc',
+	       'sessionmgr.cc'
               ]
 
 fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)

@@ -28,7 +28,7 @@ private:
 	::server::Ipc*                  ipc_;
 	dpo::cc::server::HLockManager*  hlckmgr_;
 	dpo::cc::server::LockManager*   lckmgr_;
-	StorageAllocator*                 salloc_;
+	StorageAllocator*               salloc_;
 	Registry*                       registry_;
 };
 

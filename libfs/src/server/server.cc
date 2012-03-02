@@ -4,13 +4,16 @@
 #include "ipc/main/server/ipc.h"
 #include "mfs/server/mfs.h"
 #include "server/fsmgr.h"
-//#include "server/session_factory.h"
+#include "server/sessionmgr.h"
 
 
 namespace server {
 
 Server* Server::instance_ = NULL;
 
+
+// this is not thread safe. Must be called at least once while single-threaded 
+// to ensure multiple threads won't race trying to construct the server instance
 Server*
 Server::Instance() 
 {
@@ -33,7 +36,7 @@ Server::Start(int port)
 	dpo_layer_->Init();
 
 	fsmgr_ = new ::server::FileSystemManager(ipc_layer_, dpo_layer_);
-	fsmgr_->Init();
+	assert(fsmgr_->Init() == E_SUCCESS);
 
 	//session_factory = new SessionFactory;
 
@@ -41,6 +44,9 @@ Server::Start(int port)
 	
 	// register statically known file system backends
 	mfs::server::RegisterBackend(fsmgr_);
+
+	sessionmgr_ = new SessionManager(ipc_layer_, dpo_layer_);
+	assert(sessionmgr_->Init() == E_SUCCESS);
 }
 
 } // namespace server

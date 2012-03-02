@@ -9,14 +9,22 @@
 #define __STAMNOS_PXFS_SERVER_FILE_SYSTEM_DESCRIPTOR_H
 
 #include "dpo/main/common/obj.h"
+#include "dpo/main/server/dpo-opaque.h"
+#include "sal/pool/pool.h"
 
 namespace server {
 
+class FileSystemManager; // forward declaration
+
 // describes a file system instance
 class FileSystem {
+friend class FileSystemManager;
 public:
 	virtual dpo::common::ObjectId superblock() = 0;
 
+private:
+	StoragePool*                   pool_;
+	dpo::server::StorageAllocator* salloc_; 
 };
 
 } // namespace server
