@@ -1,5 +1,6 @@
 #include "dpo/main/client/dpo.h"
 #include "common/errno.h"
+#include "sal/pool/pool.h"
 #include "dpo/main/client/salloc.h"
 #include "dpo/main/client/omgr.h"
 #include "dpo/main/client/lckmgr.h"
@@ -38,6 +39,25 @@ Dpo::Init()
 		return -E_NOMEM;
 	}
 	return E_SUCCESS;
+}
+
+
+int 
+Dpo::Open(const char* source, unsigned int flags)
+{
+	int ret;
+
+	if ((ret = StoragePool::Open(source, &pool_)) < 0) {
+		return E_SUCCESS;
+	}
+	return salloc_->Load(pool_);
+}
+
+
+int 
+Dpo::Close()
+{
+
 }
 
 

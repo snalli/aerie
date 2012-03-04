@@ -277,52 +277,12 @@ myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     ]
 ))
 
-
-
-
-#
-# OBJECT/CONTAINER TESTS
-#
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'Object:Test',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'Object:Test')]),
-        'C2': ( testProgram, [('T1', 'Object:Test')])
-    },
-    rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
-                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
-                  ('C1:T1:End:block', 'C2:T1:End:block'),
-    ]
-))
-
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'ContainersNameContainer:Test',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/dpo/init-obj.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'ContainersNameContainer:Test')]),
-        'C2': ( testProgram, [('T1', 'ContainersNameContainer:Test')])
-    },
-    rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
-                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
-                  ('C1:T1:End:block', 'C2:T1:End:block'),
-    ]
-))
-
-
-
 import test.integration.dpo.stm
 import test.integration.dpo.registry
 import test.integration.dpo.storage
+import test.integration.dpo.obj
 
 test.integration.dpo.stm.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
 test.integration.dpo.registry.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
 test.integration.dpo.storage.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.dpo.obj.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)

@@ -93,16 +93,16 @@ FileSystemManager::CreateFileSystem(const char* target, int fs_type,
 	}
 	fs_factory = it->second;
 
-	if ((ret = StoragePool::Open(target, &pool)) < 0) {
+	if ((ret = dpo_->Make(target, flags)) < 0) {
 		goto done;
 	}
-	if ((ret = fs_factory->Make(pool, nblocks, block_size, flags)) < 0) {
-		StoragePool::Close(pool);
+	if ((ret = fs_factory->Make(dpo_, nblocks, block_size, flags)) < 0) {
+		dpo_->Close();
 		goto done;
 	}
-	StoragePool::Close(pool);
-	ret =  E_SUCCESS;
+	dpo_->Close();
 
+	ret =  E_SUCCESS;
 done:
 	pthread_mutex_unlock(&mutex_);
 	return ret;
@@ -147,23 +147,19 @@ FileSystemManager::MountFileSystem(int clt, const char* source,
 
 	// if a filesystem is not already loaded then load it.
 	// we allow a single file system instance
-	if (mounted_fs_) {
-		if (mounted_fs_->pool_->Identity() == identity) {
+	if (dpo_->pool()) {
+		if (dpo_->pool()->Identity() == identity) {
 			fs = mounted_fs_;
 		} else {
 			ret = -E_NOTEMPTY;
 			goto done;
 		}
 	} else {
-		if ((ret = StoragePool::Open(source, &pool)) < 0) {
+		if ((ret = dpo_->Load(source, flags)) < 0) {
 			goto done;
 		}
-		if ((ret = fs_factory->Load(pool, flags, &fs)) < 0) {
-			goto done;
-		}
-		fs->pool_ = pool;
-		fs->salloc_ = dpo_->salloc();
-		if ((ret = fs->salloc_->Load(pool)) < 0) {
+		if ((ret = fs_factory->Load(dpo_, flags, &fs)) < 0) {
+			dpo_->Close();
 			goto done;
 		}
 	}
@@ -171,7 +167,6 @@ FileSystemManager::MountFileSystem(int clt, const char* source,
 	if ((ret = Server::Instance()->session_manager()->Create(clt, &session)) < 0) {
 		return -ret;
 	}
-
 
 	*oid = fs->superblock();
 	ret = E_SUCCESS;

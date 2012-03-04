@@ -39,6 +39,14 @@ StorageAllocator::StorageAllocator(::server::Ipc* ipc)
 
 
 int 
+StorageAllocator::Make(StoragePool* pool)
+{
+
+
+}
+
+
+int 
 StorageAllocator::Load(StoragePool* pool) 
 {
 	void*                                                                 b;

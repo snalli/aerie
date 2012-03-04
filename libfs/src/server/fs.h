@@ -23,8 +23,7 @@ public:
 	virtual dpo::common::ObjectId superblock() = 0;
 
 private:
-	StoragePool*                   pool_;
-	dpo::server::StorageAllocator* salloc_; 
+	dpo::server::Dpo* dpo_;
 };
 
 } // namespace server

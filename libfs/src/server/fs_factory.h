@@ -12,8 +12,8 @@ class FileSystem;  // forward declaration
 
 class FileSystemFactory {
 public:
-	virtual int Make(StoragePool* pool, size_t nblocks, size_t block_size, int flags) = 0;
-	virtual int Load(StoragePool* pool, int flags, FileSystem** filesystem) = 0;
+	virtual int Make(dpo::server::Dpo* dpo, size_t nblocks, size_t block_size, int flags) = 0;
+	virtual int Load(dpo::server::Dpo* dpo, int flags, FileSystem** filesystem) = 0;
 	virtual int TypeID() = 0;
 	virtual std::string TypeStr() = 0;
 };

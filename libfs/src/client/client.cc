@@ -111,6 +111,7 @@ Client::Mount(const char* source,
 	if (ret > 0) {
 		return -ret;
 	}
+	//FIXME: call the Dpo::Open
 	if ((ret = StoragePool::Open(source, &pool)) < 0) {
 		return ret;
 	}

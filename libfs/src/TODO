@@ -1,3 +1,22 @@
+Each server should only support a single file system type and instance.
+This enables to:
+1) avoid indirection overheads to support multiple file systems
+2) can use static polymorphism through C++ templates to modularize the implementation of the storage system
+3) better reliability as a fault in one file system code does not cause a fault in another. 
+drawbacks:
+4) copy between two filesystems cannot be done in a single address space. well, actually, this can be done by sharing data/metadata via shared memory.
+
+DPO layer 
+---------
+server side: supports a single storage system; currently we go through two init steps: create dpo layer (lock manager) and then load the storage pool and storage allocator. 
+it would be better if we could just create the dpo layer once when we mount the storage system to avoid this confusing initialization:
+mount could be done once the server loads (user provides the path to the pool in an environment variable or via command line)
+
+client side: we would like to support multiple file systems as a client might simultaneously want to mount multiple filesystems.
+currently the dpo layer does not support multiple file systems: we need to fix initialization of the lock managers, storage pool to be done when we open/load the storage system
+
+====
+
 we need a session manager in the IPC layer. 
 Session structure is organized using inheritance:
 IpcSession <- DpoSession <- PxfsSession

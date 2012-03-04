@@ -13,7 +13,6 @@
 #include "dpo/main/client/registry.h"
 #include "dpo/main/client/omgr.h"
 #include "dpo/main/client/salloc.h"
-#include "sal/pool/pool.h"
 #include "test/integration/ipc/ipc.fixture.h"
 #include "lock.fixture.h"
 
@@ -26,6 +25,7 @@ struct ObjectFixture: public LockRegionFixture, IPCFixture {
 	
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
+			global_dpo_layer->Close();
 			delete global_dpo_layer;
 		}
 	};
@@ -37,9 +37,7 @@ struct ObjectFixture: public LockRegionFixture, IPCFixture {
 			global_dpo_layer = new dpo::client::Dpo(global_ipc_layer);
 			global_dpo_layer->Init();
 			session = new Session(global_dpo_layer);
-			StoragePool* pool;
-			assert(StoragePool::Open("/tmp/stamnos_pool", &pool) == 0);
-			assert(global_dpo_layer->salloc()->Load(pool) == 0);
+			assert(global_dpo_layer->Open("/tmp/stamnos_pool", 0) == 0);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

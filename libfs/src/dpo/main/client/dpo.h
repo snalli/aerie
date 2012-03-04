@@ -3,7 +3,7 @@
 
 #include "ipc/main/client/ipc-opaque.h"
 #include "dpo/main/client/dpo-opaque.h"
-
+#include "sal/pool/pool.h"
 
 namespace dpo {
 namespace client {
@@ -25,9 +25,13 @@ public:
 	ObjectManager* omgr() { return omgr_; }
 	Registry* registry() { return registry_; }
 
+	int Open(const char* source, unsigned int flags);
+	int Close();
+
 private:
 	::client::Ipc*                  ipc_;
-	StorageAllocator*                 salloc_;
+	StoragePool*                    pool_;
+	StorageAllocator*               salloc_;
 	ObjectManager*                  omgr_;
 	Registry*                       registry_;
 	dpo::cc::client::HLockManager*  hlckmgr_;

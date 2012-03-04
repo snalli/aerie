@@ -31,6 +31,7 @@ public:
 	StorageAllocator(::server::Ipc* ipc);
 	int Init();
 	int Load(StoragePool* pool);
+	int Make(StoragePool* pool);
 	//static int Close(StorageAllocator* salloc);
 
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
