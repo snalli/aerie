@@ -37,3 +37,14 @@ def addIntegrationTests(env, root_dir, testProgram, serverProgram):
                       ('C1:T1:End:block', 'C2:T1:End:block'),
         ]
     ))
+
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'Object:TestAlloc',
+        init_script = os.path.join(root_dir, 'test/integration/dpo/init-obj.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'Object:TestAlloc')]),
+        },
+        rendezvous = [
+        ]
+    ))

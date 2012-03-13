@@ -26,12 +26,12 @@ template<typename Session>
 class Object: public dpo::cc::common::Object {
 public:
 	static Object* Make(Session* session) {
-		void* ptr;
+		dpo::common::ObjectId oid;
 		
-		if (session->salloc_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
-			dbg_log(DBG_ERROR, "No storage available");
+		if (session->salloc_->AllocateContainer(session, T_NAME_CONTAINER, &oid) < 0) {
+			dbg_log(DBG_ERROR, "No storage available\n");
 		}
-		return new(ptr) Object();
+		return Load(oid);
 	}
 
 	static Object* Make(Session* session, volatile char* ptr) {

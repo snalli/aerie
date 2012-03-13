@@ -2,6 +2,7 @@
 #define __STAMNOS_IPC_SERVER_SESSION_H
 
 #include "ipc/main/server/ipc.h"
+#include "ipc/main/server/cltdsc.h"
 
 namespace server {
 
@@ -17,10 +18,12 @@ class BaseSession {
 class IpcSession: public BaseSession {
 public:
 
-	int Init(int clt, Ipc* ipc);
+	int Init(int clt);
+	int clt() { return cltdsc_->clt(); }
 
 protected:
-	Ipc* ipc_;
+	Ipc*              ipc_;
+	ClientDescriptor* cltdsc_;
 };
 
 

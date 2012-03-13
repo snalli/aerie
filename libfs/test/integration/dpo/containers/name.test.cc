@@ -17,6 +17,7 @@ static dpo::common::ObjectId OID[16];
 
 typedef dpo::containers::client::NameContainer NameContainer;
 
+static const char* storage_pool_path = "/tmp/stamnos_pool";
 
 SUITE(ContainersNameContainer)
 {
@@ -24,6 +25,11 @@ SUITE(ContainersNameContainer)
 	{
 		dpo::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);

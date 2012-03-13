@@ -2,6 +2,7 @@
 #define __STAMNOS_DPO_STORAGE_PROTOCOL_H
 
 #include "ipc/ipc.h"
+#include "dpo/main/common/obj.h"
 
 namespace dpo {
 
@@ -15,7 +16,7 @@ public:
 	
 	class ContainerRequest;
 
-	class Capability;
+	class ContainerReply;
 };
 
 
@@ -27,12 +28,10 @@ public:
 };
 
 
-class StorageProtocol::Capability {
+class StorageProtocol::ContainerReply {
 public:
-	
-private:
-	int id;
-
+	int                     index; // capability index
+	::dpo::common::ObjectId oid;
 }; 
 
 
@@ -55,5 +54,20 @@ inline unmarshall& operator>>(unmarshall &u, ::dpo::StorageProtocol::ContainerRe
 	u >> req.num;
 	return u;
 }
+
+
+inline marshall& operator<<(marshall &m, ::dpo::StorageProtocol::ContainerReply& val) {
+	m << (unsigned int) val.index;
+	m << val.oid;
+	return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, ::dpo::StorageProtocol::ContainerReply& val) {
+	u >> val.index;
+	u >> val.oid;
+	return u;
+}
+
 
 #endif // __STAMNOS_DPO_STORAGE_PROTOCOL_H

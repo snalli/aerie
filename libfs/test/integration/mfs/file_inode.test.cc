@@ -17,6 +17,8 @@ static dpo::common::ObjectId OID[16];
 
 typedef dpo::containers::client::ByteContainer ByteContainer;
 
+static const char* storage_pool_path = "/tmp/stamnos_pool";
+
 SUITE(MFSFileInode)
 {
 	TEST_FIXTURE(ObjectFixture, TestWrite1)
@@ -26,6 +28,11 @@ SUITE(MFSFileInode)
 		dpo::common::ObjectProxyReference* rw_ref;
 		ByteContainer::Reference*          rw_reft;
 		::mfs::client::FileInode*          finode;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 
 		EVENT("BeforeMapObjects");
@@ -54,6 +61,11 @@ SUITE(MFSFileInode)
 		dpo::common::ObjectProxyReference* rw_ref;
 		ByteContainer::Reference*          rw_reft;
 		::mfs::client::FileInode*          finode;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 
 		EVENT("BeforeMapObjects");

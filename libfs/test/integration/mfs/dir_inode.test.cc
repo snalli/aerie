@@ -19,6 +19,7 @@ static dpo::common::ObjectId OID[16];
 
 typedef dpo::containers::client::NameContainer NameContainer;
 
+static const char* storage_pool_path = "/tmp/stamnos_pool";
 
 SUITE(MFSDirInode)
 {
@@ -28,6 +29,11 @@ SUITE(MFSDirInode)
 		::dpo::common::ObjectProxyReference* rw_ref;
 		::NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*             cinode;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		/* foo */
 		CHECK(global_dpo_layer->omgr()->GetObject(session, OID[2], &rw_ref) == E_SUCCESS);
@@ -51,6 +57,11 @@ SUITE(MFSDirInode)
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           cinode;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
@@ -82,6 +93,11 @@ SUITE(MFSDirInode)
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           cinode;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
@@ -118,6 +134,11 @@ SUITE(MFSDirInode)
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           child1;
 
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
@@ -153,6 +174,11 @@ SUITE(MFSDirInode)
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
@@ -182,6 +208,11 @@ SUITE(MFSDirInode)
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           child1;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
@@ -220,6 +251,11 @@ SUITE(MFSDirInode)
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
@@ -248,6 +284,11 @@ SUITE(MFSDirInode)
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           child1;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
@@ -279,6 +320,11 @@ SUITE(MFSDirInode)
 		dpo::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);

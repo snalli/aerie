@@ -9,11 +9,10 @@ namespace dpo {
 namespace containers {
 namespace client {
 
-
+template<typename T>
 class SetContainer {
 public:
-	//typedef dpo::containers::common::SetContainer::Object< ::client::Session>   Object;
-
+	typedef typename dpo::containers::common::SetContainer<T>::template Object< ::client::Session>  Object;
 	
 };
 

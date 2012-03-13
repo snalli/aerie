@@ -7,9 +7,9 @@
 namespace server {
 
 int 
-Session::Init(int clt, dpo::server::Dpo* dpo) 
+Session::Init(int clt) 
 {
-	dpo::server::DpoSession::Init(clt, dpo);
+	dpo::server::DpoSession::Init(clt);
 	return E_SUCCESS;
 }
 

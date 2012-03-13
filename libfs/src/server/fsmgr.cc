@@ -162,6 +162,7 @@ FileSystemManager::MountFileSystem(int clt, const char* source,
 			dpo_->Close();
 			goto done;
 		}
+		mounted_fs_ = fs;
 	}
 
 	if ((ret = Server::Instance()->session_manager()->Create(clt, &session)) < 0) {
@@ -213,7 +214,6 @@ FileSystemManager::IpcHandlers::CreateFileSystem(unsigned int clt,
 {
 	int                   ret;
 	dpo::common::ObjectId tmp_oid;
-	Session*              session;
 	
 	if ((ret = module_->CreateFileSystem(target.c_str(), fs_type.c_str(), 
 	                                     nblocks, block_size, (int) flags)) < 0) {

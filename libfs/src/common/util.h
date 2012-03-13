@@ -22,6 +22,12 @@ inline int NumOfBlocks(size_t size, size_t block_size)
 }
 
 
+inline int RoundUpSize(size_t size, size_t multiple_size)
+{
+	return ((size / multiple_size) + 1) * multiple_size;
+}
+
+
 static size_t
 StringToSize(const char* cstr)
 {

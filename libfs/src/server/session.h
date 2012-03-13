@@ -3,15 +3,19 @@
 
 #include "dpo/main/server/dpo.h"
 #include "dpo/main/server/session.h"
+#include "ipc/main/server/ipc.h"
 
 namespace server {
 
 class Session: public dpo::server::DpoSession {
 public:
-	Session()
-	{ }
+	Session(Ipc* ipc, dpo::server::Dpo* dpo)
+	{ 
+		ipc_ = ipc;
+		dpo_ = dpo;
+	}
 
-	int Init(int clt, dpo::server::Dpo* dpo);
+	int Init(int clt);
 
 private:
 	int               acl;

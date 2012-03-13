@@ -14,6 +14,8 @@ public:
 		  rpcc_(rpccl)
 	{ }
 	
+	int clt() { return clt_; }
+
 	RPC_CALL(rpcc_, rpcc::to_max)
 
 protected:

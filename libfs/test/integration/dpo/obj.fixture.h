@@ -16,6 +16,9 @@
 #include "test/integration/ipc/ipc.fixture.h"
 #include "lock.fixture.h"
 
+#include "client/fsomgr.h"
+#include "mfs/client/mfs.h"
+
 using namespace client;
 
 struct ObjectFixture: public LockRegionFixture, IPCFixture {
@@ -36,7 +39,17 @@ struct ObjectFixture: public LockRegionFixture, IPCFixture {
 		if (!initialized) {
 			global_dpo_layer = new dpo::client::Dpo(global_ipc_layer);
 			global_dpo_layer->Init();
+			
+
 			session = new Session(global_dpo_layer);
+			global_session = session;
+
+			// HACK: initialize state needed by the file system;
+			global_namespace = new NameSpace("GLOBAL");
+			assert(global_namespace->Init(global_session) == 0);
+			global_fsomgr = new FileSystemObjectManager();
+			mfs::client::RegisterBackend(global_fsomgr);
+
 			assert(global_dpo_layer->Open("/tmp/stamnos_pool", 0) == 0);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 

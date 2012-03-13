@@ -43,6 +43,7 @@ private:
 	dpo::containers::server::SuperContainer::Object*  super_obj_;
 };
 
+
 } // namespace server
 } // namespace dpo
 

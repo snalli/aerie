@@ -15,7 +15,9 @@ extern "C" {
 	ACTION(rpc)                                             \
 	ACTION(client_lckmgr)                                   \
 	ACTION(client_hlckmgr)                                  \
-	ACTION(client_omgr)  
+	ACTION(client_omgr)                                     \
+	ACTION(client_salloc)                                   \
+	ACTION(server_salloc)  
 
 
 #define ACTION(name)                                        \

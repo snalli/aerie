@@ -18,7 +18,7 @@ class Object: public dpo::cc::common::Object {
 public:
 	static Object* Make(Session* session, volatile char* b) {
 		//TODO: Initialize
-		return new (b) Object();
+		return new ((void*) b) Object();
 	}
 
 	static Object* Load(dpo::common::ObjectId oid) {

@@ -13,6 +13,7 @@ class Dpo;
 class Registry;
 class ObjectManager;
 class StorageAllocator;
+class DpoSession;
 } // namespace server
 } // namespace dpo
 

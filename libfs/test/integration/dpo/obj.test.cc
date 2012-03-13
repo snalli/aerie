@@ -8,6 +8,7 @@
 #include "dpo/main/client/rwproxy.h"
 #include "dpo/main/client/omgr.h"
 #include "dpo/main/client/salloc.h"
+#include "dpo/containers/typeid.h"
 #include "client/client_i.h"
 #include "client/libfs.h"
 #include "obj.fixture.h"
@@ -19,6 +20,7 @@
 
 using namespace client;
 
+const char* storage_pool_path = "/tmp/stamnos_pool";
 
 // Object
 class Dummy: public dpo::cc::common::Object {
@@ -37,7 +39,7 @@ public:
     {
 		void* ptr;
 
-        if (session->salloc_->AllocExtent(session, sizeof(Dummy), &ptr) < 0) {
+        if (session->salloc_->AllocateExtent(session, sizeof(Dummy), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
         return new(ptr) Dummy();
@@ -83,6 +85,7 @@ typedef dpo::client::rw::ObjectProxyReference<Dummy, DummyVersionManager> DummyR
 
 static dpo::common::ObjectId OID[16];
 
+
 SUITE(Object)
 {
 	TEST_FIXTURE(ObjectFixture, Test)
@@ -110,5 +113,17 @@ SUITE(Object)
 		dummy_rw_ref->proxy()->Unlock(session);
 		EVENT("AfterLock");
 		EVENT("End");
+	}
+	
+	TEST_FIXTURE(ObjectFixture, TestAlloc)
+	{
+		dpo::common::ObjectProxyReference* ref;
+		dpo::common::ObjectId              oid;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the dpo layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK(global_dpo_layer->salloc()->AllocateContainer(session, dpo::containers::T_NAME_CONTAINER, &oid) == E_SUCCESS);
 	}
 }

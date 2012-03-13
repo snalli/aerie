@@ -15,6 +15,9 @@
 namespace dpo {
 namespace common {
 
+const int kObjectAlignSizeShift = 6;
+const int kObjectAlignSize = 1 << kObjectAlignSizeShift;
+
 // 0 is invalid value for type ObjectType
 typedef uint16_t ObjectType;
 
@@ -118,6 +121,7 @@ protected:
 	ObjectType type_;  //!< Magic number identifying object type
 	int        nlink_; //!< Number of containers linking to this container
 };
+
 
 
 } // namespace common

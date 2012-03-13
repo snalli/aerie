@@ -3,8 +3,10 @@
 #include <typeinfo>
 #include <vector>
 #include "common/errno.h"
+#include "common/debug.h"
 #include "ipc/ipc.h"
 #include "dpo/main/common/storage_protocol.h"
+#include "dpo/containers/set/container.h"
 #include "client/session.h"
 
 
@@ -33,7 +35,7 @@ StorageAllocator::Load(StoragePool* pool)
 
 
 int
-StorageAllocator::AllocateRaw(::client::Session* session, size_t nbytes, void** ptr)
+StorageAllocator::AllocateExtent(::client::Session* session, size_t nbytes, void** ptr)
 {
 	return pool_->AllocateExtent(nbytes, ptr);
 }
@@ -68,28 +70,45 @@ StorageAllocator::Alloc(::client::Session* session, size_t nbytes, std::type_inf
 
 
 int 
-StorageAllocator::AllocExtent(::client::Session* session, size_t nbytes, void** ptr)
+StorageAllocator::AllocateContainer(::client::Session* session, int type, dpo::common::ObjectId* ret_oid)
 {
-	return pool_->AllocateExtent(nbytes, ptr);
-}
+	int                                                                   ret;
+	::dpo::StorageProtocol::ContainerReply                                reply;
+	dpo::containers::client::SetContainer<dpo::common::ObjectId>::Object* set_obj;
+	dpo::common::ObjectId                                                 set_oid;
+	dpo::common::ObjectId                                                 oid;
+	ObjectIdSet*                                                          freeset;
+	ObjectIdSet::iterator                                                 it;
 
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
+	        "[%d] Allocate container of type %d\n", ipc_->id(), type);
 
-int 
-StorageAllocator::AllocateContainer(::client::Session* session)
-{
-	int ret;
-	int r;
-
-	int type = 1;
-	int num = 2;
-
-	if ((ret = ipc_->call(dpo::StorageProtocol::kAllocateContainer, 
-	                      ipc_->id(), type, num, r)) < 0) {
-		return ret;
-	} else if (ret > 0) {
-		return -ret;
+	if (freeset_[type] && freeset_[type]->size() > 0) {
+		freeset = freeset_[type];
+	} else {
+		if ((ret = ipc_->call(dpo::StorageProtocol::kAllocateContainer, 
+							  ipc_->id(), type, 8, reply)) < 0) {
+			return ret;
+		} else if (ret > 0) {
+			return -ret;
+		}
+		set_oid = reply.oid;
+		if ((set_obj = dpo::containers::client::SetContainer<dpo::common::ObjectId>::Object::Load(set_oid)) == NULL) {
+            return -1;
+        } 
+		if ((freeset = freeset_[type]) == NULL) {
+			freeset = freeset_[type] = new ObjectIdSet();
+			freeset->set_empty_key(dpo::common::ObjectId(0));
+			freeset->set_deleted_key(dpo::common::ObjectId(1));
+		}
+		for (int i=0; i<set_obj->Size(); i++) {
+			set_obj->Read(session, i, &oid);
+			freeset->insert(oid);
+		}
 	}
-	
+	it = freeset->begin();
+	*ret_oid = *it;
+	freeset->erase(it);
 	return E_SUCCESS;
 }
 
@@ -117,7 +136,6 @@ StorageAllocator::AllocateContainerVector(::client::Session* session)
 		printf("%d\n", *rvi);
 	}
 }
-
 
 
 } // namespace client

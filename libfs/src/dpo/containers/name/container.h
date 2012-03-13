@@ -16,7 +16,9 @@
 #include "dpo/containers/name/common.h"
 #include "dpo/main/client/session.h"
 #include "dpo/main/server/session.h"
-#include "dpo/main/common/obj.h"
+#include "dpo/main/client/obj.h"
+#include "dpo/main/server/obj.h"
+#include "dpo/main/server/container.h"
 #include "dpo/main/client/rwproxy.h"
 
 //TODO: Optimistic Read-only proxy: enables faster access for read-only.
@@ -75,7 +77,6 @@ private:
 
 
 
-
 namespace dpo {
 namespace containers {
 namespace server {
@@ -84,6 +85,13 @@ namespace server {
 class NameContainer {
 public:
 	typedef dpo::containers::common::NameContainer::Object< ::dpo::server::DpoSession> Object;
+	
+	//class Factory: public ::dpo::server::ContainerFactory {
+	class Factory: public ::dpo::server::ContainerFactory<NameContainer> {
+	public:
+		//::dpo::common::Object* Make(::dpo::server::DpoSession* session, char* b);
+		//int StaticSize();
+	};
 }; 
 
 

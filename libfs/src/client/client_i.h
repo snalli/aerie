@@ -9,13 +9,15 @@
 
 namespace client {
 
-class FileManager; // forward declaration
+class FileManager;              // forward declaration
+class FileSystemObjectManager;  // forward declaration
 
 extern NameSpace*          global_namespace;
 extern FileManager*        global_fmgr;
 extern Session*            global_session;
 extern Ipc*                global_ipc_layer;        
 extern dpo::client::Dpo*   global_dpo_layer;
+extern FileSystemObjectManager* global_fsomgr;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;

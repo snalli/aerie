@@ -29,7 +29,7 @@ public:
 	static Object* Make(Session* session) {
 		void* ptr;
 		
-		if (session->salloc_->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
+		if (session->salloc_->AllocateExtent(session, sizeof(Object), &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return new(ptr) Object();

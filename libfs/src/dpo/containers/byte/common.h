@@ -41,16 +41,16 @@ template<typename Session>
 class Object: public dpo::cc::common::Object {
 public:
 	static Object* Make(Session* session) {
-		void* ptr;
+		dpo::common::ObjectId oid;
 		
-		if (session->salloc()->AllocateRaw(session, sizeof(Object), &ptr) < 0) {
-			dbg_log(DBG_ERROR, "No storage available");
+		if (session->salloc_->AllocateContainer(session, T_BYTE_CONTAINER, &oid) < 0) {
+			dbg_log(DBG_ERROR, "No storage available\n");
 		}
-		return new(ptr) Object();
+		return Load(oid);
 	}
 
 	static Object* Make(Session* session, volatile char* ptr) {
-		return new(ptr) Object();
+		return new((void*) ptr) Object();
 	}
 
 	static Object* Load(dpo::common::ObjectId oid) {
@@ -767,8 +767,8 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	}	
 	if (*slot == (void*)0) {
 		void* ptr;
-		if ((ret = session->salloc()->AllocateRaw(session, 
-		                                        dpo::common::BLOCK_SIZE, &ptr)) < 0)
+		if ((ret = session->salloc()->AllocateExtent(session, 
+		                                             dpo::common::BLOCK_SIZE, &ptr)) < 0)
 		{ 
 			return ret;
 		}

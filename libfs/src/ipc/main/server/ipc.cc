@@ -1,5 +1,6 @@
 #include "ipc/main/server/ipc.h"
 #include "ipc/main/common/ipc_protocol.h"
+#include "ipc/main/server/sessionmgr.h"
 #include "common/errno.h"
 
 namespace server {
@@ -8,6 +9,7 @@ Ipc::Ipc(int port)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	rpcs_ = new rpcs(port);
+	sessionmgr_ = new BaseSessionManager();
 }
 
 

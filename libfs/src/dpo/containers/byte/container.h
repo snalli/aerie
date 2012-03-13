@@ -11,10 +11,13 @@
 #include <typeinfo>
 #include "common/debug.h"
 #include "common/util.h"
-#include "client/session.h"
+#include "dpo/main/client/session.h"
+#include "dpo/main/server/session.h"
 #include "dpo/main/client/rwproxy.h"
 #include "dpo/containers/byte/common.h"
 #include "dpo/main/common/obj.h"
+#include "dpo/main/server/obj.h"
+#include "dpo/main/server/container.h"
 
 class IntervalTree; // forward declaration
 
@@ -60,9 +63,28 @@ private:
 };
 
 
-
 } // namespace client
 } // namespace containers
 } // namespace dpo
+
+
+namespace dpo {
+namespace containers {
+namespace server {
+
+
+class ByteContainer {
+public:
+	typedef dpo::containers::common::ByteContainer::Object< ::dpo::server::DpoSession> Object;
+	
+	class Factory: public ::dpo::server::ContainerFactory<ByteContainer> {
+	};
+}; 
+
+
+} // namespace server
+} // namespace containers
+} // namespace dpo
+
 
 #endif // __STAMNOS_DPO_BYTE_CONTAINER_PROXY_H
