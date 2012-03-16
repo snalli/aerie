@@ -26,8 +26,8 @@
  * Vista library, version 0.6.1, September 2000
  */
 
-#ifndef __STAMNOS_SAL_VISTAHEAP_H
-#define __STAMNOS_SAL_VISTAHEAP_H
+#ifndef __STAMNOS_SPA_VISTAHEAP_H
+#define __STAMNOS_SPA_VISTAHEAP_H
 
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -74,4 +74,4 @@ extern void* morecore(VistaHeap* h, int pages);
 }
 #endif
 
-#endif // __STAMNOS_SAL_VISTAHEAP_H
+#endif // __STAMNOS_SPA_VISTAHEAP_H

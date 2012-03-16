@@ -1,4 +1,4 @@
-#include "sal/pregion/pregion.h"
+#include "spa/pregion/pregion.h"
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/file.h>
@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
-#include "sal/const.h"
+#include "spa/const.h"
 #include "common/errno.h"
 #include "common/util.h"
 

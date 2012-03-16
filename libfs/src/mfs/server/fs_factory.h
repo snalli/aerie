@@ -6,7 +6,7 @@
 #include "server/session.h"
 #include "dpo/main/server/dpo-opaque.h"
 #include "dpo/main/common/obj.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 #include "common/const.h"
 
 namespace mfs {

@@ -7,8 +7,8 @@
 #include "dpo/containers/super/container.h"
 #include "dpo/containers/name/container.h"
 #include "dpo/containers/set/container.h"
-#include "sal/pool/pool.h"
-#include "sal/const.h"
+#include "spa/pool/pool.h"
+#include "spa/const.h"
 
 namespace dpo {
 namespace server {

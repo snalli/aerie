@@ -23,13 +23,12 @@ Export('testEnv')
 thedir = os.path.join(Dir('#').abspath, 'test/unit')
 dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
 
-Import('salLibrary')
+Import('spaLibrary')
 Import('fscLibrary')
 Import('mfsClientLibrary')
 Import('commonLibrary')
-Import('salLibrary')
 Import('ipcClientLibrary')
-depLibs = [mfsClientLibrary, salLibrary, fscLibrary, ipcClientLibrary, salLibrary, commonLibrary]
+depLibs = [mfsClientLibrary, spaLibrary, fscLibrary, ipcClientLibrary, commonLibrary]
 
 source = [Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), 'main.cc']
 source += [Glob('*/*/*.test.cc'), Glob('*/*/*.fixture.cc'), Glob('*/*/*.helper.cc')]

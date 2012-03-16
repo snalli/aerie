@@ -4,15 +4,15 @@
  * The pool is implemented on top of a persistent region. 
  */
 
-#include "sal/pool/user/pool_i.h"
+#include "spa/pool/user/pool_i.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <assert.h>
 #include <stdint.h>
 #include <errno.h>
-#include "sal/pregion/pregion.h"
-#include "sal/const.h"
+#include "spa/pregion/pregion.h"
+#include "spa/const.h"
 #include "common/util.h"
 #include "common/bitset.h"
 #include "common/errno.h"

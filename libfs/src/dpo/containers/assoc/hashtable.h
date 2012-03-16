@@ -958,5 +958,6 @@ HashTable<Session>::Print()
 	}	
 }
 
+#undef volatile 
 
 #endif // __STAMNOS_DPO_COMMON_HASHTABLE_H 

@@ -6,7 +6,7 @@
 namespace dpo {
 namespace client {
 
-#define __STAMNOS_DPO_CLIENT_STORAGE_MANAGER_H // ugly trick to prevent salloc.h from redefining 
+#define __STAMNOS_DPO_CLIENT_STORAGE_ALLOCATOR_H // ugly trick to prevent salloc.h from redefining 
 
 // StorageAllocator
 class StorageAllocator {
@@ -16,6 +16,17 @@ public:
 		*ptr = malloc(nbytes);
 		return E_SUCCESS;
 	}
+	
+	int AllocateExtent(::client::Session* session, size_t nbytes, void** ptr)
+	{
+
+	}
+
+	int AllocateContainer(::client::Session* session, int type, dpo::common::ObjectId* oid)
+	{
+
+	}
+
 };
 
 } // namespace client

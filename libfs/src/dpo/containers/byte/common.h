@@ -14,7 +14,7 @@
 #include "dpo/containers/typeid.h"
 #include "dpo/main/common/obj.h"
 #include "dpo/main/client/salloc.h"
-#include "dpo/main/common/const.h"
+#include "spa/const.h"
 #include "common/debug.h"
 #include "common/util.h"
 
@@ -70,7 +70,7 @@ public:
 
 	// return maximum possible size in bytes
 	inline uint64_t get_maxsize() { 
-		return get_maxbcount() * dpo::common::BLOCK_SIZE; 
+		return get_maxbcount() * kBlockSize; 
 	}
 
 	// return maximum possible size in bytes
@@ -435,9 +435,9 @@ inline uint64_t min(uint64_t a, uint64_t b) {
 inline uint64_t 
 block_valid_data(int bn, uint64_t file_size)
 {
-	return ((((bn + 1) * dpo::common::BLOCK_SIZE) < file_size ) 
-	        ? dpo::common::BLOCK_SIZE 
-	        : (file_size - (bn * dpo::common::BLOCK_SIZE)));
+	return ((((bn + 1) * kBlockSize) < file_size ) 
+	        ? kBlockSize 
+	        : (file_size - (bn * kBlockSize)));
 }
 
 
@@ -451,9 +451,9 @@ int __Write(Session* session, T* obj, char* src, uint64_t off, uint64_t n)
 	int      ret;
 
 	for(tot=0; tot<n; tot+=m, off+=m) {
-		bn = off / dpo::common::BLOCK_SIZE;
-		f = off % dpo::common::BLOCK_SIZE;
-		m = min(n - tot, dpo::common::BLOCK_SIZE - f);
+		bn = off / kBlockSize;
+		f = off % kBlockSize;
+		m = min(n - tot, kBlockSize - f);
 		ret = obj->WriteBlock(session, &src[tot], bn, f, m);
 		if (ret < m) {
 			return ((ret < 0) ? ( (tot>0)? tot: ret)  
@@ -475,9 +475,9 @@ int __Read(Session* session, T* obj, char* dst, uint64_t off, uint64_t n)
 	int      ret;
 
 	for(tot=0; tot<n; tot+=m, off+=m) {
-		bn = off / dpo::common::BLOCK_SIZE;
-		f = off % dpo::common::BLOCK_SIZE;
-		m = min(n - tot, dpo::common::BLOCK_SIZE - f);
+		bn = off / kBlockSize;
+		f = off % kBlockSize;
+		m = min(n - tot, kBlockSize - f);
 		ret = obj->ReadBlock(session, &dst[tot], bn, f, m);
 		if (ret < 0) {
 			return ((ret < 0) ? ( (tot>0)? tot: ret)  
@@ -604,7 +604,7 @@ ByteContainer::Object<Session>::ReadBlock(Session* session,
 
 	printf("FilePnode::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
 
-	l = min(dpo::common::BLOCK_SIZE, size_ - bn*dpo::common::BLOCK_SIZE);
+	l = min(kBlockSize, size_ - bn*kBlockSize);
 	printf("size_=%d, l=%d\n", size_, l);
 	if (l < off) {
 		return 0;
@@ -654,8 +654,8 @@ ByteContainer::Object<Session>::WriteBlock(Session* session,
 	InsertRegion(session, &region);
 
 	printf("FilePnode::WriteBlock: DONE\n");
-	if ( (bn*dpo::common::BLOCK_SIZE + off + n) > size_ ) {
-		size_ = bn*dpo::common::BLOCK_SIZE + off + n;
+	if ( (bn*kBlockSize + off + n) > size_ ) {
+		size_ = bn*kBlockSize + off + n;
 	}
 	return n;
 }
@@ -740,8 +740,8 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	int                     ret;
 	uint64_t                rbn;
 
-	assert(off < dpo::common::BLOCK_SIZE);
-	assert(off+n <= dpo::common::BLOCK_SIZE);
+	assert(off < kBlockSize);
+	assert(off+n <= kBlockSize);
 
 	printf("FilePnode::Region::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
@@ -768,7 +768,7 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	if (*slot == (void*)0) {
 		void* ptr;
 		if ((ret = session->salloc()->AllocateExtent(session, 
-		                                             dpo::common::BLOCK_SIZE, &ptr)) < 0)
+		                                             kBlockSize, &ptr)) < 0)
 		{ 
 			return ret;
 		}
@@ -783,7 +783,7 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 		if (off>0) {
 			memset(bp, 0, off);
 		}	
-		memset(&bp[off+n], 0, dpo::common::BLOCK_SIZE-n); 
+		memset(&bp[off+n], 0, kBlockSize-n); 
 	}
 	bp = (char*) (*slot);
 	memmove(&bp[off], src, n);
@@ -821,8 +821,8 @@ ByteContainer::Region<Session>::ReadBlock(Session* session,
 	int                     ret;
 	uint64_t                rbn;
 
-	assert(off < dpo::common::BLOCK_SIZE);
-	assert(off+n <= dpo::common::BLOCK_SIZE);
+	assert(off < kBlockSize);
+	assert(off+n <= kBlockSize);
 
 	printf("FilePnode::Region::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
 

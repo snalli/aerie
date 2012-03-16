@@ -1,6 +1,6 @@
 Import('buildEnv')
 Import('ipcClientLibrary')
-Import('salLibrary')
+Import('spaLibrary')
 Import('lockservLibrary')
 Import('commonLibrary')
 Import('mfsClientLibrary')
@@ -28,12 +28,11 @@ lib_sources = [
 	       '../dpo/containers/name/container-client.cc',
 	       '../dpo/containers/super/container.cc',
 	       '../dpo/containers/byte/container.cc',
-	       '../dpo/containers/set/container-client.cc',
 	      ]
 
 #libLocalBuildEnv.Append(LIBS = mfsClientLibrary)
 #libLocalBuildEnv.Append(LIBS = ipcClientLibrary)
-#libLocalBuildEnv.Append(LIBS = salLibrary)
+#libLocalBuildEnv.Append(LIBS = spaLibrary)
 #libLocalBuildEnv.Append(LIBS = lockservLibrary)
 #libLocalBuildEnv.Append(LIBS = commonLibrary)
 #libLocalBuildEnv.Append(LIBS = ['pthread', 'rt'])
@@ -44,7 +43,7 @@ fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_so
 localBuildEnv.Append(LIBS = mfsClientLibrary)
 localBuildEnv.Append(LIBS = fscLibrary)
 localBuildEnv.Append(LIBS = ipcClientLibrary)
-localBuildEnv.Append(LIBS = salLibrary)
+localBuildEnv.Append(LIBS = spaLibrary)
 localBuildEnv.Append(LIBS = lockservLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])

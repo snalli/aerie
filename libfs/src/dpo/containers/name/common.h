@@ -35,7 +35,7 @@ public:
 	}
 
 	static Object* Make(Session* session, volatile char* ptr) {
-		return new(ptr) Object();
+		return new((void*)ptr) Object();
 	}
 
 	static Object* Load(dpo::common::ObjectId oid) {

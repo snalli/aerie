@@ -1,6 +1,6 @@
 #include "dpo/main/client/dpo.h"
 #include "common/errno.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 #include "dpo/main/client/salloc.h"
 #include "dpo/main/client/omgr.h"
 #include "dpo/main/client/lckmgr.h"

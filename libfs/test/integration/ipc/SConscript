@@ -13,11 +13,11 @@ Import('fssLibrary')
 Import('mfsClientLibrary')
 Import('mfsServerLibrary')
 Import('commonLibrary')
-Import('salLibrary')
+Import('spaLibrary')
 Import('ipcClientLibrary')
 Import('ipcServerLibrary')
-clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, salLibrary, commonLibrary]
-serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, salLibrary, commonLibrary]
+clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, spaLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)

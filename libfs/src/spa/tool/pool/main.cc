@@ -5,7 +5,7 @@
 #include <iostream>
 #include "common/util.h"
 #include "common/errno.h"
-#include "sal/tool/pool/main.h"
+#include "spa/tool/pool/main.h"
 #include "server/fsmgr.h"
 #include "mfs/server/mfs.h"
 

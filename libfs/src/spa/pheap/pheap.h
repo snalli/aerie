@@ -1,10 +1,10 @@
-#ifndef __STAMNOS_SAL_PERSISTENT_HEAP_H
-#define __STAMNOS_SAL_PERSISTENT_HEAP_H
+#ifndef __STAMNOS_SPA_PERSISTENT_HEAP_H
+#define __STAMNOS_SPA_PERSISTENT_HEAP_H
 
 #include <iostream>
 #include <stdint.h>
 #include <stdio.h>
-#include "sal/pheap/vistaheap.h"
+#include "spa/pheap/vistaheap.h"
 #include "common/errno.h"
 
 class PersistentRegion;  // forward declaration
@@ -102,4 +102,4 @@ inline void PersistentHeap::set_root(void* root)
 }
 
 
-#endif // __STAMNOS_SAL_PERSISTENT_HEAP_H
+#endif // __STAMNOS_SPA_PERSISTENT_HEAP_H

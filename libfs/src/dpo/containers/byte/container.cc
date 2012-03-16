@@ -6,6 +6,7 @@
 #include "client/session.h"
 #include "dpo/main/client/salloc.h"
 #include "common/interval_tree.h"
+#include "spa/const.h"
 
 namespace dpo {
 namespace containers {
@@ -87,7 +88,7 @@ ByteInterval::WriteBlockNoRegion(::client::Session* session, char* src, uint64_t
 		printf("ByteInterval::WriteBlock Allocate Block\n",
 	       src, bn, off, n);
 		// allocate new block, FIXME: need to journal the alloaction and link
-		block_array_[bn - low_] = (char*) malloc(dpo::common::BLOCK_SIZE); // FIXME: allocate a chunk
+		block_array_[bn - low_] = (char*) malloc(kBlockSize); // FIXME: allocate a chunk
 		bp = block_array_[bn - low_];
 		
 		// TODO: Allocating and zeroing a chunk is done in other places in the 
@@ -98,7 +99,7 @@ ByteInterval::WriteBlockNoRegion(::client::Session* session, char* src, uint64_t
 		if (off>0) {
 			memset(bp, 0, off);
 		}	
-		memset(&bp[off+n], 0, dpo::common::BLOCK_SIZE-n); 
+		memset(&bp[off+n], 0, kBlockSize-n); 
 	
 		// TODO: create and journal physical and logical links
 		// physical links can be created using information kept in slot_:
@@ -121,9 +122,9 @@ ByteInterval::WriteNoRegion(::client::Session* session, char* src, uint64_t off,
 	int      ret;
 
 	for(tot=0; tot<n; tot+=m, off+=m) {
-		bn = off / dpo::common::BLOCK_SIZE;
-		f = off % dpo::common::BLOCK_SIZE;
-		m = min(n - tot, dpo::common::BLOCK_SIZE - f);
+		bn = off / kBlockSize;
+		f = off % kBlockSize;
+		m = min(n - tot, kBlockSize - f);
 		ret = WriteBlockNoRegion(session, &src[tot], bn, f, m);
 		if (ret < 0) {
 			return ((ret < 0) ? ( (tot>0)? tot: ret)  
@@ -176,9 +177,9 @@ ByteInterval::ReadNoRegion(::client::Session* session, char* dst, uint64_t off, 
 	int      ret;
 
 	for(tot=0; tot<n; tot+=m, off+=m) {
-		bn = off / dpo::common::BLOCK_SIZE;
-		f = off % dpo::common::BLOCK_SIZE;
-		m = min(n - tot, dpo::common::BLOCK_SIZE - f);
+		bn = off / kBlockSize;
+		f = off % kBlockSize;
+		m = min(n - tot, kBlockSize - f);
 		ret = ReadBlockNoRegion(session, &dst[tot], bn, f, m);
 		if (ret < 0) {
 			return ((ret < 0) ? ( (tot>0)? tot: ret)  
@@ -273,11 +274,11 @@ ByteContainer::VersionManager::ReadImmutable(::client::Session* session,
 
 	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
 
-	fbn = off/dpo::common::BLOCK_SIZE;
+	fbn = off/kBlockSize;
 	start.Init(session, object(), fbn);
 	iter = start;
 	bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-	size = bcount * dpo::common::BLOCK_SIZE;
+	size = bcount * kBlockSize;
 	f = off % size;
 
 
@@ -287,7 +288,7 @@ ByteContainer::VersionManager::ReadImmutable(::client::Session* session,
 	{
 		base_bn = (*iter).get_base_bn();
 		bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-		size = bcount * dpo::common::BLOCK_SIZE;
+		size = bcount * kBlockSize;
 		m = min(n - tot, size - f);
 
 		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
@@ -418,7 +419,7 @@ ByteContainer::VersionManager::WriteMutable(::client::Session* session,
 		assert(region_ == NULL);
 		return object()->Write(session, src, off, n);
 	} else if (!region_) {
-		bn = off/dpo::common::BLOCK_SIZE;
+		bn = off/kBlockSize;
 		region_ = new ByteContainer::Region(session, object(), bn);
 	}
 	return	region_->Write(session, src, off, n);
@@ -449,11 +450,11 @@ ByteContainer::VersionManager::WriteImmutable(::client::Session* session,
 
 	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 " \n", off, off+n-1, n);
 
-	fbn = off/dpo::common::BLOCK_SIZE;
+	fbn = off/kBlockSize;
 	start.Init(session, object(), fbn);
 	iter = start;
 	bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-	size = bcount * dpo::common::BLOCK_SIZE;
+	size = bcount * kBlockSize;
 	f = off % size;
 
 
@@ -463,7 +464,7 @@ ByteContainer::VersionManager::WriteImmutable(::client::Session* session,
 	{
 		base_bn = (*iter).get_base_bn();
 		bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-		size = bcount * dpo::common::BLOCK_SIZE;
+		size = bcount * kBlockSize;
 		m = min(n - tot, size - f);
 
 		ptr = (char*) ((*iter).slot_base_[(*iter).slot_offset_]);

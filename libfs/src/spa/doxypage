@@ -4,10 +4,10 @@
 
 /**
 
-@section sal_overview Overview
+@section spa_overview Overview
 
-The Storage Abstraction Layer (SAL) provides the basic low-level persistent 
-storage abstractions for use by applications.
+The Storage Pool Allocation (SPA) layer () provides the basic storage allocation 
+abstraction and interface for use by applications.
 
 
 POOL

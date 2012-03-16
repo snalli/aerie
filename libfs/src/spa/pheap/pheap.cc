@@ -1,9 +1,9 @@
-#include "sal/pheap/pheap.h"
+#include "spa/pheap/pheap.h"
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
-#include "sal/pregion/pregion.h"
-#include "sal/pheap/vistaheap.h"
+#include "spa/pregion/pregion.h"
+#include "spa/pheap/vistaheap.h"
 #include "common/errno.h"
 #include "common/util.h"
 #include "common/debug.h"

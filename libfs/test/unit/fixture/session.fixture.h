@@ -1,6 +1,8 @@
 #ifndef __STAMNOS_TEST_SESSION_FIXTURE_H
 #define __STAMNOS_TEST_SESSION_FIXTURE_H
 
+#include "dpo/main/common/obj.h"
+
 class Session;
 
 class StorageAllocator {
@@ -15,6 +17,16 @@ public:
 	{
 		*ptr = malloc(nbytes);
 		return E_SUCCESS;
+	}
+
+	int AllocateExtent(Session* session, size_t nbytes, void** ptr)
+	{
+
+	}
+
+	int AllocateContainer(Session* session, int type, dpo::common::ObjectId* oid)
+	{
+
 	}
 };
 

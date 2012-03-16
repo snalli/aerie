@@ -36,7 +36,7 @@
  * This code is poorly documented. 
  */
 
-#include "sal/pheap/vistaheap.h"
+#include "spa/pheap/vistaheap.h"
 #include <fcntl.h>
 #include <sys/types.h>
 #include <stdint.h>

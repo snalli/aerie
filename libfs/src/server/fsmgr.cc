@@ -4,7 +4,7 @@
 #include "dpo/main/server/registry.h"
 #include "dpo/main/server/salloc.h"
 #include "pxfs/common/fs_protocol.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 #include "server/fsmgr.h"
 #include "server/fs_factory.h"
 #include "server/fs.h"

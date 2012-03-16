@@ -15,11 +15,11 @@ Import('fssLibrary')
 Import('mfsClientLibrary')
 Import('mfsServerLibrary')
 Import('commonLibrary')
-Import('salLibrary')
+Import('spaLibrary')
 Import('ipcClientLibrary')
 Import('ipcServerLibrary')
-clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, salLibrary, commonLibrary]
-serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, salLibrary, commonLibrary]
+clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, spaLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 serverProgram = myTestEnv.Program('smain', \

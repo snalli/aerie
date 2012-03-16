@@ -39,7 +39,7 @@
 #include <typeinfo>
 #include "common/errno.h"
 #include "common/debug.h"
-#include "dpo/main/common/const.h"
+#include "spa/const.h"
 
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
@@ -53,7 +53,7 @@
 
 const int      BITS_PER_LONG         = 64;
 const int      LONG_SHIFT            = 3;
-const int      RADIX_TREE_MAP_SHIFT  = dpo::common::BLOCK_SHIFT - LONG_SHIFT;
+const int      RADIX_TREE_MAP_SHIFT  = kBlockShift - LONG_SHIFT;
 const uint64_t RADIX_TREE_MAP_SIZE   = (1ULL << RADIX_TREE_MAP_SHIFT);
 const uint64_t RADIX_TREE_MAP_MASK   = (RADIX_TREE_MAP_SIZE-1);
 const int      RADIX_TREE_INDEX_BITS = (8 /* CHAR_BIT */ * sizeof(uint64_t));

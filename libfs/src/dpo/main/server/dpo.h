@@ -2,7 +2,7 @@
 #define __STAMNOS_DPO_SERVER_DPO_LAYER_H
 
 #include "ipc/ipc.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 #include "dpo/main/server/dpo-opaque.h"
 #include "dpo/containers/super/container.h"
 

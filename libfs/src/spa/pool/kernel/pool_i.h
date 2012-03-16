@@ -1,0 +1,6 @@
+#ifndef __STAMNOS_SPA_POOL_KERNEL_H
+#define __STAMNOS_SPA_POOL_KERNEL_H
+
+
+
+#endif // __STAMNOS_SPA_POOL_KERNEL_H

@@ -1,6 +1,6 @@
 Import('buildEnv')
 Import('ipcServerLibrary')
-Import('salLibrary')
+Import('spaLibrary')
 Import('commonLibrary')
 Import('mfsServerLibrary')
 
@@ -15,7 +15,6 @@ lib_sources = [
                '../dpo/main/server/salloc.cc',
                '../dpo/main/server/registry.cc',
                '../dpo/main/server/session.cc',
-	       '../dpo/containers/set/container-server.cc',
 	       '../dpo/containers/name/container-server.cc',
                'fsmgr.cc',
                'namespace.cc',
@@ -29,7 +28,7 @@ fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_so
 localBuildEnv.Append(LIBS = fssLibrary)
 localBuildEnv.Append(LIBS = ipcServerLibrary)
 localBuildEnv.Append(LIBS = mfsServerLibrary)
-localBuildEnv.Append(LIBS = salLibrary)
+localBuildEnv.Append(LIBS = spaLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])
 localBuildEnv.Program('fsserver', ['main.cc']) 

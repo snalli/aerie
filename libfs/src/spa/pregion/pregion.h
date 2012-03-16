@@ -1,5 +1,5 @@
-#ifndef __STAMNOS_SAL_PERSISTENT_REGION_H
-#define __STAMNOS_SAL_PERSISTENT_REGION_H
+#ifndef __STAMNOS_SPA_PERSISTENT_REGION_H
+#define __STAMNOS_SPA_PERSISTENT_REGION_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -108,4 +108,4 @@ inline size_t PersistentRegion::PayloadMaxSize() {
 }
 
 
-#endif // __STAMNOS_SAL_PERSISTENT_REGION_H
+#endif // __STAMNOS_SPA_PERSISTENT_REGION_H

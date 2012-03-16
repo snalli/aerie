@@ -9,7 +9,7 @@
 #include "dpo/main/server/dpo-opaque.h"
 #include "dpo/main/common/storage_protocol.h"
 #include "dpo/containers/set/container.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 
 namespace server {
 class Session;  // forward declaration

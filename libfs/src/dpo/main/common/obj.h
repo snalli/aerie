@@ -4,8 +4,8 @@
  * \brief This is the object header of a public persistent object 
  */
 
-#ifndef __STAMNOS_DPO_COMMON_PERSISTENT_OBJECT_H
-#define __STAMNOS_DPO_COMMON_PERSISTENT_OBJECT_H
+#ifndef __STAMNOS_SA_COMMON_PERSISTENT_OBJECT_H
+#define __STAMNOS_SA_COMMON_PERSISTENT_OBJECT_H
 
 #include <stdint.h>
 #include <boost/functional/hash.hpp>
@@ -186,4 +186,4 @@ inline unmarshall& operator>>(unmarshall &u, ::dpo::common::ObjectId& oid) {
 	return u;
 }
 
-#endif // __STAMNOS_DPO_COMMON_OBJECT_H
+#endif // __STAMNOS_SA_COMMON_OBJECT_H

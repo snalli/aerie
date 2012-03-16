@@ -11,7 +11,7 @@
 #include "dpo/main/client/dpo.h"
 #include "dpo/main/client/stm.h"
 #include "dpo/main/client/salloc.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 #include "mfs/client/mfs.h"
 #include "pxfs/common/fs_protocol.h"
 

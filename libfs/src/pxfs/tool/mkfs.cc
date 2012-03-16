@@ -1,7 +1,7 @@
 #include <getopt.h>
 #include <iostream>
 #include "common/util.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 #include "pxfs/tool/main.h"
 #include "server/session.h"
 

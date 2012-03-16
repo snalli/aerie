@@ -1,10 +1,10 @@
 #include "tool/testfw/unittest.h"
 #include "common/errno.h"
-#include "sal/pregion/pregion.h"
+#include "spa/pregion/pregion.h"
 
 #include <stdio.h>
 
-SUITE(SAL)
+SUITE(SPA)
 {
 	TEST(TestPersistentRegion)
 	{

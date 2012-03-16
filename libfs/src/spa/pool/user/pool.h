@@ -1,5 +1,5 @@
-#ifndef __STAMNOS_SAL_POOL_USER_H
-#define __STAMNOS_SAL_POOL_USER_H
+#ifndef __STAMNOS_SPA_POOL_USER_H
+#define __STAMNOS_SPA_POOL_USER_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -33,4 +33,4 @@ private:
 	uint64_t          identity_;
 };
 
-#endif // __STAMNOS_SAL_POOL_USER_H
+#endif // __STAMNOS_SPA_POOL_USER_H

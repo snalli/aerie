@@ -3,7 +3,7 @@
 
 #include "ipc/main/client/ipc-opaque.h"
 #include "dpo/main/client/dpo-opaque.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 
 namespace dpo {
 namespace client {

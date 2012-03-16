@@ -3,7 +3,7 @@
 
 #include "dpo/main/common/obj.h"
 #include "dpo/main/server/dpo-opaque.h"
-#include "sal/pool/pool.h"
+#include "spa/pool/pool.h"
 
 namespace server {
 
