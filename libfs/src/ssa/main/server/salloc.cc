@@ -116,7 +116,7 @@ StorageAllocator::CreateStorageContainer()
 
 /*
 int
-StorageAllocator::AllocateExtent(DpoSession* session, size_t nbytes, void** ptr)
+StorageAllocator::AllocateExtent(SsaSession* session, size_t nbytes, void** ptr)
 {
 
 
@@ -179,14 +179,14 @@ StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 // OBSOLETE
 int 
-StorageAllocator::Alloc(DpoSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(SsaSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
 }
 
 
 int 
-StorageAllocator::AllocateExtent(DpoSession* session, size_t size, void** ptr)
+StorageAllocator::AllocateExtent(SsaSession* session, size_t size, void** ptr)
 {
 	int ret;
 
@@ -198,7 +198,7 @@ StorageAllocator::AllocateExtent(DpoSession* session, size_t size, void** ptr)
 
 
 int 
-StorageAllocator::AllocateContainer(DpoSession* session, int type, int num, ::ssa::StorageProtocol::ContainerReply& reply)
+StorageAllocator::AllocateContainer(SsaSession* session, int type, int num, ::ssa::StorageProtocol::ContainerReply& reply)
 {
 	ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object* set_obj;
 	ssa::common::ObjectId                                                 oid;
@@ -290,7 +290,7 @@ StorageAllocator::IpcHandlers::AllocateContainer(int clt, int type, int num,
 	if ((ret = salloc_->ipc_->session_manager()->Lookup(clt, &session)) < 0) {
 		return -ret;
 	}
-	if ((ret = salloc_->AllocateContainer(static_cast<DpoSession*>(session), 
+	if ((ret = salloc_->AllocateContainer(static_cast<SsaSession*>(session), 
 	                                      type, num, r)) < 0) {
 		return -ret;
 	}

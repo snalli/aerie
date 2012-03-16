@@ -11,7 +11,7 @@
 #include "ssa/main/client/proxy.h"
 #include <assert.h>
 #include "ssa/main/client/omgr.h"
-#include "client/session.h"
+#include "ssa/main/client/session.h"
 
 namespace ssa {
 namespace client {

@@ -59,7 +59,7 @@ namespace server {
 
 class SuperContainer {
 public:
-	typedef ssa::containers::common::SuperContainer::Object< ::ssa::server::DpoSession> Object;
+	typedef ssa::containers::common::SuperContainer::Object< ::ssa::server::SsaSession> Object;
 }; 
 
 

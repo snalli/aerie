@@ -9,11 +9,11 @@
 
 namespace ssa {
 namespace server {
-class Dpo;
+class StorageSystem;
 class Registry;
 class ObjectManager;
 class StorageAllocator;
-class DpoSession;
+class SsaSession;
 } // namespace server
 } // namespace ssa
 

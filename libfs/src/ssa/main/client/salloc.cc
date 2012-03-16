@@ -6,8 +6,8 @@
 #include "common/debug.h"
 #include "ipc/ipc.h"
 #include "ssa/main/common/storage_protocol.h"
+#include "ssa/main/client/session.h"
 #include "ssa/containers/set/container.h"
-#include "client/session.h"
 
 
 

@@ -5,7 +5,7 @@
 #include "common/errno.h"
 #include "ssa/main/common/proxy.h"
 #include "ssa/main/client/stm.h"
-#include "client/session.h"
+#include "ssa/main/client/session.h"
 
 namespace ssa {
 

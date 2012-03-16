@@ -15,10 +15,8 @@ namespace server {
 
 
 int
-Dpo::Init()
+StorageSystem::Init()
 {
-	dbg_log(DBG_INFO, "Initializing SSA layer\n");
-
 	if ((hlckmgr_ = new ::ssa::cc::server::HLockManager(ipc_)) == NULL) {
 		return -E_NOMEM;
 	}
@@ -38,7 +36,7 @@ Dpo::Init()
 
 
 int
-Dpo::Load(const char* source, unsigned int flags)
+StorageSystem::Load(const char* source, unsigned int flags)
 {
 	int                ret;
 	void*              b;
@@ -64,7 +62,7 @@ Dpo::Load(const char* source, unsigned int flags)
 // on top of it. it prepares the super_obj so that the storage
 // system can continue formatting.
 int 
-Dpo::Make(const char* target, unsigned int flags)
+StorageSystem::Make(const char* target, unsigned int flags)
 {
 	ssa::containers::server::SuperContainer::Object*                      super_obj;
 	ssa::containers::server::NameContainer::Object*                       root_obj;
@@ -72,7 +70,7 @@ Dpo::Make(const char* target, unsigned int flags)
 	int                                                                   ret;
 	char*                                                                 b;
 	char*                                                                 buffer;
-	DpoSession*                                                           session = NULL; // we need no journaling and storage allocator
+	SsaSession*                                                           session = NULL; // we need no journaling and storage allocator
 	size_t                                                                master_extent_size;
 
 	
@@ -119,7 +117,7 @@ Dpo::Make(const char* target, unsigned int flags)
 
 
 int
-Dpo::Close()
+StorageSystem::Close()
 {
 	int ret;
 
@@ -131,7 +129,7 @@ Dpo::Close()
 }
 
 
-Dpo::~Dpo()
+StorageSystem::~StorageSystem()
 {
 	delete registry_;
 	delete salloc_;

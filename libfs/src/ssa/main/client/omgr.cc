@@ -11,7 +11,7 @@
 #include "ssa/main/client/hlckmgr.h"
 #include "ssa/main/client/omgr.h"
 #include "ssa/main/client/rwproxy.h"
-#include "client/session.h"
+#include "ssa/main/client/session.h"
 #include "ssa/containers/super/container.h"
 #include "ssa/containers/name/container.h"
 #include "ssa/containers/byte/container.h"

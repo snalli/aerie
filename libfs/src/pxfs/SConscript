@@ -1,1 +1,10 @@
+mfsClientLibrary, mfsServerLibrary = SConscript('mfs/SConscript')
+Export('mfsClientLibrary')
+Export('mfsServerLibrary')
+
+fscLibrary = SConscript('client/SConscript')
+Export('fscLibrary')
+fssLibrary = SConscript('server/SConscript')
+Export('fssLibrary')
+
 SConscript('tool/SConscript')

@@ -35,7 +35,7 @@ public:
 	//typename SetContainerT::Object< ::server::Session>  Object;
 
 	
-	typedef typename ssa::containers::common::SetContainer<T>::template Object< ::ssa::server::DpoSession>  Object;
+	typedef typename ssa::containers::common::SetContainer<T>::template Object< ::ssa::server::SsaSession>  Object;
 	
 private:
 	//Object* obj_;

@@ -6,13 +6,8 @@
 #include "common/util.h"
 #include "common/errno.h"
 #include "spa/tool/pool/main.h"
-#include "server/fsmgr.h"
-#include "mfs/server/mfs.h"
 
 const char* prog_name = "pool";
-
-::server::FileSystemManager* fsmgr;
-::ssa::server::Dpo*          ssa_layer;
 
 struct Command {
 	const char* name;

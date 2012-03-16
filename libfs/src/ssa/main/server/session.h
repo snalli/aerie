@@ -8,7 +8,8 @@
 namespace ssa {
 namespace server {
 
-class DpoSession: public ::server::IpcSession {
+/**< Storage System Abstractions layer session */
+class SsaSession: public ::server::IpcSession {
 public:
 
 	ssa::server::StorageAllocator* salloc();
@@ -16,7 +17,7 @@ public:
 	int Init(int clt);
 
 //protected:
-	ssa::server::Dpo*                  ssa_;
+	ssa::server::StorageSystem*        storage_system_;
 	std::vector<ssa::common::ObjectId> sets_; // sets of pre-allocated containers to client
 };
 

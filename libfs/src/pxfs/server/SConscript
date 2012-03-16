@@ -1,0 +1,31 @@
+Import('buildEnv')
+Import('ipcServerLibrary')
+Import('ssaServerLibrary')
+Import('spaLibrary')
+Import('commonLibrary')
+Import('mfsServerLibrary')
+
+localBuildEnv = buildEnv.Clone()
+libLocalBuildEnv = buildEnv.Clone()
+
+lib_target = 'fss'
+lib_sources = [
+               'fs.cc',
+               'namespace.cc',
+               'server.cc',
+	       'session.cc',
+	       'sessionmgr.cc'
+              ]
+
+fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+localBuildEnv.Append(LIBS = fssLibrary)
+localBuildEnv.Append(LIBS = ipcServerLibrary)
+localBuildEnv.Append(LIBS = ssaServerLibrary)
+localBuildEnv.Append(LIBS = mfsServerLibrary)
+localBuildEnv.Append(LIBS = spaLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program('fsserver', ['main.cc']) 
+
+Return('fssLibrary')

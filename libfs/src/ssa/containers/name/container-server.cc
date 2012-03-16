@@ -7,7 +7,7 @@ namespace server {
 
 /*
 ::ssa::common::Object*
-NameContainer::Factory::Make(::ssa::server::DpoSession* session, char* b) {
+NameContainer::Factory::Make(::ssa::server::SsaSession* session, char* b) {
 	return NameContainer::Object::Make(session, b);
 }
 

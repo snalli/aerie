@@ -6,14 +6,14 @@
 #include "common/util.h"
 #include "common/errno.h"
 #include "pxfs/tool/main.h"
-#include "server/fsmgr.h"
+#include "pxfs/server/fs.h"
 #include "ssa/main/server/ssa.h"
-#include "mfs/server/mfs.h"
+#include "pxfs/mfs/server/mfs.h"
 
 const char* prog_name = "pxfs";
 
-::server::FileSystemManager* fsmgr;
-::ssa::server::Dpo*          ssa_layer;
+::server::FileSystem*          fs;
+::ssa::server::StorageSystem*  storage_system;
 
 struct Command {
 	const char* name;
@@ -42,13 +42,11 @@ usage(const char *prog_name)
 
 int Init()
 {
-	ssa_layer = new ::ssa::server::Dpo(NULL);
-	ssa_layer->Init();
+	storage_system = new ::ssa::server::StorageSystem(NULL);
+	storage_system->Init();
 
-	fsmgr = new ::server::FileSystemManager(NULL, ssa_layer);
-	fsmgr->Init();
-
-	mfs::server::RegisterBackend(fsmgr);
+	fs = new ::server::FileSystem(NULL, storage_system);
+	fs->Init();
 }
 
 

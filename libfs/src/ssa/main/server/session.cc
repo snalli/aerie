@@ -7,7 +7,7 @@ namespace ssa {
 namespace server {
 
 int 
-DpoSession::Init(int clt)
+SsaSession::Init(int clt)
 {
 	int ret;
 
@@ -20,9 +20,9 @@ DpoSession::Init(int clt)
 
 
 ssa::server::StorageAllocator* 
-DpoSession::salloc() 
+SsaSession::salloc() 
 { 
-	return ssa_->salloc(); 
+	return storage_system_->salloc(); 
 } 
 
 } // namespace server

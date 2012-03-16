@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include <vector>
 #include "common/errno.h"
-#include "client/session.h"
+#include "ssa/main/client/session.h"
 #include "ssa/main/client/salloc.h"
 #include "common/interval_tree.h"
 #include "spa/const.h"

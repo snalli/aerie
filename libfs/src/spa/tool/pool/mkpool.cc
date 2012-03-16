@@ -4,7 +4,7 @@
 #include "common/errno.h"
 #include "spa/pool/pool.h"
 #include "spa/tool/pool/main.h"
-#include "server/session.h"
+#include "pxfs/server/session.h"
 
 
 static int 

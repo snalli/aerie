@@ -1,0 +1,35 @@
+Import('buildEnv')
+Import('ipcClientLibrary')
+Import('ssaClientLibrary')
+Import('spaLibrary')
+Import('commonLibrary')
+Import('mfsClientLibrary')
+
+libLocalBuildEnv = buildEnv.Clone()
+localBuildEnv = buildEnv.Clone()
+
+lib_target = 'fsc'
+lib_sources = [
+               'c_api.cc', 
+               'client.cc', 
+               'config.cc',
+               'file.cc',
+               'fsomgr.cc', 
+	       'inode.cc',
+               'mpinode.cc',
+               'namespace.cc', 
+	      ]
+
+fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+# Be careful with linkage order for static libraries
+localBuildEnv.Append(LIBS = mfsClientLibrary)
+localBuildEnv.Append(LIBS = fscLibrary)
+localBuildEnv.Append(LIBS = ipcClientLibrary)
+localBuildEnv.Append(LIBS = ssaClientLibrary)
+localBuildEnv.Append(LIBS = spaLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program('fsclient', ['main.cc']) 
+
+Return('fscLibrary')

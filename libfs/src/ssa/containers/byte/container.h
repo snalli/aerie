@@ -75,7 +75,7 @@ namespace server {
 
 class ByteContainer {
 public:
-	typedef ssa::containers::common::ByteContainer::Object< ::ssa::server::DpoSession> Object;
+	typedef ssa::containers::common::ByteContainer::Object< ::ssa::server::SsaSession> Object;
 	
 	class Factory: public ::ssa::server::ContainerFactory<ByteContainer> {
 	};

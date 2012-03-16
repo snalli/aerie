@@ -1,7 +1,7 @@
 #include "ssa/containers/super/container.h"
 #include <stdint.h>
 #include "common/errno.h"
-#include "client/session.h"
+#include "ssa/main/client/session.h"
 #include "ssa/main/client/salloc.h"
 
 namespace ssa {

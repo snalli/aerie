@@ -14,7 +14,7 @@
 #include "ssa/main/client/proxy.h"
 #include "ssa/main/client/omap.h"
 #include "ssa/main/client/hlckmgr.h"
-#include "client/session.h"
+#include "ssa/main/client/session.h"
 
 namespace client { class Session; } // forward declaration
 

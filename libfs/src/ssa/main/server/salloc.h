@@ -37,9 +37,9 @@ public:
 	//static int Close(StorageAllocator* salloc);
 
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
-	int Alloc(DpoSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
-	int AllocateExtent(DpoSession* session, size_t size, void** ptr);
-	int AllocateContainer(DpoSession* session, int type, int num, ::ssa::StorageProtocol::ContainerReply& r);
+	int Alloc(SsaSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
+	int AllocateExtent(SsaSession* session, size_t size, void** ptr);
+	int AllocateContainer(SsaSession* session, int type, int num, ::ssa::StorageProtocol::ContainerReply& r);
 
 	int RegisterBaseTypes();
 	int RegisterType(::ssa::common::ObjectType type_id, ::ssa::server::ContainerAbstractFactory* objfactory);

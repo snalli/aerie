@@ -10,16 +10,16 @@ namespace ssa {
 namespace server {
 
 
-// Persistent Object Layer
-class Dpo {
+/** \brief Encapsulates the components composing a storage system */
+class StorageSystem {
 public:
-	Dpo(::server::Ipc* ipc)
+	StorageSystem(::server::Ipc* ipc)
 		: ipc_(ipc),
 		  salloc_(NULL),
 		  pool_(NULL)
 	{ }
 
-	~Dpo();
+	~StorageSystem();
 
 	int Init();
 

@@ -9,7 +9,7 @@ namespace server {
 
 class ContainerAbstractFactory {
 public:
-	virtual ::ssa::common::Object* Make(::ssa::server::DpoSession* session, char* b) = 0;
+	virtual ::ssa::common::Object* Make(::ssa::server::SsaSession* session, char* b) = 0;
 	virtual int StaticSize() = 0;
 };
 
@@ -18,7 +18,7 @@ template<typename T>
 class ContainerFactory: public ContainerAbstractFactory {
 public:
 
-	::ssa::common::Object* Make(::ssa::server::DpoSession* session, char* b) {
+	::ssa::common::Object* Make(::ssa::server::SsaSession* session, char* b) {
 		return T::Object::Make(session, b);
 	}
 

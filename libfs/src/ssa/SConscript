@@ -1,0 +1,40 @@
+Import('buildEnv')
+localBuildEnv = buildEnv.Clone()
+
+# Client SSA layer
+
+clt_lib_target = 'ssaclt'
+clt_lib_objects = []
+clt_lib_sources = [
+	               'main/client/ssa.cc',
+                   'main/client/hlckmgr.cc',
+                   'main/client/lckmgr.cc',
+                   'main/client/omgr.cc',
+                   'main/client/salloc.cc',
+                   'main/client/stm.cc',
+                   'main/client/registry.cc',
+                   'containers/name/container-client.cc',
+                   'containers/super/container.cc',
+                   'containers/byte/container.cc',
+                  ]
+
+ssaClientLibrary = localBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources + clt_lib_objects)
+
+
+# Server SSA layer
+
+srv_lib_target = 'ssasrv'
+srv_lib_objects = []
+srv_lib_sources = [
+                   'main/server/ssa.cc',
+                   'main/server/hlckmgr.cc',
+                   'main/server/lckmgr.cc',
+                   'main/server/salloc.cc',
+                   'main/server/registry.cc',
+                   'main/server/session.cc',
+                   'containers/name/container-server.cc',
+                  ]
+
+ssaServerLibrary = localBuildEnv.SharedLibrary(target = srv_lib_target, source = srv_lib_sources + srv_lib_objects)
+
+Return('ssaClientLibrary', 'ssaServerLibrary')

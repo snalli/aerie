@@ -2,6 +2,7 @@ Import('buildEnv')
 Import('spaLibrary')
 Import('fssLibrary')
 Import('ipcServerLibrary')
+Import('ssaServerLibrary')
 Import('mfsServerLibrary')
 Import('commonLibrary')
 
@@ -14,7 +15,7 @@ sources = [
           ]
 localBuildEnv.Append(LIBS = fssLibrary)
 localBuildEnv.Append(LIBS = ipcServerLibrary)
-localBuildEnv.Append(LIBS = mfsServerLibrary)
+localBuildEnv.Append(LIBS = ssaServerLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = mfsServerLibrary)
 localBuildEnv.Append(LIBS = spaLibrary)

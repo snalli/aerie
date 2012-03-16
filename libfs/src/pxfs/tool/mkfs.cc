@@ -3,7 +3,7 @@
 #include "common/util.h"
 #include "spa/pool/pool.h"
 #include "pxfs/tool/main.h"
-#include "server/session.h"
+#include "pxfs/server/session.h"
 
 static int 
 usage(const char *name)
@@ -53,7 +53,5 @@ main_mkfs(int argc, char* argv[])
 	std::cerr << "\ttype     = " << type << std::endl;
 	std::cerr << "\tsize     = " << size_str << " (" << usize << " bytes)\n" << std::endl;
 	
-	return fsmgr->CreateFileSystem(pathname, type, usize, 1, 0);
+	return fs->Create(pathname, usize, 1, 0);
 }
-
-

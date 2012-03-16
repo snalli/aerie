@@ -84,12 +84,12 @@ namespace server {
 
 class NameContainer {
 public:
-	typedef ssa::containers::common::NameContainer::Object< ::ssa::server::DpoSession> Object;
+	typedef ssa::containers::common::NameContainer::Object< ::ssa::server::SsaSession> Object;
 	
 	//class Factory: public ::ssa::server::ContainerFactory {
 	class Factory: public ::ssa::server::ContainerFactory<NameContainer> {
 	public:
-		//::ssa::common::Object* Make(::ssa::server::DpoSession* session, char* b);
+		//::ssa::common::Object* Make(::ssa::server::SsaSession* session, char* b);
 		//int StaticSize();
 	};
 }; 
