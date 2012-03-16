@@ -1,12 +1,12 @@
 #ifndef __STAMNOS_TEST_CLIENT_FIXTURE_H
 #define __STAMNOS_TEST_CLIENT_FIXTURE_H
 
-#include "client/session.h"
+#include "pxfs/client/session.h"
 
 namespace ssa {
 namespace client {
 
-#define __STAMNOS_DPO_CLIENT_STORAGE_ALLOCATOR_H // ugly trick to prevent salloc.h from redefining 
+#define __STAMNOS_SSA_CLIENT_STORAGE_ALLOCATOR_H // ugly trick to prevent salloc.h from redefining 
 
 // StorageAllocator
 class StorageAllocator {

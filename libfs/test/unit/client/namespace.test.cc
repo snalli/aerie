@@ -8,9 +8,9 @@
 #include "common/types.h"
 #include "unit/fixture/client.fixture.h"
 #include "ssa/main/common/obj.h"
-#include "client/namespace.h"
-#include "client/sb.h"
-#include "client/inode.h"
+#include "pxfs/client/namespace.h"
+#include "pxfs/client/sb.h"
+#include "pxfs/client/inode.h"
 
 
 class PseudoDirInode: public client::Inode {

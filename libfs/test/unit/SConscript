@@ -28,7 +28,8 @@ Import('fscLibrary')
 Import('mfsClientLibrary')
 Import('commonLibrary')
 Import('ipcClientLibrary')
-depLibs = [mfsClientLibrary, spaLibrary, fscLibrary, ipcClientLibrary, commonLibrary]
+Import('ssaClientLibrary')
+depLibs = [mfsClientLibrary, spaLibrary, fscLibrary, ssaClientLibrary, ipcClientLibrary, commonLibrary]
 
 source = [Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), 'main.cc']
 source += [Glob('*/*/*.test.cc'), Glob('*/*/*.fixture.cc'), Glob('*/*/*.helper.cc')]

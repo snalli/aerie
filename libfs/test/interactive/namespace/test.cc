@@ -4,8 +4,8 @@
 #include "rpc/rpc.h"
 #include "ssa/main/common/lock_protocol.h"
 #include "ssa/main/client/hlckmgr.h"
-#include "client/client_i.h"
-#include "client/libfs.h"
+#include "pxfs/client/client_i.h"
+#include "pxfs/client/libfs.h"
 
 using namespace client;
 
