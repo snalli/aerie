@@ -25,7 +25,8 @@ SUITE(ContainersByteContainer)
 	{
 		char                            src[kBlockSize];
 		char                            dst[kBlockSize];
-		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session, buffer);
 
 		src[0] = 'a';
 		byte_container->WriteBlock(session, src, 0, 0, kBlockSize);
@@ -40,7 +41,8 @@ SUITE(ContainersByteContainer)
 	{
 		char                            src[kBlockSize];
 		char                            dst[kBlockSize];
-		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session, buffer);
 
 		src[0] = 'a';
 		byte_container->WriteBlock(session, src, 12, 0, kBlockSize);
@@ -75,7 +77,8 @@ SUITE(ContainersByteContainer)
 		char    zeros[kBlockSize];
 		int     ret;
 
-		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session, buffer);
 
 		memset(zeros, 0, kBlockSize);
 
@@ -112,7 +115,8 @@ SUITE(ContainersByteContainer)
 		char                             zeros[kBlockSize];
 		int                              ret;
 		int                              i;
-		ByteContainer::Object<Session>*  byte_container = ByteContainer::Object<Session>::Make(session);
+		volatile char*                   buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>*  byte_container = ByteContainer::Object<Session>::Make(session, buffer);
 
 		start.Init(session, byte_container, 0);
 
@@ -177,7 +181,8 @@ SUITE(ContainersByteContainer)
 		int                             ret;
 		ByteContainer::Region<Session>* region;
 		ByteContainer::Region<Session>* new_region;
-		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session, buffer);
 		
 		fillbuf(src, kBlockSize, 300);
 		CHECK(byte_container->WriteBlock(session, src, 300, 0, kBlockSize) >= 0);
@@ -202,7 +207,8 @@ SUITE(ContainersByteContainer)
 		int                             ret;
 		ByteContainer::Region<Session>* region;
 		ByteContainer::Region<Session>* new_region;
-		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session, buffer);
 	
 		new_region = new ByteContainer::Region<Session>(session, byte_container, (uint64_t) 400);
 

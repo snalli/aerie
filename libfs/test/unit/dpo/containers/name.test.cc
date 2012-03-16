@@ -13,7 +13,8 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestInsertLookup)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(NameContainer::Object<Session>));
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session, buffer);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(1)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(2)) == 0);
@@ -32,7 +33,8 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestEraseDot)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(NameContainer::Object<Session>));
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session, buffer);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(2)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(1)) == 0);
@@ -52,7 +54,8 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestErase)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(NameContainer::Object<Session>));
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session, buffer);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(1)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(2)) == 0);
@@ -97,7 +100,8 @@ SUITE(ContainersNameContainer)
 	TEST_FIXTURE(SessionFixture, TestInsertOverwrite)
 	{
 		dpo::common::ObjectId           oid;
-		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session);
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(NameContainer::Object<Session>));
+		NameContainer::Object<Session>* name_container = NameContainer::Object<Session>::Make(session, buffer);
 		
 		CHECK(name_container->Insert(session, ".", dpo::common::ObjectId(1)) == 0);
 		CHECK(name_container->Insert(session, "..", dpo::common::ObjectId(2)) == 0);

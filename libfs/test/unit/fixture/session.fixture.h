@@ -21,7 +21,8 @@ public:
 
 	int AllocateExtent(Session* session, size_t nbytes, void** ptr)
 	{
-
+		*ptr = malloc(nbytes);
+		return E_SUCCESS;
 	}
 
 	int AllocateContainer(Session* session, int type, dpo::common::ObjectId* oid)
