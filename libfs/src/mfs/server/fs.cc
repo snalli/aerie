@@ -3,7 +3,7 @@
 namespace mfs {
 namespace server {
 
-FileSystem::FileSystem(dpo::common::ObjectId super)
+FileSystem::FileSystem(ssa::common::ObjectId super)
 	: superblock_(super)
 { }
 

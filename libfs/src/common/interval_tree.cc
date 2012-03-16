@@ -647,7 +647,7 @@ Interval * IntervalTree::DeleteNode(IntervalTreeNode * z){
 /***********************************************************************/
 /*  FUNCTION:  Overlap */
 /**/
-/*    INPUTS:  [a1,a2] and [b1,b2] are the low and high endpoints of two */
+/*    INPUTS:  [a1,a2] and [b1,b2] are the low and high enssaints of two */
 /*             closed intervals.  */
 /**/
 /*    OUTPUT:  stack containing pointers to the nodes between [low,high] */

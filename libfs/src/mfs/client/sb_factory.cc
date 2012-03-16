@@ -1,9 +1,9 @@
 #include "mfs/client/sb_factory.h"
 #include "common/errno.h"
 #include "client/session.h"
-#include "dpo/containers/super/container.h"
-#include "dpo/containers/name/container.h"
-#include "dpo/main/common/obj.h"
+#include "ssa/containers/super/container.h"
+#include "ssa/containers/name/container.h"
+#include "ssa/main/common/obj.h"
 #include "mfs/client/sb.h"
 #include "mfs/client/dir_inode.h"
 #include "mfs/client/inode_factory.h"
@@ -19,14 +19,14 @@ SuperBlockFactory::SuperBlockFactory()
 
 
 int 
-SuperBlockFactory::Load(::client::Session* session, dpo::common::ObjectId oid, 
+SuperBlockFactory::Load(::client::Session* session, ssa::common::ObjectId oid, 
                         ::client::SuperBlock** sbp)
 {
 	int                                ret;
 	SuperBlock*                        sb; 
 	::client::Inode*                   dip;
-	dpo::common::ObjectProxyReference* ref;
-	dpo::common::ObjectId              root_oid;
+	ssa::common::ObjectProxyReference* ref;
+	ssa::common::ObjectId              root_oid;
 
 	if ((ret = session->omgr_->FindObject(session, oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
@@ -59,8 +59,8 @@ SuperBlockFactory::Make(::client::Session* session, ::client::SuperBlock** sbp)
 	int                                                ret;
 	SuperBlock*                                        sb; 
 	::client::Inode*                                   dip;
-	dpo::containers::client::SuperContainer::Object*   super_obj;
-	dpo::containers::client::NameContainer::Object*    root_obj;
+	ssa::containers::client::SuperContainer::Object*   super_obj;
+	ssa::containers::client::NameContainer::Object*    root_obj;
 
 	// first create the superblock object/proxy,
 	// second create the directory inode objext/proxy and set the root 
@@ -68,7 +68,7 @@ SuperBlockFactory::Make(::client::Session* session, ::client::SuperBlock** sbp)
 	
 	// superblock 
 	// FIXME: allocate object through the storage manager
-	if ((super_obj = dpo::containers::client::SuperContainer::Object::Make(session)) == NULL) {
+	if ((super_obj = ssa::containers::client::SuperContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((ret = Load(session, super_obj->oid(), sbp)) < 0) {
@@ -78,7 +78,7 @@ SuperBlockFactory::Make(::client::Session* session, ::client::SuperBlock** sbp)
 	sb = static_cast<SuperBlock*>(*sbp);
 
 	// root directory inode
-	if ((root_obj = dpo::containers::client::NameContainer::Object::Make(session)) == NULL) {
+	if ((root_obj = ssa::containers::client::NameContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	sb->super_rw_ref_->proxy()->interface()->set_root(session, root_obj->oid());

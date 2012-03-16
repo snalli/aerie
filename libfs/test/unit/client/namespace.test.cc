@@ -7,7 +7,7 @@
 #include "common/errno.h"
 #include "common/types.h"
 #include "unit/fixture/client.fixture.h"
-#include "dpo/main/common/obj.h"
+#include "ssa/main/common/obj.h"
 #include "client/namespace.h"
 #include "client/sb.h"
 #include "client/inode.h"
@@ -89,7 +89,7 @@ public:
 	}
 
 	client::Inode* RootInode() { return root_; }
-	dpo::common::ObjectId oid() { return dpo::common::ObjectId(0); }
+	ssa::common::ObjectId oid() { return ssa::common::ObjectId(0); }
 
 private:
 	client::Inode* root_;

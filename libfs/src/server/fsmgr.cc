@@ -1,8 +1,8 @@
 #include <string>
 #include "common/errno.h"
 #include "ipc/ipc.h"
-#include "dpo/main/server/registry.h"
-#include "dpo/main/server/salloc.h"
+#include "ssa/main/server/registry.h"
+#include "ssa/main/server/salloc.h"
 #include "pxfs/common/fs_protocol.h"
 #include "spa/pool/pool.h"
 #include "server/fsmgr.h"
@@ -15,9 +15,9 @@
 
 namespace server {
 
-FileSystemManager::FileSystemManager(Ipc* ipc, dpo::server::Dpo* dpo)
+FileSystemManager::FileSystemManager(Ipc* ipc, ssa::server::Dpo* ssa)
 	: ipc_(ipc),
-	  dpo_(dpo),
+	  ssa_(ssa),
 	  mounted_fs_(NULL)
 {
 	fs_factory_map_.set_empty_key(0);
@@ -80,7 +80,7 @@ FileSystemManager::CreateFileSystem(const char* target, int fs_type,
 {
 	FileSystemFactoryMap::iterator it;
 	FileSystemFactory*             fs_factory; 
-	dpo::common::ObjectId          oid;
+	ssa::common::ObjectId          oid;
 	int                            ret;
 	StoragePool*                   pool;
 
@@ -93,14 +93,14 @@ FileSystemManager::CreateFileSystem(const char* target, int fs_type,
 	}
 	fs_factory = it->second;
 
-	if ((ret = dpo_->Make(target, flags)) < 0) {
+	if ((ret = ssa_->Make(target, flags)) < 0) {
 		goto done;
 	}
-	if ((ret = fs_factory->Make(dpo_, nblocks, block_size, flags)) < 0) {
-		dpo_->Close();
+	if ((ret = fs_factory->Make(ssa_, nblocks, block_size, flags)) < 0) {
+		ssa_->Close();
 		goto done;
 	}
-	dpo_->Close();
+	ssa_->Close();
 
 	ret =  E_SUCCESS;
 done:
@@ -123,12 +123,12 @@ int
 FileSystemManager::MountFileSystem(int clt, const char* source, 
                                    const char* target, 
                                    int fs_type, unsigned int flags,
-                                   dpo::common::ObjectId* oid) 
+                                   ssa::common::ObjectId* oid) 
 {
 	FileSystemFactoryMap::iterator it;
 	FileSystemFactory*             fs_factory; 
 	FileSystem*                    fs;
-	dpo::common::ObjectId          tmp_oid;
+	ssa::common::ObjectId          tmp_oid;
 	int                            ret;
 	uint64_t                       identity;
 	StoragePool*                   pool;
@@ -147,19 +147,19 @@ FileSystemManager::MountFileSystem(int clt, const char* source,
 
 	// if a filesystem is not already loaded then load it.
 	// we allow a single file system instance
-	if (dpo_->pool()) {
-		if (dpo_->pool()->Identity() == identity) {
+	if (ssa_->pool()) {
+		if (ssa_->pool()->Identity() == identity) {
 			fs = mounted_fs_;
 		} else {
 			ret = -E_NOTEMPTY;
 			goto done;
 		}
 	} else {
-		if ((ret = dpo_->Load(source, flags)) < 0) {
+		if ((ret = ssa_->Load(source, flags)) < 0) {
 			goto done;
 		}
-		if ((ret = fs_factory->Load(dpo_, flags, &fs)) < 0) {
-			dpo_->Close();
+		if ((ret = fs_factory->Load(ssa_, flags, &fs)) < 0) {
+			ssa_->Close();
 			goto done;
 		}
 		mounted_fs_ = fs;
@@ -182,7 +182,7 @@ int
 FileSystemManager::MountFileSystem(int clt, const char* source, 
                                    const char* target, 
                                    const char* fs_type, unsigned int flags, 
-                                   dpo::common::ObjectId* oid)
+                                   ssa::common::ObjectId* oid)
 {
 	int fs_type_id = FSTypeStrToId(fs_type);
 
@@ -210,10 +210,10 @@ FileSystemManager::IpcHandlers::CreateFileSystem(unsigned int clt,
 												 unsigned int nblocks,
 												 unsigned int block_size,
                                                  unsigned int flags,
-                                                 dpo::common::ObjectId& unused)
+                                                 ssa::common::ObjectId& unused)
 {
 	int                   ret;
-	dpo::common::ObjectId tmp_oid;
+	ssa::common::ObjectId tmp_oid;
 	
 	if ((ret = module_->CreateFileSystem(target.c_str(), fs_type.c_str(), 
 	                                     nblocks, block_size, (int) flags)) < 0) {
@@ -233,10 +233,10 @@ FileSystemManager::IpcHandlers::MountFileSystem(unsigned int clt,
                                                 std::string target, 
                                                 std::string fs_type, 
                                                 unsigned int flags,
-                                                dpo::common::ObjectId& r)
+                                                ssa::common::ObjectId& r)
 {
 	int                   ret;
-	dpo::common::ObjectId tmp_oid;
+	ssa::common::ObjectId tmp_oid;
 	
 	if ((ret = module_->MountFileSystem(clt, source.c_str(), target.c_str(), 
 	                                    fs_type.c_str(), flags, &tmp_oid)) < 0)	{

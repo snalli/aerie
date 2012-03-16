@@ -1,18 +1,18 @@
 #ifndef __STAMNOS_FS_SERVER_SESSION_H
 #define __STAMNOS_FS_SERVER_SESSION_H
 
-#include "dpo/main/server/dpo.h"
-#include "dpo/main/server/session.h"
+#include "ssa/main/server/ssa.h"
+#include "ssa/main/server/session.h"
 #include "ipc/main/server/ipc.h"
 
 namespace server {
 
-class Session: public dpo::server::DpoSession {
+class Session: public ssa::server::DpoSession {
 public:
-	Session(Ipc* ipc, dpo::server::Dpo* dpo)
+	Session(Ipc* ipc, ssa::server::Dpo* ssa)
 	{ 
 		ipc_ = ipc;
-		dpo_ = dpo;
+		ssa_ = ssa;
 	}
 
 	int Init(int clt);

@@ -7,9 +7,9 @@
 #include "common/types.h"
 #include "common/const.h"
 #include "client/inode.h"
-#include "dpo/containers/assoc/hashtable.h"
-#include "dpo/containers/name/container.h"
-#include "dpo/main/common/obj.h"
+#include "ssa/containers/assoc/hashtable.h"
+#include "ssa/containers/name/container.h"
+#include "ssa/main/common/obj.h"
 
 namespace client {
 	class Session; // forward declaration
@@ -24,7 +24,7 @@ class DirInode: public ::client::Inode
 {
 friend class FileInode;
 public:
-	DirInode(dpo::common::ObjectProxyReference* ref)
+	DirInode(ssa::common::ObjectProxyReference* ref)
 		: parent_(NULL)
 	{ 
 		ref_ = ref;
@@ -52,8 +52,8 @@ public:
 	int ioctl(::client::Session* session, int request, void* info);
 
 private:
-	dpo::containers::client::NameContainer::Reference* rw_ref() {
-		return static_cast<dpo::containers::client::NameContainer::Reference*>(ref_);
+	ssa::containers::client::NameContainer::Reference* rw_ref() {
+		return static_cast<ssa::containers::client::NameContainer::Reference*>(ref_);
 	}
 	int              nlink_;
 	::client::Inode* parent_; // special case; see comment under link

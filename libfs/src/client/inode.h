@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "common/types.h"
 #include "client/const.h"
-#include "dpo/main/client/proxy.h"
+#include "ssa/main/client/proxy.h"
 
 namespace client {
 
@@ -39,11 +39,11 @@ public:
 	 */
 	virtual int ioctl(::client::Session* session, int request, void* info) = 0;
 
-	dpo::common::ObjectId oid() {
+	ssa::common::ObjectId oid() {
 		if (ref_) {
 			return ref_->proxy()->oid();	
 		}
-		return dpo::common::ObjectId(0);
+		return ssa::common::ObjectId(0);
 	}
 
 	InodeNumber ino() {
@@ -61,7 +61,7 @@ public:
 	}
 
 //protected:
-	dpo::common::ObjectProxyReference* ref_;     // reference to the persistent object container
+	ssa::common::ObjectProxyReference* ref_;     // reference to the persistent object container
 	//! process-wide mutex; used for synchronizing access to the
 	//! volatile inode metadata
 	pthread_mutex_t                    mutex_;

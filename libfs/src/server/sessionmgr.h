@@ -2,7 +2,7 @@
 #define __STAMNOS_PXFS_SERVER_SESSION_MANAGER_H
 
 #include "ipc/main/server/ipc-opaque.h"
-#include "dpo/main/server/dpo-opaque.h"
+#include "ssa/main/server/ssa-opaque.h"
 
 
 namespace server {
@@ -11,9 +11,9 @@ class Session; // forward declaration
 
 class SessionManager {
 public:
-	SessionManager(Ipc* ipc, dpo::server::Dpo* dpo)
+	SessionManager(Ipc* ipc, ssa::server::Dpo* ssa)
 		: ipc_(ipc),
-		  dpo_(dpo)
+		  ssa_(ssa)
 	{ }
 	
 	int Init();
@@ -24,7 +24,7 @@ public:
 private:
 	BaseSessionManager* base_session_mgr_;
 	Ipc*                ipc_;
-	dpo::server::Dpo*   dpo_;
+	ssa::server::Dpo*   ssa_;
 };
 
 

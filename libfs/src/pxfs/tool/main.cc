@@ -7,13 +7,13 @@
 #include "common/errno.h"
 #include "pxfs/tool/main.h"
 #include "server/fsmgr.h"
-#include "dpo/main/server/dpo.h"
+#include "ssa/main/server/ssa.h"
 #include "mfs/server/mfs.h"
 
 const char* prog_name = "pxfs";
 
 ::server::FileSystemManager* fsmgr;
-::dpo::server::Dpo*          dpo_layer;
+::ssa::server::Dpo*          ssa_layer;
 
 struct Command {
 	const char* name;
@@ -42,10 +42,10 @@ usage(const char *prog_name)
 
 int Init()
 {
-	dpo_layer = new ::dpo::server::Dpo(NULL);
-	dpo_layer->Init();
+	ssa_layer = new ::ssa::server::Dpo(NULL);
+	ssa_layer->Init();
 
-	fsmgr = new ::server::FileSystemManager(NULL, dpo_layer);
+	fsmgr = new ::server::FileSystemManager(NULL, ssa_layer);
 	fsmgr->Init();
 
 	mfs::server::RegisterBackend(fsmgr);

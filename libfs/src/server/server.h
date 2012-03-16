@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_PXFS_SERVER_H
 #define __STAMNOS_PXFS_SERVER_H
 
-#include "dpo/dpo-opaque.h"
+#include "ssa/ssa-opaque.h"
 #include "ipc/ipc-opaque.h"
 
 class ChunkServer;       // forward declaration
@@ -21,7 +21,7 @@ public:
 private:
 	int                port_;
 	ChunkServer*       chunk_server_;
-	dpo::server::Dpo*  dpo_layer_;
+	ssa::server::Dpo*  ssa_layer_;
 	Ipc*               ipc_layer_;
 	FileSystemManager* fsmgr_;
 	SessionManager*    sessionmgr_;

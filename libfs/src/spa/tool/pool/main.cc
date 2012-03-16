@@ -12,7 +12,7 @@
 const char* prog_name = "pool";
 
 ::server::FileSystemManager* fsmgr;
-::dpo::server::Dpo*          dpo_layer;
+::ssa::server::Dpo*          ssa_layer;
 
 struct Command {
 	const char* name;

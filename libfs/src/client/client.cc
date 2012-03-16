@@ -8,9 +8,9 @@
 #include "server/api.h"
 #include "client/config.h"
 #include "client/fsomgr.h"
-#include "dpo/main/client/dpo.h"
-#include "dpo/main/client/stm.h"
-#include "dpo/main/client/salloc.h"
+#include "ssa/main/client/ssa.h"
+#include "ssa/main/client/stm.h"
+#include "ssa/main/client/salloc.h"
 #include "spa/pool/pool.h"
 #include "mfs/client/mfs.h"
 #include "pxfs/common/fs_protocol.h"
@@ -28,7 +28,7 @@ FileManager*             global_fmgr;
 NameSpace*               global_namespace;
 Session*                 global_session;
 Ipc*                     global_ipc_layer;
-dpo::client::Dpo*        global_dpo_layer;
+ssa::client::Dpo*        global_ssa_layer;
 
 
 
@@ -43,9 +43,9 @@ Client::Init(const char* xdst)
 	global_ipc_layer->Init();
 
 
-	global_dpo_layer = new dpo::client::Dpo(global_ipc_layer);
-	global_dpo_layer->Init();
-	global_session = new Session(global_dpo_layer);
+	global_ssa_layer = new ssa::client::Dpo(global_ipc_layer);
+	global_ssa_layer->Init();
+	global_session = new Session(global_ssa_layer);
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
@@ -65,7 +65,7 @@ int
 Client::Shutdown() 
 {
 	// TODO: properly destroy any state created
-	delete global_dpo_layer;
+	delete global_ssa_layer;
 	return 0;
 }
 
@@ -77,8 +77,8 @@ Client::CurrentSession()
 		return thread_session;
 	}
 
-	thread_session = new Session(global_dpo_layer);
-	thread_session->tx_ = dpo::stm::client::Self();
+	thread_session = new Session(global_ssa_layer);
+	thread_session->tx_ = ssa::stm::client::Self();
 	return thread_session;
 }
 
@@ -92,7 +92,7 @@ Client::Mount(const char* source,
 	client::SuperBlock*   sb;
 	char*                 path = const_cast<char*>(target);
 	uint64_t              u64;
-	dpo::common::ObjectId oid;
+	ssa::common::ObjectId oid;
 	StoragePool*          pool;
 
 	dbg_log (DBG_INFO, "Mount file system %s of type %s to %s\n", source, fstype, target);
@@ -115,7 +115,7 @@ Client::Mount(const char* source,
 	if ((ret = StoragePool::Open(source, &pool)) < 0) {
 		return ret;
 	}
-	if ((ret = global_dpo_layer->salloc()->Load(pool)) < 0) {
+	if ((ret = global_ssa_layer->salloc()->Load(pool)) < 0) {
 		return ret;
 	}
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {

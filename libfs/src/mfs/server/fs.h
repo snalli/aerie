@@ -9,7 +9,7 @@
 #define __STAMNOS_PXFS_SERVER_MFS_FILE_SYSTEM_DESCRIPTOR_H
 
 #include "server/fs.h"
-#include "dpo/main/common/obj.h"
+#include "ssa/main/common/obj.h"
 
 namespace mfs {
 namespace server {
@@ -17,11 +17,11 @@ namespace server {
 // describes a file system instance
 class FileSystem: public ::server::FileSystem {
 public:
-	FileSystem(dpo::common::ObjectId super);
-	dpo::common::ObjectId superblock() { return superblock_; }
+	FileSystem(ssa::common::ObjectId super);
+	ssa::common::ObjectId superblock() { return superblock_; }
 
 private:
-	dpo::common::ObjectId superblock_;
+	ssa::common::ObjectId superblock_;
 
 };
 

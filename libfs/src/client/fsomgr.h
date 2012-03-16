@@ -50,8 +50,8 @@ public:
 	void Unregister(int type_id);
 	int CreateSuperBlock(Session* session, int fs_type, SuperBlock** sbp); 
 	int CreateSuperBlock(Session* session, const char* fs_type, SuperBlock** sbp); 
-	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, int fs_type, SuperBlock** sbp); 
-	int LoadSuperBlock(Session* session, dpo::common::ObjectId oid, const char* fs_type, SuperBlock** sbp); 
+	int LoadSuperBlock(Session* session, ssa::common::ObjectId oid, int fs_type, SuperBlock** sbp); 
+	int LoadSuperBlock(Session* session, ssa::common::ObjectId oid, const char* fs_type, SuperBlock** sbp); 
 	int CreateInode(Session* session, Inode* parent, int inode_type, Inode** ipp);
 
 private:

@@ -81,7 +81,7 @@ FileSystemObjectManager::CreateSuperBlock(Session* session, const char* fs_type,
 
 
 int 
-FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId oid, 
+FileSystemObjectManager::LoadSuperBlock(Session* session, ssa::common::ObjectId oid, 
                                         int fs_type, SuperBlock** sbp)
 {
 	SuperBlockFactoryMap::iterator it;
@@ -97,7 +97,7 @@ FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId 
 
 
 int 
-FileSystemObjectManager::LoadSuperBlock(Session* session, dpo::common::ObjectId oid, 
+FileSystemObjectManager::LoadSuperBlock(Session* session, ssa::common::ObjectId oid, 
                                         const char* fs_type, SuperBlock** sbp)
 {
 	int fs_type_id = FSTypeStrToId(fs_type);

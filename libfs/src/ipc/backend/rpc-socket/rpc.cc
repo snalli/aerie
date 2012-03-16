@@ -947,17 +947,17 @@ bool operator<(const sockaddr_in &a, const sockaddr_in &b) {
 
 /*---------------auxilary function--------------*/
 void
-make_sockaddr(const char *hostandport, struct sockaddr_in *dst){
+make_sockaddr(const char *hostanssart, struct sockaddr_in *dst){
 
 	char host[200];
 	const char *localhost = "127.0.0.1";
-	const char *port = index(hostandport, ':');
+	const char *port = index(hostanssart, ':');
 	if(port == NULL){
 		memcpy(host, localhost, strlen(localhost)+1);
-		port = hostandport;
+		port = hostanssart;
 	}else{
-		memcpy(host, hostandport, port-hostandport);
-		host[port-hostandport] = '\0';
+		memcpy(host, hostanssart, port-hostanssart);
+		host[port-hostanssart] = '\0';
 		port++;
 	}
 

@@ -13,7 +13,7 @@ class SuperBlockFactory: public ::client::SuperBlockFactory {
 public:
 	SuperBlockFactory();
 	int Make(::client::Session* session, ::client::SuperBlock** sbp);
-	int Load(::client::Session* session, dpo::common::ObjectId oid, ::client::SuperBlock** sbp);
+	int Load(::client::Session* session, ssa::common::ObjectId oid, ::client::SuperBlock** sbp);
 	int TypeID() {
 		return ::common::fs::kMFS;
 	}

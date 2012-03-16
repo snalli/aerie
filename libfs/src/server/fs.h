@@ -8,8 +8,8 @@
 #ifndef __STAMNOS_PXFS_SERVER_FILE_SYSTEM_DESCRIPTOR_H
 #define __STAMNOS_PXFS_SERVER_FILE_SYSTEM_DESCRIPTOR_H
 
-#include "dpo/main/common/obj.h"
-#include "dpo/main/server/dpo-opaque.h"
+#include "ssa/main/common/obj.h"
+#include "ssa/main/server/ssa-opaque.h"
 #include "spa/pool/pool.h"
 
 namespace server {
@@ -20,10 +20,10 @@ class FileSystemManager; // forward declaration
 class FileSystem {
 friend class FileSystemManager;
 public:
-	virtual dpo::common::ObjectId superblock() = 0;
+	virtual ssa::common::ObjectId superblock() = 0;
 
 private:
-	dpo::server::Dpo* dpo_;
+	ssa::server::Dpo* ssa_;
 };
 
 } // namespace server

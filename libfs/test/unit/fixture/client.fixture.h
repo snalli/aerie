@@ -3,7 +3,7 @@
 
 #include "client/session.h"
 
-namespace dpo {
+namespace ssa {
 namespace client {
 
 #define __STAMNOS_DPO_CLIENT_STORAGE_ALLOCATOR_H // ugly trick to prevent salloc.h from redefining 
@@ -23,7 +23,7 @@ public:
 		return E_SUCCESS;
 	}
 
-	int AllocateContainer(::client::Session* session, int type, dpo::common::ObjectId* oid)
+	int AllocateContainer(::client::Session* session, int type, ssa::common::ObjectId* oid)
 	{
 
 	}
@@ -31,14 +31,14 @@ public:
 };
 
 } // namespace client
-} // namespace dpo
+} // namespace ssa
 
 struct ClientFixture 
 {
 	ClientFixture() 
 		: session(NULL)
 	{ 
-		dpo::client::StorageAllocator* salloc = new dpo::client::StorageAllocator();
+		ssa::client::StorageAllocator* salloc = new ssa::client::StorageAllocator();
 		session = new client::Session(NULL, NULL, salloc, NULL);
 	}
 

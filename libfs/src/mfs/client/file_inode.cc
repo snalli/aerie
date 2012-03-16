@@ -31,7 +31,7 @@ FileInode::Write(::client::Session* session, char* src, uint64_t off, uint64_t n
 int
 FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
-	dpo::containers::client::ByteContainer::Proxy* cc_proxy;
+	ssa::containers::client::ByteContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -44,8 +44,8 @@ FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 int
 FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
-	dpo::containers::client::ByteContainer::Proxy* cc_proxy;
-	dpo::containers::client::NameContainer::Proxy* cc_proxy_parent;
+	ssa::containers::client::ByteContainer::Proxy* cc_proxy;
+	ssa::containers::client::NameContainer::Proxy* cc_proxy_parent;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -67,7 +67,7 @@ FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::
 int
 FileInode::Unlock(::client::Session* session)
 {
-	dpo::containers::client::ByteContainer::Proxy* cc_proxy;
+	ssa::containers::client::ByteContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	

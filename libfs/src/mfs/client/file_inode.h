@@ -5,8 +5,8 @@
 #include "common/types.h"
 #include "common/const.h"
 #include "client/inode.h"
-#include "dpo/containers/byte/container.h"
-#include "dpo/main/common/obj.h"
+#include "ssa/containers/byte/container.h"
+#include "ssa/main/common/obj.h"
 
 namespace client {
 	class Session; // forward declaration
@@ -18,7 +18,7 @@ namespace client {
 class FileInode: public ::client::Inode
 {
 public:
-	FileInode(dpo::common::ObjectProxyReference* ref)
+	FileInode(ssa::common::ObjectProxyReference* ref)
 	{ 
 		ref_ = ref;
 		fs_type_ = ::common::fs::kMFS;
@@ -44,8 +44,8 @@ public:
 
 	int ioctl(::client::Session* session, int request, void* info);
 private:
-	dpo::containers::client::ByteContainer::Reference* rw_ref() {
-		return static_cast<dpo::containers::client::ByteContainer::Reference*>(ref_);
+	ssa::containers::client::ByteContainer::Reference* rw_ref() {
+		return static_cast<ssa::containers::client::ByteContainer::Reference*>(ref_);
 	}
 	int              nlink_;
 };

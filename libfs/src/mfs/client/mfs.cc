@@ -15,7 +15,7 @@ RegisterBackend(::client::FileSystemObjectManager* fsomgr)
 	fsomgr->Register(sb_factory, inode_factory);
 	
 	// register any file system specific container types with the
-	// client dpo object manager
+	// client ssa object manager
 	// DONE: no file system specific container types
 }
 

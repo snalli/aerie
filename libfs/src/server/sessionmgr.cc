@@ -16,7 +16,7 @@ int
 SessionManager::Create(int clt, Session** sessionp)
 {
 	int      ret;
-	Session* session = new Session(ipc_, dpo_);
+	Session* session = new Session(ipc_, ssa_);
 
 	dbg_log(DBG_INFO, "Create session for client %d\n", clt);
 

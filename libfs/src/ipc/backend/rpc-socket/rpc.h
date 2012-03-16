@@ -26,7 +26,7 @@ class rpc_const {
 		static const int cancel_failure = -7;
 };
 
-// rpc client endpoint.
+// rpc client enssaint.
 // manages a xid space per destination socket
 // threaded: multiple threads can be sending RPCs,
 class rpcc : public chanmgr {
@@ -245,7 +245,7 @@ class handler {
 };
 
 
-// rpc server endpoint.
+// rpc server enssaint.
 class rpcs : public chanmgr {
 
 	typedef enum {
@@ -594,7 +594,7 @@ rpcs::reg(unsigned int proc, S*sob, int (S::*meth)(const A1 a1, const A2 a2,
 }
 
 
-void make_sockaddr(const char *hostandport, struct sockaddr_in *dst);
+void make_sockaddr(const char *hostanssart, struct sockaddr_in *dst);
 void make_sockaddr(const char *host, const char *port,
 		struct sockaddr_in *dst);
 

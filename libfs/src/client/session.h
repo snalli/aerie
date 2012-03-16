@@ -1,9 +1,9 @@
 #ifndef __STAMNOS_FS_CLIENT_SESSION_H
 #define __STAMNOS_FS_CLIENT_SESSION_H
 
-#include "dpo/main/client/dpo.h"
-#include "dpo/main/client/dpo-opaque.h"
-#include "dpo/main/client/stm.h"
+#include "ssa/main/client/ssa.h"
+#include "ssa/main/client/ssa-opaque.h"
+#include "ssa/main/client/stm.h"
 
 
 class StorageAllocator;
@@ -12,26 +12,26 @@ namespace client {
 
 class Session {
 public:
-	Session(dpo::client::Dpo* dpo)
-		: lckmgr_(dpo->lckmgr()),
-		  hlckmgr_(dpo->hlckmgr()),
-		  salloc_(dpo->salloc()),
-		  omgr_(dpo->omgr()),
-		  dpo_(dpo)
+	Session(ssa::client::Dpo* ssa)
+		: lckmgr_(ssa->lckmgr()),
+		  hlckmgr_(ssa->hlckmgr()),
+		  salloc_(ssa->salloc()),
+		  omgr_(ssa->omgr()),
+		  ssa_(ssa)
 	{ }
 	
-	Session(dpo::cc::client::LockManager* lckmgr, 
-	        dpo::cc::client::HLockManager* hlckmgr)
+	Session(ssa::cc::client::LockManager* lckmgr, 
+	        ssa::cc::client::HLockManager* hlckmgr)
 		: lckmgr_(lckmgr),
 		  hlckmgr_(hlckmgr),
 		  salloc_(NULL),
 		  omgr_(NULL)
 	{ }
 
-	Session(dpo::cc::client::LockManager* lckmgr, 
-	        dpo::cc::client::HLockManager* hlckmgr,
-	        dpo::client::StorageAllocator* salloc,
-	        dpo::client::ObjectManager* omgr)
+	Session(ssa::cc::client::LockManager* lckmgr, 
+	        ssa::cc::client::HLockManager* hlckmgr,
+	        ssa::client::StorageAllocator* salloc,
+	        ssa::client::ObjectManager* omgr)
 		: lckmgr_(lckmgr),
 		  hlckmgr_(hlckmgr),
 		  salloc_(salloc),
@@ -39,14 +39,14 @@ public:
 	{ }
 
 
-	dpo::client::StorageAllocator* salloc() { return dpo_->salloc(); }
+	ssa::client::StorageAllocator* salloc() { return ssa_->salloc(); }
 
-	dpo::client::Dpo*                dpo_;
-	dpo::cc::client::LockManager*    lckmgr_;
-	dpo::cc::client::HLockManager*   hlckmgr_;
-	dpo::client::StorageAllocator*     salloc_;
-	dpo::client::ObjectManager*      omgr_;
-	dpo::stm::client::Transaction*   tx_;
+	ssa::client::Dpo*                ssa_;
+	ssa::cc::client::LockManager*    lckmgr_;
+	ssa::cc::client::HLockManager*   hlckmgr_;
+	ssa::client::StorageAllocator*     salloc_;
+	ssa::client::ObjectManager*      omgr_;
+	ssa::stm::client::Transaction*   tx_;
 };
 
 

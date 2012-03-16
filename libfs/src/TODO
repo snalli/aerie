@@ -6,14 +6,14 @@ This enables to:
 drawbacks:
 4) copy between two filesystems cannot be done in a single address space. well, actually, this can be done by sharing data/metadata via shared memory.
 
-DPO layer 
+SSA layer 
 ---------
-server side: supports a single storage system; currently we go through two init steps: create dpo layer (lock manager) and then load the storage pool and storage allocator. 
-it would be better if we could just create the dpo layer once when we mount the storage system to avoid this confusing initialization:
+server side: supports a single storage system; currently we go through two init steps: create ssa layer (lock manager) and then load the storage pool and storage allocator. 
+it would be better if we could just create the ssa layer once when we mount the storage system to avoid this confusing initialization:
 mount could be done once the server loads (user provides the path to the pool in an environment variable or via command line)
 
 client side: we would like to support multiple file systems as a client might simultaneously want to mount multiple filesystems.
-currently the dpo layer does not support multiple file systems: we need to fix initialization of the lock managers, storage pool to be done when we open/load the storage system
+currently the ssa layer does not support multiple file systems: we need to fix initialization of the lock managers, storage pool to be done when we open/load the storage system
 
 ====
 

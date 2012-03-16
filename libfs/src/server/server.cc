@@ -1,6 +1,6 @@
 #include "server/server.h"
 #include "ipc/ipc.h"
-#include "dpo/main/server/dpo.h"
+#include "ssa/main/server/ssa.h"
 #include "ipc/main/server/ipc.h"
 #include "mfs/server/mfs.h"
 #include "server/fsmgr.h"
@@ -32,10 +32,10 @@ Server::Start(int port)
 	ipc_layer_ = new ::server::Ipc(port);
 	ipc_layer_->Init();
 	
-	dpo_layer_ = new ::dpo::server::Dpo(ipc_layer_);
-	dpo_layer_->Init();
+	ssa_layer_ = new ::ssa::server::Dpo(ipc_layer_);
+	ssa_layer_->Init();
 
-	fsmgr_ = new ::server::FileSystemManager(ipc_layer_, dpo_layer_);
+	fsmgr_ = new ::server::FileSystemManager(ipc_layer_, ssa_layer_);
 	assert(fsmgr_->Init() == E_SUCCESS);
 
 	//session_factory = new SessionFactory;
@@ -45,7 +45,7 @@ Server::Start(int port)
 	// register statically known file system backends
 	mfs::server::RegisterBackend(fsmgr_);
 
-	sessionmgr_ = new SessionManager(ipc_layer_, dpo_layer_);
+	sessionmgr_ = new SessionManager(ipc_layer_, ssa_layer_);
 	assert(sessionmgr_->Init() == E_SUCCESS);
 }
 

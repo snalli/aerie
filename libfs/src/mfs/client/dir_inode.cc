@@ -18,7 +18,7 @@ DirInode::Lookup(::client::Session* session, const char* name, int flags, ::clie
 {
 	int                   ret;
 	::client::Inode*      ip;
-	dpo::common::ObjectId oid;
+	ssa::common::ObjectId oid;
 	
 	dbg_log (DBG_INFO, "Lookup %s in inode %lx\n", name, ino());
 
@@ -49,7 +49,7 @@ DirInode::xLookup(::client::Session* session, const char* name, int flags, ::cli
 {
 	int                   ret;
 	::client::Inode*      ip;
-	dpo::common::ObjectId oid;
+	ssa::common::ObjectId oid;
 	
 	dbg_log (DBG_INFO, "xLookup %s in inode %lx\n", name, ino());
 
@@ -86,7 +86,7 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 
 	// special case: if inode oid is zero then we link to a pseudo-inode. 
 	// keep this link in the in-core state parent_
-	if (ip->oid() == dpo::common::ObjectId(0)) {
+	if (ip->oid() == ssa::common::ObjectId(0)) {
 		pthread_mutex_lock(&mutex_);
 		parent_ = ip;
 		pthread_mutex_unlock(&mutex_);
@@ -153,7 +153,7 @@ int DirInode::set_nlink(int nlink)
 int
 DirInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
-	dpo::containers::client::NameContainer::Proxy* cc_proxy;
+	ssa::containers::client::NameContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -166,8 +166,8 @@ DirInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 int
 DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
-	dpo::containers::client::NameContainer::Proxy* cc_proxy;
-	dpo::containers::client::NameContainer::Proxy* cc_proxy_parent;
+	ssa::containers::client::NameContainer::Proxy* cc_proxy;
+	ssa::containers::client::NameContainer::Proxy* cc_proxy_parent;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -189,7 +189,7 @@ DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::M
 int
 DirInode::Unlock(::client::Session* session)
 {
-	dpo::containers::client::NameContainer::Proxy* cc_proxy;
+	ssa::containers::client::NameContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	

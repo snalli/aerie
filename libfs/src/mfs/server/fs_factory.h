@@ -4,8 +4,8 @@
 #include <string>
 #include "server/fs_factory.h"
 #include "server/session.h"
-#include "dpo/main/server/dpo-opaque.h"
-#include "dpo/main/common/obj.h"
+#include "ssa/main/server/ssa-opaque.h"
+#include "ssa/main/common/obj.h"
 #include "spa/pool/pool.h"
 #include "common/const.h"
 
@@ -15,8 +15,8 @@ namespace server {
 class FileSystemFactory: public ::server::FileSystemFactory {
 public:
 	FileSystemFactory();
-	int Make(dpo::server::Dpo* dpo, size_t nblocks, size_t block_size, int flags);
-	int Load(dpo::server::Dpo* dpo, int flags, ::server::FileSystem** filesystem);
+	int Make(ssa::server::Dpo* ssa, size_t nblocks, size_t block_size, int flags);
+	int Load(ssa::server::Dpo* ssa, int flags, ::server::FileSystem** filesystem);
 	int TypeID() {
 		return ::common::fs::kMFS;
 	}
