@@ -136,12 +136,16 @@ DirInode::Readdir()
 
 int DirInode::nlink()
 {
+	dbg_log (DBG_INFO, "In inode %lx, nlink = %d\n", ino(), rw_ref()->proxy()->interface()->nlink());
+	
 	return rw_ref()->proxy()->interface()->nlink();
 }
 
 
 int DirInode::set_nlink(int nlink)
 {
+	dbg_log (DBG_INFO, "In inode %lx, set nlink = %d\n", ino(), nlink);
+	
 	return rw_ref()->proxy()->interface()->set_nlink(nlink);
 }
 

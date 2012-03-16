@@ -44,7 +44,7 @@ NameContainer::VersionManager::vUpdate(::client::Session* session)
 			// because there we replay the journal which has the unlink operation.
 			// so don't worry for now.
 			// TEST TestLinkPublish3 checks this case
-			printf("Publish: %s->%lu\n", it->first.c_str(), it->second.second.u64());
+			printf("Publish: %s -> %lx\n", it->first.c_str(), it->second.second.u64());
 			if ((ret = object()->Insert(session, it->first.c_str(), it->second.second)) != 0) {
 				return ret;
 			}

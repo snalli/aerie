@@ -1,3 +1,9 @@
+lock bug:
+DowngradePublicLock collects all locks to release and then releases one by one. When releasing a lock we call the publish function. however it's possible that 
+someone else will get a recursive lock as soon as we release a private lock but before releasing the public lock. thus before we make the publish.
+we either need to release all private locks first and then public locks
+or do publish first of all outstanding state and then release locks.
+
 -superblock container
   - filesystem
   - free bitmaps
