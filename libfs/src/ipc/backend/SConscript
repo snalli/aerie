@@ -1,2 +1,8 @@
-rpcLibrary, rpcLibraryObjects = SConscript('rpc-socket/SConscript')
+Import('mainEnv')
+
+if mainEnv['RPC'] == 'socket':
+	rpcLibrary, rpcLibraryObjects = SConscript('rpc-socket/SConscript')
+elif mainEnv['RPC'] == 'fast':
+	rpcLibrary, rpcLibraryObjects = SConscript('rpc-fast/SConscript')
+
 Return('rpcLibrary', 'rpcLibraryObjects')

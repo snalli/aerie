@@ -16,6 +16,7 @@ public:
 	void Start(const char* pathname, int flags, int port);
 
 	SessionManager<Session>* session_manager() { return sessionmgr_; }
+	Ipc* ipc_layer() { return ipc_layer_; }
 
 private:
 	int                          port_;
