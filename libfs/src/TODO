@@ -1,17 +1,5 @@
-Each server should only support a single file system type and instance.
-This enables to:
-1) avoid indirection overheads to support multiple file systems
-2) can use static polymorphism through C++ templates to modularize the implementation of the storage system
-3) better reliability as a fault in one file system code does not cause a fault in another. 
-drawbacks:
-4) copy between two filesystems cannot be done in a single address space. well, actually, this can be done by sharing data/metadata via shared memory.
-
 SSA layer 
 ---------
-server side: supports a single storage system; currently we go through two init steps: create ssa layer (lock manager) and then load the storage pool and storage allocator. 
-it would be better if we could just create the ssa layer once when we mount the storage system to avoid this confusing initialization:
-mount could be done once the server loads (user provides the path to the pool in an environment variable or via command line)
-
 client side: we would like to support multiple file systems as a client might simultaneously want to mount multiple filesystems.
 currently the ssa layer does not support multiple file systems: we need to fix initialization of the lock managers, storage pool to be done when we open/load the storage system
 
@@ -29,36 +17,6 @@ The DpoSession has pointers to stuff like:
 -journal
 -storage allocator
 
-The Session Object is created by the top layer, that is the file system layer. 
-To create the Session Object via the session manager (which is located in the IPC layer)
-the FS layer creates a factory object, which it registers with the session manager
-
-
-Session factory
-we need a way to find the storage allocator:
--the filesystem manager has a file system object, so it knows the storage allocator
-used by the filesystem. Store a pointer to the storage allocator in the DpoSession 
-
-
-
-Session Manager:
--keep a list of sessions per client id. (to simplify the implementation, we may keep a single session but the API should not make this restriction)
--whenever a client mounts a new file system we create a new session for that client/file system.
--whenever we see a request from a client, we can quickly find the session for that client
-
-
-===========
-
-MFS factory:
--we need to create a storage allocator on top of the storage pool of the file system 
--store a pointer to the storage allocator in the file system object.
-
-
-
-===============
-Storage Allocator Manager
--handles IPC requests and forwards them to the proper storage allocator. 
-Remember, each cliene/filesystem paier is identified by a session. We can find the storage allocator by looking into the ssession. 
 
 
 ------------------------

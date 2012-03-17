@@ -12,6 +12,6 @@ STYLE GUIDE
   http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
 
 SOURCE CODE OVERVIEW
-src/dpo    distributed persistent objects 
-src/rpc    remote procedure call
-src/mfs    memory file system backend
+src/ipc    inter-process communication
+src/pxfs   posix compliant file system
+src/ssa    storage system abstractions

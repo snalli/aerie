@@ -25,8 +25,14 @@ class Session;           // forward declaration
 /**
  * Each server supports a single file system instance.  
  * We favor this for several reasons:
- * 1. don't need extra layer of indirection to support multiple file system instances. 
+ * 1. don't need extra layer of indirection to support multiple file system 
+ *    instances. 
  * 2. better reliability as a fault in one file system doesn't affect others 
+ * 3) can use static polymorphism through C++ templates to modularize the 
+ *     implementation of the storage system
+ * Drawbacks:
+ * 1) copy between two filesystems cannot be done in a single address space. 
+ *    but it can be done over shared memory
  */
 class FileSystem {
 public:
