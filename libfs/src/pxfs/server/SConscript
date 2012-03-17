@@ -14,7 +14,6 @@ lib_sources = [
                'namespace.cc',
                'server.cc',
 	       'session.cc',
-	       'sessionmgr.cc'
               ]
 
 fssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)

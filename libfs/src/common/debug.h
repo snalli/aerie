@@ -17,7 +17,8 @@ extern "C" {
 	ACTION(client_hlckmgr)                                  \
 	ACTION(client_omgr)                                     \
 	ACTION(client_salloc)                                   \
-	ACTION(server_salloc)  
+	ACTION(server_salloc)                                   \
+	ACTION(server_storagesystem)                        
 
 
 #define ACTION(name)                                        \

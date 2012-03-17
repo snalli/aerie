@@ -29,12 +29,12 @@ namespace server {
 class StorageAllocator {
 	typedef google::dense_hash_map< ::ssa::common::ObjectType, ::ssa::server::ContainerAbstractFactory*> ObjectType2Factory; 
 public:
+	static int Load(::server::Ipc* ipc, StoragePool* pool, StorageAllocator** sallocp);
 
-	StorageAllocator(::server::Ipc* ipc);
+	StorageAllocator(::server::Ipc* ipc, StoragePool* pool);
 	int Init();
-	int Load(StoragePool* pool);
-	int Make(StoragePool* pool);
-	//static int Close(StorageAllocator* salloc);
+	/** Shutdowns the allocator, and destroys the object if is was created using one of the factory methods */
+	int Close();
 
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(SsaSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
@@ -61,6 +61,7 @@ private:
 	StoragePool*                                                          pool_;
 	ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object* freeset_;
 	ObjectType2Factory                                                    objtype2factory_map_; 
+	bool                                                                  can_commit_suicide_;
 };
 
 

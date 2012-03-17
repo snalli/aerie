@@ -9,8 +9,8 @@
 #include "ssa/containers/byte/container.h"
 #include "ssa/containers/typeid.h"
 #include "test/integration/ssa/obj.fixture.h"
-
-#include "mfs/client/file_inode.h"
+#include "pxfs/mfs/client/file_inode.h"
+#include "mfs.fixture.h"
 
 
 static ssa::common::ObjectId OID[16];
@@ -21,7 +21,7 @@ static const char* storage_pool_path = "/tmp/stamnos_pool";
 
 SUITE(MFSFileInode)
 {
-	TEST_FIXTURE(ObjectFixture, TestWrite1)
+	TEST_FIXTURE(MFSFixture, TestWrite1)
 	{
 		char                               buf[512];
 		::client::Inode*                   inode;
@@ -55,7 +55,7 @@ SUITE(MFSFileInode)
 		EVENT("End");
 	}
 
-	TEST_FIXTURE(ObjectFixture, TestRead1)
+	TEST_FIXTURE(MFSFixture, TestRead1)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;

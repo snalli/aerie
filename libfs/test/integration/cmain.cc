@@ -7,7 +7,7 @@
 #include <iostream>
 #include <list>
 #include "common/debug.h"
-#include "client/libfs.h"
+#include "pxfs/client/libfs.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
 

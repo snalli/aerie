@@ -7,8 +7,7 @@ class FileSystemProtocol {
 public:
 	
 	enum RpcNumbers {
-		kCreate = 4500,
-		kMount	
+		kMount = 4500
 	};
 };
 

@@ -2,25 +2,26 @@
 #define __STAMNOS_PXFS_SERVER_H
 
 #include "ssa/ssa-opaque.h"
+#include "ssa/main/server/sessionmgr.h"
 #include "ipc/ipc-opaque.h"
+#include "pxfs/server/session.h"
 
 namespace server {
 
 class FileSystem; // forward declaration
-class SessionManager; // forward declaration
 
 class Server {
 public:
 	static Server* Instance();
-	void Start(int port);
+	void Start(const char* pathname, int flags, int port);
 
-	SessionManager* session_manager() { return sessionmgr_; }
+	SessionManager<Session>* session_manager() { return sessionmgr_; }
 
 private:
 	int                          port_;
 	Ipc*                         ipc_layer_;
 	FileSystem*                  fs_;
-	SessionManager*              sessionmgr_;
+	SessionManager<Session>*     sessionmgr_;
 	static Server*               instance_;
 };
 

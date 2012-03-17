@@ -9,15 +9,14 @@
 #include <string>
 #include <sstream>
 #include "tool/testfw/integrationtest.h"
-#include "client/config.h"
+#include "pxfs/client/config.h"
 #include "ssa/main/client/registry.h"
 #include "ssa/main/client/omgr.h"
 #include "ssa/main/client/salloc.h"
 #include "test/integration/ipc/ipc.fixture.h"
 #include "lock.fixture.h"
-
-#include "client/fsomgr.h"
-#include "mfs/client/mfs.h"
+#include "pxfs/client/fsomgr.h"
+#include "pxfs/mfs/client/mfs.h"
 
 using namespace client;
 

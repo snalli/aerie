@@ -11,7 +11,7 @@ using namespace client;
 
 
 int
-FRONTAPI(init) (char* xdst)
+FRONTAPI(init) (const char* xdst)
 {
 	return Client::Init(xdst);
 }
@@ -41,17 +41,6 @@ FRONTAPI(umount) (const char* target)
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
 }
  
-
-int 
-FRONTAPI(mkfs) (const char* target, 
-                const char* fstype, 
-                uint32_t nblocks,
-				uint32_t block_size,
-                uint32_t flags)
-{
-	return Client::Mkfs(target, fstype, nblocks, block_size, flags);
-}
-
 
 int 
 FRONTAPI(mkdir) (const char* path, int mode)

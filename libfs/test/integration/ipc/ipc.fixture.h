@@ -3,10 +3,11 @@
 
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
-#include "client/config.h"
-#include "client/client_i.h"
+#include "ipc/ipc.h"
+#include "pxfs/client/config.h"
+#include "pxfs/client/client_i.h"
 
-using namespace client;
+extern client::Ipc* client::global_ipc_layer;
 
 struct IPCFixture {
 	static bool            initialized;
@@ -27,9 +28,9 @@ struct IPCFixture {
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
 			initialized = true;
-			Config::Init();
-			global_ipc_layer = new Ipc(xdst.c_str());
-			global_ipc_layer->Init();
+			client::Config::Init();
+			client::global_ipc_layer = new client::Ipc(xdst.c_str());
+			client::global_ipc_layer->Init();
 		}
 		pthread_mutex_unlock(&mutex);
 	}

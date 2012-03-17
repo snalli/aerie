@@ -9,6 +9,7 @@
 #include "ssa/containers/set/container.h"
 #include "spa/pool/pool.h"
 #include "spa/const.h"
+#include "common/debug.h"
 
 namespace ssa {
 namespace server {
@@ -17,17 +18,18 @@ namespace server {
 int
 StorageSystem::Init()
 {
+	int ret;
+
 	if ((hlckmgr_ = new ::ssa::cc::server::HLockManager(ipc_)) == NULL) {
 		return -E_NOMEM;
 	}
 	hlckmgr_->Init();
-	if ((salloc_ = new StorageAllocator(ipc_)) == NULL) {
+	if ((ret = StorageAllocator::Load(ipc_, pool_, &salloc_)) < 0) {
 		delete hlckmgr_;
-		return -E_NOMEM;
+		return ret;
 	}
-	salloc_->Init();
 	if ((registry_ = new Registry(ipc_)) == NULL) {
-		delete salloc_;
+		salloc_->Close();
 		delete hlckmgr_;
 	}
 	registry_->Init();
@@ -36,31 +38,45 @@ StorageSystem::Init()
 
 
 int
-StorageSystem::Load(const char* source, unsigned int flags)
+StorageSystem::Load(::server::Ipc* ipc, const char* source, 
+                    unsigned int flags, StorageSystem** storage_system_ptr)
 {
 	int                ret;
 	void*              b;
+	StorageSystem*     storage_system;	
+	StoragePool*       pool;
 	::server::Session* session = NULL; // we need no journaling
 	
-	if ((ret = StoragePool::Open(source, &pool_)) < 0) {
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_storagesystem), 
+	        "Load storage system %s\n", source);
+
+	if ((ret = StoragePool::Open(source, &pool)) < 0) {
 		return ret;
 	}
-	if ((b = pool_->root()) == 0) {
+	if ((b = pool->root()) == 0) {
+		StoragePool::Close(pool);
 		return -E_NOENT;
 	}
-	if ((super_obj_ = ssa::containers::server::SuperContainer::Object::Load(b)) == NULL) {
+	if ((storage_system = new StorageSystem(ipc, pool)) == NULL) {
+		StoragePool::Close(pool);
 		return -E_NOMEM;
 	}
-	if ((ret = salloc_->Load(pool_)) < 0) {
+	if ((storage_system->super_obj_ = ssa::containers::server::SuperContainer::Object::Load(b)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = storage_system->Init()) < 0) {
 		return ret;
 	}
+	storage_system->can_commit_suicide_ = true;
+	*storage_system_ptr = storage_system;
+
 	return E_SUCCESS;
 }
 
 
-// formats the header of the pool to enable a storage allocator 
-// on top of it. it prepares the super_obj so that the storage
-// system can continue formatting.
+/**
+ * \brief Creates a storage system in the pool
+ */
 int 
 StorageSystem::Make(const char* target, unsigned int flags)
 {
@@ -72,9 +88,9 @@ StorageSystem::Make(const char* target, unsigned int flags)
 	char*                                                                 buffer;
 	SsaSession*                                                           session = NULL; // we need no journaling and storage allocator
 	size_t                                                                master_extent_size;
-
+	StoragePool*                                                          pool;
 	
-	if ((ret = StoragePool::Open(target, &pool_)) < 0) {
+	if ((ret = StoragePool::Open(target, &pool)) < 0) {
 		return ret;
 	}
 	
@@ -86,10 +102,10 @@ StorageSystem::Make(const char* target, unsigned int flags)
 	master_extent_size += sizeof(ssa::containers::server::NameContainer::Object);
 	master_extent_size += sizeof(ssa::containers::server::SuperContainer::Object);
 	master_extent_size += sizeof(ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object);
-	if ((ret = pool_->AllocateExtent(master_extent_size, (void**) &buffer)) < 0) {
+	if ((ret = pool->AllocateExtent(master_extent_size, (void**) &buffer)) < 0) {
 		return ret;
 	}
-	pool_->set_root((void*) buffer);
+	pool->set_root((void*) buffer);
 
 	// superblock 
 	b = buffer;
@@ -111,8 +127,6 @@ StorageSystem::Make(const char* target, unsigned int flags)
 	b += sizeof(ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object);
 	assert(b < buffer + master_extent_size + 1); 
 	return E_SUCCESS;
-
-
 }
 
 
@@ -124,7 +138,9 @@ StorageSystem::Close()
 	if ((ret = StoragePool::Close(pool_)) < 0) {
 		return ret;
 	}
-	pool_ = NULL;
+	if (can_commit_suicide_) {
+		delete this;
+	}
 	return E_SUCCESS;
 }
 

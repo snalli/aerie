@@ -17,8 +17,10 @@ Import('commonLibrary')
 Import('spaLibrary')
 Import('ipcClientLibrary')
 Import('ipcServerLibrary')
-clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, spaLibrary, commonLibrary]
-serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, spaLibrary, commonLibrary]
+Import('ssaClientLibrary')
+Import('ssaServerLibrary')
+clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, ssaClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, ssaServerLibrary, spaLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 serverProgram = myTestEnv.Program('smain', \
@@ -34,165 +36,14 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 # INTEGRATION TEST SCHEDULES
 ############################################################################### 
 
-#
-# NAMESPACE TESTS
-#
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFS:TestMkfs',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'Namespace:TestMkfs')])
-    },
-    rendezvous = []
-))
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFS:TestMountSingle',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'Namespace:TestMount')])
-    },
-    rendezvous = []
-))
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFS:TestMkfsMountConcurrent',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'Namespace:TestMkfs')]),
-        'C2': ( testProgram, [('T1', 'Namespace:TestMount')])
-    },
-    rendezvous = [('C1:T1:MkfsAfter:block', 'C2:T1:MountBefore:block')]
-))
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFS:TestMkdirRmdirConcurrent',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'Namespace:TestMkfsMkdir')]),
-        'C2': ( testProgram, [('T1', 'Namespace:TestRmdir')])
-    },
-    rendezvous = [('C1:T1:E2:block', 'C2:T1:E1:block'), 
-                  ('C1:T1:E3:block', 'C2:T1:E3:block')]
-))
-
-
-#
-# DIRECTORY INODE TESTS (SINGLE CLIENT)
-#
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFSDirInode:TestLink',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink')])
-    },
-    rendezvous = []
-))
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFSDirInode:TestUnlink',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'MFSDirInode:TestUnlink')])
-    },
-    rendezvous = []
-))
-
-
-#
-# DIRECTORY INODE TESTS (MULTIPLE CLIENTS)
-#
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFSDirInode:TestLinkConcurrent1',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink1_publisher')]),
-        'C2': ( testProgram, [('T1', 'MFSDirInode:TestLink1_consumer')])
-    },
-    rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
-                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
-                  ('C1:T1:End:block', 'C2:T1:End:block'),
-    ]
-))
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFSDirInode:TestLinkConcurrent2',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink2_publisher')]),
-        'C2': ( testProgram, [('T1', 'MFSDirInode:TestLink2_consumer')])
-    },
-    rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
-                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
-                  ('C1:T1:End:block', 'C2:T1:End:block'),
-    ]
-))
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFSDirInode:TestUnlinkConcurrent1',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'MFSDirInode:TestUnlink1_publisher')]),
-        'C2': ( testProgram, [('T1', 'MFSDirInode:TestUnlink1_consumer')])
-    },
-    rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
-                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
-                  ('C1:T1:End:block', 'C2:T1:End:block'),
-    ]
-))
 
 
 
-#
-# FILE INODE TESTS (SINGLE CLIENT)
-#
 
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFSFileInode:TestWriteReadSingle1',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'MFSFileInode:TestWrite1')])
-    },
-    rendezvous = []
-))
+import test.integration.mfs.namespace
+import test.integration.mfs.file_inode
+import test.integration.mfs.dir_inode
 
-
-#
-# FILE INODE TESTS (MULTIPLE CLIENTS)
-#
-
-
-myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
-    name = 'MFSFileInode:TestWriteReadConcurrent1',
-    init_script = os.path.join(Dir('#').abspath, 'test/integration/mfs/init.sh'),
-    testfw = testProgram, server = serverProgram,
-    clients = { 
-        'C1': ( testProgram, [('T1', 'MFSFileInode:TestWrite1')]),
-        'C2': ( testProgram, [('T1', 'MFSFileInode:TestRead1')])
-    },
-    rendezvous = [
-                  ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
-                  ('C1:T1:AfterLock:block', 'C2:T1:BeforeLock:block'),
-                  ('C1:T1:End:block', 'C2:T1:End:block'),
-    ]
-))
+test.integration.mfs.namespace.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.mfs.file_inode.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.mfs.dir_inode.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)

@@ -30,15 +30,18 @@ class Session;           // forward declaration
  */
 class FileSystem {
 public:
+	static int Make(const char* target, size_t nblocks, size_t block_size, int flags);
+	static int Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** fsp);
+
 	FileSystem(Ipc* ipc, ssa::server::StorageSystem* storage_system);
 	int Init();
-	int Create(const char* target, size_t nblocks, size_t block_size, int flags); 
 	int Mount(int clt, const char* source, const char* target, unsigned int flags, ssa::common::ObjectId* oid); 
+
+	ssa::server::StorageSystem* storage_system() { return storage_system_; }
 
 	class IpcHandlers {
 	public:
 		int Register(FileSystem* module);
-		int Create(unsigned int clt, std::string target, unsigned int nblocks, unsigned int block_size, unsigned int flags, ssa::common::ObjectId& r);
 		int Mount(unsigned int clt, std::string source, std::string target, unsigned int flags, ssa::common::ObjectId& r);
 
 	private:

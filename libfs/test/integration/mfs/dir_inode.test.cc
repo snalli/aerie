@@ -8,12 +8,11 @@
 #include "ssa/main/client/omgr.h"
 #include "ssa/containers/name/container.h"
 #include "ssa/containers/typeid.h"
-#include "client/client_i.h"
-#include "client/libfs.h"
+#include "pxfs/client/client_i.h"
+#include "pxfs/client/libfs.h"
 #include "test/integration/ssa/obj.fixture.h"
-
-#include "mfs/client/dir_inode.h"
-
+#include "pxfs/mfs/client/dir_inode.h"
+#include "mfs.fixture.h"
 
 static ssa::common::ObjectId OID[16];
 
@@ -50,7 +49,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(ObjectFixture, TestLink)
+	TEST_FIXTURE(MFSFixture, TestLink)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -86,7 +85,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(ObjectFixture, TestUnlink)
+	TEST_FIXTURE(MFSFixture, TestUnlink)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -126,7 +125,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(ObjectFixture, TestLink1_publisher)
+	TEST_FIXTURE(MFSFixture, TestLink1_publisher)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -167,7 +166,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(ObjectFixture, TestLink1_consumer)
+	TEST_FIXTURE(MFSFixture, TestLink1_consumer)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -201,7 +200,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(ObjectFixture, TestLink2_publisher)
+	TEST_FIXTURE(MFSFixture, TestLink2_publisher)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -244,7 +243,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(ObjectFixture, TestLink2_consumer)
+	TEST_FIXTURE(MFSFixture, TestLink2_consumer)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -277,7 +276,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(ObjectFixture, TestUnlink1_publisher)
+	TEST_FIXTURE(MFSFixture, TestUnlink1_publisher)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -314,7 +313,7 @@ SUITE(MFSDirInode)
 		EVENT("End");
 	}
 
-	TEST_FIXTURE(ObjectFixture, TestUnlink1_consumer)
+	TEST_FIXTURE(MFSFixture, TestUnlink1_consumer)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;

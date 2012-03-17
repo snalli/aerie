@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tool/testfw/integrationtest.h"
-#include "client/client_i.h"
+#include "pxfs/client/client_i.h"
 #include "ipc.fixture.h"
 
 using namespace client;

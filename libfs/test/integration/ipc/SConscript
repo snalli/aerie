@@ -14,10 +14,12 @@ Import('mfsClientLibrary')
 Import('mfsServerLibrary')
 Import('commonLibrary')
 Import('spaLibrary')
+Import('ssaClientLibrary')
+Import('ssaServerLibrary')
 Import('ipcClientLibrary')
 Import('ipcServerLibrary')
-clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, spaLibrary, commonLibrary]
-serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, spaLibrary, commonLibrary]
+clientDepLibs = [mfsClientLibrary, fscLibrary, ipcClientLibrary, ssaClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, fssLibrary, ipcServerLibrary, ssaServerLibrary, spaLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)
@@ -31,7 +33,7 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 
 myTestEnv.addIntegrationTest(testfw.integration_test.IntegrationTest(
     name = 'IPC:TestServerIsAlive',
-    init_script = None,
+    init_script = os.path.join(Dir('#').abspath, 'test/integration/init.sh'),
     testfw = testProgram, server = serverProgram,
     clients = { 
         'C1': ( testProgram, [('T1', 'IPC:TestServerIsAlive')])

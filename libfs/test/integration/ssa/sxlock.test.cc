@@ -5,8 +5,8 @@
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
 #include "ssa/main/common/lock_protocol.h"
-#include "client/client_i.h"
-#include "client/libfs.h"
+#include "pxfs/client/client_i.h"
+#include "pxfs/client/libfs.h"
 #include "lock.fixture.h"
 #include "checklock.h"
 

@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_FS_SERVER_SESSION_H
 #define __STAMNOS_FS_SERVER_SESSION_H
 
-#include "ssa/main/server/ssa.h"
+#include "ssa/main/server/ssa-opaque.h"
 #include "ssa/main/server/session.h"
 #include "ipc/main/server/ipc.h"
 

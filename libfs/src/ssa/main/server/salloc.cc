@@ -23,8 +23,9 @@ namespace server {
 
 
 
-StorageAllocator::StorageAllocator(::server::Ipc* ipc)
-	: ipc_(ipc)
+StorageAllocator::StorageAllocator(::server::Ipc* ipc, StoragePool* pool)
+	: ipc_(ipc),
+	  pool_(pool)
 { 
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2factory_map_.set_empty_key(0);
@@ -32,20 +33,14 @@ StorageAllocator::StorageAllocator(::server::Ipc* ipc)
 
 
 int 
-StorageAllocator::Make(StoragePool* pool)
-{
-
-
-}
-
-
-int 
-StorageAllocator::Load(StoragePool* pool) 
+StorageAllocator::Load(::server::Ipc* ipc, StoragePool* pool, StorageAllocator** sallocp) 
 {
 	void*                                                                 b;
 	ssa::containers::server::SuperContainer::Object*                      super_obj;
 	ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object* set_obj;
-	
+	StorageAllocator*                                                     salloc;
+	int                                                                   ret;
+
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "Load storage pool 0x%lx\n", pool->Identity());
 
@@ -59,11 +54,26 @@ StorageAllocator::Load(StoragePool* pool)
 	if ((set_obj = ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object::Load(freelist_oid)) == NULL) {
 		return -E_NOMEM;
 	}
-	
-	pool_ = pool;
-	freeset_ = set_obj;
-	printf("%p, LOAD pool_=%p\n", this, pool_);
-	
+	if ((salloc = new StorageAllocator(ipc, pool)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = salloc->Init()) < 0) {
+		return ret;
+	}
+	salloc->freeset_ = set_obj;
+	salloc->can_commit_suicide_ = true;
+	*sallocp = salloc;
+
+	return E_SUCCESS;
+}
+
+
+int 
+StorageAllocator::Close()
+{
+	if (can_commit_suicide_) {
+		delete this;
+	}
 	return E_SUCCESS;
 }
 
@@ -212,7 +222,7 @@ StorageAllocator::AllocateContainer(SsaSession* session, int type, int num, ::ss
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "[%d] Allocate container %d\n", session->clt(), type);
-
+	
 	for (int i=0; i<freeset_->Size(); i++) {
 		freeset_->Read(session, i, &set_oid);
 		printf("set_oid=%lu\n", set_oid.u64());

@@ -3,15 +3,17 @@
 
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
-#include "client/libfs.h"
-#include "client/config.h"
-#include "client/client_i.h"
+#include "pxfs/client/libfs.h"
+#include "pxfs/client/config.h"
+#include "pxfs/client/client_i.h"
+#include "pxfs/client/session.h"
 
 using namespace client;
 
 struct MFSFixture {
 	static bool            initialized;
 	static pthread_mutex_t mutex;
+	Session*               session;
 
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
@@ -24,6 +26,10 @@ struct MFSFixture {
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
 			libfs_init("10000");
+			
+			session = new Session(global_ssa_layer);
+			global_session = session;
+			
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

@@ -6,14 +6,9 @@
 #include "common/util.h"
 #include "common/errno.h"
 #include "pxfs/tool/main.h"
-#include "pxfs/server/fs.h"
 #include "ssa/main/server/ssa.h"
-#include "pxfs/mfs/server/mfs.h"
 
 const char* prog_name = "pxfs";
-
-::server::FileSystem*          fs;
-::ssa::server::StorageSystem*  storage_system;
 
 struct Command {
 	const char* name;
@@ -40,16 +35,6 @@ usage(const char *prog_name)
 }
 
 
-int Init()
-{
-	storage_system = new ::ssa::server::StorageSystem(NULL);
-	storage_system->Init();
-
-	fs = new ::server::FileSystem(NULL, storage_system);
-	fs->Init();
-}
-
-
 int
 main(int argc, char* argv[])
 {
@@ -65,10 +50,6 @@ main(int argc, char* argv[])
 		return usage(prog_name);
 	}
 
-	if ((ret = Init()) < 0) {
-		return ret;
-	}
-	
 	if ((ret = command(argc, argv)) == E_SUCCESS) {
 		std::cerr << "SUCCESS!" << std::endl;
 	} else {

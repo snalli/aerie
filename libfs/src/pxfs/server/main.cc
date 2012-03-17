@@ -20,7 +20,8 @@ main(int argc, char *argv[])
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-	int debug_level = 0;
+	int   debug_level = 0;
+	char* pathname;
 
 	srandom(getpid());
 	port = 20000 + (getpid() % 10000);
@@ -31,6 +32,8 @@ main(int argc, char *argv[])
 			case 'T':
 				/* test framework argument -- ignore */
 				break;
+			case 's':
+				pathname = optarg;
 			case 'd':
 				debug_level = atoi(optarg);
 				break;
@@ -52,7 +55,7 @@ main(int argc, char *argv[])
 
 	printf("Starting file system server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
 
-	server::Server::Instance()->Start(port);
+	server::Server::Instance()->Start(pathname, 0, port);
 
 	while (1) {
 		sleep(1);

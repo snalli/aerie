@@ -9,8 +9,8 @@
 #include "ssa/main/client/omgr.h"
 #include "ssa/containers/name/container.h"
 #include "ssa/containers/typeid.h"
-#include "client/client_i.h"
-#include "client/libfs.h"
+#include "pxfs/client/client_i.h"
+#include "pxfs/client/libfs.h"
 #include "test/integration/ssa/obj.fixture.h"
 
 static ssa::common::ObjectId OID[16];

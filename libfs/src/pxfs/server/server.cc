@@ -1,9 +1,9 @@
 #include "pxfs/server/server.h"
 #include "ipc/main/server/ipc.h"
 #include "ssa/main/server/ssa.h"
+#include "ssa/main/server/sessionmgr.h"
 #include "pxfs/mfs/server/mfs.h"
 #include "pxfs/server/fs.h"
-#include "pxfs/server/sessionmgr.h"
 
 
 namespace server {
@@ -24,25 +24,17 @@ Server::Instance()
 
 
 void 
-Server::Start(int port)
+Server::Start(const char* pathname, int flags, int port)
 {
 	port_ = port;
 
 	ipc_layer_ = new ::server::Ipc(port);
 	ipc_layer_->Init();
 
-/*
-	ssa_layer_ = new ::ssa::server::Dpo(ipc_layer_);
-	ssa_layer_->Init();
+	assert(FileSystem::Load(ipc_layer_, pathname, flags, &fs_) == E_SUCCESS);
 
-	fsmgr_ = new ::server::FileSystemManager(ipc_layer_, ssa_layer_);
-	assert(fsmgr_->Init() == E_SUCCESS);
-*/
-
-/*
-	sessionmgr_ = new SessionManager(ipc_layer_, ssa_layer_);
+	sessionmgr_ = new SessionManager<Session>(ipc_layer_, fs_->storage_system());
 	assert(sessionmgr_->Init() == E_SUCCESS);
-*/
 }
 
 } // namespace server

@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
-#include "client/client_i.h"
-#include "client/libfs.h"
+#include "pxfs/client/client_i.h"
+#include "pxfs/client/libfs.h"
 #include "mfs.fixture.h"
 
 using namespace client;

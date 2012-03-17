@@ -102,8 +102,7 @@ Client::Mount(const char* source,
 
 	if ((ret = global_ipc_layer->call(FileSystemProtocol::kMount, 
 	                                  global_ipc_layer->id(), std::string(source), 
-	                                  std::string(target), std::string(fstype),
-	                                  flags, oid)) < 0) 
+	                                  std::string(target), flags, oid)) < 0) 
 	{
 		return -E_IPC;
 	}
@@ -121,34 +120,6 @@ Client::Mount(const char* source,
 		return ret;
 	}
 	return global_namespace->Mount(global_session, path, sb);
-}
-
-
-int 
-Client::Mkfs(const char* target, 
-             const char* fstype, 
-             uint32_t nblocks,
-			 uint32_t block_size,
-             uint32_t flags)
-{
-	int                 r;
-	int                 ret;
-	client::SuperBlock* sb;
-	char*               path = const_cast<char*>(target);
-
-	dbg_log (DBG_INFO, "Create file system of type %s in %s\n", fstype, target);
-	
-	if (target == NULL || fstype == NULL) {
-		return -1;
-	}
-	
-	if ((ret = global_ipc_layer->call(FileSystemProtocol::kCreate, 
-	                                  global_ipc_layer->id(), std::string(target), 
-	                                  std::string(fstype), nblocks, block_size,
-	                                  flags, r)) < 0) {
-		return -E_IPC;
-	}
-	return -ret;
 }
 
 
