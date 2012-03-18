@@ -1,6 +1,6 @@
 #include "ssa/main/server/session.h"
 #include "ssa/main/server/ssa.h"
-#include "ipc/main/server/session.h"
+#include "bcs/bcs.h"
 #include "common/errno.h"
 
 namespace ssa {
@@ -11,7 +11,7 @@ SsaSession::Init(int clt)
 {
 	int ret;
 
-	if ((ret = ::server::IpcSession::Init(clt)) < 0) {
+	if ((ret = ::server::BcsSession::Init(clt)) < 0) {
 		return ret;
 	}
 	sets_.clear();

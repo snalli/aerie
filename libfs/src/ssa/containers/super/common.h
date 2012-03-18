@@ -11,9 +11,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
+#include "bcs/main/common/cdebug.h"
 #include "ssa/containers/typeid.h"
 #include "ssa/main/common/obj.h"
-#include "common/debug.h"
 #include "common/util.h"
 
 

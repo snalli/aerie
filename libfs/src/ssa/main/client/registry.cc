@@ -9,7 +9,7 @@
 #include <cstring>
 #include "common/util.h"
 #include "common/hrtime.h"
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/obj.h"
 #include "ssa/main/common/registry_protocol.h"
 

@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <boost/functional/hash.hpp>
 #include "common/types.h"
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 
 namespace ssa {
 namespace common {

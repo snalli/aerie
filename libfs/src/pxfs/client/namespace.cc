@@ -17,7 +17,7 @@
 #include "pxfs/client/mpinode.h"
 #include "pxfs/client/inode.h"
 #include "pxfs/client/sb.h"
-#include "common/debug.h"
+#include "bcs/bcs.h"
 
 #include <typeinfo>
 

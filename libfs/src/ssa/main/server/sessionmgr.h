@@ -1,9 +1,9 @@
 #ifndef __STAMNOS_SSA_SERVER_SESSION_MANAGER_H
 #define __STAMNOS_SSA_SERVER_SESSION_MANAGER_H
 
-#include "ipc/main/server/ipc.h"
+#include "bcs/main/server/bcs.h"
 #include "ssa/main/server/ssa-opaque.h"
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 #include "common/errno.h"
 
 namespace server {

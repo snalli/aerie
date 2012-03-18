@@ -3,18 +3,14 @@
 #include <stddef.h>
 #include "spa/const.h"
 #include "common/errno.h"
-#include "common/debug.h"
 #include "common/util.h"
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/storage_protocol.h"
 #include "ssa/containers/set/container.h"
 #include "ssa/containers/super/container.h"
 #include "ssa/containers/name/container.h"
 #include "ssa/containers/byte/container.h"
 #include "ssa/main/server/container.h"
-#include "ipc/main/server/cltdsc.h"
-#include "ipc/main/server/ipc.h"
-#include "ipc/main/server/session.h"
 #include "ssa/main/server/session.h"
 
 
@@ -229,7 +225,7 @@ StorageAllocator::AllocateContainer(SsaSession* session, int type, int num, ::ss
 		if ((set_obj = ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object::Load(set_oid)) == NULL) {
 			break;
 		}
-		if (set_obj->Size() > 0 && set_obj->Read(session, 0, &oid) == SUCCESS) {
+		if (set_obj->Size() > 0 && set_obj->Read(session, 0, &oid) == E_SUCCESS) {
 			if (oid.type() == type) {
 				found = true;
 				break;

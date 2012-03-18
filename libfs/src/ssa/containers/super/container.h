@@ -11,7 +11,7 @@
 #include <typeinfo>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 #include "common/util.h"
 #include "ssa/containers/assoc/hashtable.h"
 #include "ssa/containers/super/common.h"

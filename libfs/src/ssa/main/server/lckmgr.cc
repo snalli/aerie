@@ -8,12 +8,11 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <vector>
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/gtque.h"
 #include "ssa/main/common/cc.h"
 #include "ssa/main/common/lock_protocol.h"
 #include "ssa/main/common/lock_protocol-static.h"
-#include "common/debug.h"
 
 // TODO: leases
 // Server does not trust clients so it should adopt timeouts to expire 

@@ -6,7 +6,7 @@
 #include <limits.h>
 #include <iostream>
 #include "common/TemplateStack.H"
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 
 //  The interval_tree.h and interval_tree.cc files contain code for 
 //  interval trees implemented using red-black-trees as described in 

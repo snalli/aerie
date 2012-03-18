@@ -1,5 +1,5 @@
 #include "pxfs/mfs/client/inode_factory.h"
-#include "common/debug.h"
+#include "bcs/bcs.h"
 #include "pxfs/client/backend.h"
 #include "ssa/containers/typeid.h"
 #include "pxfs/mfs/client/dir_inode.h"

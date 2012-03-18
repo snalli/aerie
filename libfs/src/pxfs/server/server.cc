@@ -1,5 +1,5 @@
 #include "pxfs/server/server.h"
-#include "ipc/main/server/ipc.h"
+#include "bcs/main/server/bcs.h"
 #include "ssa/main/server/ssa.h"
 #include "ssa/main/server/sessionmgr.h"
 #include "pxfs/mfs/server/mfs.h"

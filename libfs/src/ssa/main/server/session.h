@@ -2,14 +2,14 @@
 #define __STAMNOS_SSA_SERVER_SESSION_H
 
 #include "ssa/main/common/obj.h"
-#include "ipc/main/server/session.h"
+#include "bcs/main/server/session.h"
 #include "ssa/main/server/ssa-opaque.h"
 
 namespace ssa {
 namespace server {
 
 /**< Storage System Abstractions layer session */
-class SsaSession: public ::server::IpcSession {
+class SsaSession: public ::server::BcsSession {
 public:
 
 	ssa::server::StorageAllocator* salloc();

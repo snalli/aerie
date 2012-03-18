@@ -4,7 +4,6 @@
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
 #include "pxfs/client/libfs.h"
-#include "pxfs/client/config.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/session.h"
 
@@ -25,7 +24,7 @@ struct MFSFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			libfs_init("10000");
+			libfs_init2("10000");
 			
 			session = new Session(global_ssa_layer);
 			global_session = session;

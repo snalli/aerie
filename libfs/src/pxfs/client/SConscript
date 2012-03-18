@@ -1,5 +1,5 @@
 Import('buildEnv')
-Import('ipcClientLibrary')
+Import('bcsClientLibrary')
 Import('ssaClientLibrary')
 Import('spaLibrary')
 Import('commonLibrary')
@@ -12,7 +12,6 @@ lib_target = 'fsc'
 lib_sources = [
                'c_api.cc', 
                'client.cc', 
-               'config.cc',
                'file.cc',
                'fsomgr.cc', 
 	       'inode.cc',
@@ -25,7 +24,7 @@ fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_so
 # Be careful with linkage order for static libraries
 localBuildEnv.Append(LIBS = mfsClientLibrary)
 localBuildEnv.Append(LIBS = fscLibrary)
-localBuildEnv.Append(LIBS = ipcClientLibrary)
+localBuildEnv.Append(LIBS = bcsClientLibrary)
 localBuildEnv.Append(LIBS = ssaClientLibrary)
 localBuildEnv.Append(LIBS = spaLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)

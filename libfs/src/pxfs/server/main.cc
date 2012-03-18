@@ -7,8 +7,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <vector>
-#include "ipc/ipc.h"
-#include "common/debug.h"
+#include "bcs/bcs.h"
 #include "pxfs/server/server.h"
 
 int                    port;
@@ -20,7 +19,7 @@ main(int argc, char *argv[])
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-	int   debug_level = 0;
+	int   debug_level = -1;
 	char* pathname;
 
 	srandom(getpid());
@@ -47,7 +46,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	dbg_init(debug_level, NULL);
+	Config::Init();
+	Debug::Init(debug_level, NULL);
 
 	pthread_attr_init(&attr);
 	// set stack size to 32K, so we don't run out of memory

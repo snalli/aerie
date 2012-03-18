@@ -14,7 +14,6 @@
 #include <google/dense_hash_map>
 #include "ssa/ssa-opaque.h"
 #include "ssa/main/common/obj.h"
-#include "ipc/main/common/ipc_handler.h"
 
 
 namespace server {

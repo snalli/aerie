@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 #include "ssa/main/common/obj.h"
-#include "ipc/main/client/ipc-opaque.h"
+#include "bcs/bcs-opaque.h"
 
 
 namespace ssa {

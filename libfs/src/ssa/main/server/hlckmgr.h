@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 #include "ssa/main/server/lckmgr.h"
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 
 
 namespace ssa {

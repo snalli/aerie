@@ -2,10 +2,9 @@
 #define __STAMNOS_SSA_MAIN_SERVER_STORAGE_ALLOCATOR_H
 
 #include <vector>
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/server/obj.h"
 #include "ssa/main/server/container.h"
-#include "ipc/main/server/cltdsc.h"
 #include "ssa/main/server/ssa-opaque.h"
 #include "ssa/main/common/storage_protocol.h"
 #include "ssa/containers/set/container.h"

@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <cstring>
 #include "common/errno.h"
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/obj.h"
 #include "ssa/main/common/registry_protocol.h"
 

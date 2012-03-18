@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_SSA_STORAGE_PROTOCOL_H
 #define __STAMNOS_SSA_STORAGE_PROTOCOL_H
 
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/obj.h"
 
 namespace ssa {
@@ -10,8 +10,7 @@ class StorageProtocol {
 public:
 	
 	enum RpcNumbers {
-		kAllocateContainerVector = 40,
-		kAllocateContainer
+		DEFINE_RPC_NUMBER(SSA_STORAGE_PROTOCOL)
 	};
 	
 	class ContainerRequest;

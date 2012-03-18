@@ -1,1 +1,1 @@
-#include "test/integration/ipc/ipc.fixture.cc"
+#include "test/integration/bcs/ipc.fixture.cc"

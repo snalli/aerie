@@ -12,7 +12,8 @@
 #define FRONTAPI(fname) libfs_##fname
 
 
-int FRONTAPI(init) (const char* xdst);
+int FRONTAPI(init) (int argc, char* argv[]);
+int FRONTAPI(init2) (const char* xdst);
 int FRONTAPI(shutdown) ();
 int FRONTAPI(open) (const char* path, int flags);
 int FRONTAPI(close) (int fd);

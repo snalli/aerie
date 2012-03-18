@@ -12,6 +12,6 @@ STYLE GUIDE
   http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
 
 SOURCE CODE OVERVIEW
-src/ipc    inter-process communication
+src/bcs    basic services
 src/pxfs   posix compliant file system
 src/ssa    storage system abstractions

@@ -1,0 +1,44 @@
+Import('buildEnv')
+localBuildEnv = buildEnv.Clone()
+
+rpcLibrary, rpcLibraryObjects = SConscript('backend/SConscript')
+
+# Common objects
+
+commonSource = [
+                'main/common/config.cc',
+                'main/common/debug.cc',
+                'main/common/cdebug.c',
+                'main/common/cconfig.c'
+               ]
+
+commonObjects = localBuildEnv.SharedObject(commonSource)
+
+
+# Client IPC layer
+
+clt_lib_target = 'bcsclt'
+clt_lib_objects = rpcLibraryObjects + commonObjects
+clt_lib_sources = [
+                   'main/client/ipc.cc'
+                  ]
+
+bcsClientLibrary = localBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources + clt_lib_objects)
+
+
+
+# Server IPC layer
+
+srv_lib_target = 'bcssrv'
+srv_lib_objects = rpcLibraryObjects + commonObjects
+srv_lib_sources = [
+                   'main/server/cltdsc.cc',
+                   'main/server/ipc.cc',
+		   'main/server/sessionmgr.cc',
+		   'main/server/session.cc',
+                   'main/server/shbuf.cc',
+                  ]
+
+bcsServerLibrary = localBuildEnv.SharedLibrary(target = srv_lib_target, source = srv_lib_sources + srv_lib_objects)
+
+Return('rpcLibrary', 'bcsClientLibrary', 'bcsServerLibrary')

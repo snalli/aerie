@@ -8,10 +8,10 @@ buildEnv.Append(LIBS = ['config'])
 
 Export('buildEnv')
 
-rpcLibrary, ipcClientLibrary, ipcServerLibrary = SConscript('ipc/SConscript')
+rpcLibrary, bcsClientLibrary, bcsServerLibrary = SConscript('bcs/SConscript')
 Export('rpcLibrary')
-Export('ipcClientLibrary')
-Export('ipcServerLibrary')
+Export('bcsClientLibrary')
+Export('bcsServerLibrary')
 spaLibrary = SConscript('spa/SConscript')
 Export('spaLibrary')
 commonLibrary = SConscript('common/SConscript')

@@ -1,6 +1,6 @@
 #include <string>
 #include "common/errno.h"
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/server/ssa.h"
 #include "ssa/main/server/sessionmgr.h"
 #include "spa/pool/pool.h"

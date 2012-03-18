@@ -5,11 +5,8 @@ namespace ssa {
 
 class RegistryProtocol {
 public:
-	
 	enum RpcNumbers {
-		kLookup = 90,
-		kAdd,
-		kRemove
+		DEFINE_RPC_NUMBER(SSA_REGISTRY_PROTOCOL)
 	};
 };
 

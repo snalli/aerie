@@ -6,7 +6,7 @@
 #include "spa/pheap/vistaheap.h"
 #include "common/errno.h"
 #include "common/util.h"
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 
 
 int

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 
 #ifndef DEFAULT_INITIAL_SIZE
 #define DEFAULT_INITIAL_SIZE 16

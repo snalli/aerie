@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <iostream>
 #include <list>
-#include "common/debug.h"
+#include "bcs/bcs.h"
 #include "pxfs/client/libfs.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 {
 	pthread_attr_t attr;
 	int               ret;
-	int               debug_level = 0;
+	int               debug_level = -1;
 	uid_t             principal_id;
 	char              ch = 0;
 	char*             xdst=NULL;
@@ -67,7 +67,8 @@ main(int argc, char *argv[])
 		return 0;
 	}
 
-	dbg_init(debug_level, NULL);
+	Config::Init();
+	Debug::Init(debug_level, NULL);
 
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_init(&attr);

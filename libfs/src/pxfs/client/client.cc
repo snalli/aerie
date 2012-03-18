@@ -2,10 +2,10 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <getopt.h>
 #include <iostream>
+#include "bcs/bcs.h"
 #include "pxfs/client/file.h"
-#include "common/debug.h"
-#include "pxfs/client/config.h"
 #include "pxfs/client/fsomgr.h"
 #include "ssa/main/client/ssa.h"
 #include "ssa/main/client/stm.h"
@@ -57,6 +57,37 @@ Client::Init(const char* xdst)
 
 	global_namespace = new NameSpace("GLOBAL");
 	return global_namespace->Init(global_session);
+}
+
+
+int 
+Client::Init(int argc, char* argv[])
+{
+	int          ch;
+	int          ret;
+	int          debug_level = -1;
+	const char*  xdst = NULL;
+
+	while ((ch = getopt(argc, argv, "d:h:li:o:n:"))!=-1) {
+		switch (ch) {
+			case 'd':
+				debug_level = atoi(optarg);
+				break;
+			case 'h':
+				xdst = optarg;
+				break;
+			default:
+				break;
+		}
+	}
+
+	if ((ret = Config::Init()) < 0) {
+		return ret;
+	}
+	if ((ret = Debug::Init(debug_level, NULL)) < 0) {
+		return ret;
+	}
+	return Init(xdst);
 }
 
 

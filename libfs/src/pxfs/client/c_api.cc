@@ -5,13 +5,20 @@
 #include <fcntl.h>
 #include "rpc/rpc.h"
 #include "pxfs/client/client_i.h"
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 
 using namespace client;
 
 
 int
-FRONTAPI(init) (const char* xdst)
+FRONTAPI(init) (int argc, char* argv[])
+{
+	return Client::Init(argc, argv);
+}
+
+
+int
+FRONTAPI(init2) (const char* xdst)
 {
 	return Client::Init(xdst);
 }
@@ -22,7 +29,6 @@ FRONTAPI(shutdown) ()
 {
 	return Client::Shutdown();
 }
-
 
 
 int 

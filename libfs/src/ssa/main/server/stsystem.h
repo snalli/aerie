@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_SSA_SERVER_STORAGE_SYSTEM_H
 #define __STAMNOS_SSA_SERVER_STORAGE_SYSTEM_H
 
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "spa/pool/pool.h"
 #include "ssa/main/server/ssa-opaque.h"
 #include "ssa/containers/super/container.h"

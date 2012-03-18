@@ -5,8 +5,7 @@
  */
 
 #include "common/errno.h"
-#include "common/debug.h"
-#include "common/list.h"
+#include "bcs/bcs.h"
 #include "ssa/main/client/lckmgr.h"
 #include "ssa/main/client/hlckmgr.h"
 #include "ssa/main/client/omgr.h"

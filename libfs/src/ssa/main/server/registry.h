@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <map>
 #include <string>
-#include "ipc/ipc.h"
+#include "bcs/main/server/bcs.h"
 #include "ssa/main/common/obj.h"
 
 

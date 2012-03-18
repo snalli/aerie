@@ -4,9 +4,8 @@
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
 #include "pxfs/client/libfs.h"
-#include "pxfs/client/config.h"
 #include "pxfs/client/client_i.h"
-#include "test/integration/ipc/ipc.fixture.h"
+#include "test/integration/bcs/ipc.fixture.h"
 
 using namespace client;
 

@@ -9,11 +9,10 @@
 #include <string>
 #include <sstream>
 #include "tool/testfw/integrationtest.h"
-#include "pxfs/client/config.h"
 #include "ssa/main/client/registry.h"
 #include "ssa/main/client/omgr.h"
 #include "ssa/main/client/salloc.h"
-#include "test/integration/ipc/ipc.fixture.h"
+#include "test/integration/bcs/ipc.fixture.h"
 #include "lock.fixture.h"
 #include "pxfs/client/fsomgr.h"
 #include "pxfs/mfs/client/mfs.h"

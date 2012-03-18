@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <typeinfo>
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 #include "common/errno.h"
 #include "common/hash.h"
 

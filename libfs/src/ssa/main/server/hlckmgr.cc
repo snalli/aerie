@@ -1,6 +1,5 @@
 #include "ssa/main/server/hlckmgr.h"
-#include "ipc/ipc.h"
-#include "common/debug.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/cc.h"
 #include "ssa/main/common/lock_protocol.h"
 #include "ssa/main/server/lckmgr.h"

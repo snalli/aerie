@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 #include "common/util.h"
 #include "ssa/main/client/session.h"
 #include "ssa/main/server/session.h"

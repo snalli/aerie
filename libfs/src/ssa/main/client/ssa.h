@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_SSA_CLIENT_SSA_LAYER_H
 #define __STAMNOS_SSA_CLIENT_SSA_LAYER_H
 
-#include "ipc/main/client/ipc-opaque.h"
+#include "bcs/main/client/bcs-opaque.h"
 #include "ssa/main/client/ssa-opaque.h"
 #include "spa/pool/pool.h"
 

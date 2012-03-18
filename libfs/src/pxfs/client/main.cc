@@ -5,7 +5,6 @@
 #include <string.h>
 #include <getopt.h>
 #include <iostream>
-#include "common/debug.h"
 #include "pxfs/client/libfs.h"
 #include "pxfs/client/inode.h"
 #include "pxfs/client/namespace.h"
@@ -52,9 +51,7 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	dbg_init(debug_level, NULL);
-
-	libfs_init(xdst);
+	libfs_init(argc, argv);
 
 	libfs_shutdown();
 

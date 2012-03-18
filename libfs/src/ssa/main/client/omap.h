@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
-#include "common/debug.h"
 #include "common/errno.h"
 #include "ssa/main/common/obj.h"
 #include "ssa/main/client/proxy.h"

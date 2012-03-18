@@ -3,8 +3,7 @@
 #include <typeinfo>
 #include <vector>
 #include "common/errno.h"
-#include "common/debug.h"
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/storage_protocol.h"
 #include "ssa/main/client/session.h"
 #include "ssa/containers/set/container.h"

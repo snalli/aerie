@@ -13,7 +13,7 @@
 #include <typeinfo>
 #include "ssa/containers/name_collection/hashtable.h"
 #include "ssa/main/common/obj.h"
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 #include "common/util.h"
 
 namespace ssa {

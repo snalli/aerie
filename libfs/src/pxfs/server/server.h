@@ -3,7 +3,7 @@
 
 #include "ssa/ssa-opaque.h"
 #include "ssa/main/server/sessionmgr.h"
-#include "ipc/ipc-opaque.h"
+#include "bcs/bcs-opaque.h"
 #include "pxfs/server/session.h"
 
 namespace server {

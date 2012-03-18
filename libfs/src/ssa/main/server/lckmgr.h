@@ -8,7 +8,7 @@
 #include <deque>
 #include <set>
 #include <vector>
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/gtque.h"
 #include "ssa/main/common/lock_protocol.h"
 

@@ -10,7 +10,7 @@
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
 #include <set>
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "ssa/main/common/cc.h"
 #include "ssa/main/common/gtque.h"
 #include "common/bitmap.h"

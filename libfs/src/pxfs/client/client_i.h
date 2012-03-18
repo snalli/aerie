@@ -26,6 +26,7 @@ extern rpcs*             rpc_server;
 class Client {
 public:
 	static int Init(const char* xdst);
+	static int Init(int argc, char* argv[]);
 	static int Shutdown(); 
 	static Session* CurrentSession();
 	static int Mount(const char* source, const char* target, const char* fstype, uint32_t flags);

@@ -5,7 +5,7 @@
 #include <typeinfo>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_set>
-#include "ipc/main/client/ipc-opaque.h"
+#include "bcs/bcs-opaque.h"
 #include "ssa/main/common/obj.h"
 #include "spa/pool/pool.h"
 

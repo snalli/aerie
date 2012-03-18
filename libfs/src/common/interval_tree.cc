@@ -1,7 +1,7 @@
 #include "common/interval_tree.h"
 #include <stdio.h>
 #include <math.h>
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 
 // Author info:
 // http://www.mit.edu/~emin/source_code/cpp_trees/index.html

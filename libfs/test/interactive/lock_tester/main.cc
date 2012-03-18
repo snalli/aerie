@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include <iostream>
 #include <list>
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "common/debug.h"
 #include "client/libfs.h"
 #include "tool/testfw/integrationtest.h"

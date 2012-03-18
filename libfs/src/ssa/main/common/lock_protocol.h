@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
-#include "rpc/rpc.h"
+#include "bcs/bcs.h"
 #include "common/bitmap.h"
 
 
@@ -44,11 +44,7 @@ public:
 	typedef unsigned long long LockId;
 
 	enum rpc_numbers {
-		acquire = 0x7001,
-		acquirev,
-		release,
-		convert,
-		stat
+		DEFINE_RPC_NUMBER(SSA_LOCK_PROTOCOL)
 	};
 };
 
@@ -58,8 +54,7 @@ public:
 	enum xxstatus { OK, RPCERR };
 	typedef int status;
 	enum rpc_numbers {
-		revoke = 0x8001,
-		retry = 0x8002
+		SSA_RLOCK_PROTOCOL(RPC_NUMBER)
 	};
 };
 

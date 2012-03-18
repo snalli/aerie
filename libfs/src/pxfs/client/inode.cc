@@ -1,6 +1,6 @@
 #include "pxfs/client/inode.h"
 #include "common/errno.h"
-#include "common/debug.h"
+#include "bcs/bcs.h"
 #include "pxfs/client/session.h"
 
 namespace client {

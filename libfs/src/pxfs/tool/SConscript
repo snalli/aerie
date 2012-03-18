@@ -1,7 +1,7 @@
 Import('buildEnv')
 Import('spaLibrary')
 Import('fssLibrary')
-Import('ipcServerLibrary')
+Import('bcsServerLibrary')
 Import('ssaServerLibrary')
 Import('mfsServerLibrary')
 Import('commonLibrary')
@@ -14,7 +14,7 @@ sources = [
            'mkfs.cc',
           ]
 localBuildEnv.Append(LIBS = fssLibrary)
-localBuildEnv.Append(LIBS = ipcServerLibrary)
+localBuildEnv.Append(LIBS = bcsServerLibrary)
 localBuildEnv.Append(LIBS = ssaServerLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = mfsServerLibrary)

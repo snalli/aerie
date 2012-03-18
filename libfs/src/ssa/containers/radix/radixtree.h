@@ -38,7 +38,7 @@
 #include <string.h>
 #include <typeinfo>
 #include "common/errno.h"
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 #include "spa/const.h"
 
 

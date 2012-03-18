@@ -7,9 +7,8 @@
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
-#include "ipc/ipc.h"
+#include "bcs/bcs.h"
 #include "common/errno.h"
-#include "common/debug.h"
 #include "ssa/main/common/lock_protocol.h"
 #include "ssa/main/common/lock_protocol-static.h"
 

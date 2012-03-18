@@ -1,6 +1,6 @@
 #include "ssa/main/server/ssa.h"
 #include "common/errno.h"
-#include "common/debug.h"
+#include "bcs/bcs.h"
 #include "ssa/main/server/salloc.h"
 #include "ssa/main/server/hlckmgr.h"
 #include "ssa/main/server/registry.h"
@@ -9,7 +9,6 @@
 #include "ssa/containers/set/container.h"
 #include "spa/pool/pool.h"
 #include "spa/const.h"
-#include "common/debug.h"
 
 namespace ssa {
 namespace server {

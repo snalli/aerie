@@ -15,7 +15,7 @@
 #include "ssa/main/common/obj.h"
 #include "ssa/main/client/salloc.h"
 #include "spa/const.h"
-#include "common/debug.h"
+#include "bcs/main/common/cdebug.h"
 #include "common/util.h"
 
 namespace ssa {
