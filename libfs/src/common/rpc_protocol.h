@@ -1,6 +1,0 @@
-#ifndef __STAMNOS_RPC_NUMBERS_H
-#define __STAMNOS_RPC_NUMBERS_H
-
-
-
-#endif // __STAMNOS_RPC_NUMBERS_H

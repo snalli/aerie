@@ -8,6 +8,7 @@
 
 namespace client {
 class Ipc;               
+class SharedBuffer;
 } // namespace client
 
 

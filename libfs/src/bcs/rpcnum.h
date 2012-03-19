@@ -13,9 +13,9 @@
 
 // Module/protocol RPC numbers
 
-#define BCS_PROTOCOL(ACTION)                                                   \
+#define BCS_IPC_PROTOCOL(ACTION)                                               \
 	ACTION(bcs, IpcProtocol, kRpcServerIsAlive)                                \
-	ACTION(bcs, IpcProtocol, kRpcSubscribe)                                    \
+	ACTION(bcs, IpcProtocol, kRpcSubscribe)
 
 #define SSA_LOCK_PROTOCOL(ACTION)                                              \
 	ACTION(ssa, lock_protocol, acquire)                                        \
@@ -37,6 +37,9 @@
 	ACTION(ssa, RegistryProtocol, kAdd)                                        \
 	ACTION(ssa, RegistryProtocol, kRemove)
 
+#define SSA_PUBLISHER_PROTOCOL(ACTION)                                         \
+	ACTION(ssa, PublisherProtocol, kPublish)                                    
+
 #define PXFS_FILESYSTEM_PROTOCOL(ACTION)                                       \
 	ACTION(pxfs, FileSystemProtocol, kMount)
 
@@ -46,13 +49,13 @@ public:
 
 	enum {
 		null_rpc = 0x4000,
-		BCS_PROTOCOL(ALL_RPC_NUMBER)
+		BCS_IPC_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_LOCK_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_RLOCK_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_STORAGE_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_REGISTRY_PROTOCOL(ALL_RPC_NUMBER)
+		SSA_PUBLISHER_PROTOCOL(ALL_RPC_NUMBER)
 		PXFS_FILESYSTEM_PROTOCOL(ALL_RPC_NUMBER)
-		
 	};
 
 };

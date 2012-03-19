@@ -1,7 +1,8 @@
 #include "bcs/main/server/ipc.h"
-#include "bcs/main/common/bcs_protocol.h"
+#include "bcs/main/common/ipc_protocol.h"
 #include "bcs/main/server/sessionmgr.h"
 #include "bcs/main/common/config.h"
+#include "bcs/main/common/debug.h"
 #include "common/util.h"
 #include "common/errno.h"
 
@@ -46,7 +47,7 @@ Ipc::Client(int clt)
 
 
 int
-Ipc::Subscribe(int clt, std::string id, int& unused)
+Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
 {
 	int                  ret;
 	sockaddr_in          dstsock;
@@ -63,8 +64,9 @@ Ipc::Subscribe(int clt, std::string id, int& unused)
 	if (rpccl->bind() == 0) {
 		clients_[clt] = cl_dsc;
 	} else {
-		printf("failed to bind to client %d\n", clt);
+		DBG_LOG(DBG_WARNING, DBG_MODULE(server_bcs), "failed to bind client %d\n", clt);
 	}
+	rep.shbuf_dsc_ = cl_dsc->shbuf()->Descriptor();
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }

@@ -1,7 +1,8 @@
 #include "bcs/main/client/ipc.h"
 #include "bcs/bcs.h"
 #include "common/errno.h"
-#include "bcs/main/common/bcs_protocol.h"
+#include "bcs/main/common/ipc_protocol.h"
+#include "bcs/main/client/shbuf.h"
 
 namespace client {
 
@@ -13,14 +14,14 @@ Ipc::Ipc(const char* xdst)
 int 
 Ipc::Init()
 {
-	int                r;
-	struct sockaddr_in dst; //server's ip address
-	int                rport;
-	std::ostringstream host;
-	const char*        hname;
-	int                unused;
-	std::string        idstr;
-	int                principal_id = getuid();
+	int                         r;
+	struct sockaddr_in          dst; //server's ip address
+	int                         rport;
+	std::ostringstream          host;
+	const char*                 hname;
+	IpcProtocol::SubscribeReply rep;
+	std::string                 idstr;
+	int                         principal_id = getuid();
 	
 	// setup RPC for making calls to the server
 	make_sockaddr(xdst_.c_str(), &dst);
@@ -38,11 +39,16 @@ Ipc::Init()
 
 	// contact the server and tell him my rpc address to subscribe 
 	// for async rpc response
-	if ((r = rpcc_->call(IpcProtocol::kRpcSubscribe, rpcc_->id(), idstr, unused)) !=
-	    0) 
+	if ((r = rpcc_->call(IpcProtocol::kRpcSubscribe, rpcc_->id(), idstr, rep)) != 0) 
 	{
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
 		        "failed to subscribe client: %u\n", rpcc_->id());
+	}
+	if ((shbuf_ = new SharedBuffer(rep.shbuf_dsc_)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((r = shbuf_->Map()) < 0) {
+		return r;
 	}
 	return E_SUCCESS;
 }

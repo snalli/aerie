@@ -6,6 +6,7 @@
 #include "bcs/main/common/macros.h"
 #include "bcs/main/server/cltdsc.h"
 #include "bcs/main/server/sessionmgr.h"
+#include "bcs/main/common/ipc_protocol.h"
 
 namespace server {
 
@@ -21,7 +22,7 @@ public:
 	
 	ClientDescriptor* Client(int clt);
 
-	int Subscribe(int clt, std::string id, int& unused);
+	int Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep);
 	int Alive(const unsigned int principal_id, int& r);
 	BaseSessionManager* session_manager() { return sessionmgr_; }
 

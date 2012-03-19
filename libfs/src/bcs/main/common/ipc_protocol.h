@@ -3,21 +3,16 @@
 
 #include <string>
 #include "bcs/rpcnum.h"
+#include "bcs/main/common/shbuf.h"
 
 class IpcProtocol {
 public:
 	enum xxstatus { OK, RPCERR };
 	typedef int status;
 	enum RpcNumbers {
-		DEFINE_RPC_NUMBER(BCS_PROTOCOL)
+		DEFINE_RPC_NUMBER(BCS_IPC_PROTOCOL)
 	};
 
-	class SharedBufferDescriptor {
-	public:
-		std::string  path_;
-		unsigned int size_;
-	};
-	
 	class SubscribeReply {
 	public:
 		SharedBufferDescriptor shbuf_dsc_;

@@ -20,7 +20,8 @@ commonObjects = localBuildEnv.SharedObject(commonSource)
 clt_lib_target = 'bcsclt'
 clt_lib_objects = rpcLibraryObjects + commonObjects
 clt_lib_sources = [
-                   'main/client/ipc.cc'
+                   'main/client/ipc.cc',
+                   'main/client/shbuf.cc'
                   ]
 
 bcsClientLibrary = localBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources + clt_lib_objects)

@@ -3,6 +3,7 @@
 
 #include "bcs/backend/rpc.h"
 #include "bcs/main/common/macros.h"
+#include "bcs/main/client/bcs-opaque.h"
 
 namespace client {
 
@@ -26,6 +27,7 @@ private:
 	rpcc*                      rpcc_;
 	/// the RPC object through which we receive callbacks from the server
 	rpcs*                      rpcs_;
+	SharedBuffer*              shbuf_;
 };
 
 } // namespace client

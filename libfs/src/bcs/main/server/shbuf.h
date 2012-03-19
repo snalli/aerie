@@ -3,12 +3,16 @@
 
 #include <stddef.h>
 #include <string>
+#include "bcs/main/common/shbuf.h"
 
 namespace server {
 
 class SharedBuffer {
 public:
-	int Init();
+	int Init(const char* suffix);
+	SharedBufferDescriptor Descriptor() {
+		return SharedBufferDescriptor(path_, size_);
+	}
 
 private:
 	void*       base_;
