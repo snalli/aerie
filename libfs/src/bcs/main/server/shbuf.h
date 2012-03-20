@@ -14,11 +14,15 @@ public:
 		return SharedBufferDescriptor(path_, size_);
 	}
 
+	virtual int Consume();
+
 private:
+	int         id_; // an identifier local to the client assigned the buffer
 	void*       base_;
 	size_t      size_;
 	std::string path_;
 };
+
 
 } // namespace server
 

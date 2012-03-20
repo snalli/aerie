@@ -27,7 +27,6 @@ private:
 	rpcc*                      rpcc_;
 	/// the RPC object through which we receive callbacks from the server
 	rpcs*                      rpcs_;
-	SharedBuffer*              shbuf_;
 };
 
 } // namespace client

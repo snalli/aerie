@@ -4,6 +4,7 @@
 #include "ssa/main/server/salloc.h"
 #include "ssa/main/server/hlckmgr.h"
 #include "ssa/main/server/registry.h"
+#include "ssa/main/server/shbuf.h"
 #include "ssa/containers/super/container.h"
 #include "ssa/containers/name/container.h"
 #include "ssa/containers/set/container.h"
@@ -32,6 +33,9 @@ StorageSystem::Init()
 		delete hlckmgr_;
 	}
 	registry_->Init();
+	if ((ret = ipc_->shbuf_manager()->RegisterSharedBufferType("SsaSharedBuffer", SsaSharedBuffer::Make)) < 0) {
+		return ret;
+	}
 	return E_SUCCESS;
 }
 

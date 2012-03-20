@@ -1,4 +1,4 @@
-#include "ssa/main/client/ssa.h"
+#include "ssa/main/client/stsystem.h"
 #include "common/errno.h"
 #include "spa/pool/pool.h"
 #include "ssa/main/client/salloc.h"
@@ -6,12 +6,13 @@
 #include "ssa/main/client/lckmgr.h"
 #include "ssa/main/client/hlckmgr.h"
 #include "ssa/main/client/registry.h"
+#include "ssa/main/client/shbuf.h"
 
 namespace ssa {
 namespace client {
 
 int
-Dpo::Init()
+StorageSystem::Init()
 {
 	if ((lckmgr_ = new ::ssa::cc::client::LockManager(ipc_)) == NULL) {
 		return -E_NOMEM;
@@ -43,25 +44,35 @@ Dpo::Init()
 
 
 int 
-Dpo::Open(const char* source, unsigned int flags)
+StorageSystem::Open(const char* source, unsigned int flags)
 {
 	int ret;
 
 	if ((ret = StoragePool::Open(source, &pool_)) < 0) {
-		return E_SUCCESS;
+		return ret;
 	}
-	return salloc_->Load(pool_);
+	if ((ret = salloc_->Load(pool_)) < 0) {
+		return ret;
+	}
+	//FIXME
+	//if ((shbuf_ = new SsaSharedBuffer(rep.shbuf_dsc_)) == NULL) {
+	//	return -E_NOMEM;
+	//}
+	//if ((r = shbuf_->Map()) < 0) {
+	//	return r;
+	//}
+	return E_SUCCESS;
 }
 
 
 int 
-Dpo::Close()
+StorageSystem::Close()
 {
 
 }
 
 
-Dpo::~Dpo()
+StorageSystem::~StorageSystem()
 {
 	delete hlckmgr_;
 	delete lckmgr_;

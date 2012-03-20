@@ -1,6 +1,7 @@
 #include "bcs/main/server/ipc.h"
 #include "bcs/main/common/ipc_protocol.h"
 #include "bcs/main/server/sessionmgr.h"
+#include "bcs/main/server/shbufmgr.h"
 #include "bcs/main/common/config.h"
 #include "bcs/main/common/debug.h"
 #include "common/util.h"
@@ -19,10 +20,17 @@ Ipc::Ipc(int port)
 int
 Ipc::Init()
 {
-	char*  csize;
+	int   ret;
+	char* csize;
 	
 	rpcs_->reg(IpcProtocol::kRpcServerIsAlive, this, &Ipc::Alive);
 	rpcs_->reg(IpcProtocol::kRpcSubscribe, this, &Ipc::Subscribe);
+	if ((shbufmgr_ = new SharedBufferManager(this)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = shbufmgr_->Init()) < 0) {
+		return ret;
+	}
 	return runtime_config_.Init();
 }
 
@@ -66,7 +74,6 @@ Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
 	} else {
 		DBG_LOG(DBG_WARNING, DBG_MODULE(server_bcs), "failed to bind client %d\n", clt);
 	}
-	rep.shbuf_dsc_ = cl_dsc->shbuf()->Descriptor();
 	pthread_mutex_unlock(&mutex_);
 	return r;
 }
@@ -86,20 +93,14 @@ Ipc::Alive(const unsigned int principal_id, int& r)
  */
 
 
-size_t Ipc::RuntimeConfig::sharedbuffer_size;
-
 int
 Ipc::RuntimeConfig::Init()
 {
 	int   ret;
 	char* csize;
 
-	if ((ret = Config::Lookup("ipc.sharedbuffer.size", &csize)) < 0) {
-		return ret;
-	}
-	sharedbuffer_size = StringToSize(csize);
-	
 	return E_SUCCESS;
 }
+
 
 } // namespace server

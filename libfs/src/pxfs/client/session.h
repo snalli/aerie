@@ -12,12 +12,12 @@ namespace client {
 
 class Session {
 public:
-	Session(ssa::client::Dpo* ssa)
-		: lckmgr_(ssa->lckmgr()),
-		  hlckmgr_(ssa->hlckmgr()),
-		  salloc_(ssa->salloc()),
-		  omgr_(ssa->omgr()),
-		  ssa_(ssa)
+	Session(ssa::client::StorageSystem* stsystem)
+		: lckmgr_(stsystem->lckmgr()),
+		  hlckmgr_(stsystem->hlckmgr()),
+		  salloc_(stsystem->salloc()),
+		  omgr_(stsystem->omgr()),
+		  stsystem_(stsystem)
 	{ }
 	
 	Session(ssa::cc::client::LockManager* lckmgr, 
@@ -39,12 +39,12 @@ public:
 	{ }
 
 
-	ssa::client::StorageAllocator* salloc() { return ssa_->salloc(); }
+	ssa::client::StorageAllocator* salloc() { return stsystem_->salloc(); }
 
-	ssa::client::Dpo*                ssa_;
+	ssa::client::StorageSystem*      stsystem_;
 	ssa::cc::client::LockManager*    lckmgr_;
 	ssa::cc::client::HLockManager*   hlckmgr_;
-	ssa::client::StorageAllocator*     salloc_;
+	ssa::client::StorageAllocator*   salloc_;
 	ssa::client::ObjectManager*      omgr_;
 	ssa::stm::client::Transaction*   tx_;
 };

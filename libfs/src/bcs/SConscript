@@ -38,6 +38,7 @@ srv_lib_sources = [
 		   'main/server/sessionmgr.cc',
 		   'main/server/session.cc',
                    'main/server/shbuf.cc',
+                   'main/server/shbufmgr.cc',
                   ]
 
 bcsServerLibrary = localBuildEnv.SharedLibrary(target = srv_lib_target, source = srv_lib_sources + srv_lib_objects)

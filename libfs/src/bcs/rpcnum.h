@@ -17,6 +17,9 @@
 	ACTION(bcs, IpcProtocol, kRpcServerIsAlive)                                \
 	ACTION(bcs, IpcProtocol, kRpcSubscribe)
 
+#define BCS_SHARED_BUFFER_PROTOCOL(ACTION)                                     \
+	ACTION(bcs, SharedBufferProtocol, kConsume)                                
+
 #define SSA_LOCK_PROTOCOL(ACTION)                                              \
 	ACTION(ssa, lock_protocol, acquire)                                        \
 	ACTION(ssa, lock_protocol, acquirev)                                       \
@@ -50,6 +53,7 @@ public:
 	enum {
 		null_rpc = 0x4000,
 		BCS_IPC_PROTOCOL(ALL_RPC_NUMBER)
+		BCS_SHARED_BUFFER_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_LOCK_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_RLOCK_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_STORAGE_PROTOCOL(ALL_RPC_NUMBER)

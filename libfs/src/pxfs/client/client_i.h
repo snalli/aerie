@@ -12,12 +12,12 @@ namespace client {
 class FileManager;              // forward declaration
 class FileSystemObjectManager;  // forward declaration
 
-extern NameSpace*          global_namespace;
-extern FileManager*        global_fmgr;
-extern Session*            global_session;
-extern Ipc*                global_ipc_layer;        
-extern ssa::client::Dpo*   global_ssa_layer;
-extern FileSystemObjectManager* global_fsomgr;
+extern NameSpace*                  global_namespace;
+extern FileManager*                global_fmgr;
+extern Session*                    global_session;
+extern Ipc*                        global_ipc_layer;        
+extern ssa::client::StorageSystem* global_storage_system;
+extern FileSystemObjectManager*    global_fsomgr;
 
 extern rpcc*             rpc_client;
 extern rpcs*             rpc_server;

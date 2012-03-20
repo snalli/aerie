@@ -6,7 +6,7 @@ localBuildEnv = buildEnv.Clone()
 clt_lib_target = 'ssaclt'
 clt_lib_objects = []
 clt_lib_sources = [
-	               'main/client/ssa.cc',
+	               'main/client/stsystem.cc',
                    'main/client/hlckmgr.cc',
                    'main/client/lckmgr.cc',
                    'main/client/omgr.cc',

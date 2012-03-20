@@ -9,10 +9,11 @@
 namespace ssa {
 
 namespace client {
-class Dpo;
+class StorageSystem;
 class Registry;
 class StorageAllocator;
 class ObjectManager;
+class SsaSharedBuffer;
 } // namespace client
 
 

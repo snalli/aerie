@@ -22,12 +22,12 @@ namespace client {
 
 __thread Session* thread_session;
 
-FileSystemObjectManager* global_fsomgr;
-FileManager*             global_fmgr;
-NameSpace*               global_namespace;
-Session*                 global_session;
-Ipc*                     global_ipc_layer;
-ssa::client::Dpo*        global_ssa_layer;
+FileSystemObjectManager*    global_fsomgr;
+FileManager*                global_fmgr;
+NameSpace*                  global_namespace;
+Session*                    global_session;
+Ipc*                        global_ipc_layer;
+ssa::client::StorageSystem* global_storage_system;
 
 
 
@@ -42,9 +42,9 @@ Client::Init(const char* xdst)
 	global_ipc_layer->Init();
 
 
-	global_ssa_layer = new ssa::client::Dpo(global_ipc_layer);
-	global_ssa_layer->Init();
-	global_session = new Session(global_ssa_layer);
+	global_storage_system = new ssa::client::StorageSystem(global_ipc_layer);
+	global_storage_system->Init();
+	global_session = new Session(global_storage_system);
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
@@ -95,7 +95,7 @@ int
 Client::Shutdown() 
 {
 	// TODO: properly destroy any state created
-	delete global_ssa_layer;
+	delete global_storage_system;
 	return 0;
 }
 
@@ -107,7 +107,7 @@ Client::CurrentSession()
 		return thread_session;
 	}
 
-	thread_session = new Session(global_ssa_layer);
+	thread_session = new Session(global_storage_system);
 	thread_session->tx_ = ssa::stm::client::Self();
 	return thread_session;
 }
@@ -140,11 +140,7 @@ Client::Mount(const char* source,
 	if (ret > 0) {
 		return -ret;
 	}
-	//FIXME: call the Dpo::Open
-	if ((ret = StoragePool::Open(source, &pool)) < 0) {
-		return ret;
-	}
-	if ((ret = global_ssa_layer->salloc()->Load(pool)) < 0) {
+	if ((ret = global_storage_system->Open(source, flags)) < 0) {
 		return ret;
 	}
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {

@@ -44,12 +44,6 @@ Ipc::Init()
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
 		        "failed to subscribe client: %u\n", rpcc_->id());
 	}
-	if ((shbuf_ = new SharedBuffer(rep.shbuf_dsc_)) == NULL) {
-		return -E_NOMEM;
-	}
-	if ((r = shbuf_->Map()) < 0) {
-		return r;
-	}
 	return E_SUCCESS;
 }
 

@@ -8,7 +8,11 @@
 
 namespace server {
 class Ipc;
+class SharedBufferManager;
+class SharedBuffer;
 class BaseSessionManager;
+class BaseSession;
+class BcsSession;
 } // namespace server
 
 

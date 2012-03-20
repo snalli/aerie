@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "bcs/main/common/debug.h"
-#include "bcs/main/server/ipc.h"
+#include "bcs/main/server/shbufmgr.h"
 #include "spa/spa.h"
 #include "common/util.h"
 
@@ -21,7 +21,7 @@ SharedBuffer::Init(const char* suffix)
 	int         fd;
 	const char* root = "/tmp/shbuf_";
 
-	size_ = RoundUpSize(Ipc::RuntimeConfig::sharedbuffer_size, kBlockSize);
+	size_ = RoundUpSize(SharedBufferManager::RuntimeConfig::sharedbuffer_size, kBlockSize);
 	path_ = std::string(root) + std::string(suffix);
 	
 	DBG_LOG(DBG_DEBUG, DBG_MODULE(server_bcs), "SharedBuffer: path = %s, size = %" PRIu64 "\n", 
@@ -44,5 +44,10 @@ SharedBuffer::Init(const char* suffix)
 	return E_SUCCESS;
 }
 
+
+int SharedBuffer::Consume()
+{
+
+}
 
 } // namespace server

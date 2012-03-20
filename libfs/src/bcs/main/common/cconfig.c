@@ -8,7 +8,7 @@
 #define ENVVAR_MAX_LEN 128
 
 static inline int 
-env_setting_lookup(char *name, char **value_str)
+env_setting_lookup(const char *name, char **value_str)
 {
 	char *val;
 	char normalized_name[ENVVAR_MAX_LEN];
@@ -38,7 +38,7 @@ env_setting_lookup(char *name, char **value_str)
 
 
 static inline int
-env_setting_lookup_int(char *name, int *value)
+env_setting_lookup_int(const char *name, int *value)
 {
 	char *value_str;
 
@@ -56,21 +56,21 @@ env_setting_lookup_int(char *name, int *value)
 
 
 static inline int
-env_setting_lookup_bool(char *name, int *value)
+env_setting_lookup_bool(const char *name, int *value)
 {
 	return env_setting_lookup_int(name, value);
 }
 
 
 static inline int 
-env_setting_lookup_string(char *name, char **value)
+env_setting_lookup_string(const char *name, char **value)
 {
 	return env_setting_lookup(name, value);
 }
 
 
 int
-__cconfig_lookup_bool(config_t *cfg, char *name, int *value) 
+__cconfig_lookup_bool(config_t *cfg, const char *name, int *value) 
 {
 	int val;
 	int found_val = 0;
@@ -93,7 +93,7 @@ __cconfig_lookup_bool(config_t *cfg, char *name, int *value)
 
 int
 __cconfig_lookup_valid_bool(config_t *cfg, 
-                     char *name, 
+                     const char *name, 
                      int *value, 
                      int validity_check, ...)
 {
@@ -102,7 +102,7 @@ __cconfig_lookup_valid_bool(config_t *cfg,
 
 
 int
-__cconfig_lookup_int(config_t *cfg, char *name, int *value)
+__cconfig_lookup_int(config_t *cfg, const char *name, int *value)
 {
 	int val;
 	int found_val = 0;
@@ -125,7 +125,7 @@ __cconfig_lookup_int(config_t *cfg, char *name, int *value)
 
 int
 __cconfig_lookup_valid_int(config_t *cfg, 
-                           char *name, 
+                           const char *name, 
                            int *value, 
                            int validity_check, ...)
 {
@@ -173,7 +173,7 @@ __cconfig_lookup_valid_int(config_t *cfg,
 
 
 int
-__cconfig_lookup_string(config_t *cfg, char *name, char **value)
+__cconfig_lookup_string(config_t *cfg, const char *name, char **value)
 {
 	char *val;
 	int  found_val = 0;
@@ -196,7 +196,7 @@ __cconfig_lookup_string(config_t *cfg, char *name, char **value)
 
 int
 __cconfig_lookup_valid_string(config_t *cfg, 
-                              char *name, 
+                              const char *name, 
                               char **value, 
                               int validity_check, ...)
 {

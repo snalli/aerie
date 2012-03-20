@@ -1,5 +1,5 @@
-#ifndef __STAMNOS_BCS_PROTOCOL_H
-#define __STAMNOS_BCS_PROTOCOL_H
+#ifndef __STAMNOS_IPC_PROTOCOL_H
+#define __STAMNOS_IPC_PROTOCOL_H
 
 #include <string>
 #include "bcs/rpcnum.h"
@@ -15,23 +15,18 @@ public:
 
 	class SubscribeReply {
 	public:
-		SharedBufferDescriptor shbuf_dsc_;
 	};
 };
 
 
 inline marshall& operator<<(marshall &m, IpcProtocol::SubscribeReply& val) {
-	m << val.shbuf_dsc_.path_;
-	m << val.shbuf_dsc_.size_;
 	return m;
 }
 
 
 inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& val) {
-	u >> val.shbuf_dsc_.path_;
-	u >> val.shbuf_dsc_.size_;
 	return u;
 }
 
 
-#endif // __STAMNOS_BCS_PROTOCOL_H
+#endif // __STAMNOS_IPC_PROTOCOL_H

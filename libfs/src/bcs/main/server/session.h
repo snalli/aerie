@@ -1,8 +1,10 @@
 #ifndef __STAMNOS_BCS_SERVER_SESSION_H
 #define __STAMNOS_BCS_SERVER_SESSION_H
 
+#include <vector>
 #include "bcs/main/server/ipc.h"
 #include "bcs/main/server/cltdsc.h"
+#include "bcs/main/server/bcs-opaque.h"
 
 namespace server {
 
@@ -16,14 +18,16 @@ class BaseSession {
 
 // BCS layer specific session
 class BcsSession: public BaseSession {
+friend class SharedBufferManager;
 public:
 
 	int Init(int clt);
 	int clt() { return cltdsc_->clt(); }
 
 protected:
-	Ipc*              ipc_;
-	ClientDescriptor* cltdsc_;
+	Ipc*                       ipc_;
+	ClientDescriptor*          cltdsc_;
+	std::vector<SharedBuffer*> shbuf_vec_;
 };
 
 

@@ -38,12 +38,12 @@ extern "C" {
  * If the variable is not found then a lookup function does not set the value.
  */
 
-int __cconfig_lookup_bool(config_t *cfg, char *name, int *value);
-int __cconfig_lookup_int(config_t *cfg, char *name, int *value);
-int __cconfig_lookup_string(config_t *cfg, char *name, char **value);
-int __cconfig_lookup_valid_bool(config_t *cfg, char *name, int *value, int validity_check, ...);
-int __cconfig_lookup_valid_int(config_t *cfg, char *name, int *value, int validity_check, ...);
-int __cconfig_lookup_valid_string(config_t *cfg, char *name, char **value, int validity_check, ...);
+int __cconfig_lookup_bool(config_t *cfg, const char *name, int *value);
+int __cconfig_lookup_int(config_t *cfg, const char *name, int *value);
+int __cconfig_lookup_string(config_t *cfg, const char *name, char **value);
+int __cconfig_lookup_valid_bool(config_t *cfg, const char *name, int *value, int validity_check, ...);
+int __cconfig_lookup_valid_int(config_t *cfg, const char *name, int *value, int validity_check, ...);
+int __cconfig_lookup_valid_string(config_t *cfg, const char *name, char **value, int validity_check, ...);
 int __cconfig_init(config_t *cfg, const char *config_file);
 
 #ifdef __cplusplus
