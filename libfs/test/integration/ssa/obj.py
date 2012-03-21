@@ -9,8 +9,8 @@ import os
 
 def addIntegrationTests(env, root_dir, testProgram, serverProgram):
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Object:Test',
-        init_script = os.path.join(root_dir, 'test/integration/ssa/init-obj.sh'),
+        name = 'SSA_Object:Test',
+        init_script = os.path.join(root_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
             'C1': ( testProgram, [('T1', 'Object:Test')]),
@@ -24,8 +24,8 @@ def addIntegrationTests(env, root_dir, testProgram, serverProgram):
     ))
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'ContainersNameContainer:Test',
-        init_script = os.path.join(root_dir, 'test/integration/ssa/init-obj.sh'),
+        name = 'SSA_ContainersNameContainer:Test',
+        init_script = os.path.join(root_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
             'C1': ( testProgram, [('T1', 'ContainersNameContainer:Test')]),
@@ -39,8 +39,8 @@ def addIntegrationTests(env, root_dir, testProgram, serverProgram):
     ))
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Object:TestAlloc',
-        init_script = os.path.join(root_dir, 'test/integration/ssa/init-obj.sh'),
+        name = 'SSA_Object:TestAlloc',
+        init_script = os.path.join(root_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
             'C1': ( testProgram, [('T1', 'Object:TestAlloc')]),

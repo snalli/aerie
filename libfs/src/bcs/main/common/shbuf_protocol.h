@@ -13,4 +13,18 @@ public:
 };
 
 
+inline marshall& operator<<(marshall &m, SharedBufferDescriptor& val) {
+    m << val.path_;
+    m << val.size_;
+    return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, SharedBufferDescriptor& val) {
+    u >> val.path_;
+    u >> val.size_;
+    return u;
+}
+
+
 #endif // __STAMNOS_SHARED_BUFFER_PROTOCOL_H

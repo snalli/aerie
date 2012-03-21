@@ -11,7 +11,7 @@ class SharedBuffer {
 public:
 	int Init(const char* suffix);
 	SharedBufferDescriptor Descriptor() {
-		return SharedBufferDescriptor(path_, size_);
+		return SharedBufferDescriptor(id_, path_, size_);
 	}
 
 	virtual int Consume();

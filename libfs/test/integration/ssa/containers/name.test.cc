@@ -11,7 +11,7 @@
 #include "ssa/containers/typeid.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
-#include "test/integration/ssa/obj.fixture.h"
+#include "test/integration/ssa/ssa.fixture.h"
 
 static ssa::common::ObjectId OID[16];
 
@@ -21,21 +21,16 @@ static const char* storage_pool_path = "/tmp/stamnos_pool";
 
 SUITE(ContainersNameContainer)
 {
-	TEST_FIXTURE(ObjectFixture, Test)
+	TEST_FIXTURE(SsaFixture, Test)
 	{
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
-
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_ssa_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		EVENT("BeforeLock");
 		rw_reft->proxy()->Lock(session, lock_protocol::Mode::XL);

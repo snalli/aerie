@@ -46,12 +46,4 @@ SUITE(IPC)
 		}
 		CHECK(sum == correct_sum);
 	}
-
-
-	TEST_FIXTURE(IPCFixture, SharedBuffer)
-	{
-
-
-	}
-
 }

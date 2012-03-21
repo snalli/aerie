@@ -190,4 +190,4 @@ class IntegrationTest:
             else:
                 return IntegrationTest.SUCCESS
         else:
-            return Scheduler.status
+            return scheduler.status

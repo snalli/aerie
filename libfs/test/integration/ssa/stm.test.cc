@@ -11,7 +11,7 @@
 #include "ssa/containers/typeid.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
-#include "test/integration/ssa/obj.fixture.h"
+#include "test/integration/ssa/ssa.fixture.h"
 
 static ssa::common::ObjectId OID[16];
 
@@ -19,10 +19,10 @@ typedef ssa::containers::client::NameContainer NameContainer;
 
 static const char* storage_pool_path = "/tmp/stamnos_pool";
 
-SUITE(STM)
+SUITE(SSA_STM)
 {
 	// uses locks to update the container
-	TEST_FIXTURE(ObjectFixture, TestPessimisticUpdate)
+	TEST_FIXTURE(SsaFixture, TestPessimisticUpdate)
 	{
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
@@ -36,7 +36,7 @@ SUITE(STM)
 		EVENT("AfterMapObjects");
 		
 		ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
-		CHECK(global_ssa_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		EVENT("BeforeLock");
 		rw_reft->proxy()->Lock(session, lock_protocol::Mode::XL);
@@ -48,7 +48,7 @@ SUITE(STM)
 	}
 
 	// uses transactions to optimistically read the container
-	TEST_FIXTURE(ObjectFixture, TestOptimisticRead)
+	TEST_FIXTURE(SsaFixture, TestOptimisticRead)
 	{
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
@@ -62,7 +62,7 @@ SUITE(STM)
 		EVENT("AfterMapObjects");
 		
 		ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
-		CHECK(global_ssa_layer->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
 		STM_BEGIN()
 			ssa::common::ObjectId oid;

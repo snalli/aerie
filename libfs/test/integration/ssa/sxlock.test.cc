@@ -25,10 +25,10 @@ SUITE(Lock)
 		CHECK(Client::TestServerIsAlive() == 0);
 
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::SL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::SL, 0, unused);
 		CHECK(check_grant_s(region_, a) == 0);
 		EVENT("E2");
-		global_ssa_layer->lckmgr()->Release(a);
+		global_storage_system->lckmgr()->Release(a);
 		CHECK(check_release(region_, a) == 0);
 		EVENT("E3");
 	}
@@ -39,16 +39,16 @@ SUITE(Lock)
 		CHECK(Client::TestServerIsAlive() == 0);
 		
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		CHECK(check_grant_x(region_, a) == 0);
 		EVENT("E2");
-		global_ssa_layer->lckmgr()->Release(a);
+		global_storage_system->lckmgr()->Release(a);
 		CHECK(check_release(region_, a) == 0);
 		EVENT("E3");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::SL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::SL, 0, unused);
 		CHECK(check_grant_s(region_, a) == 0);
 		EVENT("E4");
-		global_ssa_layer->lckmgr()->Release(a);
+		global_storage_system->lckmgr()->Release(a);
 		CHECK(check_release(region_, a) == 0);
 		EVENT("E5");
 	}

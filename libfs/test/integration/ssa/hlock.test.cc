@@ -19,15 +19,15 @@ static ssa::cc::client::LockId b(1, 3);
 static ssa::cc::client::LockId c(1, 4);
 
 
-SUITE(HLock)
+SUITE(SSA_HLock)
 {
 	TEST_FIXTURE(LockFixture, TestLockIXLockXRUnlock)
 	{
 		lock_protocol::Mode unused;
-		global_ssa_layer->hlckmgr()->Acquire(root, lock_protocol::Mode::IX, 0);
-		global_ssa_layer->hlckmgr()->Acquire(a, root, lock_protocol::Mode::XR, 0);
+		global_storage_system->hlckmgr()->Acquire(root, lock_protocol::Mode::IX, 0);
+		global_storage_system->hlckmgr()->Acquire(a, root, lock_protocol::Mode::XR, 0);
 		CHECK(check_grant_x(region_, a.number()) == 0);
-		global_ssa_layer->hlckmgr()->Release(a);
+		global_storage_system->hlckmgr()->Release(a);
 		CHECK(check_release(region_, a.number()) == 0);
 	}
 	
@@ -37,12 +37,12 @@ SUITE(HLock)
 
 		EVENT("E1");
 		printf("START\n");
-		CHECK(global_ssa_layer->hlckmgr()->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
+		CHECK(global_storage_system->hlckmgr()->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
 		printf("DONE\n");
 		EVENT("E2");
-		CHECK(global_ssa_layer->hlckmgr()->Acquire(a, root, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
+		CHECK(global_storage_system->hlckmgr()->Acquire(a, root, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
 		CHECK(check_grant_x(region_, a.number()) == 0);
-		global_ssa_layer->hlckmgr()->Release(a);
+		global_storage_system->hlckmgr()->Release(a);
 		CHECK(check_release(region_, a.number()) == 0);
 	}
 
@@ -50,10 +50,10 @@ SUITE(HLock)
 	{
 		lock_protocol::Mode unused;
 		EVENT("E1");
-		global_ssa_layer->hlckmgr()->Acquire(root, lock_protocol::Mode::IS, 0);
-		global_ssa_layer->hlckmgr()->Acquire(a, root, lock_protocol::Mode::SL, 0);
+		global_storage_system->hlckmgr()->Acquire(root, lock_protocol::Mode::IS, 0);
+		global_storage_system->hlckmgr()->Acquire(a, root, lock_protocol::Mode::SL, 0);
 		EVENT("E2");
-		global_ssa_layer->hlckmgr()->Release(a);
+		global_storage_system->hlckmgr()->Release(a);
 		EVENT("E3");
 	}
 
@@ -62,17 +62,17 @@ SUITE(HLock)
 		lock_protocol::Mode unused;
 
 		EVENT("E1");
-		CHECK(global_ssa_layer->hlckmgr()->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
+		CHECK(global_storage_system->hlckmgr()->Acquire(root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
 		EVENT("E2");
-		CHECK(global_ssa_layer->hlckmgr()->Acquire(a, root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
+		CHECK(global_storage_system->hlckmgr()->Acquire(a, root, lock_protocol::Mode::IX, 0) == lock_protocol::OK);
 		EVENT("E3");
-		CHECK(global_ssa_layer->hlckmgr()->Acquire(b, a, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
+		CHECK(global_storage_system->hlckmgr()->Acquire(b, a, lock_protocol::Mode::XL, 0) == lock_protocol::OK);
 		EVENT("E4");
 		CHECK(check_grant_x(region_, b.number()) == 0);
-		global_ssa_layer->hlckmgr()->Release(b);
+		global_storage_system->hlckmgr()->Release(b);
 		CHECK(check_release(region_, b.number()) == 0);
-		global_ssa_layer->hlckmgr()->Release(a);
-		global_ssa_layer->hlckmgr()->Release(root);
+		global_storage_system->hlckmgr()->Release(a);
+		global_storage_system->hlckmgr()->Release(root);
 		EVENT("E5");
 		EVENT("E6");
 	}
@@ -82,7 +82,7 @@ SUITE(HLock)
 		lock_protocol::Mode unused;
 
 		EVENT("E1");
-		CHECK(global_ssa_layer->hlckmgr()->Acquire(root, lock_protocol::Mode::XR, 0) == lock_protocol::OK);
+		CHECK(global_storage_system->hlckmgr()->Acquire(root, lock_protocol::Mode::XR, 0) == lock_protocol::OK);
 		EVENT("E2");
 	}
 }

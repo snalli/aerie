@@ -2,9 +2,7 @@
 #define __STAMNOS_PXFS_SERVER_H
 
 #include "ssa/ssa-opaque.h"
-#include "ssa/main/server/sessionmgr.h"
 #include "bcs/bcs-opaque.h"
-#include "pxfs/server/session.h"
 
 namespace server {
 
@@ -15,14 +13,12 @@ public:
 	static Server* Instance();
 	void Start(const char* pathname, int flags, int port);
 
-	SessionManager<Session>* session_manager() { return sessionmgr_; }
 	Ipc* ipc_layer() { return ipc_layer_; }
 
 private:
 	int                          port_;
 	Ipc*                         ipc_layer_;
 	FileSystem*                  fs_;
-	SessionManager<Session>*     sessionmgr_;
 	static Server*               instance_;
 };
 

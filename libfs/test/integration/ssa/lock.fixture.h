@@ -38,7 +38,7 @@ struct LockFixture: public LockRegionFixture, IPCFixture {
 
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
-			delete global_ssa_layer;
+			delete global_storage_system;
 		}
 	};
 
@@ -46,8 +46,8 @@ struct LockFixture: public LockRegionFixture, IPCFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			global_ssa_layer = new ssa::client::Dpo(global_ipc_layer);
-			global_ssa_layer->Init();
+			global_storage_system = new ssa::client::StorageSystem(global_ipc_layer);
+			global_storage_system->Init();
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

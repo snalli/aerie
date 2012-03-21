@@ -10,10 +10,16 @@
 #include "bcs/bcs.h"
 #include "pxfs/server/server.h"
 
-
 char*                  pathname = "/tmp/stamnos_pool"; // hardcoded; used by tests
 int                    port;
 pthread_attr_t         attr;
+
+// further test initialization
+int __attribute__((weak)) TestInit()
+{
+	return E_SUCCESS;
+}
+
 
 
 int
@@ -47,7 +53,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	assert(Config::Init() == 0);
+	assert(Config::Init() == CONFIG_TRUE);
 	Debug::Init(debug_level, NULL);
 
 	pthread_attr_init(&attr);
@@ -57,6 +63,7 @@ main(int argc, char *argv[])
 	printf("Starting file system server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
 
 	server::Server::Instance()->Start(pathname, 0, port);
+	assert(TestInit() == E_SUCCESS);
 
 	while (1) {
 		sleep(1);

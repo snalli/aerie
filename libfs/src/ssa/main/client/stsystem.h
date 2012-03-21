@@ -34,6 +34,7 @@ public:
 
 	int Open(const char* source, unsigned int flags);
 	int Close();
+	int Mount(const char* source, const char* target, unsigned int flags);
 
 private:
 	::client::Ipc*                  ipc_;

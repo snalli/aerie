@@ -118,12 +118,10 @@ Client::Mount(const char* source,
               const char* fstype, 
               uint32_t flags)
 {
-	int                   ret;
-	client::SuperBlock*   sb;
-	char*                 path = const_cast<char*>(target);
-	uint64_t              u64;
-	ssa::common::ObjectId oid;
-	StoragePool*          pool;
+	int                            ret;
+	client::SuperBlock*            sb;
+	char*                          path = const_cast<char*>(target);
+	FileSystemProtocol::MountReply mntrep;
 
 	dbg_log (DBG_INFO, "Mount file system %s of type %s to %s\n", source, fstype, target);
 	
@@ -133,7 +131,7 @@ Client::Mount(const char* source,
 
 	if ((ret = global_ipc_layer->call(FileSystemProtocol::kMount, 
 	                                  global_ipc_layer->id(), std::string(source), 
-	                                  std::string(target), flags, oid)) < 0) 
+	                                  std::string(target), flags, mntrep)) < 0) 
 	{
 		return -E_IPC;
 	}
@@ -143,7 +141,7 @@ Client::Mount(const char* source,
 	if ((ret = global_storage_system->Open(source, flags)) < 0) {
 		return ret;
 	}
-	if ((ret = global_fsomgr->LoadSuperBlock(global_session, oid, fstype, &sb)) < 0) {
+	if ((ret = global_fsomgr->LoadSuperBlock(global_session, mntrep.desc_.oid_, fstype, &sb)) < 0) {
 		return ret;
 	}
 	return global_namespace->Mount(global_session, path, sb);

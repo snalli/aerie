@@ -6,11 +6,13 @@ public:
 	SharedBufferDescriptor()
 	{ }
 
-	SharedBufferDescriptor(std::string path, size_t size)
-		: path_(path),
+	SharedBufferDescriptor(int id, std::string path, size_t size)
+		: id_(id),
+		  path_(path),
 		  size_(size)
 	{ }
 
+	int          id_;   // capability: identifier private to a client
 	std::string  path_;
 	unsigned int size_;
 };

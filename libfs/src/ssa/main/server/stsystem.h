@@ -1,33 +1,44 @@
 #ifndef __STAMNOS_SSA_SERVER_STORAGE_SYSTEM_H
 #define __STAMNOS_SSA_SERVER_STORAGE_SYSTEM_H
 
+#include "ssa/main/server/sessionmgr.h"
 #include "bcs/bcs.h"
 #include "spa/pool/pool.h"
 #include "ssa/main/server/ssa-opaque.h"
+#include "ssa/main/common/stsystem_protocol.h"
+
+#include "ssa/main/server/ssa.h"
+#include "common/errno.h"
+#include "bcs/bcs.h"
+#include "ssa/main/server/salloc.h"
+#include "ssa/main/server/hlckmgr.h"
+#include "ssa/main/server/registry.h"
+#include "ssa/main/server/shbuf.h"
+#include "ssa/main/server/session.h"
 #include "ssa/containers/super/container.h"
+#include "ssa/containers/name/container.h"
+#include "ssa/containers/set/container.h"
+#include "spa/pool/pool.h"
+#include "spa/const.h"
+
 
 namespace ssa {
 namespace server {
 
 
-/** \brief Encapsulates the SSA components composing a storage system */
+/** 
+ * \brief Encapsulates the SSA components composing a storage system 
+ */
 class StorageSystem {
 public:
-	// factory methods
-	static int Load(::server::Ipc* ipc, const char* source, unsigned int flags, StorageSystem** storage_system_ptr);
-	static int Make(const char* target, unsigned int flags);
-	
 	StorageSystem(::server::Ipc* ipc, StoragePool* pool)
 		: ipc_(ipc),
 		  pool_(pool),
 		  salloc_(NULL),
 		  can_commit_suicide_(false)
-	{ }
-
-	~StorageSystem();
-
-	int Init();
-	int Close();
+	{ 
+		pthread_mutex_init(&mutex_, NULL);
+	}
 
 	ssa::cc::server::HLockManager* hlckmgr() { return hlckmgr_; }
 	ssa::cc::server::LockManager* lckmgr() { return lckmgr_; }
@@ -35,8 +46,14 @@ public:
 	Registry* registry() { return registry_; }
 	ssa::containers::server::SuperContainer::Object* super_obj() { return super_obj_; }
 	StoragePool* pool() { return pool_; }
+	StorageSystemDescriptor Descriptor(SsaSession* session)
+	{
+		return StorageSystemDescriptor(super_obj_->oid(), 
+									   session->shbuf_->Descriptor());
+	}
 
-private:
+protected:
+	pthread_mutex_t                                   mutex_;
 	::server::Ipc*                                    ipc_;
 	ssa::cc::server::HLockManager*                    hlckmgr_;
 	ssa::cc::server::LockManager*                     lckmgr_;
@@ -46,6 +63,240 @@ private:
 	ssa::containers::server::SuperContainer::Object*  super_obj_;
 	bool                                              can_commit_suicide_;
 };
+
+
+template<typename Session>
+class StorageSystemT: public StorageSystem {
+public:
+	// factory methods
+	static int Load(::server::Ipc* ipc, const char* source, unsigned int flags, StorageSystemT** storage_system_ptr);
+	static int Make(const char* target, unsigned int flags);
+	
+	StorageSystemT(::server::Ipc* ipc, StoragePool* pool)
+		: StorageSystem(ipc, pool)
+	{ }
+
+	~StorageSystemT();
+
+	int Init();
+	int Close();
+
+	int Mount(int clt, const char* source, unsigned int flags, StorageSystemProtocol::MountReply& rep);
+
+	class IpcHandlers {
+	public:
+		int Register(StorageSystemT* module);
+		int Mount(unsigned int clt, std::string source, unsigned int flags, StorageSystemProtocol::MountReply& rep);
+
+	private:
+		StorageSystemT* module_;
+	};
+
+private:
+	SessionManager<Session, StorageSystemT>* sessionmgr_;
+	IpcHandlers                              ipc_handlers_;
+};
+
+
+template<typename Session>
+int
+StorageSystemT<Session>::Init()
+{
+	int ret;
+
+	if (ipc_) {
+		if ((ret = ipc_handlers_.Register(this)) < 0) {
+			return ret;
+		}
+	}
+	if ((hlckmgr_ = new ::ssa::cc::server::HLockManager(ipc_)) == NULL) {
+		return -E_NOMEM;
+	}
+	hlckmgr_->Init();
+	if ((ret = StorageAllocator::Load(ipc_, pool_, &salloc_)) < 0) {
+		delete hlckmgr_;
+		return ret;
+	}
+	if ((registry_ = new Registry(ipc_)) == NULL) {
+		salloc_->Close();
+		delete hlckmgr_;
+	}
+	registry_->Init();
+	if ((sessionmgr_ = new SessionManager<Session, StorageSystemT>(ipc_, this)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = sessionmgr_->Init() == E_SUCCESS) < 0) {
+		return ret;
+	}
+	if ((ret = ipc_->shbuf_manager()->RegisterSharedBufferType("SsaSharedBuffer", SsaSharedBuffer::Make)) < 0) {
+		return ret;
+	}
+	return E_SUCCESS;
+}
+
+
+template<typename Session>
+int
+StorageSystemT<Session>::Load(::server::Ipc* ipc, const char* source, 
+                              unsigned int flags, StorageSystemT** storage_system_ptr)
+{
+	int                ret;
+	void*              b;
+	StorageSystemT*    storage_system;	
+	StoragePool*       pool;
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_storagesystem), 
+	        "Load storage system %s\n", source);
+
+	if ((ret = StoragePool::Open(source, &pool)) < 0) {
+		return ret;
+	}
+	if ((b = pool->root()) == 0) {
+		StoragePool::Close(pool);
+		return -E_NOENT;
+	}
+	if ((storage_system = new StorageSystemT(ipc, pool)) == NULL) {
+		StoragePool::Close(pool);
+		return -E_NOMEM;
+	}
+	if ((storage_system->super_obj_ = ssa::containers::server::SuperContainer::Object::Load(b)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = storage_system->Init()) < 0) {
+		return ret;
+	}
+	storage_system->can_commit_suicide_ = true;
+	*storage_system_ptr = storage_system;
+
+	return E_SUCCESS;
+}
+
+
+/**
+ * \brief Creates a storage system in the pool
+ */
+template<typename Session>
+int 
+StorageSystemT<Session>::Make(const char* target, unsigned int flags)
+{
+	ssa::containers::server::SuperContainer::Object*                      super_obj;
+	ssa::containers::server::NameContainer::Object*                       root_obj;
+	ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object* set_obj;
+	int                                                                   ret;
+	char*                                                                 b;
+	char*                                                                 buffer;
+	SsaSession*                                                           session = NULL; // we need no journaling and storage allocator
+	size_t                                                                master_extent_size;
+	StoragePool*                                                          pool;
+	
+	if ((ret = StoragePool::Open(target, &pool)) < 0) {
+		return ret;
+	}
+	
+	// 1) create the superblock object/proxy,
+	// 2) create the directory inode objext/proxy and set the root 
+	//    of the superblock to point to the new directory inode.
+	
+	master_extent_size = 0;
+	master_extent_size += sizeof(ssa::containers::server::NameContainer::Object);
+	master_extent_size += sizeof(ssa::containers::server::SuperContainer::Object);
+	master_extent_size += sizeof(ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object);
+	if ((ret = pool->AllocateExtent(master_extent_size, (void**) &buffer)) < 0) {
+		return ret;
+	}
+	pool->set_root((void*) buffer);
+
+	// superblock 
+	b = buffer;
+	if ((super_obj = ssa::containers::server::SuperContainer::Object::Make(session, b)) == NULL) {
+		return -E_NOMEM;
+	}
+	// root directory inode
+	b += sizeof(ssa::containers::server::SuperContainer::Object);
+	if ((root_obj = ssa::containers::server::NameContainer::Object::Make(session, b)) == NULL) {
+		return -E_NOMEM;
+	}
+	super_obj->set_root(session, root_obj->oid());
+	// storage container
+	b += sizeof(ssa::containers::server::NameContainer::Object);
+	if ((set_obj = ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object::Make(session, b)) == NULL) {
+		return -E_NOMEM;
+	}
+	super_obj->set_freelist(session, set_obj->oid());
+	b += sizeof(ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object);
+	assert(b < buffer + master_extent_size + 1); 
+	return E_SUCCESS;
+}
+
+
+template<typename Session>
+int
+StorageSystemT<Session>::Close()
+{
+	int ret;
+
+	if ((ret = StoragePool::Close(pool_)) < 0) {
+		return ret;
+	}
+	if (can_commit_suicide_) {
+		delete this;
+	}
+	return E_SUCCESS;
+}
+
+
+template<typename Session>
+StorageSystemT<Session>::~StorageSystemT()
+{
+	delete registry_;
+	delete salloc_;
+	delete hlckmgr_;
+}
+
+
+template<typename Session>
+int 
+StorageSystemT<Session>::Mount(int clt, const char* source, unsigned int flags, 
+                               StorageSystemProtocol::MountReply& rep) 
+{
+	int                 ret;
+	Session*            session;
+
+	pthread_mutex_lock(&mutex_);
+	if ((ret = sessionmgr_->Create(clt, &session)) < 0) {
+		return -ret;
+	}
+	rep.desc_ = Descriptor(session);
+	ret = E_SUCCESS;
+done:
+	pthread_mutex_unlock(&mutex_);
+	return ret;
+}
+
+
+template<typename Session>
+int 
+StorageSystemT<Session>::IpcHandlers::Register(StorageSystemT* module)
+{
+	module_ = module;
+	module_->ipc_->reg(::StorageSystemProtocol::kMount, this, 
+	                   &::ssa::server::StorageSystemT<Session>::IpcHandlers::Mount);
+	return E_SUCCESS;
+}
+
+
+template<typename Session>
+int
+StorageSystemT<Session>::IpcHandlers::Mount(unsigned int clt, std::string source, 
+                                            unsigned int flags, StorageSystemProtocol::MountReply& rep)
+{
+	int ret;
+	
+	if ((ret = module_->Mount(clt, source.c_str(), flags, rep)) < 0) {
+		return -ret;
+	}
+	return 0;
+}
 
 
 } // namespace server

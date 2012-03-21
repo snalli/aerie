@@ -8,7 +8,7 @@ import os
 
 def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Storage:Test',
+        name = 'SSA_Storage:Test',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 

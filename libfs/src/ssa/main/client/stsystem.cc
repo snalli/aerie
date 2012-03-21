@@ -7,6 +7,7 @@
 #include "ssa/main/client/hlckmgr.h"
 #include "ssa/main/client/registry.h"
 #include "ssa/main/client/shbuf.h"
+#include "ssa/main/common/stsystem_protocol.h"
 
 namespace ssa {
 namespace client {
@@ -61,6 +62,31 @@ StorageSystem::Open(const char* source, unsigned int flags)
 	//if ((r = shbuf_->Map()) < 0) {
 	//	return r;
 	//}
+	return E_SUCCESS;
+}
+
+
+int 
+StorageSystem::Mount(const char* source, const char* target, unsigned int flags)
+{
+	int                               ret;
+	StorageSystemProtocol::MountReply mntrep;
+	
+	if (source == NULL) {
+		return -E_INVAL;
+	}
+	if ((ret = ipc_->call(StorageSystemProtocol::kMount,
+	                      ipc_->id(), std::string(source), 
+	                      flags, mntrep)) < 0) 
+	{
+		return -E_IPC;
+	}
+	if (ret > 0) {
+		return -ret;
+	}
+	if ((ret = Open(source, flags)) < 0) {
+		return ret;
+	}
 	return E_SUCCESS;
 }
 

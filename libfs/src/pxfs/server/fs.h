@@ -14,11 +14,11 @@
 #include <google/dense_hash_map>
 #include "ssa/ssa-opaque.h"
 #include "ssa/main/common/obj.h"
+#include "pxfs/server/session.h"
+#include "pxfs/common/fs_protocol.h"
 
 
 namespace server {
-
-class Session;           // forward declaration
 
 
 /**
@@ -33,31 +33,34 @@ class Session;           // forward declaration
  * 1) copy between two filesystems cannot be done in a single address space. 
  *    but it can be done over shared memory
  */
+
+typedef ssa::server::StorageSystemT<Session> StorageSystem;
+
 class FileSystem {
 public:
 	static int Make(const char* target, size_t nblocks, size_t block_size, int flags);
 	static int Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** fsp);
 
-	FileSystem(Ipc* ipc, ssa::server::StorageSystem* storage_system);
+	FileSystem(Ipc* ipc, StorageSystem* storage_system);
 	int Init();
-	int Mount(int clt, const char* source, const char* target, unsigned int flags, ssa::common::ObjectId* oid); 
+	int Mount(int clt, const char* source, const char* target, unsigned int flags, FileSystemProtocol::MountReply& rep); 
 
-	ssa::server::StorageSystem* storage_system() { return storage_system_; }
+	StorageSystem* storage_system() { return storage_system_; }
 
 	class IpcHandlers {
 	public:
 		int Register(FileSystem* module);
-		int Mount(unsigned int clt, std::string source, std::string target, unsigned int flags, ssa::common::ObjectId& r);
+		int Mount(unsigned int clt, std::string source, std::string target, unsigned int flags, FileSystemProtocol::MountReply& rep);
 
 	private:
 		FileSystem* module_;
 	};
 
 private:
-	pthread_mutex_t              mutex_;
-	ssa::server::StorageSystem*  storage_system_;
-	Ipc*                         ipc_;
-	IpcHandlers                  ipc_handlers_;
+	pthread_mutex_t     mutex_;
+	StorageSystem*      storage_system_;
+	Ipc*                ipc_;
+	IpcHandlers         ipc_handlers_;
 };
 
 } // namespace server

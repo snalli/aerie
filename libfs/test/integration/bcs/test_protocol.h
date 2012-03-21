@@ -7,8 +7,8 @@ class IpcTestProtocol {
 public:
 	
 	enum RpcNumbers {
-		kTestAdd = 4900,
-		kTestEcho = 4901
+		kTestAdd = 5000,
+		kTestEcho = 5001,
 	};
 };
 

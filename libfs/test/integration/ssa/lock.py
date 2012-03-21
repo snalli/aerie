@@ -8,7 +8,7 @@ import os
 
 def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockUnlockSingle',
+        name = 'SSA_Lock:TestLockUnlockSingle',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -19,7 +19,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockUnlockConcurrent1',
+        name = 'SSA_Lock:TestLockUnlockConcurrent1',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -32,7 +32,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockUnlockMultipleTimesConcurrent1',
+        name = 'SSA_Lock:TestLockUnlockMultipleTimesConcurrent1',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -44,7 +44,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockUnlockMultipleTimesConcurrent2',
+        name = 'SSA_Lock:TestLockUnlockMultipleTimesConcurrent2',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -63,7 +63,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     # checks that a client that grabs a cached lock is serialized
     # with respect to another client trying to acquire the same lock
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockUnlockMultipleTimesConcurrent3',
+        name = 'SSA_Lock:TestLockUnlockMultipleTimesConcurrent3',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -81,7 +81,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     # a client acquires a lock in XL and then tries to convert it in SL
     # a second client tries to acquire the lock in SL between the two events 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockConvert1',
+        name = 'SSA_Lock:TestLockConvert1',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -99,7 +99,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     # a client acquires a lock in XL and then tries to convert it in SL
     # a second client tries to acquire the lock in SL between the two events 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockConvert2',
+        name = 'SSA_Lock:TestLockConvert2',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -114,7 +114,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+        name = 'SSA_Lock:TestSharedLockUnlockConcurrentClients1',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -128,7 +128,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestSharedLockUnlockConcurrentClients1',
+        name = 'SSA_Lock:TestSharedLockUnlockConcurrentClients1',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -145,7 +145,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     # cancel request. deadlock scenario: two clients deadlock. one of the clients 
     # sends a cancel request to break the deadlock  
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockCancel1',
+        name = 'SSA_Lock:TestLockCancel1',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -162,7 +162,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     # cancel request. non-deadlock scenario (false positive): client thinks has 
     # deadlocked and cancels the request. false positive.
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'Lock:TestLockCancel2',
+        name = 'SSA_Lock:TestLockCancel2',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 

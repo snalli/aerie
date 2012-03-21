@@ -10,20 +10,20 @@
 #include "ssa/main/client/registry.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
-#include "obj.fixture.h"
+#include "ssa.fixture.h"
 
 
-SUITE(Registry)
+SUITE(SSA_Registry)
 {
-	TEST_FIXTURE(ObjectFixture, Test)
+	TEST_FIXTURE(SsaFixture, Test)
 	{
 		ssa::common::ObjectId tmp_oid;
 
-		CHECK(global_ssa_layer->registry()->Add("/foo/bar", ssa::common::ObjectId(10)) == E_SUCCESS);
-		CHECK(global_ssa_layer->registry()->Lookup("/foo/bar", &tmp_oid) == E_SUCCESS);
+		CHECK(global_storage_system->registry()->Add("/foo/bar", ssa::common::ObjectId(10)) == E_SUCCESS);
+		CHECK(global_storage_system->registry()->Lookup("/foo/bar", &tmp_oid) == E_SUCCESS);
 		CHECK(tmp_oid == ssa::common::ObjectId(10));
-		CHECK(global_ssa_layer->registry()->Remove("/foo/bar") == E_SUCCESS);
-		CHECK(global_ssa_layer->registry()->Lookup("/foo/bar", &tmp_oid) != E_SUCCESS);
+		CHECK(global_storage_system->registry()->Remove("/foo/bar") == E_SUCCESS);
+		CHECK(global_storage_system->registry()->Lookup("/foo/bar", &tmp_oid) != E_SUCCESS);
 	}
 
 }

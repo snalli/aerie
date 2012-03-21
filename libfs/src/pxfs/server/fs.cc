@@ -12,7 +12,7 @@
 
 namespace server {
 
-FileSystem::FileSystem(Ipc* ipc, ssa::server::StorageSystem* storage_system)
+FileSystem::FileSystem(Ipc* ipc, StorageSystem* storage_system)
 	: ipc_(ipc),
 	  storage_system_(storage_system)
 {
@@ -35,7 +35,7 @@ FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flag
 {
 	int ret;
 
-	if ((ret = ssa::server::StorageSystem::Make(target, flags)) < 0) {
+	if ((ret = StorageSystem::Make(target, flags)) < 0) {
 		return ret;
 	}
 	return E_SUCCESS;
@@ -45,11 +45,11 @@ FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flag
 int 
 FileSystem::Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** fsp)
 {
-	int                         ret;
-	ssa::server::StorageSystem* storage_system;
-	FileSystem*                 fs;
+	int            ret;
+	StorageSystem* storage_system;
+	FileSystem*    fs;
 
-	if ((ret = ssa::server::StorageSystem::Load(ipc, source, flags, &storage_system)) < 0) {
+	if ((ret = StorageSystem::Load(ipc, source, flags, &storage_system)) < 0) {
 		return ret;
 	}
 	if ((fs = new FileSystem(ipc, storage_system)) == NULL) {
@@ -66,22 +66,17 @@ FileSystem::Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** 
 
 int 
 FileSystem::Mount(int clt, const char* source, const char* target, 
-                  unsigned int flags, ssa::common::ObjectId* oid) 
+                  unsigned int flags, FileSystemProtocol::MountReply& rep) 
 {
-	int                            ret;
-	Session*                       session;
-
-	pthread_mutex_lock(&mutex_);
-
-	if ((ret = Server::Instance()->session_manager()->Create(clt, &session)) < 0) {
-		return -ret;
+	int                               ret;
+	Session*                          session;
+	StorageSystemProtocol::MountReply ssrep;
+	
+	if ((ret = storage_system_->Mount(clt, source, flags, ssrep)) < 0) {
+		return ret;
 	}
-	*oid = storage_system_->super_obj()->oid();
-	ret = E_SUCCESS;
-
-done:
-	pthread_mutex_unlock(&mutex_);
-	return ret;
+	rep.desc_ = ssrep.desc_;
+	return E_SUCCESS;
 }
 
 
@@ -99,16 +94,14 @@ FileSystem::IpcHandlers::Register(FileSystem* module)
 int
 FileSystem::IpcHandlers::Mount(unsigned int clt, std::string source, 
                                std::string target, unsigned int flags,
-                               ssa::common::ObjectId& r)
+                               FileSystemProtocol::MountReply& rep)
 {
-	int                   ret;
-	ssa::common::ObjectId tmp_oid;
+	int ret;
 	
 	if ((ret = module_->Mount(clt, source.c_str(), target.c_str(), 
-	                          flags, &tmp_oid)) < 0) {
+	                          flags, rep)) < 0) {
 		return -ret;
 	}
-	r = tmp_oid;
 	return 0;
 }
 

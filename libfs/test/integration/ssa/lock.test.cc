@@ -17,14 +17,14 @@ static lock_protocol::LockId b = 2;
 static lock_protocol::LockId c = 3;
 
 
-SUITE(Lock)
+SUITE(SSA_Lock)
 {
 	TEST_FIXTURE(LockFixture, TestLockSL)
 	{
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::SL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::SL, 0, unused);
 		EVENT("E2");
 	}
 	
@@ -34,9 +34,9 @@ SUITE(Lock)
 		CHECK(Client::TestServerIsAlive() == 0);
 
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E2");
-		global_ssa_layer->lckmgr()->Convert(a, lock_protocol::Mode::SL);
+		global_storage_system->lckmgr()->Convert(a, lock_protocol::Mode::SL);
 		EVENT("E3");
 	}
 
@@ -46,9 +46,9 @@ SUITE(Lock)
 		CHECK(Client::TestServerIsAlive() == 0);
 
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E2");
-		global_ssa_layer->lckmgr()->Convert(a, lock_protocol::Mode::SL, true);
+		global_storage_system->lckmgr()->Convert(a, lock_protocol::Mode::SL, true);
 		EVENT("E3");
 	}
 
@@ -57,10 +57,10 @@ SUITE(Lock)
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E2");
 		CHECK(check_grant_x(region_, a) == 0);
-		global_ssa_layer->lckmgr()->Release(a);
+		global_storage_system->lckmgr()->Release(a);
 		CHECK(check_release(region_, a) == 0);
 		EVENT("E3");
 	}
@@ -70,17 +70,17 @@ SUITE(Lock)
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E2");
 		CHECK(check_grant_x(region_, a) == 0);
-		global_ssa_layer->lckmgr()->Release(a);
+		global_storage_system->lckmgr()->Release(a);
 		CHECK(check_release(region_, a) == 0);
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		CHECK(check_grant_x(region_, a) == 0);
 		EVENT("E3");
 		usleep(1000); // give enough time for a competing thread to try to acquire the lock
 		              // we would like to be able to express this in our schedule
-		global_ssa_layer->lckmgr()->Release(a);
+		global_storage_system->lckmgr()->Release(a);
 		CHECK(check_release(region_, a) == 0);
 		EVENT("E4");
 	}
@@ -92,10 +92,10 @@ SUITE(Lock)
 		EVENT("E1");
 		for (int i=0; i<10; i++) {
 			EVENT("E2");
-			global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+			global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 			CHECK(check_grant_x(region_, a) == 0);
 			EVENT("E3");
-			global_ssa_layer->lckmgr()->Release(a);
+			global_storage_system->lckmgr()->Release(a);
 			CHECK(check_release(region_, a) == 0);
 			EVENT("E4");
 		}
@@ -107,12 +107,12 @@ SUITE(Lock)
 		lock_protocol::Mode unused;
 
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(b, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(b, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E2");
 		EVENT("E3");
 		EVENT("E4");
 		EVENT("E5");
-		global_ssa_layer->lckmgr()->Release(b);
+		global_storage_system->lckmgr()->Release(b);
 		EVENT("E6");
 	}
 
@@ -122,10 +122,10 @@ SUITE(Lock)
 		lock_protocol::Mode unused;
 
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E2");
 		EVENT("E3");
-		global_ssa_layer->lckmgr()->Acquire(b, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(b, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E4");
 	}
 
@@ -134,9 +134,9 @@ SUITE(Lock)
 		lock_protocol::Mode unused;
 
 		EVENT("E1");
-		global_ssa_layer->lckmgr()->Acquire(b, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(b, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E2");
-		global_ssa_layer->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
+		global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 		EVENT("E3");
 	}
 	
@@ -148,7 +148,7 @@ SUITE(Lock)
 		usleep(100000); // give enough time for a competing thread to acquire the lock
 		              	// we would like to be able to express this in our schedule
 		EVENT("E2");
-		global_ssa_layer->lckmgr()->Cancel(b);
+		global_storage_system->lckmgr()->Cancel(b);
 		EVENT("E3");
 	}
 }

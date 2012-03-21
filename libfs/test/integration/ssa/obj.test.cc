@@ -11,8 +11,7 @@
 #include "ssa/containers/typeid.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
-#include "obj.fixture.h"
-
+#include "ssa.fixture.h"
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -86,9 +85,9 @@ typedef ssa::client::rw::ObjectProxyReference<Dummy, DummyVersionManager> DummyR
 static ssa::common::ObjectId OID[16];
 
 
-SUITE(Object)
+SUITE(SSA_Object)
 {
-	TEST_FIXTURE(ObjectFixture, Test)
+	TEST_FIXTURE(SsaFixture, Test)
 	{
 		ssa::common::ObjectProxyReference* ref;
 		DummyRWReference*                  dummy_rw_ref;
@@ -98,8 +97,8 @@ SUITE(Object)
 		EVENT("AfterMapObjects");
 		
 		ssa::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new ssa::client::rw::ObjectManager<Dummy, DummyVersionManager>;
-		CHECK(global_ssa_layer->omgr()->RegisterType(Dummy::kTypeID, dummy_mgr) == E_SUCCESS);
-		CHECK(global_ssa_layer->omgr()->GetObject(session, OID[1], &ref) == E_SUCCESS);
+		CHECK(global_storage_system->omgr()->RegisterType(Dummy::kTypeID, dummy_mgr) == E_SUCCESS);
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &ref) == E_SUCCESS);
 		EVENT("BeforeLock");
 		dummy_rw_ref = static_cast<DummyRWReference*>(ref);
 		dummy_rw_ref->proxy()->Lock(session, lock_protocol::Mode::XL);
@@ -115,15 +114,11 @@ SUITE(Object)
 		EVENT("End");
 	}
 	
-	TEST_FIXTURE(ObjectFixture, TestAlloc)
+	TEST_FIXTURE(SsaFixture, TestAlloc)
 	{
 		ssa::common::ObjectProxyReference* ref;
 		ssa::common::ObjectId              oid;
 
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
-		CHECK(global_ssa_layer->salloc()->AllocateContainer(session, ssa::containers::T_NAME_CONTAINER, &oid) == E_SUCCESS);
+		CHECK(global_storage_system->salloc()->AllocateContainer(session, ssa::containers::T_NAME_CONTAINER, &oid) == E_SUCCESS);
 	}
 }

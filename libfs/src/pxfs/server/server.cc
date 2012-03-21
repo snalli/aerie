@@ -1,7 +1,6 @@
 #include "pxfs/server/server.h"
 #include "bcs/main/server/bcs.h"
 #include "ssa/main/server/ssa.h"
-#include "ssa/main/server/sessionmgr.h"
 #include "pxfs/mfs/server/mfs.h"
 #include "pxfs/server/fs.h"
 
@@ -32,9 +31,6 @@ Server::Start(const char* pathname, int flags, int port)
 	ipc_layer_->Init();
 
 	assert(FileSystem::Load(ipc_layer_, pathname, flags, &fs_) == E_SUCCESS);
-
-	sessionmgr_ = new SessionManager<Session>(ipc_layer_, fs_->storage_system());
-	assert(sessionmgr_->Init() == E_SUCCESS);
 }
 
 } // namespace server

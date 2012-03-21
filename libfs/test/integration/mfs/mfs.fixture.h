@@ -26,7 +26,7 @@ struct MFSFixture {
 		if (!initialized) {
 			libfs_init2("10000");
 			
-			session = new Session(global_ssa_layer);
+			session = new Session(global_storage_system);
 			global_session = session;
 			
 			initialized = true;

@@ -43,6 +43,9 @@
 #define SSA_PUBLISHER_PROTOCOL(ACTION)                                         \
 	ACTION(ssa, PublisherProtocol, kPublish)                                    
 
+#define SSA_STORAGESYSTEM_PROTOCOL(ACTION)                                     \
+	ACTION(ssa, StorageSystemProtocol, kMount)
+
 #define PXFS_FILESYSTEM_PROTOCOL(ACTION)                                       \
 	ACTION(pxfs, FileSystemProtocol, kMount)
 
@@ -59,6 +62,7 @@ public:
 		SSA_STORAGE_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_REGISTRY_PROTOCOL(ALL_RPC_NUMBER)
 		SSA_PUBLISHER_PROTOCOL(ALL_RPC_NUMBER)
+		SSA_STORAGESYSTEM_PROTOCOL(ALL_RPC_NUMBER)
 		PXFS_FILESYSTEM_PROTOCOL(ALL_RPC_NUMBER)
 	};
 

@@ -8,7 +8,7 @@ import os
 
 def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'HLock:TestLockUnlockSingleClient',
+        name = 'SSA_HLock:TestLockUnlockSingleClient',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -20,7 +20,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'HLock:TestLockUnlockConcurrentClient1',
+        name = 'SSA_HLock:TestLockUnlockConcurrentClient1',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -35,7 +35,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'HLock:TestLockUnlockConcurrentClient2',
+        name = 'SSA_HLock:TestLockUnlockConcurrentClient2',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
@@ -51,7 +51,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'HLock:TestDeepLockUnlockConcurrentClient',
+        name = 'SSA_HLock:TestDeepLockUnlockConcurrentClient',
         init_script = os.path.join(parent_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 

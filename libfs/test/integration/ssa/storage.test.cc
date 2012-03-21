@@ -10,16 +10,16 @@
 #include "ssa/main/client/salloc.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
-#include "obj.fixture.h"
+#include "ssa.fixture.h"
 
 
-SUITE(Storage)
+SUITE(SSA_Storage)
 {
-	TEST_FIXTURE(ObjectFixture, Test)
+	TEST_FIXTURE(SsaFixture, Test)
 	{
 		//FIXME
 		//CHECK(libfs_mkfs("/superblock/A", "mfs", 1024, 0) == 0);
-		//global_ssa_layer->salloc()->AllocateContainer(session);
+		//global_storage_system->salloc()->AllocateContainer(session);
 
 	}
 

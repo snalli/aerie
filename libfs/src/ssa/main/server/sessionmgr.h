@@ -6,12 +6,13 @@
 #include "bcs/main/common/cdebug.h"
 #include "common/errno.h"
 
+namespace ssa {
 namespace server {
 
-template<typename Session>
+template<typename Session, typename StorageSystem>
 class SessionManager {
 public:
-	SessionManager(Ipc* ipc, ssa::server::StorageSystem* storage_system)
+	SessionManager(::server::Ipc* ipc, StorageSystem* storage_system)
 		: ipc_(ipc),
 		  storage_system_(storage_system)
 	{ }
@@ -22,23 +23,24 @@ public:
 	int Lookup(int clt, Session** session);
 
 private:
-	BaseSessionManager*          base_session_mgr_;
-	Ipc*                         ipc_;
-	ssa::server::StorageSystem*  storage_system_;
+	::server::BaseSessionManager* base_session_mgr_;
+	::server::Ipc*                ipc_;
+	StorageSystem*                storage_system_;
 };
 
-template<typename Session>
+
+template<typename Session, typename StorageSystem>
 int 
-SessionManager<Session>::Init()
+SessionManager<Session, StorageSystem>::Init()
 {
 	base_session_mgr_ = ipc_->session_manager();
 	return E_SUCCESS;
 }
 
 
-template<typename Session>
+template<typename Session, typename StorageSystem>
 int
-SessionManager<Session>::Create(int clt, Session** sessionp)
+SessionManager<Session, StorageSystem>::Create(int clt, Session** sessionp)
 {
 	int      ret;
 	Session* session = new Session(ipc_, storage_system_);
@@ -61,6 +63,6 @@ SessionManager<Session>::Create(int clt, Session** sessionp)
 
 
 } // namespace server
-
+} // namespace ssa
 
 #endif // __STAMNOS_SSA_SERVER_SESSION_MANAGER_H

@@ -23,7 +23,7 @@ serverDepLibs = [mfsServerLibrary, fssLibrary, bcsServerLibrary, ssaServerLibrar
 objects = myTestEnv['OBJECTS']
 
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)
-serverProgram = myTestEnv.Program('smain', source = ['smain.cc', 'ipc.handlers.cc'], LIBS=['pthread', 'rt']+serverDepLibs)
+serverProgram = myTestEnv.Program('smain', source = myTestEnv['SERVER_OBJECTS']+['init.server.cc', 'ipc.handlers.cc'], LIBS=['pthread', 'rt']+serverDepLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 
 
@@ -33,4 +33,7 @@ runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegration
 
 
 import test.integration.bcs.ipc
+import test.integration.bcs.shbuf
+
 test.integration.bcs.ipc.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.bcs.shbuf.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
