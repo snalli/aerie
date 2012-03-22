@@ -3,7 +3,7 @@
 #include <execinfo.h>
 #include <unistd.h>
 #include <stdio.h>
-#include "bcs/main/common/cconfig.h"
+#include "bcs/main/common/rtcconfig.h"
 
 
 int         dbg_modules[dbg_module_count];

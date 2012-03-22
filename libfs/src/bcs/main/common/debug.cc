@@ -1,5 +1,5 @@
 #include "bcs/main/common/debug.h"
-#include "bcs/main/common/config.h"
+#include "bcs/main/common/rtconfig.h"
 
 int
 Debug::Init(int level, const char* identifier)

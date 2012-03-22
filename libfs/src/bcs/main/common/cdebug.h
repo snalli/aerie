@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "bcs/main/common/cconfig.h"
+#include "bcs/main/common/rtcconfig.h"
 
 #ifdef __cplusplus
 extern "C" {

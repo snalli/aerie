@@ -27,10 +27,6 @@ SUITE(SSA_STM)
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
@@ -53,10 +49,6 @@ SUITE(SSA_STM)
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");

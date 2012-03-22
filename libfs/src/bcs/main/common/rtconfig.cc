@@ -1,4 +1,4 @@
-#include "bcs/main/common/config.h"
+#include "bcs/main/common/rtconfig.h"
 #include <stdlib.h>
 #include <stdio.h>
 

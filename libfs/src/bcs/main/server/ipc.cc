@@ -2,7 +2,7 @@
 #include "bcs/main/common/ipc_protocol.h"
 #include "bcs/main/server/sessionmgr.h"
 #include "bcs/main/server/shbufmgr.h"
-#include "bcs/main/common/config.h"
+#include "bcs/main/common/rtconfig.h"
 #include "bcs/main/common/debug.h"
 #include "common/util.h"
 #include "common/errno.h"

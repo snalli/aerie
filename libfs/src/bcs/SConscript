@@ -6,10 +6,10 @@ rpcLibrary, rpcLibraryObjects = SConscript('backend/SConscript')
 # Common objects
 
 commonSource = [
-                'main/common/config.cc',
+                'main/common/rtconfig.cc',
                 'main/common/debug.cc',
                 'main/common/cdebug.c',
-                'main/common/cconfig.c'
+                'main/common/rtcconfig.c'
                ]
 
 commonObjects = localBuildEnv.SharedObject(commonSource)

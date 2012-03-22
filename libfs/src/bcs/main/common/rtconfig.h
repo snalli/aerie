@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_BCS_COMMON_CONFIG_H
 #define __STAMNOS_BCS_COMMON_CONFIG_H
 
-#include "bcs/main/common/cconfig.h"
+#include "bcs/main/common/rtcconfig.h"
 
 class Config {
 public:	

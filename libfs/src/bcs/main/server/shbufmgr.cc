@@ -3,7 +3,7 @@
 #include "bcs/main/server/ipc.h"
 #include "bcs/main/server/session.h"
 #include "bcs/main/server/shbuf.h"
-#include "bcs/main/common/config.h"
+#include "bcs/main/common/rtconfig.h"
 #include "common/util.h"
 #include "common/errno.h"
 
