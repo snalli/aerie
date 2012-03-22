@@ -32,7 +32,13 @@ SharedBuffer::Init(const char* suffix)
 	DBG_LOG(DBG_DEBUG, DBG_MODULE(server_bcs), "SharedBuffer: path = %s, size = %" PRIu64 "\n", 
 	        path_.c_str(), size_);
 
-	return Open(path_.c_str(), size_, kCreate | kMap, this);
+	if ((ret = Open(path_.c_str(), size_, kCreate | kMap, this)) < 0) {
+		return ret;
+	}
+	header_->start_ = 0;
+	header_->end_ = 0;
+
+	return E_SUCCESS;
 }
 
 

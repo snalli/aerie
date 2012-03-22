@@ -52,10 +52,26 @@ SharedBuffer::SignalReader()
 }
 
 
+
+
 int 
-SharedBuffer::Write(const void* src, size_t n)
+SharedBuffer::Write(const char* src, size_t n)
 {
-	SignalReader();
+	if (n > size() - Count()) {
+		// no space 
+		SignalReader();
+	}
+	if (end() > start()) {
+		void* bptr = (void*) (base() + end());
+		uint64_t first_part_size = size() - end();
+		memcpy(bptr, src, first_part_size);
+		memcpy(bptr, &src[first_part_size], n-first_part_size);
+	} else {
+		void* bptr = (void*) (base() + end());
+		memcpy(bptr, src, n);
+	}
+	set_end((end() + n) % size());
+	return E_SUCCESS;
 }
 
 } // namespace client

@@ -57,7 +57,8 @@ inline unmarshall& operator>>(unmarshall &u, SharedBuffer::Descriptor& val) {
 
 class SharedBuffer::Header {
 public:
-
+	uint64_t start_; // updated by the server (consumer)
+	uint64_t end_;   // updated by the client (producer)
 };
 
 

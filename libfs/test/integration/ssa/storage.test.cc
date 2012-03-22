@@ -21,6 +21,7 @@ SUITE(SSA_StorageSystem)
 		char buf[512];
 
 		global_storage_system->shbuf()->Write(buf, 16);
+		global_storage_system->shbuf()->SignalReader();
 	}
 
 }

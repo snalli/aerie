@@ -17,12 +17,21 @@ public:
 		  id_(dsc.id_)
 	{ }
 
+	uint64_t size() { return header_->payload_size(); }
+	uint64_t base() { return header_->payload_base(); }
+	uint64_t start() { return header_->start_; }
+	uint64_t end() { return header_->end_; }
+	void set_end(uint64_t end) { header_->end_ = end; }
+	
 	int Map();
 
-	int Write(const void* src, size_t n);
-
-protected:
+	int Write(const char* src, size_t n);
+	
+	int Count() {
+		return (size() + end() - start()) % size();
+	}
 	int SignalReader();
+protected:
 	
 	Ipc*        ipc_;
 	std::string path_;

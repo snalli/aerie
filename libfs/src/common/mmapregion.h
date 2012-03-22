@@ -295,7 +295,7 @@ public:
 	void set_payload_base(uint64_t payload_base) { payload_base_ = payload_base; }
 	bool initialized() { return initialized_; }
 
-private:
+protected:
 	bool     initialized_;
 	uint64_t header_size_;  // length of the space occupied by the header and extra space to properly align the region
 	uint64_t payload_base_; // the address where the region payload was mapped (used by persistent region)

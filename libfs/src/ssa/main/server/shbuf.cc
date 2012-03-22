@@ -6,7 +6,7 @@ namespace server {
 
 int SsaSharedBuffer::Consume()
 {
-	printf("CONSUME\n");
+	printf("CONSUME: %d\n", header_->end_);
 }
 
 } // namespace server
