@@ -15,6 +15,7 @@
 #include "ssa/main/server/registry.h"
 #include "ssa/main/server/shbuf.h"
 #include "ssa/main/server/session.h"
+#include "ssa/main/server/publisher.h"
 #include "ssa/containers/super/container.h"
 #include "ssa/containers/name/container.h"
 #include "ssa/containers/set/container.h"
@@ -45,6 +46,7 @@ public:
 	ssa::cc::server::LockManager* lckmgr() { return lckmgr_; }
 	StorageAllocator* salloc() { return salloc_; }
 	Registry* registry() { return registry_; }
+	Publisher* publisher() { return publisher_; }
 	ssa::containers::server::SuperContainer::Object* super_obj() { return super_obj_; }
 	StoragePool* pool() { return pool_; }
 	StorageSystemDescriptor Descriptor(SsaSession* session)
@@ -61,6 +63,7 @@ protected:
 	StorageAllocator*                                 salloc_;
 	Registry*                                         registry_;
 	StoragePool*                                      pool_;
+	Publisher*                                        publisher_;
 	ssa::containers::server::SuperContainer::Object*  super_obj_;
 	bool                                              can_commit_suicide_;
 };
@@ -127,6 +130,12 @@ StorageSystemT<Session>::Init()
 		return -E_NOMEM;
 	}
 	if ((ret = sessionmgr_->Init() == E_SUCCESS) < 0) {
+		return ret;
+	}
+	if ((publisher_ = new Publisher(ipc_)) == NULL) {
+		return ret;
+	}
+	if ((ret = publisher_->Init() == E_SUCCESS) < 0) {
 		return ret;
 	}
 	if ((ret = ipc_->shbuf_manager()->RegisterSharedBufferType("SsaSharedBuffer", SsaSharedBuffer::Make)) < 0) {

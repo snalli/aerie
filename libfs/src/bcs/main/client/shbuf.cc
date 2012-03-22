@@ -52,8 +52,9 @@ SharedBuffer::SignalReader()
 }
 
 
-
-
+/**
+ * \brief returns the number of bytes written
+ */
 int 
 SharedBuffer::Write(const char* src, size_t n)
 {
@@ -61,17 +62,16 @@ SharedBuffer::Write(const char* src, size_t n)
 		// no space 
 		SignalReader();
 	}
+	void* bptr = (void*) (base() + end());
 	if (end() > start()) {
-		void* bptr = (void*) (base() + end());
 		uint64_t first_part_size = size() - end();
 		memcpy(bptr, src, first_part_size);
-		memcpy(bptr, &src[first_part_size], n-first_part_size);
+		memcpy((void*) base(), &src[first_part_size], n-first_part_size);
 	} else {
-		void* bptr = (void*) (base() + end());
 		memcpy(bptr, src, n);
 	}
 	set_end((end() + n) % size());
-	return E_SUCCESS;
+	return n;
 }
 
 } // namespace client

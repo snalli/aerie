@@ -26,7 +26,9 @@ class BaseSession; // forward declaration
  * SESSION OBJECT STRUCTURE
  * Each layer encapsulates its per client session state into its Session 
  * data structure which inherits Session structure of the layer below. 
- * Layers must be layered strictly in a single-inheritance structure. 
+ * Layer session's must be layered strictly in a single-inheritance structure. 
+ * This allows us to do static_cast on any session object anywhere in the 
+ * hierarchy.
  * Multiple inheritance is prohibited because we would then need to rely
  * on virtual inheritance to avoid diamonds, which is undesirable as it 
  * has a performance hit.

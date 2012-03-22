@@ -19,8 +19,8 @@ SUITE(SSA_StorageSystem)
 	TEST_FIXTURE(SsaFixture, Test)
 	{
 		char buf[512];
-
-		global_storage_system->shbuf()->Write(buf, 16);
+		strcpy(buf, "str"); 
+		global_storage_system->shbuf()->Write(buf, 512);
 		global_storage_system->shbuf()->SignalReader();
 	}
 

@@ -59,7 +59,7 @@ int
 SharedBufferManager::Consume(BcsSession* session, int id, int& r) 
 {
 	assert(session->shbuf_vec_[id] != NULL);
-	session->shbuf_vec_[id]->Consume();
+	session->shbuf_vec_[id]->Consume(session);
 	return E_SUCCESS;
 }
 

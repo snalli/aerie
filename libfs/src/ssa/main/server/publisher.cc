@@ -1,5 +1,6 @@
 #include "ssa/main/server/publisher.h"
 #include "ssa/main/server/session.h"
+#include "ssa/main/server/shbuf.h"
 #include "ssa/main/common/publisher_protocol.h"
 #include "common/errno.h"
 #include "common/util.h"
@@ -25,6 +26,13 @@ Publisher::Init()
 int
 Publisher::Publish(SsaSession* session)
 {
+	char buf[512];
+	SsaSharedBuffer* shbuf = session->shbuf_;
+	shbuf->Acquire();
+	if (shbuf->Read(buf, 64)) {
+		printf("%s\n", buf);
+	}
+	shbuf->Release();
 	return E_SUCCESS;
 }
 

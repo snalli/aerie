@@ -35,11 +35,33 @@ SharedBuffer::Init(const char* suffix)
 	if ((ret = Open(path_.c_str(), size_, kCreate | kMap, this)) < 0) {
 		return ret;
 	}
-	header_->start_ = 0;
-	header_->end_ = 0;
+	start_ = header_->start_ = 0;
+	end_ = header_->end_ = 0;
 
 	return E_SUCCESS;
 }
 
+
+/**
+ * \brief returns the number of bytes read
+ */
+int 
+SharedBuffer::Read(char* dst, size_t n)
+{
+	if (n > Count()) {
+		// not enough data 
+		return 0;
+	}
+	void* bptr = (void*) (base_ + start_);
+	if (start_ > end_) {
+		uint64_t first_part_size = size_ - start_;
+		memcpy(dst, bptr, first_part_size);
+		memcpy(&dst[first_part_size], (void*) base_, n-first_part_size);
+	} else {
+		memcpy(dst, bptr, n);
+	}
+	start_ += n;
+	return n;
+}
 
 } // namespace server

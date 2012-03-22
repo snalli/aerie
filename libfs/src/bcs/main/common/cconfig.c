@@ -239,7 +239,7 @@ __cconfig_init(config_t *cfg, const char *config_file)
 	if (env_config_file = getenv("LIBFS_CONFIG")) {
 		config_file = env_config_file;
 	}
-
+	
 	config_init(cfg);
 	return config_read_file(cfg, config_file);
 }

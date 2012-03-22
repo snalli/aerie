@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <string>
+#include "bcs/main/server/bcs-opaque.h"
 #include "bcs/main/server/shbuf.h"
 
 namespace ssa {
@@ -14,7 +15,7 @@ public:
 		return new SsaSharedBuffer();
 	}
 
-	int Consume();
+	int Consume(::server::BcsSession* session);
 };
 
 
