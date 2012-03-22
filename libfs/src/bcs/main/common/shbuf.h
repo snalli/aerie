@@ -41,6 +41,7 @@ public:
 
 inline marshall& operator<<(marshall &m, SharedBuffer::Descriptor& val) {
     m << val.path_;
+    m << val.id_;
     m << val.size_;
     return m;
 }
@@ -48,6 +49,7 @@ inline marshall& operator<<(marshall &m, SharedBuffer::Descriptor& val) {
 
 inline unmarshall& operator>>(unmarshall &u, SharedBuffer::Descriptor& val) {
     u >> val.path_;
+    u >> val.id_;
     u >> val.size_;
     return u;
 }

@@ -49,6 +49,7 @@ SharedBufferManager::CreateSharedBuffer(const char* buffertypeid,
 	if ((buf = creator()) == NULL) {
 		return NULL;
 	}
+	buf->set_id(session->shbuf_vec_.size());
 	session->shbuf_vec_.push_back(buf);
 	return buf;
 }
@@ -57,8 +58,8 @@ SharedBufferManager::CreateSharedBuffer(const char* buffertypeid,
 int
 SharedBufferManager::Consume(BcsSession* session, int id, int& r) 
 {
-	
-	printf("CONSUME\n");
+	assert(session->shbuf_vec_[id] != NULL);
+	session->shbuf_vec_[id]->Consume();
 	return E_SUCCESS;
 }
 

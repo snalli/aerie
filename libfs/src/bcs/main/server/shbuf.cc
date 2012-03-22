@@ -25,21 +25,15 @@ SharedBuffer::Init(const char* suffix)
 	size_t      total_size;
 	size_t      header_size;
 	void*       mmap_base;
-	size_t      size;
 
 	path_ = std::string(root) + std::string(suffix);
-	size = SharedBufferManager::RuntimeConfig::sharedbuffer_size;
+	size_ = SharedBufferManager::RuntimeConfig::sharedbuffer_size;
 
 	DBG_LOG(DBG_DEBUG, DBG_MODULE(server_bcs), "SharedBuffer: path = %s, size = %" PRIu64 "\n", 
-	        path_.c_str(), size);
+	        path_.c_str(), size_);
 
-	return Open(path_.c_str(), size, kCreate | kMap, this);
+	return Open(path_.c_str(), size_, kCreate | kMap, this);
 }
 
-
-int SharedBuffer::Consume()
-{
-
-}
 
 } // namespace server

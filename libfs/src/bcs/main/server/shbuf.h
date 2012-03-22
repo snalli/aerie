@@ -15,7 +15,8 @@ public:
 		return ::SharedBuffer::Descriptor(id_, path_, size_);
 	}
 
-	virtual int Consume();
+	virtual int Consume() = 0;
+	void set_id(int id) { id_ = id; };
 
 //private:
 	int         id_; // an identifier local to the client assigned the buffer

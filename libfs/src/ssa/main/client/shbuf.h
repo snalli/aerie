@@ -13,8 +13,6 @@ public:
 	SsaSharedBuffer(::client::Ipc* ipc, ::SharedBuffer::Descriptor& dsc)
 		: SharedBuffer(ipc, dsc)
 	{ }
-
-
 };
 
 

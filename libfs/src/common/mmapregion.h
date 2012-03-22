@@ -185,7 +185,6 @@ MemoryMappedRegion<HeaderT>::Open(const char* pathname, size_t size, int flags,
 		goto done;
 	}
 	
-	region = new MemoryMappedRegion;
 	region->base_ = (uint64_t) base_addr;
 	region->size_ = (uint64_t) header.payload_size();
 	region->header_ = (MemoryMappedRegion::Header*) header_mmap_addr;

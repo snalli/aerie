@@ -8,6 +8,7 @@ public:
 	static SharedBuffer* Make() {
 		return new TestSharedBuffer();
 	}
+	int Consume() { }
 };
 
 } // namespace server 

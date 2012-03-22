@@ -21,7 +21,7 @@ public:
 
 	int Write(const void* src, size_t n);
 
-private:
+protected:
 	int SignalReader();
 	
 	Ipc*        ipc_;
