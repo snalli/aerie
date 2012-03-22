@@ -55,13 +55,6 @@ StorageSystem::Open(const char* source, unsigned int flags)
 	if ((ret = salloc_->Load(pool_)) < 0) {
 		return ret;
 	}
-	//FIXME
-	//if ((shbuf_ = new SsaSharedBuffer(rep.shbuf_dsc_)) == NULL) {
-	//	return -E_NOMEM;
-	//}
-	//if ((r = shbuf_->Map()) < 0) {
-	//	return r;
-	//}
 	return E_SUCCESS;
 }
 
@@ -83,6 +76,12 @@ StorageSystem::Mount(const char* source, const char* target, unsigned int flags)
 	}
 	if (ret > 0) {
 		return -ret;
+	}
+	if ((shbuf_ = new SsaSharedBuffer(ipc_, mntrep.desc_.shbuf_dsc_)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = shbuf_->Map()) < 0) {
+		return ret;
 	}
 	if ((ret = Open(source, flags)) < 0) {
 		return ret;

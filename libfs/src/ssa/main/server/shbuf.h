@@ -13,6 +13,8 @@ public:
 	static SharedBuffer* Make() {
 		return new SsaSharedBuffer();
 	}
+
+	int Consume();
 };
 
 

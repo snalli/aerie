@@ -4,22 +4,21 @@
 #include <stddef.h>
 #include <string>
 #include "bcs/main/common/shbuf.h"
+#include "common/mmapregion.h"
 
 namespace server {
 
-class SharedBuffer {
+class SharedBuffer: public MemoryMappedRegion< ::SharedBuffer::Header> {
 public:
 	int Init(const char* suffix);
-	SharedBufferDescriptor Descriptor() {
-		return SharedBufferDescriptor(id_, path_, size_);
+	::SharedBuffer::Descriptor Descriptor() {
+		return ::SharedBuffer::Descriptor(id_, path_, size_);
 	}
 
 	virtual int Consume();
 
-private:
+//private:
 	int         id_; // an identifier local to the client assigned the buffer
-	void*       base_;
-	size_t      size_;
 	std::string path_;
 };
 

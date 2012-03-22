@@ -1,12 +1,34 @@
 #ifndef __STAMNOS_BCS_COMMON_SHARED_BUFFER_H	
 #define __STAMNOS_BCS_COMMON_SHARED_BUFFER_H	
 
-class SharedBufferDescriptor {
+#include <string>
+#include <stdint.h>
+#include "bcs/backend/rpc.h"
+#include "bcs/rpcnum.h"
+#include "common/errno.h"
+
+
+class SharedBuffer {
 public:
-	SharedBufferDescriptor()
+	class Protocol;   // RPC protocol
+	class Descriptor; // Descriptor exchanged between client/server identifying a shared buffer
+	class Header;     // Header kept along with the buffer
+};
+
+
+class SharedBuffer::Protocol {
+public:
+	enum RpcNumbers {
+		DEFINE_RPC_NUMBER(BCS_SHARED_BUFFER_PROTOCOL)
+	};
+};
+
+class SharedBuffer::Descriptor {
+public:
+	Descriptor()
 	{ }
 
-	SharedBufferDescriptor(int id, std::string path, size_t size)
+	Descriptor(int id, std::string path, size_t size)
 		: id_(id),
 		  path_(path),
 		  size_(size)
@@ -16,5 +38,25 @@ public:
 	std::string  path_;
 	unsigned int size_;
 };
+
+inline marshall& operator<<(marshall &m, SharedBuffer::Descriptor& val) {
+    m << val.path_;
+    m << val.size_;
+    return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, SharedBuffer::Descriptor& val) {
+    u >> val.path_;
+    u >> val.size_;
+    return u;
+}
+
+
+class SharedBuffer::Header {
+public:
+
+};
+
 
 #endif // __STAMNOS_BCS_COMMON_SHARED_BUFFER_H	

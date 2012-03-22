@@ -3,7 +3,7 @@
 
 #include "bcs/bcs.h"
 #include "ssa/main/common/obj.h"
-#include "bcs/main/common/shbuf_protocol.h"
+#include "bcs/main/common/shbuf.h"
 
 
 class StorageSystemDescriptor {
@@ -11,13 +11,13 @@ public:
 	StorageSystemDescriptor()
 	{ }
 
-	StorageSystemDescriptor(ssa::common::ObjectId oid, SharedBufferDescriptor shbuf_dsc)
+	StorageSystemDescriptor(ssa::common::ObjectId oid, SharedBuffer::Descriptor shbuf_dsc)
 		: oid_(oid),
 		  shbuf_dsc_(shbuf_dsc)
 	{ }
 	
 	ssa::common::ObjectId  oid_;
-	SharedBufferDescriptor shbuf_dsc_;
+	SharedBuffer::Descriptor shbuf_dsc_;
 };
 
 

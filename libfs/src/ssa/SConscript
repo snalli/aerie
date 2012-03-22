@@ -31,8 +31,8 @@ srv_lib_sources = [
                    'main/server/publisher.cc',
                    'main/server/registry.cc',
                    'main/server/salloc.cc',
+                   'main/server/shbuf.cc',
                    'main/server/session.cc',
-                   'main/server/stsystem.cc',
                    'containers/name/container-server.cc',
                   ]
 

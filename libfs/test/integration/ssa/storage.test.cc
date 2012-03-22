@@ -8,19 +8,19 @@
 #include "ssa/main/client/rwproxy.h"
 #include "ssa/main/client/omgr.h"
 #include "ssa/main/client/salloc.h"
+#include "ssa/main/client/shbuf.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "ssa.fixture.h"
 
 
-SUITE(SSA_Storage)
+SUITE(SSA_StorageSystem)
 {
 	TEST_FIXTURE(SsaFixture, Test)
 	{
-		//FIXME
-		//CHECK(libfs_mkfs("/superblock/A", "mfs", 1024, 0) == 0);
-		//global_storage_system->salloc()->AllocateContainer(session);
+		char buf[512];
 
+		global_storage_system->shbuf()->Write(buf, 16);
 	}
 
 }

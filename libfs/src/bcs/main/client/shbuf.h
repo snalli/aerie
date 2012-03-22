@@ -3,23 +3,30 @@
 
 #include <stddef.h>
 #include <string>
+#include "bcs/main/client/bcs-opaque.h"
 #include "bcs/main/common/shbuf.h"
+#include "common/mmapregion.h"
 
 namespace client {
 
-class SharedBuffer {
+class SharedBuffer: public MemoryMappedRegion< ::SharedBuffer::Header> {
 public:
-	SharedBuffer(SharedBufferDescriptor& dsc)
-		: size_(dsc.size_),
-		  path_(dsc.path_)
+	SharedBuffer(Ipc* ipc, ::SharedBuffer::Descriptor& dsc)
+		: path_(dsc.path_),
+		  ipc_(ipc),
+		  id_(dsc.id_)
 	{ }
 
 	int Map();
 
+	int Write(const void* src, size_t n);
+
 private:
-	void*       base_;
-	size_t      size_;
+	int SignalReader();
+	
+	Ipc*        ipc_;
 	std::string path_;
+	int         id_; // handle given by the server
 };
 
 } // namespace client

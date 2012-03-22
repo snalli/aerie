@@ -2,8 +2,8 @@
 #include <map>
 #include "bcs/main/server/ipc.h"
 #include "bcs/main/server/session.h"
+#include "bcs/main/server/shbuf.h"
 #include "bcs/main/common/config.h"
-#include "bcs/main/common/shbuf_protocol.h"
 #include "common/util.h"
 #include "common/errno.h"
 
@@ -58,6 +58,7 @@ int
 SharedBufferManager::Consume(BcsSession* session, int id, int& r) 
 {
 	
+	printf("CONSUME\n");
 	return E_SUCCESS;
 }
 
@@ -92,7 +93,7 @@ int
 SharedBufferManager::IpcHandlers::Register(SharedBufferManager* manager)
 {
 	manager_ = manager;
-    manager_->ipc_->reg(SharedBufferProtocol::kConsume, this, 
+    manager_->ipc_->reg(::SharedBuffer::Protocol::kConsume, this, 
 	                    &SharedBufferManager::IpcHandlers::Consume);
 
 	return E_SUCCESS;

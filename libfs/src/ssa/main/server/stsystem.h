@@ -21,6 +21,7 @@
 #include "spa/pool/pool.h"
 #include "spa/const.h"
 
+#include <iostream>
 
 namespace ssa {
 namespace server {
@@ -268,6 +269,7 @@ StorageSystemT<Session>::Mount(int clt, const char* source, unsigned int flags,
 	}
 	rep.desc_ = Descriptor(session);
 	ret = E_SUCCESS;
+
 done:
 	pthread_mutex_unlock(&mutex_);
 	return ret;

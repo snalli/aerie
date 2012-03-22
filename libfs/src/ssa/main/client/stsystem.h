@@ -31,6 +31,7 @@ public:
 	StorageAllocator* salloc() { return salloc_; }
 	ObjectManager* omgr() { return omgr_; }
 	Registry* registry() { return registry_; }
+	SsaSharedBuffer* shbuf() { return shbuf_; }
 
 	int Open(const char* source, unsigned int flags);
 	int Close();
