@@ -6,6 +6,7 @@
 
 #include "common/errno.h"
 #include "bcs/bcs.h"
+#include "ssa/main/client/stsystem.h"
 #include "ssa/main/client/lckmgr.h"
 #include "ssa/main/client/hlckmgr.h"
 #include "ssa/main/client/omgr.h"
@@ -22,16 +23,18 @@ namespace ssa {
 namespace client {
 
 
-ObjectManager::ObjectManager(ssa::cc::client::LockManager* lckmgr, 
-                             ssa::cc::client::HLockManager* hlckmgr)
-	: lckmgr_(lckmgr),
-	  hlckmgr_(hlckmgr)
+/**
+ * The storage system must have properly initialized lock managers
+ */
+ObjectManager::ObjectManager(ssa::client::StorageSystem* stsystem)
+	: stsystem_(stsystem)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2mgr_map_.set_empty_key(0);
-	hlckmgr_->RegisterLockCallback(this);
-	lckmgr_->RegisterLockCallback(::ssa::cc::client::Lock::TypeId, this);
-	cb_session_ = new ::client::Session(lckmgr, hlckmgr);
+	stsystem_->hlckmgr()->RegisterLockCallback(this);
+	stsystem_->lckmgr()->RegisterLockCallback(::ssa::cc::client::Lock::TypeId, this);
+	id_ = stsystem_->ipc()->id();
+	cb_session_ = new ::client::Session(stsystem_);
 	assert(RegisterBaseTypes() == E_SUCCESS);
 }
 
@@ -41,8 +44,8 @@ ObjectManager::~ObjectManager()
 //	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 //	        "[%d] Shutting down Object Manager\n", id());
 
-	hlckmgr_->UnregisterLockCallback();
-	lckmgr_->UnregisterLockCallback(::ssa::cc::client::Lock::TypeId);
+	stsystem_->hlckmgr()->UnregisterLockCallback();
+	stsystem_->lckmgr()->UnregisterLockCallback(::ssa::cc::client::Lock::TypeId);
 
 }
 

@@ -57,6 +57,7 @@ def runUnitTests(source, target, env, verbose=False):
         args = test[2]
         if stdout_file or stderr_file:
             args += ['-T,-deferred']
+        print [path] + args
         utest = subprocess.Popen([path] + args, shell=False,
                                  stdin=subprocess.PIPE,
                                  stdout=stdout_file,
@@ -81,7 +82,6 @@ def runUnitTests(source, target, env, verbose=False):
                 for line in utest.stderr.readlines():
                     print line,
                 return 
-        
     if stdout_file or stderr_file:
         num_tests = 0
         num_failed_tests = 0

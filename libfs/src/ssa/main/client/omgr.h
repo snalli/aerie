@@ -14,6 +14,7 @@
 #include "ssa/main/client/proxy.h"
 #include "ssa/main/client/omap.h"
 #include "ssa/main/client/hlckmgr.h"
+#include "ssa/main/client/ssa-opaque.h"
 #include "ssa/main/client/session.h"
 
 namespace client { class Session; } // forward declaration
@@ -43,7 +44,7 @@ class ObjectManager: public ssa::cc::client::HLockCallback,
 {
 	typedef google::dense_hash_map<ObjectType, ObjectManagerOfType*> ObjectType2Manager; 
 public:
-	ObjectManager(ssa::cc::client::LockManager* lckmgr, ssa::cc::client::HLockManager* hlckmgr);
+	ObjectManager(ssa::client::StorageSystem* stsystem);
 	~ObjectManager();
 	int RegisterType(ObjectType type_id, ObjectManagerOfType* mgr);
 	int FindOrGetObject(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref); 
@@ -51,7 +52,7 @@ public:
 	int GetObject(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref);
 	int PutObject(::client::Session* session, ssa::common::ObjectProxyReference& obj_ref);
 	int CloseObject(::client::Session* session, ObjectId oid, bool update);
-	int id() { return hlckmgr_->id(); }
+	int id() { return id_; }
 	void CloseAllObjects(::client::Session* session, bool update);
 
 	// call-back methods
@@ -65,10 +66,10 @@ private:
 	int GetObjectInternal(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref, bool use_exist_obj_ref);
 	int RegisterBaseTypes();
 	
+	int                            id_;
 	pthread_mutex_t                mutex_;
 	ObjectType2Manager             objtype2mgr_map_; 
-	ssa::cc::client::LockManager*  lckmgr_;
-	ssa::cc::client::HLockManager* hlckmgr_;
+	ssa::client::StorageSystem*    stsystem_;
 	::client::Session*             cb_session_; /**< the session used when calling call-back methods */
 };
 

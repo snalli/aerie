@@ -26,6 +26,7 @@ public:
 
 	int Init();
 
+	::client::Ipc* ipc() { return ipc_; }
 	ssa::cc::client::HLockManager* hlckmgr() { return hlckmgr_; }
 	ssa::cc::client::LockManager* lckmgr() { return lckmgr_; }
 	StorageAllocator* salloc() { return salloc_; }
@@ -37,7 +38,7 @@ public:
 	int Close();
 	int Mount(const char* source, const char* target, unsigned int flags);
 
-private:
+protected:
 	::client::Ipc*                  ipc_;
 	StoragePool*                    pool_;
 	StorageAllocator*               salloc_;

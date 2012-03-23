@@ -33,13 +33,24 @@ public:
 } // namespace client
 } // namespace ssa
 
+
+class PseudoStorageSystem: public ssa::client::StorageSystem {
+public:
+	PseudoStorageSystem(ssa::client::StorageAllocator* salloc)
+		: StorageSystem(NULL)
+	{ 
+		salloc_ = salloc;
+	}
+};
+
 struct ClientFixture 
 {
 	ClientFixture() 
 		: session(NULL)
 	{ 
 		ssa::client::StorageAllocator* salloc = new ssa::client::StorageAllocator();
-		session = new client::Session(NULL, NULL, salloc, NULL);
+		PseudoStorageSystem* stsystem = new PseudoStorageSystem(salloc);
+		session = new client::Session(stsystem);
 	}
 
 	~ClientFixture() 

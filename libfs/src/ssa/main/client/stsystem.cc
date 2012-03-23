@@ -22,7 +22,9 @@ StorageSystem::Init()
 		delete lckmgr_;
 		return -E_NOMEM;
 	}
-	if ((omgr_ = new ObjectManager(lckmgr_, hlckmgr_)) == NULL) {
+	// don't change order: ObjectManager expects a storage system with 
+	// initialized lock managers
+	if ((omgr_ = new ObjectManager(this)) == NULL) {
 		delete hlckmgr_;
 		delete lckmgr_;
 		return -E_NOMEM;

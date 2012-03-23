@@ -4,7 +4,7 @@
 #include "ssa/main/client/ssa.h"
 #include "ssa/main/client/ssa-opaque.h"
 #include "ssa/main/client/stm.h"
-
+#include "ssa/main/client/journal.h"
 
 class StorageAllocator;
 
@@ -18,28 +18,12 @@ public:
 		  salloc_(stsystem->salloc()),
 		  omgr_(stsystem->omgr()),
 		  stsystem_(stsystem)
-	{ }
-	
-	Session(ssa::cc::client::LockManager* lckmgr, 
-	        ssa::cc::client::HLockManager* hlckmgr)
-		: lckmgr_(lckmgr),
-		  hlckmgr_(hlckmgr),
-		  salloc_(NULL),
-		  omgr_(NULL)
-	{ }
+	{ 
+		journal_ = new ssa::client::Journal(this);
+	}
 
-	Session(ssa::cc::client::LockManager* lckmgr, 
-	        ssa::cc::client::HLockManager* hlckmgr,
-	        ssa::client::StorageAllocator* salloc,
-	        ssa::client::ObjectManager* omgr)
-		: lckmgr_(lckmgr),
-		  hlckmgr_(hlckmgr),
-		  salloc_(salloc),
-		  omgr_(omgr)
-	{ }
-
-
-	ssa::client::StorageAllocator* salloc() { return stsystem_->salloc(); }
+	ssa::client::StorageAllocator* salloc() { return salloc_; }
+	ssa::client::Journal* journal() { return journal_; }
 
 	ssa::client::StorageSystem*      stsystem_;
 	ssa::cc::client::LockManager*    lckmgr_;
@@ -47,6 +31,7 @@ public:
 	ssa::client::StorageAllocator*   salloc_;
 	ssa::client::ObjectManager*      omgr_;
 	ssa::stm::client::Transaction*   tx_;
+	ssa::client::Journal*            journal_;
 };
 
 

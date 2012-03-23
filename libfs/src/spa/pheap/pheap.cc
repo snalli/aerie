@@ -54,4 +54,5 @@ PersistentHeap::Close(PersistentHeap* pheap)
 		return ret;
 	}
 	delete pheap;
+	return E_SUCCESS;
 }

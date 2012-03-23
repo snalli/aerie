@@ -14,6 +14,7 @@ class Registry;
 class StorageAllocator;
 class ObjectManager;
 class SsaSharedBuffer;
+class Journal;
 } // namespace client
 
 
