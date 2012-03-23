@@ -41,3 +41,18 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
                       ('C1:T1:End:block', 'C2:T1:End:block'),
         ]
     ))
+
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSFileInode:TestWriteMultipleReadSingleConcurrent',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSFileInode:TestWriteMultiple')]),
+            'C2': ( testProgram, [('T1', 'MFSFileInode:TestRead1')])
+        },
+        rendezvous = [
+                      ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
+                      ('C1:T1:AfterUnlock:block', 'C2:T1:BeforeLock:block'),
+                      ('C1:T1:End:block', 'C2:T1:End:block'),
+        ]
+    ))

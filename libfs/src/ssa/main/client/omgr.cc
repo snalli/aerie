@@ -212,11 +212,8 @@ ObjectManager::PutObject(::client::Session* session,
 }
 
 
-/**
- * \brief Flushes the object to the world.
- */
 int
-ObjectManager::PublishObject(::client::Session* session, ObjectId oid)
+ObjectManager::CloseObject(::client::Session* session, ObjectId oid, bool update)
 {
 	int                  ret = E_SUCCESS;
 	ObjectManagerOfType* mgr;
@@ -229,15 +226,8 @@ ObjectManager::PublishObject(::client::Session* session, ObjectId oid)
 	}
 	mgr = itr->second;
 	
-	mgr->Publish(session, oid);
-/*
-	if ((ret = mgr->oid2obj_map_.Remove(oid) != E_SUCCESS) {
-		ret = -E_EXIST; // does not exist
-		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_omgr), 
-				"Object reference points to an unknown object oid\n");
-	}
-	obj_ref.Reset(true);
-*/
+	mgr->Close(session, oid, update);
+
 done:
 	pthread_mutex_unlock(&mutex_);
 	return ret;
@@ -252,7 +242,7 @@ ObjectManager::OnRelease(ssa::cc::client::HLock* hlock)
 {
 	ObjectId oid(reinterpret_cast<uint64_t>(hlock->payload()));
 
-	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
+	assert(CloseObject(cb_session_, oid, false) == E_SUCCESS);
 }
 
 
@@ -264,7 +254,7 @@ ObjectManager::OnConvert(ssa::cc::client::HLock* hlock)
 {
 	ObjectId oid(reinterpret_cast<uint64_t>(hlock->payload()));
 
-	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
+	assert(CloseObject(cb_session_, oid, false) == E_SUCCESS);
 }
 
 
@@ -276,7 +266,7 @@ ObjectManager::OnRelease(ssa::cc::client::Lock* lock)
 {
 	ObjectId oid(reinterpret_cast<uint64_t>(lock->payload()));
 
-	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
+	assert(CloseObject(cb_session_, oid, false) == E_SUCCESS);
 }
 
 
@@ -288,7 +278,40 @@ ObjectManager::OnConvert(ssa::cc::client::Lock* lock)
 {
 	ObjectId oid(reinterpret_cast<uint64_t>(lock->payload()));
 
-	assert(PublishObject(cb_session_, oid) == E_SUCCESS);
+	assert(CloseObject(cb_session_, oid, false) == E_SUCCESS);
+}
+
+
+void
+ObjectManager::CloseAllObjects(::client::Session* session, bool update)
+{
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), "[%d] Close all objects\n", id());
+	
+	ObjectManagerOfType*         mgr;
+	ObjectType2Manager::iterator itr;
+	
+	pthread_mutex_lock(&mutex_);
+	
+	// flush the log of updates to the server
+	if (update) {
+
+
+	}
+
+	// now close all the objects 
+	for (itr = objtype2mgr_map_.begin(); itr != objtype2mgr_map_.end(); itr++) {
+		mgr = itr->second;
+		mgr->CloseAll(session, false);
+	}
+
+	pthread_mutex_unlock(&mutex_);
+}
+
+
+void
+ObjectManager::PreDowngrade()
+{
+	CloseAllObjects(cb_session_, true);
 }
 
 

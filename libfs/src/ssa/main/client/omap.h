@@ -23,12 +23,15 @@ namespace client {
 class ObjectMap {
 	typedef google::dense_hash_map<ObjectId, ObjectProxy*, ssa::common::ObjectIdHashFcn > ObjectIdMap;
 public:
+	typedef ObjectIdMap::iterator iterator;
 	ObjectMap();
 	int Init();
 	int Lookup(ObjectId oid, ObjectProxy** obj);
 	int Insert(ObjectProxy* obj);
 	int Remove(ObjectId oid);
 	int RemoveAll();
+	iterator begin() { return oid2obj_map_.begin(); }
+	iterator end() { return oid2obj_map_.end(); }
 
 private:
 	ObjectIdMap oid2obj_map_;
@@ -78,6 +81,8 @@ ObjectMap::Remove(ObjectId oid)
 	ret = oid2obj_map_.erase(oid);
 	return ret;
 }
+
+
 
 } // namespace client
 

@@ -39,7 +39,7 @@ SUITE(MFSFileInode)
 		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[0], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<ByteContainer::Reference*>(rw_ref);
 		finode = new ::mfs::client::FileInode(rw_ref);
 		
@@ -72,7 +72,7 @@ SUITE(MFSFileInode)
 		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
 		EVENT("AfterMapObjects");
 		
-		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[0], &rw_ref) == E_SUCCESS);
 		rw_reft = static_cast<ByteContainer::Reference*>(rw_ref);
 		finode = new ::mfs::client::FileInode(rw_ref);
 		
@@ -87,4 +87,39 @@ SUITE(MFSFileInode)
 		EVENT("End");
 	}
 
+
+	TEST_FIXTURE(MFSFixture, TestWriteMultiple)
+	{
+		char                               buf[512];
+		::client::Inode*                   inode;
+		ssa::common::ObjectProxyReference* rw_ref;
+		ByteContainer::Reference*          rw_reft;
+		::mfs::client::FileInode*          finode[8];
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the ssa layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
+		EVENT("AfterMapObjects");
+		
+		for (int i=0; i<8; i++) {
+			CHECK(global_storage_system->omgr()->GetObject(session, OID[i], &rw_ref) == E_SUCCESS);
+			rw_reft = static_cast<ByteContainer::Reference*>(rw_ref);
+			finode[i] = new ::mfs::client::FileInode(rw_ref);
+		}
+
+		EVENT("BeforeLock");
+		for (int i=7; i>=0; i--) {
+			finode[i]->Lock(session, lock_protocol::Mode::XL);
+			strcpy(buf, "WRITE");
+			finode[i]->Write(session, buf, 0, strlen(buf)+1);
+			finode[i]->Unlock(session);
+		}
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
 }

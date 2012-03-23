@@ -30,7 +30,8 @@ class ObjectManagerOfType {
 friend class ObjectManager;
 public:
 	virtual ObjectProxy* Load(::client::Session* session, ObjectId oid) = 0;
-	virtual void Publish(::client::Session* session, ObjectId oid) = 0;
+	virtual void Close(::client::Session* session, ObjectId oid, bool update) = 0;
+	virtual void CloseAll(::client::Session* session, bool update) = 0;
 
 protected:	
 	ObjectMap oid2obj_map_;
@@ -49,10 +50,12 @@ public:
 	int FindObject(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref); 
 	int GetObject(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref);
 	int PutObject(::client::Session* session, ssa::common::ObjectProxyReference& obj_ref);
-	int PublishObject(::client::Session* session, ObjectId oid);
+	int CloseObject(::client::Session* session, ObjectId oid, bool update);
 	int id() { return hlckmgr_->id(); }
-	
+	void CloseAllObjects(::client::Session* session, bool update);
+
 	// call-back methods
+	void PreDowngrade();
 	void OnRelease(ssa::cc::client::HLock* hlock);
 	void OnConvert(ssa::cc::client::HLock* hlock);
 	void OnRelease(ssa::cc::client::Lock* lock);

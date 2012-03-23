@@ -118,6 +118,7 @@ class HLockCallback {
 public:
 	virtual void OnRelease(HLock*) = 0;
 	virtual void OnConvert(HLock*) = 0;
+	virtual void PreDowngrade() = 0;
 	virtual ~HLockCallback() {};
 };
 

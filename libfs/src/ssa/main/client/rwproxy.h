@@ -30,12 +30,26 @@ public:
 		return new ObjectProxy<Subject, VersionManager>(session, oid);
 	}
 	
-	void Publish(::client::Session* session, ObjectId oid) {
+	void Close(::client::Session* session, ObjectId oid, bool update) {
 		ObjectProxy<Subject, VersionManager>* obj_proxy;
 		ssa::client::ObjectProxy*             obj2_proxy;
 		assert(oid2obj_map_.Lookup(oid, &obj2_proxy) == E_SUCCESS);
 		obj_proxy = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2_proxy);
-		assert(obj_proxy->vClose(session) == E_SUCCESS);
+		assert(obj_proxy->vClose(session, update) == E_SUCCESS);
+	}
+	
+	void CloseAll(::client::Session* session, bool update) {
+		ObjectProxy<Subject, VersionManager>* obj_proxy;
+		ssa::client::ObjectProxy*             obj2_proxy;
+		ObjectMap::iterator                   itr;
+
+		for (itr = oid2obj_map_.begin(); itr != oid2obj_map_.end(); itr++) {
+			obj2_proxy = itr->second;
+			DBG_LOG(DBG_DEBUG, DBG_MODULE(client_omgr), "Close object: %lx\n", 
+			        obj2_proxy->object()->oid().u64());
+			obj_proxy = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2_proxy);
+			assert(obj_proxy->vClose(session, update) == E_SUCCESS);
+		}
 	}
 };
 
@@ -53,6 +67,12 @@ public:
 };
 
 
+
+/**
+ *
+ *
+ *
+ */
 template<class Subject, class VersionManager>
 class ObjectProxy: public ssa::vm::client::ObjectProxy< ObjectProxy<Subject, VersionManager>, Subject, VersionManager> {
 public:
@@ -64,7 +84,7 @@ public:
 	int Lock(::client::Session* session, lock_protocol::Mode mode) {
 		int ret;
 		
-		// FIXME: check if object is private or public. if public then lock. 
+		// TODO: check if object is private or public. if public then lock. 
 
 		if ((ret = ssa::cc::client::ObjectProxy::Lock(session, mode)) != lock_protocol::OK) {
 			return ret;
@@ -76,7 +96,7 @@ public:
 	int Lock(::client::Session* session, ssa::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
 		int ret;
 		
-		// FIXME: check if object is private or public. if public then lock. 
+		// TODO: check if object is private or public. if public then lock. 
 		
 		if ((ret = ssa::cc::client::ObjectProxy::Lock(session, parent, mode)) != lock_protocol::OK) {
 			return ret;
@@ -87,7 +107,7 @@ public:
 	}
 
 	int Unlock(::client::Session* session) {
-		// FIXME: check if object is private or public. if public then unlock. 
+		// TODO: check if object is private or public. if public then unlock. 
 		return ssa::cc::client::ObjectProxy::Unlock(session);
 	}
 

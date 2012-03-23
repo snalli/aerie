@@ -96,7 +96,7 @@ namespace vm {
 namespace client {
 
 
-// This class is inherited by the VersionManager class specific to each object. 
+// This class is inherited by the VersionManager class defined by each object. 
 // It must provide the same interface as the underlying object
 template<class Subject>
 class VersionManager {
@@ -148,6 +148,7 @@ protected:
 // save us from the extra object_ kept in the VersionManager class
 // and avoid the call to the ugly interface() to access the shadow object
 
+
 template<class Derived, class Subject, class VersionManager>
 class ObjectProxy: public ssa::cc::client::ObjectProxyTemplate<Derived, Subject>
 {
@@ -189,9 +190,26 @@ public:
 		return (valid_ ? vm_.vUpdate(session): E_INVAL);
 	}
 
-	int vClose(::client::Session* session) {
+	/**
+	 * FIXME:RACE
+	 * Currently it's possible we lose a race and close a locked object.
+	 * Here is a description of the problem and how we could solve it:
+	 * 
+	 * Invoking vClose with update==false without holding the lock while someone 
+	 * has the object locked must have no effect. The object's COW image should 
+	 * stay unaffected.
+	 * This is fine as the object can continue reading it's updates through its
+	 * COW image even if it's updates are applied to the public image. Otherwise,
+	 * we would have to acquire the lock before closing the object. But then we
+	 * have to care about deadlock prevention. We could rely on a latch (mutex) 
+	 * that protects the COW image and acquire that one instead of the lock 
+	 * when closing the object. This however would add extra overhead on the common
+	 * path. We could use biased mutexes to avoid the overhead of locking on the 
+	 * common case.
+	 */
+	int vClose(::client::Session* session, bool update) {
 		int ret = E_SUCCESS;
-		if (valid_) {
+		if (valid_ && update) {
 			ret = vm_.vUpdate(session);
 		}
 		valid_ = false;

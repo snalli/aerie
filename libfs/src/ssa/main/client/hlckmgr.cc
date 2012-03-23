@@ -980,6 +980,11 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 
 	release_set.clear();
 	assert(DowngradePublicLockRecursive(hlock, new_mode, &release_set) == 0);
+	
+	if (hcb_) {
+		hcb_->PreDowngrade();
+	}
+	
 	// downgrade locks
 	for (itr = release_set.begin(); itr != release_set.end(); itr++) {
 		HLock*              hl = itr->hlock_;
@@ -1028,7 +1033,7 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 int
 HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 {
-	// FILEISSUE
+	// ISSUE
 	// CHALLENGE: if you come here via a synchronous call by the base lock manager
 	// then you can't block when trying to upgrade the children's locks. 
 	// you either need to respond to the caller immediately and acquire locks 
