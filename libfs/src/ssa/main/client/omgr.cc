@@ -34,7 +34,7 @@ ObjectManager::ObjectManager(ssa::client::StorageSystem* stsystem)
 	stsystem_->hlckmgr()->RegisterLockCallback(this);
 	stsystem_->lckmgr()->RegisterLockCallback(::ssa::cc::client::Lock::TypeId, this);
 	id_ = stsystem_->ipc()->id();
-	cb_session_ = new ::client::Session(stsystem_);
+	cb_session_ = new SsaSession(stsystem_);
 	assert(RegisterBaseTypes() == E_SUCCESS);
 }
 
@@ -111,7 +111,7 @@ done:
  * Otherwise it initializes the obj_ref to point to the object. 
  */
 int
-ObjectManager::GetObjectInternal(::client::Session* session,
+ObjectManager::GetObjectInternal(SsaSession* session,
                                  ObjectId oid, 
                                  ssa::common::ObjectProxyReference** obj_refp, 
                                  bool use_exist_obj_ref)
@@ -173,7 +173,7 @@ done:
  *
  */
 int
-ObjectManager::FindObject(::client::Session* session, 
+ObjectManager::FindObject(SsaSession* session, 
                           ObjectId oid, 
                           ssa::common::ObjectProxyReference** obj_ref) 
 {
@@ -190,7 +190,7 @@ ObjectManager::FindObject(::client::Session* session,
  *
  */
 int
-ObjectManager::GetObject(::client::Session* session, 
+ObjectManager::GetObject(SsaSession* session, 
                          ObjectId oid, 
                          ssa::common::ObjectProxyReference** obj_ref) 
 {
@@ -202,7 +202,7 @@ ObjectManager::GetObject(::client::Session* session,
 
 
 int
-ObjectManager::PutObject(::client::Session* session, 
+ObjectManager::PutObject(SsaSession* session, 
                          ssa::common::ObjectProxyReference& obj_ref)
 {
 	int                  ret = E_SUCCESS;
@@ -216,7 +216,7 @@ ObjectManager::PutObject(::client::Session* session,
 
 
 int
-ObjectManager::CloseObject(::client::Session* session, ObjectId oid, bool update)
+ObjectManager::CloseObject(SsaSession* session, ObjectId oid, bool update)
 {
 	int                  ret = E_SUCCESS;
 	ObjectManagerOfType* mgr;
@@ -286,19 +286,26 @@ ObjectManager::OnConvert(ssa::cc::client::Lock* lock)
 
 
 void
-ObjectManager::CloseAllObjects(::client::Session* session, bool update)
+ObjectManager::CloseAllObjects(SsaSession* session, bool update)
 {
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), "[%d] Close all objects\n", id());
 	
 	ObjectManagerOfType*         mgr;
 	ObjectType2Manager::iterator itr;
+	int                          unused;
 	
 	pthread_mutex_lock(&mutex_);
 	
 	// flush the log of updates to the server
 	if (update) {
+		/*
+		if ((ret = stsystem_->ipc()->call(::ssa::Publisher::Protocol::kPublish, 
+		                                  stsystem_->ipc()->id(), unused)) < 0) {
 
-
+			DBG_LOG(DBG_WARNING, DBG_MODULE(client_omgr), "[%d] Flush failed\n", id());
+		}
+		*/
+		stsystem_->shbuf()->SignalReader();
 	}
 
 	// now close all the objects 

@@ -15,6 +15,7 @@
 #include "ssa/containers/typeid.h"
 #include "ssa/main/common/obj.h"
 #include "common/util.h"
+#include "ssa/main/common/const.h"
 
 
 namespace ssa {
@@ -29,7 +30,7 @@ public:
 	static Object* Make(Session* session) {
 		void* ptr;
 		
-		if (session->salloc_->AllocateExtent(session, sizeof(Object), &ptr) < 0) {
+		if (session->salloc()->AllocateExtent(session, sizeof(Object), kMetadata, &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return new(ptr) Object();

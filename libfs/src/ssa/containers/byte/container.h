@@ -25,15 +25,16 @@ namespace ssa {
 namespace containers {
 namespace client {
 
+typedef ::ssa::client::SsaSession SsaSession;
 
 class ByteContainer {
 public:
 	class VersionManager;
 
-	typedef ssa::containers::common::ByteContainer::Object< ::client::Session>   Object;
-	typedef ssa::containers::common::ByteContainer::Region< ::client::Session>   Region;
-	typedef ssa::containers::common::ByteContainer::Slot< ::client::Session>     Slot;
-	typedef ssa::containers::common::ByteContainer::Iterator< ::client::Session> Iterator;
+	typedef ssa::containers::common::ByteContainer::Object<SsaSession>   Object;
+	typedef ssa::containers::common::ByteContainer::Region<SsaSession>   Region;
+	typedef ssa::containers::common::ByteContainer::Slot<SsaSession>     Slot;
+	typedef ssa::containers::common::ByteContainer::Iterator<SsaSession> Iterator;
 	typedef ssa::client::rw::ObjectProxy<Object, VersionManager>                 Proxy;
 	typedef ssa::client::rw::ObjectProxyReference<Object, VersionManager>        Reference;
 }; 
@@ -43,18 +44,18 @@ class ByteContainer::VersionManager: public ssa::vm::client::VersionManager<Byte
 
 public:
 	int vOpen();
-	int vUpdate(::client::Session* session);
+	int vUpdate(SsaSession* session);
 	
-	int Read(::client::Session* session, char*, uint64_t, uint64_t);
-	int Write(::client::Session* session, char*, uint64_t, uint64_t);
+	int Read(SsaSession* session, char*, uint64_t, uint64_t);
+	int Write(SsaSession* session, char*, uint64_t, uint64_t);
 	
-	int Size(::client::Session* session);
+	int Size(SsaSession* session);
 
 private:
-	int ReadImmutable(::client::Session* session, char*, uint64_t, uint64_t);
-	int ReadMutable(::client::Session* session, char*, uint64_t, uint64_t);
-	int WriteImmutable(::client::Session* session, char*, uint64_t, uint64_t);
-	int WriteMutable(::client::Session* session, char*, uint64_t, uint64_t);
+	int ReadImmutable(SsaSession* session, char*, uint64_t, uint64_t);
+	int ReadMutable(SsaSession* session, char*, uint64_t, uint64_t);
+	int WriteImmutable(SsaSession* session, char*, uint64_t, uint64_t);
+	int WriteMutable(SsaSession* session, char*, uint64_t, uint64_t);
 
 	Region*            region_;        // mutable region
 	IntervalTree*      intervaltree_;

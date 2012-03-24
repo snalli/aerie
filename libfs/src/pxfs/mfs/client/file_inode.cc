@@ -24,7 +24,12 @@ FileInode::Read(::client::Session* session, char* dst, uint64_t off, uint64_t n)
 int 
 FileInode::Write(::client::Session* session, char* src, uint64_t off, uint64_t n)
 {
-	return rw_ref()->proxy()->interface()->Write(session, src, off, n);
+	int ret;
+	printf("WRITE: SESSION: %p, STORAGE_ALLOCATOR: %p\n", session, session->salloc());
+	session->journal()->BeginLogicalOperation(1);
+	ret = rw_ref()->proxy()->interface()->Write(session, src, off, n);
+	session->journal()->EndLogicalOperation();
+	return ret;
 }
 
 

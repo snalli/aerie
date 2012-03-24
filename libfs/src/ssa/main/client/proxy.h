@@ -23,25 +23,27 @@ typedef ssa::common::ObjectType  ObjectType;
 namespace cc {
 namespace client {
 
+typedef ::ssa::client::SsaSession SsaSession;
+
 class ObjectProxy: public ssa::common::ObjectProxy {
 public:
-	ObjectProxy(::client::Session* session, ssa::common::ObjectId oid) 
+	ObjectProxy(SsaSession* session, ssa::common::ObjectId oid) 
 		: ssa::common::ObjectProxy(oid)
 	{ 
 		hlock_ = session->hlckmgr_->FindOrCreateLock(LockId(1, oid.num()));
 		hlock_->set_payload(reinterpret_cast<void*>(oid.u64()));
 	}
 
-	int Lock(::client::Session* session, lock_protocol::Mode mode) {
+	int Lock(SsaSession* session, lock_protocol::Mode mode) {
 		return session->hlckmgr_->Acquire(hlock_, mode, 0);
 	}
 
-	int Lock(::client::Session* session, ssa::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
+	int Lock(SsaSession* session, ssa::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
 		assert(parent->hlock_);
 		return session->hlckmgr_->Acquire(hlock_, parent->hlock_, mode, 0);
 	}
 
-	int Unlock(::client::Session* session) {
+	int Unlock(SsaSession* session) {
 		return session->hlckmgr_->Release(hlock_);
 	}
 
@@ -54,7 +56,7 @@ private:
 template<class Derived, class Subject>
 class ObjectProxyTemplate: public ObjectProxy {
 public:
-	ObjectProxyTemplate(::client::Session* session, ssa::common::ObjectId oid)
+	ObjectProxyTemplate(SsaSession* session, ssa::common::ObjectId oid)
 		: ObjectProxy(session, oid)
 	{ }
 
@@ -95,6 +97,7 @@ Derived* ObjectProxyTemplate<Derived, Subject>::xOpenRO()
 namespace vm {
 namespace client {
 
+typedef ::ssa::client::SsaSession SsaSession;
 
 // This class is inherited by the VersionManager class defined by each object. 
 // It must provide the same interface as the underlying object
@@ -119,7 +122,7 @@ public:
 		return 0;
 	}
 	
-	int vUpdate(::client::Session* session) {
+	int vUpdate(SsaSession* session) {
 		//FIXME: updates must go to the journal and done by the server
 		object_->set_nlink(nlink_);
 		//FIXME: version counter must be updated by the server
@@ -153,7 +156,7 @@ template<class Derived, class Subject, class VersionManager>
 class ObjectProxy: public ssa::cc::client::ObjectProxyTemplate<Derived, Subject>
 {
 public:
-	ObjectProxy(::client::Session* session, ssa::common::ObjectId oid)
+	ObjectProxy(SsaSession* session, ssa::common::ObjectId oid)
 		: ssa::cc::client::ObjectProxyTemplate<Derived, Subject>(session, oid),
 		  valid_(false)
 	{ 
@@ -186,7 +189,7 @@ public:
 		return 0;
 	}
 	
-	int vUpdate(::client::Session* session) {
+	int vUpdate(SsaSession* session) {
 		return (valid_ ? vm_.vUpdate(session): E_INVAL);
 	}
 
@@ -207,7 +210,7 @@ public:
 	 * path. We could use biased mutexes to avoid the overhead of locking on the 
 	 * common case.
 	 */
-	int vClose(::client::Session* session, bool update) {
+	int vClose(SsaSession* session, bool update) {
 		int ret = E_SUCCESS;
 		if (valid_ && update) {
 			ret = vm_.vUpdate(session);

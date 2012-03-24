@@ -20,15 +20,40 @@ public:
 
 class Publisher::Messages {
 public:
-	struct LogicalOp;
+	struct LogicalOpHeader;
+	struct CommandHeader;
 };
 
 
-struct Publisher::Messages::LogicalOp {
+struct Publisher::Messages::LogicalOpHeader {
+	LogicalOpHeader(int id)
+		: id_(id)
+	{ }
 
+	static LogicalOpHeader* Load(void* src) {
+		return reinterpret_cast<LogicalOpHeader*>(src);
+	}
 
+	union {
+		char bytes_[8];
+		int  id_; 
+	};
 };
 
+struct Publisher::Messages::CommandHeader {
+	CommandHeader(int id)
+		: id_(id)
+	{ }
+
+	static CommandHeader* Load(void* src) {
+		return reinterpret_cast<CommandHeader*>(src);
+	}
+	
+	union {
+		char bytes_[8];
+		int  id_; 
+	};
+};
 
 } // namespace ssa
 

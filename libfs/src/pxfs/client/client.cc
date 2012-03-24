@@ -138,7 +138,7 @@ Client::Mount(const char* source,
 	if (ret > 0) {
 		return -ret;
 	}
-	if ((ret = global_storage_system->Open(source, flags)) < 0) {
+	if ((ret = global_storage_system->Mount(source, target, flags, mntrep.desc_)) < 0) {
 		return ret;
 	}
 	if ((ret = global_fsomgr->LoadSuperBlock(global_session, mntrep.desc_.oid_, fstype, &sb)) < 0) {

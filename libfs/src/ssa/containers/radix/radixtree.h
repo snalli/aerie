@@ -40,6 +40,7 @@
 #include "common/errno.h"
 #include "bcs/main/common/cdebug.h"
 #include "spa/const.h"
+#include "ssa/main/common/const.h"
 
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
@@ -83,13 +84,15 @@ public:
 		memset(&slots, 0, RADIX_TREE_MAP_SIZE*sizeof(*slots));
 	}
 
-	void* operator new(size_t nbytes, Session* session)
-	{
+	static RadixTreeNode* Make(Session* session) {
+		int   ret;
 		void* ptr;
-		if (session->salloc()->Alloc(session, nbytes, typeid(RadixTreeNode<Session>), &ptr) < 0) {
+		printf("RADIXTREENODE::MAKE: SESSION: %p, STORAGE_ALLOCATOR: %p\n", session, session->salloc());
+		if ((ret = session->salloc()->AllocateExtent(session, sizeof(RadixTreeNode), kMetadata, &ptr)) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
+			return NULL;
 		}
-		return ptr;
+		return new(ptr) RadixTreeNode();
 	}
 
 	int Link(Session* session, int slot_index, void* item)
@@ -213,10 +216,9 @@ RadixTree<Session>::Extend(Session* session, uint64_t index)
 
 	do {
 		unsigned int newheight;
-		if (!(node = new(session) RadixTreeNode<Session>())) {
+		if (!(node = RadixTreeNode<Session>::Make(session))) {
 			return -E_NOMEM;
 		}
-
 		// Increase the height.
 		node->Link(session, 0, rnode_);
 
@@ -243,7 +245,7 @@ int
 RadixTree<Session>::MapSlot(Session* session, 
                             uint64_t index, 
                             int min_height, 
-                            int alloc, 
+                            int alloc,
                             RadixTreeNode<Session>** result_node, 
                             int* result_offset, int* result_height)
 {
@@ -292,9 +294,9 @@ RadixTree<Session>::MapSlot(Session* session,
 		if (slot == NULL) {
 			if (alloc) {
 				// Have to add a child node.
-				if (!(slot = new(session) RadixTreeNode<Session>())) {
+				if (!(slot = RadixTreeNode<Session>::Make(session))) {
 					return -E_NOMEM;
-				}	
+				}
 				if (node) {
 					node->Link(session, offset, slot);
 				} else {

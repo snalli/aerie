@@ -13,7 +13,7 @@
 #include "ssa/containers/radix/radixtree.h"
 #include "ssa/containers/typeid.h"
 #include "ssa/main/common/obj.h"
-#include "ssa/main/client/salloc.h"
+#include "ssa/main/common/const.h"
 #include "spa/const.h"
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
@@ -767,8 +767,9 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	}	
 	if (*slot == (void*)0) {
 		void* ptr;
-		if ((ret = session->salloc()->AllocateExtent(session, 
-		                                             kBlockSize, &ptr)) < 0)
+		printf("BYTECONTAINER: SESSION: %p, STORAGE_ALLOCATOR: %p\n", session, session->salloc());
+		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
+		                                             kData, &ptr)) < 0)
 		{ 
 			return ret;
 		}

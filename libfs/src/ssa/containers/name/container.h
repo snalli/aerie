@@ -31,12 +31,13 @@ namespace ssa {
 namespace containers {
 namespace client {
 
+typedef ::ssa::client::SsaSession SsaSession;
 
 class NameContainer {
 public:
 	class VersionManager;
 
-	typedef ssa::containers::common::NameContainer::Object< ::client::Session> Object;
+	typedef ssa::containers::common::NameContainer::Object<SsaSession> Object;
 	typedef ssa::client::rw::ObjectProxy<Object, VersionManager>               Proxy;
 	typedef ssa::client::rw::ObjectProxyReference<Object, VersionManager>      Reference;
 }; 
@@ -52,13 +53,13 @@ class NameContainer::VersionManager: public ssa::vm::client::VersionManager<Name
 
 public:
 	int vOpen();
-	int vUpdate(::client::Session* session);
+	int vUpdate(SsaSession* session);
 	
-	int Find(::client::Session* session, const char* name, ssa::common::ObjectId* oidp);
-	int Insert(::client::Session* session, const char* name, ssa::common::ObjectId oid);
-	int Erase(::client::Session* session, const char* name);
+	int Find(SsaSession* session, const char* name, ssa::common::ObjectId* oidp);
+	int Insert(SsaSession* session, const char* name, ssa::common::ObjectId oid);
+	int Erase(SsaSession* session, const char* name);
 
-	int Size(::client::Session* session);
+	int Size(SsaSession* session);
 
 	// do we need these?
 	// int Find(::client::Session* session, const char* name, NameContainer::Reference* oref);

@@ -7,7 +7,6 @@
 #include "ssa/main/client/hlckmgr.h"
 #include "ssa/main/client/registry.h"
 #include "ssa/main/client/shbuf.h"
-#include "ssa/main/common/stsystem_protocol.h"
 
 namespace ssa {
 namespace client {
@@ -62,6 +61,25 @@ StorageSystem::Open(const char* source, unsigned int flags)
 
 
 int 
+StorageSystem::Mount(const char* source, const char* target, unsigned int flags,
+                     StorageSystemDescriptor& desc)
+{
+	printf("STORAGE_SYSTEM:MOUNT\n");
+	int ret;
+	if ((shbuf_ = new SsaSharedBuffer(ipc_, desc.shbuf_dsc_)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = shbuf_->Map()) < 0) {
+		return ret;
+	}
+	if ((ret = Open(source, flags)) < 0) {
+		return ret;
+	}
+	return E_SUCCESS;
+}
+
+
+int 
 StorageSystem::Mount(const char* source, const char* target, unsigned int flags)
 {
 	int                               ret;
@@ -79,16 +97,7 @@ StorageSystem::Mount(const char* source, const char* target, unsigned int flags)
 	if (ret > 0) {
 		return -ret;
 	}
-	if ((shbuf_ = new SsaSharedBuffer(ipc_, mntrep.desc_.shbuf_dsc_)) == NULL) {
-		return -E_NOMEM;
-	}
-	if ((ret = shbuf_->Map()) < 0) {
-		return ret;
-	}
-	if ((ret = Open(source, flags)) < 0) {
-		return ret;
-	}
-	return E_SUCCESS;
+	return Mount(source, target, flags, mntrep.desc_);
 }
 
 

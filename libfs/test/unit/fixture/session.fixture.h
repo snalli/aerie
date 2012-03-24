@@ -19,7 +19,7 @@ public:
 		return E_SUCCESS;
 	}
 
-	int AllocateExtent(Session* session, size_t nbytes, void** ptr)
+	int AllocateExtent(Session* session, size_t nbytes, int flags, void** ptr)
 	{
 		*ptr = malloc(nbytes);
 		return E_SUCCESS;

@@ -26,7 +26,7 @@ NameContainer::VersionManager::vOpen()
 // FIXME: Currently we publish by simply doing the updates in-place. 
 // Normally this must be done via the trusted server using the journal 
 int 
-NameContainer::VersionManager::vUpdate(::client::Session* session)
+NameContainer::VersionManager::vUpdate(SsaSession* session)
 {
 	EntryCache::iterator  it;
 	int                   ret;
@@ -62,7 +62,7 @@ NameContainer::VersionManager::vUpdate(::client::Session* session)
 
 
 int
-NameContainer::VersionManager::Find(::client::Session* session, 
+NameContainer::VersionManager::Find(SsaSession* session, 
                                     const char* name, 
                                     ssa::common::ObjectId* oidp)
 {
@@ -92,7 +92,7 @@ NameContainer::VersionManager::Find(::client::Session* session,
 // Insert does not allow overwrite. Returns E_EXIST in case the entry 
 // already exists
 int 
-NameContainer::VersionManager::Insert(::client::Session* session, 
+NameContainer::VersionManager::Insert(SsaSession* session, 
                                       const char* name, 
                                       ssa::common::ObjectId oid)
 {
@@ -129,7 +129,7 @@ NameContainer::VersionManager::Insert(::client::Session* session,
 
 
 int 
-NameContainer::VersionManager::Erase(::client::Session* session, const char* name)
+NameContainer::VersionManager::Erase(SsaSession* session, const char* name)
 {
 	EntryCache::iterator   it;
 	ssa::common::ObjectId  oid;
@@ -165,7 +165,7 @@ NameContainer::VersionManager::Erase(::client::Session* session, const char* nam
 
 
 int
-NameContainer::VersionManager::Size(::client::Session* session)
+NameContainer::VersionManager::Size(SsaSession* session)
 {
 	int pos_entries_count_ = entries_.size() - neg_entries_count_;
 	return pos_entries_count_ + (object()->Size(session) - neg_entries_count_);

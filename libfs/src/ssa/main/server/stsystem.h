@@ -5,7 +5,7 @@
 #include "bcs/bcs.h"
 #include "spa/pool/pool.h"
 #include "ssa/main/server/ssa-opaque.h"
-#include "ssa/main/common/stsystem_protocol.h"
+#include "ssa/main/common/stsystem.h"
 
 #include "ssa/main/server/ssa.h"
 #include "common/errno.h"

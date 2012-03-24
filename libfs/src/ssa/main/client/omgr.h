@@ -17,7 +17,6 @@
 #include "ssa/main/client/ssa-opaque.h"
 #include "ssa/main/client/session.h"
 
-namespace client { class Session; } // forward declaration
 
 namespace ssa {
 namespace client {
@@ -30,9 +29,9 @@ class ObjectManager; // forward declaration
 class ObjectManagerOfType {
 friend class ObjectManager;
 public:
-	virtual ObjectProxy* Load(::client::Session* session, ObjectId oid) = 0;
-	virtual void Close(::client::Session* session, ObjectId oid, bool update) = 0;
-	virtual void CloseAll(::client::Session* session, bool update) = 0;
+	virtual ObjectProxy* Load(SsaSession* session, ObjectId oid) = 0;
+	virtual void Close(SsaSession* session, ObjectId oid, bool update) = 0;
+	virtual void CloseAll(SsaSession* session, bool update) = 0;
 
 protected:	
 	ObjectMap oid2obj_map_;
@@ -47,13 +46,13 @@ public:
 	ObjectManager(ssa::client::StorageSystem* stsystem);
 	~ObjectManager();
 	int RegisterType(ObjectType type_id, ObjectManagerOfType* mgr);
-	int FindOrGetObject(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref); 
-	int FindObject(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref); 
-	int GetObject(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref);
-	int PutObject(::client::Session* session, ssa::common::ObjectProxyReference& obj_ref);
-	int CloseObject(::client::Session* session, ObjectId oid, bool update);
+	int FindOrGetObject(SsaSession* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref); 
+	int FindObject(SsaSession* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref); 
+	int GetObject(SsaSession* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref);
+	int PutObject(SsaSession* session, ssa::common::ObjectProxyReference& obj_ref);
+	int CloseObject(SsaSession* session, ObjectId oid, bool update);
 	int id() { return id_; }
-	void CloseAllObjects(::client::Session* session, bool update);
+	void CloseAllObjects(SsaSession* session, bool update);
 
 	// call-back methods
 	void PreDowngrade();
@@ -63,14 +62,14 @@ public:
 	void OnConvert(ssa::cc::client::Lock* lock);
 
 private:
-	int GetObjectInternal(::client::Session* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref, bool use_exist_obj_ref);
+	int GetObjectInternal(SsaSession* session, ObjectId oid, ssa::common::ObjectProxyReference** obj_ref, bool use_exist_obj_ref);
 	int RegisterBaseTypes();
 	
-	int                            id_;
-	pthread_mutex_t                mutex_;
-	ObjectType2Manager             objtype2mgr_map_; 
-	ssa::client::StorageSystem*    stsystem_;
-	::client::Session*             cb_session_; /**< the session used when calling call-back methods */
+	int                          id_;
+	pthread_mutex_t              mutex_;
+	ObjectType2Manager           objtype2mgr_map_; 
+	ssa::client::StorageSystem*  stsystem_;
+	SsaSession*                  cb_session_; /**< the session used when calling call-back methods */
 };
 
 

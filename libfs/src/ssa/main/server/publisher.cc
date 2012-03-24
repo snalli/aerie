@@ -39,11 +39,13 @@ Publisher::Publish(SsaSession* session)
 {
 	char buf[512];
 	
+	printf("PUBLISH\n");
 	SsaSharedBuffer* shbuf = session->shbuf_;
 	shbuf->Acquire();
-	//if (shbuf->Read(buf, 64)) {
-	//	printf("%s\n", buf);
-	//}
+	if (shbuf->Read(buf, 8)) {
+		uint64_t u64 = *((uint64_t*) buf);
+		printf("LOGICAL OP: %d\n", u64);
+	}
 	shbuf->Release();
 	return E_SUCCESS;
 }

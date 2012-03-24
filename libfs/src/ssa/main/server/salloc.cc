@@ -192,7 +192,7 @@ StorageAllocator::Alloc(SsaSession* session, size_t nbytes, std::type_info const
 
 
 int 
-StorageAllocator::AllocateExtent(SsaSession* session, size_t size, void** ptr)
+StorageAllocator::AllocateExtent(SsaSession* session, size_t size, int flags, void** ptr)
 {
 	int ret;
 
@@ -201,6 +201,7 @@ StorageAllocator::AllocateExtent(SsaSession* session, size_t size, void** ptr)
 	}
 	return E_SUCCESS;
 }
+
 
 
 int 

@@ -37,7 +37,7 @@ public:
 
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(SsaSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
-	int AllocateExtent(SsaSession* session, size_t size, void** ptr);
+	int AllocateExtent(SsaSession* session, size_t size, int flags, void** ptr);
 	int AllocateContainer(SsaSession* session, int type, int num, ::ssa::StorageProtocol::ContainerReply& r);
 
 	int RegisterBaseTypes();

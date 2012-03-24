@@ -3,6 +3,7 @@
 
 #include "bcs/main/client/bcs-opaque.h"
 #include "ssa/main/client/ssa-opaque.h"
+#include "ssa/main/common/stsystem.h"
 #include "spa/pool/pool.h"
 
 namespace ssa {
@@ -37,6 +38,7 @@ public:
 	int Open(const char* source, unsigned int flags);
 	int Close();
 	int Mount(const char* source, const char* target, unsigned int flags);
+	int Mount(const char* source, const char* target, unsigned int flags, StorageSystemDescriptor& desc);
 
 protected:
 	::client::Ipc*                  ipc_;

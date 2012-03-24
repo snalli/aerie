@@ -34,11 +34,16 @@ StorageAllocator::Load(StoragePool* pool)
 
 
 int
-StorageAllocator::AllocateExtent(::client::Session* session, size_t nbytes, void** ptr)
+StorageAllocator::AllocateExtent(SsaSession* session, size_t nbytes, int flags, void** ptr)
 {
-	return pool_->AllocateExtent(nbytes, ptr);
+	printf(">>>>>>>>>>>>>>>>>>>>>>>ALLOC: %d\n", nbytes);
+	if (flags & kMetadata) {
+		*ptr = malloc(nbytes);
+	} else {
+		return pool_->AllocateExtent(nbytes, ptr);
+	}
+	return E_SUCCESS;
 }
-
 
 
 // OBSOLETE
@@ -51,7 +56,7 @@ StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 // OBSOLETE
 int 
-StorageAllocator::Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(SsaSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
 	//FIXME
@@ -69,7 +74,7 @@ StorageAllocator::Alloc(::client::Session* session, size_t nbytes, std::type_inf
 
 
 int 
-StorageAllocator::AllocateContainer(::client::Session* session, int type, ssa::common::ObjectId* ret_oid)
+StorageAllocator::AllocateContainer(SsaSession* session, int type, ssa::common::ObjectId* ret_oid)
 {
 	int                                                                   ret;
 	::ssa::StorageProtocol::ContainerReply                                reply;
@@ -113,7 +118,7 @@ StorageAllocator::AllocateContainer(::client::Session* session, int type, ssa::c
 
 
 int 
-StorageAllocator::AllocateContainerVector(::client::Session* session)
+StorageAllocator::AllocateContainerVector(SsaSession* session)
 {
 	int                                                    ret;
 	int                                                    r;

@@ -21,6 +21,8 @@ using namespace client;
 
 const char* storage_pool_path = "/tmp/stamnos_pool";
 
+typedef ::ssa::client::SsaSession SsaSession;
+
 // Object
 class Dummy: public ssa::cc::common::Object {
 public:
@@ -34,7 +36,7 @@ public:
 		nlink_ = 0;
 	}
 	
-	static Dummy* Make(Session* session)
+	static Dummy* Make(SsaSession* session)
     {
 		void* ptr;
 
@@ -44,7 +46,7 @@ public:
         return new(ptr) Dummy();
     }
 
-	static Dummy* Make(Session* session, void* ptr) {
+	static Dummy* Make(SsaSession* session, void* ptr) {
 		return new(ptr) Dummy();
 	}
 
@@ -67,7 +69,7 @@ public:
 		return E_SUCCESS;
 	}
 
-	int vUpdate(::client::Session* session) {
+	int vUpdate(SsaSession* session) {
 		object()->nlink_ = nlink_;
 		return E_SUCCESS;
 	}

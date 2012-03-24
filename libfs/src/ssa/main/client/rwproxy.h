@@ -17,6 +17,7 @@ namespace ssa {
 namespace client {
 namespace rw {
 
+typedef ::ssa::client::SsaSession SsaSession;
 
 template<class Subject, class VersionManager> class ObjectProxy;
 
@@ -26,11 +27,11 @@ template<class Subject, class VersionManager> class ObjectProxy;
 template<class Subject, class VersionManager>
 class ObjectManager: public ssa::client::ObjectManagerOfType {
 public:
-	ssa::client::ObjectProxy* Load(::client::Session* session, ObjectId oid) {
+	ssa::client::ObjectProxy* Load(SsaSession* session, ObjectId oid) {
 		return new ObjectProxy<Subject, VersionManager>(session, oid);
 	}
 	
-	void Close(::client::Session* session, ObjectId oid, bool update) {
+	void Close(SsaSession* session, ObjectId oid, bool update) {
 		ObjectProxy<Subject, VersionManager>* obj_proxy;
 		ssa::client::ObjectProxy*             obj2_proxy;
 		assert(oid2obj_map_.Lookup(oid, &obj2_proxy) == E_SUCCESS);
@@ -38,7 +39,7 @@ public:
 		assert(obj_proxy->vClose(session, update) == E_SUCCESS);
 	}
 	
-	void CloseAll(::client::Session* session, bool update) {
+	void CloseAll(SsaSession* session, bool update) {
 		ObjectProxy<Subject, VersionManager>* obj_proxy;
 		ssa::client::ObjectProxy*             obj2_proxy;
 		ObjectMap::iterator                   itr;
@@ -76,12 +77,12 @@ public:
 template<class Subject, class VersionManager>
 class ObjectProxy: public ssa::vm::client::ObjectProxy< ObjectProxy<Subject, VersionManager>, Subject, VersionManager> {
 public:
-	ObjectProxy(::client::Session* session, ObjectId oid)
+	ObjectProxy(SsaSession* session, ObjectId oid)
 		: ssa::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>(session, oid),
 	      session_(session)
 	{ }
 
-	int Lock(::client::Session* session, lock_protocol::Mode mode) {
+	int Lock(SsaSession* session, lock_protocol::Mode mode) {
 		int ret;
 		
 		// TODO: check if object is private or public. if public then lock. 
@@ -93,7 +94,7 @@ public:
 		return lock_protocol::OK;
 	}
 
-	int Lock(::client::Session* session, ssa::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
+	int Lock(SsaSession* session, ssa::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
 		int ret;
 		
 		// TODO: check if object is private or public. if public then lock. 
@@ -106,13 +107,13 @@ public:
 
 	}
 
-	int Unlock(::client::Session* session) {
+	int Unlock(SsaSession* session) {
 		// TODO: check if object is private or public. if public then unlock. 
 		return ssa::cc::client::ObjectProxy::Unlock(session);
 	}
 
 private:
-	::client::Session* session_;
+	SsaSession* session_;
 };
 
 

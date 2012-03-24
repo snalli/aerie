@@ -9,10 +9,12 @@ namespace ssa {
 namespace containers {
 namespace client {
 
+typedef ::ssa::client::SsaSession SsaSession;
+
 template<typename T>
 class SetContainer {
 public:
-	typedef typename ssa::containers::common::SetContainer<T>::template Object< ::client::Session>  Object;
+	typedef typename ssa::containers::common::SetContainer<T>::template Object<SsaSession>  Object;
 	
 };
 

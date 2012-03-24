@@ -25,11 +25,13 @@ namespace ssa {
 namespace containers {
 namespace client {
 
+typedef ::ssa::client::SsaSession SsaSession;
+
 class SuperContainer {
 public:
 	class VersionManager;
 
-	typedef ssa::containers::common::SuperContainer::Object< ::client::Session> Object;
+	typedef ssa::containers::common::SuperContainer::Object<SsaSession> Object;
 	typedef ssa::client::rw::ObjectProxy<Object, VersionManager>                Proxy;
 	typedef ssa::client::rw::ObjectProxyReference<Object, VersionManager>       Reference;
 }; 
@@ -38,10 +40,10 @@ public:
 class SuperContainer::VersionManager: public ssa::vm::client::VersionManager<SuperContainer::Object> {
 public:
 	int vOpen();
-	int vUpdate(::client::Session* session);
+	int vUpdate(SsaSession* session);
 
-	ssa::common::ObjectId root(::client::Session* session);
-	int set_root(::client::Session* session, ssa::common::ObjectId oid);
+	ssa::common::ObjectId root(SsaSession* session);
+	int set_root(SsaSession* session, ssa::common::ObjectId oid);
 
 private:
 

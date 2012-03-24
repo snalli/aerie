@@ -1,6 +1,7 @@
 #include "pxfs/client/file.h"
 #include <iostream>
 #include "pxfs/client/client_i.h"
+#include "pxfs/client/session.h"
 
 // FIXME BUG Data race: 
 //       Lookup may race with a concurrent ReleaseFile and return a 

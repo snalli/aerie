@@ -5,6 +5,7 @@
 #include "common/errno.h"
 #include "ssa/main/client/session.h"
 #include "ssa/main/client/salloc.h"
+#include "ssa/main/common/const.h"
 #include "common/interval_tree.h"
 #include "spa/const.h"
 
@@ -31,7 +32,7 @@ public:
 		  high_(high)
 	{ }
 
-	ByteInterval(::client::Session* session, ByteContainer::Slot& slot, const int low, const int size)
+	ByteInterval(SsaSession* session, ByteContainer::Slot& slot, const int low, const int size)
 		: low_(low), 
 		  high_(low+size-1), 
 		  slot_(slot)
@@ -56,8 +57,8 @@ public:
 	  
 	inline int GetLowPoint() const { return low_;}
 	inline int GetHighPoint() const { return high_;}
-	int Write(::client::Session* session, char*, uint64_t, uint64_t);
-	int Read(::client::Session* session, char*, uint64_t, uint64_t);
+	int Write(SsaSession* session, char*, uint64_t, uint64_t);
+	int Read(SsaSession* session, char*, uint64_t, uint64_t);
 
 protected:
 	uint64_t                       low_;
@@ -66,18 +67,20 @@ protected:
 	ByteContainer::Slot            slot_;       // needed when region_ is NULL
 	char**                         block_array_;
 
-	int WriteBlockNoRegion(::client::Session* session, char*, uint64_t, int, int);
-	int WriteNoRegion(::client::Session* session, char*, uint64_t, uint64_t);
-	int ReadBlockNoRegion(::client::Session* session, char*, uint64_t, int, int);
-	int ReadNoRegion(::client::Session* session, char*, uint64_t, uint64_t);
+	int WriteBlockNoRegion(SsaSession* session, char*, uint64_t, int, int);
+	int WriteNoRegion(SsaSession* session, char*, uint64_t, uint64_t);
+	int ReadBlockNoRegion(SsaSession* session, char*, uint64_t, int, int);
+	int ReadNoRegion(SsaSession* session, char*, uint64_t, uint64_t);
 };
 
 
 // TODO: need to journal each new allocated block and link
 int
-ByteInterval::WriteBlockNoRegion(::client::Session* session, char* src, uint64_t bn, int off, int n)
+ByteInterval::WriteBlockNoRegion(SsaSession* session, char* src, uint64_t bn, int off, int n)
 {
+	int   ret;
 	char* bp;
+	void* ptr;
 
 	assert(low_ <= bn && bn <= high_);
 
@@ -88,12 +91,13 @@ ByteInterval::WriteBlockNoRegion(::client::Session* session, char* src, uint64_t
 		printf("ByteInterval::WriteBlock Allocate Block\n",
 	       src, bn, off, n);
 		// allocate new block, FIXME: need to journal the alloaction and link
-		block_array_[bn - low_] = (char*) malloc(kBlockSize); // FIXME: allocate a chunk
-		bp = block_array_[bn - low_];
-		
-		// TODO: Allocating and zeroing a chunk is done in other places in the 
-		// code as well. We should collapse this under a function that does the job
-		// (including any necessary journaling?)
+		printf("................ALLOCATE: block %d\n", bn);
+		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
+		                                             kData, &ptr)) < 0)
+		{ 
+			return ret;
+		}
+		bp = block_array_[bn - low_] = (char*) ptr;
 		// Zero the part of the newly allocated block that is not written to
 		// ensure we later read zeros and not garbage.
 		if (off>0) {
@@ -108,12 +112,12 @@ ByteInterval::WriteBlockNoRegion(::client::Session* session, char* src, uint64_t
 	}
 
 	memmove(&bp[off], src, n);
-	
+	return n;
 }
 
 
 int
-ByteInterval::WriteNoRegion(::client::Session* session, char* src, uint64_t off, uint64_t n)
+ByteInterval::WriteNoRegion(SsaSession* session, char* src, uint64_t off, uint64_t n)
 {
 	uint64_t tot;
 	uint64_t m;
@@ -137,7 +141,7 @@ ByteInterval::WriteNoRegion(::client::Session* session, char* src, uint64_t off,
 
 
 int
-ByteInterval::Write(::client::Session* session, char* src, uint64_t off, uint64_t n)
+ByteInterval::Write(SsaSession* session, char* src, uint64_t off, uint64_t n)
 {
 	printf("Buffered Write [%" PRIu64 ", %" PRIu64 "], region=%p\n", off, off+n-1, region_);
 
@@ -150,7 +154,7 @@ ByteInterval::Write(::client::Session* session, char* src, uint64_t off, uint64_
 
 
 int
-ByteInterval::ReadBlockNoRegion(::client::Session* session, char* dst, uint64_t bn, int off, int n)
+ByteInterval::ReadBlockNoRegion(SsaSession* session, char* dst, uint64_t bn, int off, int n)
 {
 	char* bp;
 
@@ -164,11 +168,12 @@ ByteInterval::ReadBlockNoRegion(::client::Session* session, char* dst, uint64_t 
 	}
 
 	memmove(dst, &bp[off], n);
+	return n;
 }
 
 
 int
-ByteInterval::ReadNoRegion(::client::Session* session, char* dst, uint64_t off, uint64_t n)
+ByteInterval::ReadNoRegion(SsaSession* session, char* dst, uint64_t off, uint64_t n)
 {
 	uint64_t tot;
 	uint64_t m;
@@ -192,7 +197,7 @@ ByteInterval::ReadNoRegion(::client::Session* session, char* dst, uint64_t off, 
 
 
 int
-ByteInterval::Read(::client::Session* session, char* dst, uint64_t off, uint64_t n)
+ByteInterval::Read(SsaSession* session, char* dst, uint64_t off, uint64_t n)
 {
 	printf("Buffered Read [%" PRIu64 ", %" PRIu64 "], region=%p\n", off, off+n-1, region_);
 
@@ -238,7 +243,7 @@ ByteContainer::VersionManager::vOpen()
 // FIXME: Currently we publish by simply doing the updates in-place. 
 // Normally this must be done via the trusted server using the journal 
 int 
-ByteContainer::VersionManager::vUpdate(::client::Session* session)
+ByteContainer::VersionManager::vUpdate(SsaSession* session)
 {
 	int                   ret;
 
@@ -251,7 +256,7 @@ ByteContainer::VersionManager::vUpdate(::client::Session* session)
 
 
 int 
-ByteContainer::VersionManager::ReadImmutable(::client::Session* session, 
+ByteContainer::VersionManager::ReadImmutable(SsaSession* session, 
                                              char* dst, 
                                              uint64_t off, 
                                              uint64_t n)
@@ -330,10 +335,8 @@ ByteContainer::VersionManager::ReadImmutable(::client::Session* session,
 
 
 int 
-ByteContainer::VersionManager::ReadMutable(::client::Session* session, 
-                                           char* dst, 
-                                           uint64_t off, 
-                                           uint64_t n)
+ByteContainer::VersionManager::ReadMutable(SsaSession* session, char* dst, 
+                                           uint64_t off, uint64_t n)
 {
 	int vn;
 
@@ -356,10 +359,8 @@ ByteContainer::VersionManager::ReadMutable(::client::Session* session,
 
 
 int 
-ByteContainer::VersionManager::Read(::client::Session* session, 
-                                    char* dst, 
-                                    uint64_t off, 
-                                    uint64_t n)
+ByteContainer::VersionManager::Read(SsaSession* session, char* dst, 
+                                    uint64_t off, uint64_t n)
 {
 	uint64_t  immmaxsize; // immutable range max size
 	uint64_t  mn;
@@ -400,7 +401,7 @@ ByteContainer::VersionManager::Read(::client::Session* session,
 
 
 int 
-ByteContainer::VersionManager::WriteMutable(::client::Session* session, 
+ByteContainer::VersionManager::WriteMutable(SsaSession* session, 
                                             char* src, 
                                             uint64_t off, 
                                             uint64_t n)
@@ -427,7 +428,7 @@ ByteContainer::VersionManager::WriteMutable(::client::Session* session,
 
 
 int 
-ByteContainer::VersionManager::WriteImmutable(::client::Session* session, 
+ByteContainer::VersionManager::WriteImmutable(SsaSession* session, 
                                               char* src, 
                                               uint64_t off, 
                                               uint64_t n)
@@ -518,7 +519,7 @@ ByteContainer::VersionManager::WriteImmutable(::client::Session* session,
 
 
 int 
-ByteContainer::VersionManager::Write(::client::Session* session, 
+ByteContainer::VersionManager::Write(SsaSession* session, 
                                      char* src, 
                                      uint64_t off, 
                                      uint64_t n)
@@ -568,7 +569,7 @@ ByteContainer::VersionManager::Write(::client::Session* session,
 
 
 int
-ByteContainer::VersionManager::Size(::client::Session* session)
+ByteContainer::VersionManager::Size(SsaSession* session)
 {
 	return size_;
 }
