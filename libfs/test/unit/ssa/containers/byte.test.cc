@@ -19,6 +19,24 @@ static void fillbuf(char *buf, int n, unsigned int seed)
 }	
 
 
+#define LINK_BLOCK_AND_COMPARE(bn, src)                                    \
+    byte_container->LinkBlock(session, bn, src);                           \
+    memset(dst, 0, kBlockSize);                                            \
+    CHECK(byte_container->ReadBlock(session, dst, bn, 0, kBlockSize) >=0); \
+    CHECK(memcmp(dst, (char*) src, kBlockSize) == 0);
+
+#define COMPARE_BLOCK(bn, buf)                                             \
+    memset(dst, 0, kBlockSize);                                            \
+    CHECK(byte_container->ReadBlock(session, dst, bn, 0, kBlockSize) >=0); \
+    CHECK(memcmp(dst, (char*) buf, kBlockSize) == 0);
+
+#define CHECK_BLOCK_IS_ZERO(bn)                                            \
+    memset(dst, 0, kBlockSize);                                            \
+    CHECK(byte_container->ReadBlock(session, dst, bn, 0, kBlockSize) >=0); \
+    memset(zeros, 0, kBlockSize);                                          \
+    CHECK(memcmp(dst, zeros, kBlockSize) == 0);
+	
+
 SUITE(ContainersByteContainer)
 {
 	TEST_FIXTURE(SessionFixture, TestWriteReadBlock1)
@@ -85,8 +103,7 @@ SUITE(ContainersByteContainer)
 		fillbuf(src, kBlockSize, 8);
 		byte_container->WriteBlock(session, src, 8, 0, 512);
        	CHECK(byte_container->Size() == (8*kBlockSize + 512));
-		byte_container->ReadBlock(session, dst, 5, 0, kBlockSize);
-		CHECK(memcmp(dst, zeros, kBlockSize) == 0);
+		CHECK_BLOCK_IS_ZERO(5);
 
 		ret = byte_container->ReadBlock(session, dst, 8, 0, kBlockSize);
 		CHECK(ret == 512);
@@ -241,5 +258,41 @@ SUITE(ContainersByteContainer)
 		CHECK(memcmp(dst, src, kBlockSize) == 0);
 
 		delete byte_container;
+	}
+
+
+	TEST_FIXTURE(SessionFixture, TestLinkBlock1)
+	{
+		void*                           src;
+		char                            dst[kBlockSize];
+		char                            zeros[kBlockSize];
+		int                             i;
+		void*                           block[128];
+		volatile char*                  buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>* byte_container = ByteContainer::Object<Session>::Make(session, buffer);
+		
+		for (i=0; i<128; i++) {
+			block[i] = malloc(kBlockSize);
+			fillbuf((char*) block[i], kBlockSize, i);
+		};
+
+		LINK_BLOCK_AND_COMPARE(7, block[0]);
+		LINK_BLOCK_AND_COMPARE(19, block[1]);
+		LINK_BLOCK_AND_COMPARE(1789, block[3]);
+		LINK_BLOCK_AND_COMPARE(17890, block[4]);
+		LINK_BLOCK_AND_COMPARE(20, block[2]);
+		COMPARE_BLOCK(7, block[0]);
+		COMPARE_BLOCK(19, block[1]);
+		COMPARE_BLOCK(20, block[2]);
+		COMPARE_BLOCK(1789, block[3]);
+		COMPARE_BLOCK(17890, block[4]);
+		CHECK_BLOCK_IS_ZERO(6);
+		CHECK_BLOCK_IS_ZERO(8);
+		CHECK_BLOCK_IS_ZERO(18);
+		CHECK_BLOCK_IS_ZERO(21);
+		CHECK_BLOCK_IS_ZERO(1788);
+		CHECK_BLOCK_IS_ZERO(1790);
+		CHECK_BLOCK_IS_ZERO(17889);
+		CHECK_BLOCK_IS_ZERO(17891);
 	}
 }

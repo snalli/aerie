@@ -67,6 +67,7 @@ public:
 
 	int ReadBlock(Session* session, char* dst, uint64_t bn, int off, int n);
 	int WriteBlock(Session* session, char* src, uint64_t bn, int off, int n);
+	int LinkBlock(Session* session, uint64_t bn, void* bp);
 
 	// return maximum possible size in bytes
 	inline uint64_t get_maxsize() { 
@@ -86,7 +87,6 @@ public:
 	uint64_t Size() { return size_; }
 
 	int LookupSlot(Session* session, uint64_t bn, Slot<Session>* slot);
-	int PatchSlot(Slot<Session>& link);
 
 
 	RadixTree<Session>* radixtree() {
@@ -317,13 +317,17 @@ public:
 		return *this;
 	}
 
+
+
 	int WriteBlock(Session* session, char*, uint64_t, int, int);
 	int ReadBlock(Session* session, char*, uint64_t, int, int);
+	int LinkBlock(Session* session, uint64_t bn, void* bp);
 
 	int Write(Session* session, char*, uint64_t, uint64_t);
 	int Read(Session* session, char*, uint64_t, uint64_t);
 
 	int Extend(Session* session, uint64_t bn);
+	void** MapSlot(Session* session, uint64_t bn, bool alloc_slot);
 
 //private:
 	Slot<Session>      slot_;       // Region's physical slot in the inode
@@ -576,15 +580,6 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 }
 
 
-// Physically link an extent to an inode slot.
-template<typename Session>
-int 
-ByteContainer::Object<Session>::PatchSlot(ByteContainer::Slot<Session>& link)
-{
-	return 0;
-}
-
-
 // FIXME:
 // The region object is destroyed when this function returns. What happens 
 // to the persistent storage it points to??? For example, what would happen
@@ -636,13 +631,10 @@ ByteContainer::Object<Session>::WriteBlock(Session* session,
                                            int off, 
                                            int n)
 {
-	uint64_t                rbn;
-	void**                  slot;
-	RadixTreeNode<Session>* node;
-	int                     offset;
-	int            height;
-	int            ret;
-	char           buf[4096];
+	uint64_t  rbn;
+	void**    slot;
+	int       height;
+	int       ret;
 
 	printf("FilePnode::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
@@ -658,6 +650,28 @@ ByteContainer::Object<Session>::WriteBlock(Session* session,
 		size_ = bn*kBlockSize + off + n;
 	}
 	return n;
+}
+
+
+template<typename Session>
+int 
+ByteContainer::Object<Session>::LinkBlock(Session* session, uint64_t bn, void* bp)
+{
+	uint64_t  rbn;
+	void**    slot;
+	int       ret;
+
+	Region<Session> region(session, this, bn);
+	if ( (ret = region.LinkBlock(session, bn, bp)) < 0) {
+		return ret;
+	}
+	
+	InsertRegion(session, &region);
+
+	if ( ((bn+1)*kBlockSize) > size_ ) {
+		size_ = (bn+1)*kBlockSize;
+	}
+	return kBlockSize;
 }
 
 
@@ -723,6 +737,50 @@ ByteContainer::Region<Session>::Extend(Session* session, uint64_t bn)
 }
 
 
+/**
+ * Returns a pointer to the slot corresponding to the block bn
+ */
+template<typename Session>
+void**
+ByteContainer::Region<Session>::MapSlot(Session* session, uint64_t bn, 
+                                        bool alloc_slot)
+{	
+	int                     ret;
+	void**                  slot;
+	RadixTreeNode<Session>* node;
+	int                     offset;
+	int                     height;
+	uint64_t                rbn;
+	
+	// check if block number out of range
+	if (base_bn_ > bn) {
+		return NULL;
+	} else if (base_bn_+maxbcount_ <= bn) {
+		if (alloc_slot) {
+			if (Extend(session, bn) < 0) {
+				// block out of range and cannot extend the region
+				return NULL;
+			}
+		} else {
+			return NULL;
+		}
+	}
+	
+	// map slot
+	if (maxbcount_ == 1) {
+		slot = &dblock_;
+	} else {
+		rbn = bn - base_bn_;
+		if ((ret = radixtree_.MapSlot(session, rbn, 1, alloc_slot, &node, &offset, &height)) == 0) {
+			slot = &node->slots[offset];
+		} else {
+			slot = NULL;
+		}
+	}	
+	return slot;
+}
+
+
 // off is offset with respect to the block
 template<typename Session>
 int 
@@ -734,51 +792,25 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 {
 	void**                  slot;
 	char*                   bp;
-	RadixTreeNode<Session>* node;
-	int                     offset;
-	int                     height;
 	int                     ret;
-	uint64_t                rbn;
 
 	assert(off < kBlockSize);
 	assert(off+n <= kBlockSize);
 
 	printf("FilePnode::Region::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
-	// check if block number out of range
-	if (base_bn_ > bn) {
+	if ((slot = MapSlot(session, bn, true)) == NULL) {
 		return -E_INVAL;
-	} else if (base_bn_+maxbcount_ <= bn) {
-		if (Extend(session, bn) < 0) {
-			// block out of range and cannot extend the region
-			return -E_INVAL;
-		}
 	}
-
-	if (maxbcount_ == 1) {
-		slot = &dblock_;
-	} else {
-		rbn = bn - base_bn_;
-		if ((ret = radixtree_.MapSlot(session, rbn, 1, 1, &node, &offset, &height)) == 0) {
-			slot = &node->slots[offset];
-		} else {
-			return ret;
-		}
-	}	
 	if (*slot == (void*)0) {
 		void* ptr;
-		printf("BYTECONTAINER: SESSION: %p, STORAGE_ALLOCATOR: %p\n", session, session->salloc());
 		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
-		                                             kData, &ptr)) < 0)
-		{ 
+		                                             kData, &ptr)) < 0) { 
 			return ret;
 		}
 		*slot = ptr; // FIXME: journal this 
 		bp = (char*) (*slot);
 		printf("FilePnode::Region::WriteBlock block=%p\n", *slot);
-		// TODO: Allocating and zeroing a chunk is done in other places in the 
-		// code as well. We should collapse this under a function that does the job
-		// (including any necessary journaling?)
 		// Zero the part of the newly allocated block that is not written to
 		// ensure we later read zeros and not garbage.
 		if (off>0) {
@@ -791,6 +823,23 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 
 	return n;
 }
+
+
+// off is offset with respect to the block
+template<typename Session>
+int 
+ByteContainer::Region<Session>::LinkBlock(Session* session, uint64_t bn, void* bp)
+{
+	void** slot;
+	int    ret;
+
+	if ((slot = MapSlot(session, bn, true)) == NULL) {
+		return -E_INVAL;
+	}
+	*slot = bp;
+	return kBlockSize;
+}
+
 
 
 template<typename Session>
@@ -816,34 +865,15 @@ ByteContainer::Region<Session>::ReadBlock(Session* session,
 {
 	void**                  slot;
 	char*                   bp;
-	RadixTreeNode<Session>* node;
-	int                     offset;
-	int                     height;
 	int                     ret;
-	uint64_t                rbn;
 
 	assert(off < kBlockSize);
 	assert(off+n <= kBlockSize);
 
 	printf("FilePnode::Region::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
-
-	if (base_bn_ > bn || base_bn_+maxbcount_ <= bn) {
-		// block number out of range
+	
+	if ((slot = MapSlot(session, bn, false)) == NULL) {
 		return -E_INVAL;
-	}
-
-	printf("FilePnode::Region::ReadBlock maxbcount_=%d\n", maxbcount_);
-
-	if (maxbcount_ == 1) {
-		slot = &dblock_;
-	} else {
-		rbn = bn - base_bn_;
-		if (radixtree_.MapSlot(session, rbn, 1, 0, &node, &offset, &height) == 0) {
-			slot = &node->slots[offset];
-			printf("node=%p, node->slots[%d]=%p\n", node, offset, node->slots[offset]);
-		} else {
-			slot = NULL;
-		}
 	}
 	if (slot && *slot) {
 		bp = (char*) (*slot);
