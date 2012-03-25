@@ -6,6 +6,7 @@
 #include "ssa/main/client/session.h"
 #include "ssa/main/client/salloc.h"
 #include "ssa/main/common/const.h"
+#include "ssa/main/common/publisher.h"
 #include "common/interval_tree.h"
 #include "spa/const.h"
 
@@ -90,13 +91,15 @@ ByteInterval::WriteBlockNoRegion(SsaSession* session, char* src, uint64_t bn, in
 	if (!(bp = block_array_[bn - low_])) {
 		printf("ByteInterval::WriteBlock Allocate Block\n",
 	       src, bn, off, n);
-		// allocate new block, FIXME: need to journal the alloaction and link
 		printf("................ALLOCATE: block %d\n", bn);
 		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
 		                                             kData, &ptr)) < 0)
 		{ 
 			return ret;
 		}
+		// allocator journaled allocation. just journal the data block link
+		ssa::Publisher::Messages::Commands::LinkBlock cmd(bn, ptr);
+		session->journal()->Command(&cmd, sizeof(cmd));
 		bp = block_array_[bn - low_] = (char*) ptr;
 		// Zero the part of the newly allocated block that is not written to
 		// ensure we later read zeros and not garbage.
@@ -104,11 +107,6 @@ ByteInterval::WriteBlockNoRegion(SsaSession* session, char* src, uint64_t bn, in
 			memset(bp, 0, off);
 		}	
 		memset(&bp[off+n], 0, kBlockSize-n); 
-	
-		// TODO: create and journal physical and logical links
-		// physical links can be created using information kept in slot_:
-		//  - we know the slot's base
-		//  - we know the slot's offset which is (bn - low_)+slot_.slot_offset_
 	}
 
 	memmove(&bp[off], src, n);

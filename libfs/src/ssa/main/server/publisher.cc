@@ -34,6 +34,12 @@ Publisher::RegisterOperation(int lgc_op_id, LogicalOperation lgc_op)
 }
 
 
+
+//
+// TODO: A logical Operation corresponds to a function defined by the storage system.
+// the function reads each command, validates and executes.
+//
+//
 int
 Publisher::Publish(SsaSession* session)
 {
@@ -42,9 +48,32 @@ Publisher::Publish(SsaSession* session)
 	printf("PUBLISH\n");
 	SsaSharedBuffer* shbuf = session->shbuf_;
 	shbuf->Acquire();
-	if (shbuf->Read(buf, 8)) {
+	while (shbuf->Read(buf, 8)) {
 		uint64_t u64 = *((uint64_t*) buf);
 		printf("LOGICAL OP: %d\n", u64);
+		while (shbuf->Read(buf, 8)) {
+			ssa::Publisher::Messages::CommandHeader* cmdheader = ssa::Publisher::Messages::CommandHeader::Load(buf);
+			printf("COMMAND OP: %d\n", cmdheader->id_);
+			if (cmdheader->id_ == 0) {		
+				printf("END LOGICAL OP\n");
+				break;
+			}
+			if (cmdheader->id_ == 1) {		
+				size_t size = sizeof(ssa::Publisher::Messages::Commands::AllocateExtent);
+				if (size > 8) {
+					shbuf->Read(&buf[8], size - 8);
+					ssa::Publisher::Messages::Commands::AllocateExtent* cmd = ssa::Publisher::Messages::Commands::AllocateExtent::Load(buf);
+				}
+			}
+			if (cmdheader->id_ == 2) {		
+				size_t size = sizeof(ssa::Publisher::Messages::Commands::LinkBlock);
+				if (size > 8) {
+					printf("READREAD\n");
+					shbuf->Read(&buf[8], size - 8);
+					ssa::Publisher::Messages::Commands::LinkBlock* cmd = ssa::Publisher::Messages::Commands::LinkBlock::Load(buf);
+				}
+			}
+		}
 	}
 	shbuf->Release();
 	return E_SUCCESS;

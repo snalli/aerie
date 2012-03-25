@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "ssa/main/client/ssa-opaque.h"
 #include "ssa/main/client/shbuf.h"
+#include "ssa/main/common/publisher.h"
 
 
 namespace ssa {
@@ -66,7 +67,7 @@ public:
 
 	int BeginLogicalOperation(int id);
 	int EndLogicalOperation();
-	
+	int Command(ssa::Publisher::Messages::CommandHeader* cmd, size_t size);
 private:
 	SsaSession* session_;
 	Buffer      buffer_;

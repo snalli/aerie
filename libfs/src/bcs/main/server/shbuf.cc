@@ -48,7 +48,7 @@ SharedBuffer::Init(const char* suffix)
 int 
 SharedBuffer::Read(char* dst, size_t n)
 {
-	printf("READ: %d\n", Count());
+	printf("READ: %ld %ld\n", Count(), start_);
 	if (n > Count()) {
 		// not enough data 
 		return 0;

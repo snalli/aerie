@@ -6,6 +6,7 @@
 #include "bcs/bcs.h"
 #include "ssa/main/common/storage_protocol.h"
 #include "ssa/main/client/session.h"
+#include "ssa/main/common/publisher.h"
 #include "ssa/containers/set/container.h"
 
 
@@ -37,6 +38,8 @@ int
 StorageAllocator::AllocateExtent(SsaSession* session, size_t nbytes, int flags, void** ptr)
 {
 	printf(">>>>>>>>>>>>>>>>>>>>>>>ALLOC: %d\n", nbytes);
+	ssa::Publisher::Messages::Commands::AllocateExtent cmd;
+	session->journal()->Command(&cmd, sizeof(cmd));
 	if (flags & kMetadata) {
 		*ptr = malloc(nbytes);
 	} else {

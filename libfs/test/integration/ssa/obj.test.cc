@@ -8,6 +8,7 @@
 #include "ssa/main/client/rwproxy.h"
 #include "ssa/main/client/omgr.h"
 #include "ssa/main/client/salloc.h"
+#include "ssa/main/common/const.h"
 #include "ssa/containers/typeid.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
@@ -40,7 +41,7 @@ public:
     {
 		void* ptr;
 
-        if (session->salloc_->AllocateExtent(session, sizeof(Dummy), &ptr) < 0) {
+        if (session->salloc()->AllocateExtent(session, sizeof(Dummy), kData, &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
         return new(ptr) Dummy();
