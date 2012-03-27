@@ -1,6 +1,11 @@
 #ifndef __STAMNOS_SSA_COMMON_PUBLISHER_H
 #define __STAMNOS_SSA_COMMON_PUBLISHER_H
 
+#include "bcs/bcs.h"
+#include "ssa/main/server/ssa-opaque.h"
+
+// All structures assume a little endian machine
+
 namespace ssa {
 
 class Publisher { 
@@ -20,51 +25,102 @@ public:
 
 class Publisher::Messages {
 public:
-	struct LogicalOpHeader;
-	struct CommandHeader;
-	struct Commands;
+	enum MessageType {
+		kTransactionBegin = 0x1,
+		kTransactionEnd,
+		kLogicalOperation,
+		kPhysicalOperation,
+	};
+	struct BaseMessage;
+	struct TransactionBegin;
+	struct TransactionEnd;
+	struct LogicalOperationHeader;
+	struct PhysicalOperationHeader;
+	struct PhysicalOperation;
 };
 
 
-struct Publisher::Messages::LogicalOpHeader {
-	LogicalOpHeader(int id)
-		: id_(id)
+struct Publisher::Messages::BaseMessage {
+	BaseMessage(char type = 0)
+		: type_(type)
 	{ }
 
-	static LogicalOpHeader* Load(void* src) {
-		return reinterpret_cast<LogicalOpHeader*>(src);
+	static BaseMessage* Load(void* src) {
+		return reinterpret_cast<BaseMessage*>(src);
 	}
 
-	union {
-		char bytes_[8];
-		int  id_; 
-	};
+	char type_;
 };
 
-struct Publisher::Messages::CommandHeader {
-	CommandHeader(int id)
-		: id_(id)
+
+struct Publisher::Messages::TransactionBegin: public BaseMessage {
+	TransactionBegin(int id = 0)
+		: id_(id),
+		  BaseMessage(kTransactionBegin)
+	{ 
+	}
+
+	static TransactionBegin* Load(void* src) {
+		return reinterpret_cast<TransactionBegin*>(src);
+	}
+
+	int id_; 
+};
+
+
+struct Publisher::Messages::TransactionEnd: public BaseMessage {
+	TransactionEnd()
+		: BaseMessage(kTransactionEnd)
 	{ }
 
-	static CommandHeader* Load(void* src) {
-		return reinterpret_cast<CommandHeader*>(src);
+	static TransactionEnd* Load(void* src) {
+		return reinterpret_cast<TransactionEnd*>(src);
+	}
+};
+
+
+struct Publisher::Messages::LogicalOperationHeader: public BaseMessage {
+	LogicalOperationHeader(char id)
+		: id_(id),
+		  BaseMessage(kLogicalOperation)
+	{ }
+
+	static LogicalOperationHeader* Load(void* src) {
+		return reinterpret_cast<LogicalOperationHeader*>(src);
+	}
+
+	char id_; 
+};
+
+
+struct Publisher::Messages::PhysicalOperationHeader: public BaseMessage {
+	PhysicalOperationHeader(int id)
+		: id_(id),
+		  BaseMessage(kPhysicalOperation)
+	{ }
+
+	static PhysicalOperationHeader* Load(void* src) {
+		return reinterpret_cast<PhysicalOperationHeader*>(src);
 	}
 	
-	union {
-		char bytes_[8];
-		int  id_; 
-	};
+	int  id_; 
 };
 
-struct Publisher::Messages::Commands {
+
+
+struct Publisher::Messages::PhysicalOperation {
+	enum OperationCode {
+		kAllocateExtent = 1,
+		kLinkBlock
+	};
 	struct AllocateExtent;
 	struct LinkBlock;
 };
 
 
-struct Publisher::Messages::Commands::AllocateExtent: public CommandHeader {
+struct Publisher::Messages::PhysicalOperation::AllocateExtent: public PhysicalOperationHeader {
 	AllocateExtent()
-		: CommandHeader(1)
+		: PhysicalOperationHeader(1)
 	{ }
 
 	static AllocateExtent* Load(void* src) {
@@ -73,9 +129,9 @@ struct Publisher::Messages::Commands::AllocateExtent: public CommandHeader {
 };
 
 
-struct Publisher::Messages::Commands::LinkBlock: public CommandHeader {
+struct Publisher::Messages::PhysicalOperation::LinkBlock: public PhysicalOperationHeader {
 	LinkBlock(uint64_t bn, void* ptr)
-		: CommandHeader(2),
+		: PhysicalOperationHeader(2),
 		  bn_(bn), 
 		  ptr_(ptr)
 	{ }
@@ -84,13 +140,8 @@ struct Publisher::Messages::Commands::LinkBlock: public CommandHeader {
 		return reinterpret_cast<LinkBlock*>(src);
 	}
 	
-	union {
-		struct {
-			uint64_t bn_;
-			void*    ptr_;
-		};
-		char u8[16];
-	};
+	uint64_t bn_;
+	void*    ptr_;
 };
 
 

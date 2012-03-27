@@ -11,7 +11,12 @@ namespace server {
 
 Publisher::Publisher(::server::Ipc* ipc)
 	: ipc_(ipc)
-{ }
+{ 
+	for (int i=0; i<kLogicalOpMaxCount; i++) {
+		lgc_op_array_[i] = NULL;
+	}
+}
+
 
 int
 Publisher::Init()
@@ -26,7 +31,7 @@ Publisher::Init()
 int
 Publisher::RegisterOperation(int lgc_op_id, LogicalOperation lgc_op)
 {
-	if (lgc_op_id < kLogicalOpMaxCount) {
+	if (lgc_op_id > kLogicalOpMaxCount) {
 		return -E_INVAL;
 	}
 	lgc_op_array_[lgc_op_id] = lgc_op;
@@ -43,40 +48,58 @@ Publisher::RegisterOperation(int lgc_op_id, LogicalOperation lgc_op)
 int
 Publisher::Publish(SsaSession* session)
 {
-	char buf[512];
+	int                                    ret;
+	char                                   buf[512];
+	int                                    n;
+	ssa::Publisher::Messages::BaseMessage* msg;
+	ssa::Publisher::Messages::BaseMessage  next;
+	LogicalOperation                       lgc_op;
 	
 	printf("PUBLISH\n");
 	SsaSharedBuffer* shbuf = session->shbuf_;
 	shbuf->Acquire();
-	while (shbuf->Read(buf, 8)) {
-		uint64_t u64 = *((uint64_t*) buf);
-		printf("LOGICAL OP: %d\n", u64);
-		while (shbuf->Read(buf, 8)) {
-			ssa::Publisher::Messages::CommandHeader* cmdheader = ssa::Publisher::Messages::CommandHeader::Load(buf);
-			printf("COMMAND OP: %d\n", cmdheader->id_);
-			if (cmdheader->id_ == 0) {		
-				printf("END LOGICAL OP\n");
-				break;
-			}
-			if (cmdheader->id_ == 1) {		
-				size_t size = sizeof(ssa::Publisher::Messages::Commands::AllocateExtent);
-				if (size > 8) {
-					shbuf->Read(&buf[8], size - 8);
-					ssa::Publisher::Messages::Commands::AllocateExtent* cmd = ssa::Publisher::Messages::Commands::AllocateExtent::Load(buf);
+	while (shbuf->Read(buf, sizeof(*msg))) {
+		msg = ssa::Publisher::Messages::BaseMessage::Load(buf);
+		printf("msg->type_ = %d\n", msg->type_);
+		while (true) {
+			if (msg->type_ == ssa::Publisher::Messages::kTransactionBegin) {
+				n = sizeof(ssa::Publisher::Messages::TransactionBegin) - sizeof(*msg);
+				if (shbuf->Read(&buf[sizeof(*msg)], n) < n) {
+					ret = -1;
+					goto done;
 				}
-			}
-			if (cmdheader->id_ == 2) {		
-				size_t size = sizeof(ssa::Publisher::Messages::Commands::LinkBlock);
-				if (size > 8) {
-					printf("READREAD\n");
-					shbuf->Read(&buf[8], size - 8);
-					ssa::Publisher::Messages::Commands::LinkBlock* cmd = ssa::Publisher::Messages::Commands::LinkBlock::Load(buf);
+				ssa::Publisher::Messages::TransactionBegin* txbegin = ssa::Publisher::Messages::TransactionBegin::Load(buf);
+				printf("TRANSACTION BEGIN: %d\n", txbegin->id_);
+				break;
+			} 
+			if (msg->type_ == ssa::Publisher::Messages::kTransactionEnd) {
+				printf("TRANSACTION END:\n");
+				break;
+			} 
+			if (msg->type_ == ssa::Publisher::Messages::kLogicalOperation) {
+				n = sizeof(ssa::Publisher::Messages::LogicalOperationHeader) - sizeof(*msg);
+				if (shbuf->Read(&buf[sizeof(*msg)], n) < n) {
+					ret = -1;
+					goto done;
+				}
+				ssa::Publisher::Messages::LogicalOperationHeader* header = ssa::Publisher::Messages::LogicalOperationHeader::Load(buf);
+				printf("LOGICAL_OPERATION: %d\n", header->id_);
+				if ((lgc_op = lgc_op_array_[header->id_]) != NULL) {
+					// the buffer buf must have enough space to hold the rest of the logical 
+					// operation when lgc_op decodes it
+					if ((ret = lgc_op(session, buf, &next)) < 0) {
+						goto done;
+					}
+					msg = &next;
+					continue;
 				}
 			}
 		}
 	}
+	ret = E_SUCCESS;
+done:
 	shbuf->Release();
-	return E_SUCCESS;
+	return ret;
 }
 
 

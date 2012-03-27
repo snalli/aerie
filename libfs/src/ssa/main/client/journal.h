@@ -18,7 +18,6 @@ public:
 	{ }
 
 	inline int Write(const void* src, size_t n);
-	inline int Write64(const uint64_t* src);
 	inline int Flush(SsaSharedBuffer* dst);
 
 private:
@@ -27,21 +26,12 @@ private:
 	size_t size_;
 };
 
+
 int
 Buffer::Write(const void* src, size_t n)
 {
 	memcpy(&buf_[count_], src, n);
 	count_ += n;
-	return E_SUCCESS;
-}
-
-
-int 
-Buffer::Write64(const uint64_t* src)
-{
-	uint64_t* dst = (uint64_t*) &buf_[count_];
-	*dst = *src;
-	count_ += 8;
 	return E_SUCCESS;
 }
 
@@ -65,9 +55,13 @@ public:
 		: session_(session)
 	{ }
 
-	int BeginLogicalOperation(int id);
-	int EndLogicalOperation();
-	int Command(ssa::Publisher::Messages::CommandHeader* cmd, size_t size);
+	int TransactionBegin(int id = 0);
+	int TransactionEnd();
+	int LogicalOperation(int id);
+	int Write(const void* buf, size_t size) {
+		return buffer_.Write(buf, size);
+	}
+
 private:
 	SsaSession* session_;
 	Buffer      buffer_;

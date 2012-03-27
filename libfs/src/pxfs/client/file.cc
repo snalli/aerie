@@ -23,11 +23,11 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 	}
 
 	pthread_mutex_lock(&mutex_);
-	//session->journal()->BeginLogicalOperation(1);
+	session->journal()->TransactionBegin();
 	if ((ret = ip_->Write(session, const_cast<char*>(src), off_, n) > 0)) {
 		off_ += ret;
 	}
-	//session->journal()->EndLogicalOperation();
+	session->journal()->TransactionEnd();
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;

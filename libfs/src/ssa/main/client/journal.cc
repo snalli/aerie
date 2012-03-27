@@ -5,37 +5,42 @@
 namespace ssa {
 namespace client {
 
-typedef ::ssa::Publisher::Messages::LogicalOpHeader LogicalOpHeader;
-typedef ::ssa::Publisher::Messages::CommandHeader CommandHeader;
+typedef ::ssa::Publisher::Messages::TransactionBegin        TransactionBeginMessage;
+typedef ::ssa::Publisher::Messages::TransactionEnd          TransactionEndMessage;
+typedef ::ssa::Publisher::Messages::LogicalOperationHeader  LogicalOperationHeaderMessage;
+typedef ::ssa::Publisher::Messages::PhysicalOperationHeader PhysicalOperationHeaderMessage;
+
 
 int
-Journal::BeginLogicalOperation(int id)
+Journal::TransactionBegin(int id)
 {
-	printf("BEGIN_LOGICAL_OPERATION(%d)\n", id);
-	LogicalOpHeader header = LogicalOpHeader(id);
-	buffer_.Write64((uint64_t*) &header);
+	printf("TRANSACTION_BEGIN\n");
+	TransactionBeginMessage tx = TransactionBeginMessage(id);
+	buffer_.Write(&tx, sizeof(tx));
 	return E_SUCCESS;
 }
 
 
 int
-Journal::EndLogicalOperation()
+Journal::TransactionEnd()
 {
-	printf("END_LOGICAL_OPERATION\n");
-	CommandHeader header = CommandHeader(0);
-	buffer_.Write64((uint64_t*) &header);
+	printf("TRANSACTION_END\n");
+	TransactionEndMessage tx = TransactionEndMessage();
+	buffer_.Write(&tx, sizeof(tx));
 	buffer_.Flush(session_->stsystem()->shbuf());
 	return E_SUCCESS;
 }
 
 
-int 
-Journal::Command(ssa::Publisher::Messages::CommandHeader* cmd, size_t size)
+int
+Journal::LogicalOperation(int id)
 {
-	printf("COMMAND: %d %d\n", cmd->id_, size);
-	buffer_.Write((uint64_t*) cmd, size);
+	printf("LOGICAL_OPERATION(%d)\n", id);
+	LogicalOperationHeaderMessage header = LogicalOperationHeaderMessage(id);
+	buffer_.Write(&header, sizeof(header));
 	return E_SUCCESS;
 }
+
 
 
 } // namespace client

@@ -8,6 +8,7 @@
 #include "pxfs/server/fs.h"
 #include "pxfs/server/session.h"
 #include "pxfs/server/server.h"
+#include "pxfs/mfs/server/publisher.h"
 
 
 namespace server {
@@ -23,10 +24,14 @@ FileSystem::FileSystem(Ipc* ipc, StorageSystem* storage_system)
 int
 FileSystem::Init()
 {
+	int ret;
 	if (ipc_) {
-		return ipc_handlers_.Register(this);
+		if ((ret = ipc_handlers_.Register(this)) < 0) {
+			return ret;
+		}
 	}
-	return E_SUCCESS;
+	Publisher::Init();
+	return Publisher::Register(storage_system_);
 }
 
 

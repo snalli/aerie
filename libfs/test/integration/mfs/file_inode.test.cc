@@ -117,7 +117,9 @@ SUITE(MFSFileInode)
 		for (int i=7; i>=0; i--) {
 			finode[i]->Lock(session, lock_protocol::Mode::XL);
 			strcpy(buf, "WRITE");
+			session->journal()->TransactionBegin();
 			finode[i]->Write(session, buf, 0, strlen(buf)+1);
+			session->journal()->TransactionEnd();
 			finode[i]->Unlock(session);
 		}
 		EVENT("AfterUnlock");

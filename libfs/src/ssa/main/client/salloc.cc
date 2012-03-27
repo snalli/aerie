@@ -38,8 +38,9 @@ int
 StorageAllocator::AllocateExtent(SsaSession* session, size_t nbytes, int flags, void** ptr)
 {
 	printf(">>>>>>>>>>>>>>>>>>>>>>>ALLOC: %d\n", nbytes);
-	ssa::Publisher::Messages::Commands::AllocateExtent cmd;
-	session->journal()->Command(&cmd, sizeof(cmd));
+	ssa::Publisher::Messages::PhysicalOperation::AllocateExtent cmd;
+	session->journal()->Write(&cmd, sizeof(cmd));
+
 	if (flags & kMetadata) {
 		*ptr = malloc(nbytes);
 	} else {

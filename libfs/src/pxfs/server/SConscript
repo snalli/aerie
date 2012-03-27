@@ -11,7 +11,6 @@ libLocalBuildEnv = buildEnv.Clone()
 lib_target = 'fss'
 lib_sources = [
                'fs.cc',
-               'namespace.cc',
                'server.cc',
 	       'session.cc',
               ]
