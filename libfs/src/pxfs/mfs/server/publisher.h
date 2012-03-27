@@ -6,7 +6,7 @@
 
 namespace server {
 
-class WriteParser;
+class WriteVerifier;
 
 class Publisher {
 public:
@@ -15,7 +15,7 @@ public:
 	static int Write(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
 
 private:
-	static WriteParser* write_parser_;
+	static WriteVerifier* write_verifier_;
 };
 
 

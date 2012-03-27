@@ -2,7 +2,7 @@
 #include "ssa/main/server/stsystem.h"
 #include "ssa/main/server/session.h"
 #include "ssa/main/server/shbuf.h"
-#include "ssa/main/server/parser.h"
+#include "ssa/containers/byte/verifier.h"
 #include "common/errno.h"
 
 namespace server {
@@ -15,47 +15,23 @@ Publisher::Register(::ssa::server::StorageSystem* stsystem)
 }
 
 
-class WriteParser: public Parser {
-public:
-
-	struct AllocateExtent {
-		static int Action(ssa::Publisher::Messages::PhysicalOperation::AllocateExtent* msg) {
-			return E_SUCCESS;
-		}
-	};
-	
-	struct LinkBlock {
-		static int Action(ssa::Publisher::Messages::PhysicalOperation::LinkBlock* msg) {
-			printf("LINK_BLOCK\n");
-			return E_SUCCESS;
-		}
-	};
-
-	WriteParser()
-	{
-		PARSER_ADD_ACTION(AllocateExtent);
-		PARSER_ADD_ACTION(LinkBlock);
-	}
-};
-
-
 int
 Publisher::Write(::ssa::server::SsaSession* session, char* lgc_op_hdr, 
                  ::ssa::Publisher::Messages::BaseMessage* next)
 {
 	printf("WRITE\n");
-	return write_parser_->Parse(session, lgc_op_hdr, next);
+	return write_verifier_->Parse(session, next);
 }
 
 
 int
 Publisher::Init()
 {
-	write_parser_ = new WriteParser();
+	write_verifier_ = new WriteVerifier();
 	return E_SUCCESS;
 }
 
 
-WriteParser* Publisher::write_parser_ = NULL;
+WriteVerifier* Publisher::write_verifier_ = NULL;
 
 } // namespace server

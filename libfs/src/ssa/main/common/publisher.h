@@ -3,6 +3,7 @@
 
 #include "bcs/bcs.h"
 #include "ssa/main/server/ssa-opaque.h"
+#include "ssa/main/common/obj.h"
 
 // All structures assume a little endian machine
 
@@ -29,14 +30,14 @@ public:
 		kTransactionBegin = 0x1,
 		kTransactionEnd,
 		kLogicalOperation,
-		kPhysicalOperation,
+		kContainerOperation,
 	};
 	struct BaseMessage;
 	struct TransactionBegin;
 	struct TransactionEnd;
 	struct LogicalOperationHeader;
-	struct PhysicalOperationHeader;
-	struct PhysicalOperation;
+	struct ContainerOperationHeader;
+	struct ContainerOperation;
 };
 
 
@@ -93,14 +94,14 @@ struct Publisher::Messages::LogicalOperationHeader: public BaseMessage {
 };
 
 
-struct Publisher::Messages::PhysicalOperationHeader: public BaseMessage {
-	PhysicalOperationHeader(int id)
+struct Publisher::Messages::ContainerOperationHeader: public BaseMessage {
+	ContainerOperationHeader(int id)
 		: id_(id),
-		  BaseMessage(kPhysicalOperation)
+		  BaseMessage(kContainerOperation)
 	{ }
 
-	static PhysicalOperationHeader* Load(void* src) {
-		return reinterpret_cast<PhysicalOperationHeader*>(src);
+	static ContainerOperationHeader* Load(void* src) {
+		return reinterpret_cast<ContainerOperationHeader*>(src);
 	}
 	
 	int  id_; 
@@ -108,7 +109,7 @@ struct Publisher::Messages::PhysicalOperationHeader: public BaseMessage {
 
 
 
-struct Publisher::Messages::PhysicalOperation {
+struct Publisher::Messages::ContainerOperation {
 	enum OperationCode {
 		kAllocateExtent = 1,
 		kLinkBlock
@@ -118,9 +119,9 @@ struct Publisher::Messages::PhysicalOperation {
 };
 
 
-struct Publisher::Messages::PhysicalOperation::AllocateExtent: public PhysicalOperationHeader {
+struct Publisher::Messages::ContainerOperation::AllocateExtent: public ContainerOperationHeader {
 	AllocateExtent()
-		: PhysicalOperationHeader(1)
+		: ContainerOperationHeader(kAllocateExtent)
 	{ }
 
 	static AllocateExtent* Load(void* src) {
@@ -129,9 +130,10 @@ struct Publisher::Messages::PhysicalOperation::AllocateExtent: public PhysicalOp
 };
 
 
-struct Publisher::Messages::PhysicalOperation::LinkBlock: public PhysicalOperationHeader {
-	LinkBlock(uint64_t bn, void* ptr)
-		: PhysicalOperationHeader(2),
+struct Publisher::Messages::ContainerOperation::LinkBlock: public ContainerOperationHeader {
+	LinkBlock(ssa::common::ObjectId oid, uint64_t bn, void* ptr)
+		: ContainerOperationHeader(kLinkBlock),
+		  oid_(oid),
 		  bn_(bn), 
 		  ptr_(ptr)
 	{ }
@@ -140,8 +142,9 @@ struct Publisher::Messages::PhysicalOperation::LinkBlock: public PhysicalOperati
 		return reinterpret_cast<LinkBlock*>(src);
 	}
 	
-	uint64_t bn_;
-	void*    ptr_;
+	ssa::common::ObjectId oid_;
+	uint64_t              bn_;
+	void*                 ptr_;
 };
 
 

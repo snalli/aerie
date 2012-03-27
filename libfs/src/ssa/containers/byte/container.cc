@@ -33,8 +33,9 @@ public:
 		  high_(high)
 	{ }
 
-	ByteInterval(SsaSession* session, ByteContainer::Slot& slot, const int low, const int size)
-		: low_(low), 
+	ByteInterval(SsaSession* session, ByteContainer::Object* obj, ByteContainer::Slot& slot, const int low, const int size)
+		: object_(obj),
+		  low_(low), 
 		  high_(low+size-1), 
 		  slot_(slot)
 	{ 
@@ -62,6 +63,7 @@ public:
 	int Read(SsaSession* session, char*, uint64_t, uint64_t);
 
 protected:
+	ByteContainer::Object*         object_;
 	uint64_t                       low_;
 	uint64_t                       high_;
 	ByteContainer::Region*         region_;     
@@ -98,7 +100,7 @@ ByteInterval::WriteBlockNoRegion(SsaSession* session, char* src, uint64_t bn, in
 			return ret;
 		}
 		// allocator journaled allocation. just journal the data block link
-		ssa::Publisher::Messages::PhysicalOperation::LinkBlock cmd(bn, ptr);
+		ssa::Publisher::Messages::ContainerOperation::LinkBlock cmd(object_->oid(), bn, ptr);
 		session->journal()->Write(&cmd, sizeof(cmd));
 		bp = block_array_[bn - low_] = (char*) ptr;
 		// Zero the part of the newly allocated block that is not written to
@@ -408,12 +410,6 @@ ByteContainer::VersionManager::WriteMutable(SsaSession* session,
 
 	dbg_log (DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
-	// TODO: do we need to perform any journaling here? OR, does the FilePnode::Region
-	// transparently perform any necessary journaling? 
-	// For example, do we need to journal
-	// 1) a swap operation to the new pinode if immutable pinode exists?
-	// 2) a swap to the radixtree...?
-
 	if (mutable_) {
 		assert(region_ == NULL);
 		return object()->Write(session, src, off, n);
@@ -421,7 +417,7 @@ ByteContainer::VersionManager::WriteMutable(SsaSession* session,
 		bn = off/kBlockSize;
 		region_ = new ByteContainer::Region(session, object(), bn);
 	}
-	return	region_->Write(session, src, off, n);
+	return region_->Write(session, src, off, n);
 }
 
 
@@ -488,7 +484,7 @@ ByteContainer::VersionManager::WriteImmutable(SsaSession* session,
 					interval_low = ::ssa::containers::common::ByteContainer::N_DIRECT + 
 					               ((base_bn-::ssa::containers::common::ByteContainer::N_DIRECT) & ~(interval_size - 1));
 				}
-				interval = new ByteInterval(session, (*iter), interval_low, interval_size);
+				interval = new ByteInterval(session, object(), (*iter), interval_low, interval_size);
 				intervaltree_->Insert(interval);
 			}
 

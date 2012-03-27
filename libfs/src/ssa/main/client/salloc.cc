@@ -38,7 +38,7 @@ int
 StorageAllocator::AllocateExtent(SsaSession* session, size_t nbytes, int flags, void** ptr)
 {
 	printf(">>>>>>>>>>>>>>>>>>>>>>>ALLOC: %d\n", nbytes);
-	ssa::Publisher::Messages::PhysicalOperation::AllocateExtent cmd;
+	ssa::Publisher::Messages::ContainerOperation::AllocateExtent cmd;
 	session->journal()->Write(&cmd, sizeof(cmd));
 
 	if (flags & kMetadata) {

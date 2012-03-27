@@ -39,12 +39,6 @@ Publisher::RegisterOperation(int lgc_op_id, LogicalOperation lgc_op)
 }
 
 
-
-//
-// TODO: A logical Operation corresponds to a function defined by the storage system.
-// the function reads each command, validates and executes.
-//
-//
 int
 Publisher::Publish(SsaSession* session)
 {

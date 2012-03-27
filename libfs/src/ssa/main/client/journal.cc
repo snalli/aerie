@@ -5,10 +5,10 @@
 namespace ssa {
 namespace client {
 
-typedef ::ssa::Publisher::Messages::TransactionBegin        TransactionBeginMessage;
-typedef ::ssa::Publisher::Messages::TransactionEnd          TransactionEndMessage;
-typedef ::ssa::Publisher::Messages::LogicalOperationHeader  LogicalOperationHeaderMessage;
-typedef ::ssa::Publisher::Messages::PhysicalOperationHeader PhysicalOperationHeaderMessage;
+typedef ::ssa::Publisher::Messages::TransactionBegin         TransactionBeginMessage;
+typedef ::ssa::Publisher::Messages::TransactionEnd           TransactionEndMessage;
+typedef ::ssa::Publisher::Messages::LogicalOperationHeader   LogicalOperationHeaderMessage;
+typedef ::ssa::Publisher::Messages::ContainerOperationHeader ContainerOperationHeaderMessage;
 
 
 int

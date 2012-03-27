@@ -58,6 +58,7 @@ SUITE(MFSFileInode)
 
 	TEST_FIXTURE(MFSFixture, TestRead1)
 	{
+		char                               buf[512];
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
 		ByteContainer::Reference*          rw_reft;
@@ -81,7 +82,8 @@ SUITE(MFSFileInode)
 		finode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
 		
-
+		finode->Read(session, buf, 0, 6);
+		CHECK(strcmp(buf, "WRITE") == 0);
 
 		finode->Unlock(session);
 		EVENT("AfterUnlock");

@@ -525,14 +525,12 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 	//printf("FilePnode::InsertRegion region->slot_.slot_base_=%p\n", region->slot_.slot_base_);
 
 	if (region->base_bn_ < N_DIRECT) {
-		// TODO: journal this update
 		assert(region->maxbcount_ == 1);
 		// what if the region is already placed? 
 		// need to compare first
 		daddrs_[region->base_bn_] = region->dblock_;
 	} else {
 		if (region->slot_.slot_base_) {
-			// TODO: journal this update
 			if (region->maxbcount_ > 1) {
 				region->slot_.slot_base_[region->slot_.slot_offset_] = region->radixtree_.rnode_; 
 			} else {
@@ -543,7 +541,6 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 			printf("region->slot_.slot_base=%p[%d]\n", region->slot_.slot_base_, region->slot_.slot_offset_);
 		} else {
 			// no slot, therefore region extends the bcobj
-			// TODO: journal this update
 			printf("extend the bcobj\n");
 			printf("radixtree_.rnode_=%p\n", radixtree_.rnode_);
 			if (radixtree_.rnode_) {
