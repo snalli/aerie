@@ -2,8 +2,8 @@
 #define __STAMNOS_MFS_CLIENT_FILE_INODE_H
 
 #include <stdint.h>
-#include "common/types.h"
-#include "common/const.h"
+#include "pxfs/common/types.h"
+#include "pxfs/common/const.h"
 #include "pxfs/client/inode.h"
 #include "ssa/containers/byte/container.h"
 #include "ssa/main/common/obj.h"

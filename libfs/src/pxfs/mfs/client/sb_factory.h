@@ -4,7 +4,7 @@
 #include <string>
 #include "pxfs/client/sb_factory.h"
 #include "pxfs/client/session.h"
-#include "common/const.h"
+#include "pxfs/common/const.h"
 
 namespace mfs {
 namespace client {

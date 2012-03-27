@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "common/types.h"
+#include "pxfs/common/types.h"
 #include "pxfs/client/const.h"
 #include "ssa/main/client/proxy.h"
 

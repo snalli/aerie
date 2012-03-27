@@ -2,7 +2,7 @@
 #define __STAMNOS_PXFS_MFS_SERVER_PUBLISHER_H
 
 #include "ssa/main/server/ssa-opaque.h"
-#include "ssa/main/common/publisher.h"
+#include "pxfs/common/publisher.h"
 
 namespace server {
 

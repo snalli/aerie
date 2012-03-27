@@ -1,10 +1,10 @@
 #ifndef __STAMNOS_MFS_CLIENT_INODE_FACTORY_H
 #define __STAMNOS_MFS_CLIENT_INODE_FACTORY_H
 
-#include "common/types.h"
+#include "pxfs/common/types.h"
 //#include "client/backend.h"
 #include "pxfs/client/inode_factory.h"
-#include "common/const.h"
+#include "pxfs/common/const.h"
 
 namespace mfs {
 namespace client {

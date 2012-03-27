@@ -6,6 +6,7 @@
 #include "pxfs/client/const.h"
 #include "pxfs/mfs/client/inode_factory.h"
 #include "pxfs/mfs/client/dir_inode.h"
+#include "pxfs/common/publisher.h"
 
 namespace mfs {
 namespace client {
@@ -25,7 +26,7 @@ int
 FileInode::Write(::client::Session* session, char* src, uint64_t off, uint64_t n)
 {
 	int ret;
-	session->journal()->LogicalOperation(1);
+	session->journal() << Publisher::Messages::LogicalOperation::Write(this->ino());
 	ret = rw_ref()->proxy()->interface()->Write(session, src, off, n);
 	return ret;
 }

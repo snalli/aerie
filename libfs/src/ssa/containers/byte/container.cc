@@ -99,9 +99,8 @@ ByteInterval::WriteBlockNoRegion(SsaSession* session, char* src, uint64_t bn, in
 		{ 
 			return ret;
 		}
-		// allocator journaled allocation. just journal the data block link
-		ssa::Publisher::Messages::ContainerOperation::LinkBlock cmd(object_->oid(), bn, ptr);
-		session->journal()->Write(&cmd, sizeof(cmd));
+		// The allocator journaled the allocation. We just journal the data block link.
+		session->journal() << ssa::Publisher::Messages::ContainerOperation::LinkBlock(object_->oid(), bn, ptr);
 		bp = block_array_[bn - low_] = (char*) ptr;
 		// Zero the part of the newly allocated block that is not written to
 		// ensure we later read zeros and not garbage.

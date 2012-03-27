@@ -9,7 +9,6 @@
 
 #include <stdint.h>
 
-typedef uint64_t InodeNumber;
 typedef uint64_t TimeStamp;
 
 #endif // __STAMNOS_TYPES_H

@@ -33,6 +33,7 @@ public:
 		kContainerOperation,
 	};
 	struct BaseMessage;
+	template<typename T> struct BaseMessageT;
 	struct TransactionBegin;
 	struct TransactionEnd;
 	struct LogicalOperationHeader;
@@ -54,56 +55,52 @@ struct Publisher::Messages::BaseMessage {
 };
 
 
-struct Publisher::Messages::TransactionBegin: public BaseMessage {
+template<typename T>
+struct Publisher::Messages::BaseMessageT: public BaseMessage {
+	BaseMessageT(char type = 0)
+		: BaseMessage(type)
+	{ }
+
+	static T* Load(void* src) {
+		return reinterpret_cast<T*>(src);
+	}
+};
+
+
+struct Publisher::Messages::TransactionBegin: public BaseMessageT<TransactionBegin> {
 	TransactionBegin(int id = 0)
 		: id_(id),
-		  BaseMessage(kTransactionBegin)
+		  BaseMessageT<TransactionBegin>(kTransactionBegin)
 	{ 
-	}
-
-	static TransactionBegin* Load(void* src) {
-		return reinterpret_cast<TransactionBegin*>(src);
 	}
 
 	int id_; 
 };
 
 
-struct Publisher::Messages::TransactionEnd: public BaseMessage {
+struct Publisher::Messages::TransactionEnd: public BaseMessageT<TransactionEnd> {
 	TransactionEnd()
-		: BaseMessage(kTransactionEnd)
+		: BaseMessageT<TransactionEnd>(kTransactionEnd)
 	{ }
-
-	static TransactionEnd* Load(void* src) {
-		return reinterpret_cast<TransactionEnd*>(src);
-	}
 };
 
 
-struct Publisher::Messages::LogicalOperationHeader: public BaseMessage {
+struct Publisher::Messages::LogicalOperationHeader: public BaseMessageT<LogicalOperationHeader> {
 	LogicalOperationHeader(char id)
 		: id_(id),
-		  BaseMessage(kLogicalOperation)
+		  BaseMessageT<LogicalOperationHeader>(kLogicalOperation)
 	{ }
-
-	static LogicalOperationHeader* Load(void* src) {
-		return reinterpret_cast<LogicalOperationHeader*>(src);
-	}
 
 	char id_; 
 };
 
 
-struct Publisher::Messages::ContainerOperationHeader: public BaseMessage {
+struct Publisher::Messages::ContainerOperationHeader: public BaseMessageT<ContainerOperationHeader> {
 	ContainerOperationHeader(int id)
 		: id_(id),
-		  BaseMessage(kContainerOperation)
+		  BaseMessageT<ContainerOperationHeader>(kContainerOperation)
 	{ }
 
-	static ContainerOperationHeader* Load(void* src) {
-		return reinterpret_cast<ContainerOperationHeader*>(src);
-	}
-	
 	int  id_; 
 };
 

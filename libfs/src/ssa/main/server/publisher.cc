@@ -49,12 +49,10 @@ Publisher::Publish(SsaSession* session)
 	ssa::Publisher::Messages::BaseMessage  next;
 	LogicalOperation                       lgc_op;
 	
-	printf("PUBLISH\n");
 	SsaSharedBuffer* shbuf = session->shbuf_;
 	shbuf->Acquire();
 	while (shbuf->Read(buf, sizeof(*msg))) {
 		msg = ssa::Publisher::Messages::BaseMessage::Load(buf);
-		printf("msg->type_ = %d\n", msg->type_);
 		while (true) {
 			if (msg->type_ == ssa::Publisher::Messages::kTransactionBegin) {
 				n = sizeof(ssa::Publisher::Messages::TransactionBegin) - sizeof(*msg);
@@ -63,11 +61,9 @@ Publisher::Publish(SsaSession* session)
 					goto done;
 				}
 				ssa::Publisher::Messages::TransactionBegin* txbegin = ssa::Publisher::Messages::TransactionBegin::Load(buf);
-				printf("TRANSACTION BEGIN: %d\n", txbegin->id_);
 				break;
 			} 
 			if (msg->type_ == ssa::Publisher::Messages::kTransactionEnd) {
-				printf("TRANSACTION END:\n");
 				break;
 			} 
 			if (msg->type_ == ssa::Publisher::Messages::kLogicalOperation) {
@@ -77,7 +73,6 @@ Publisher::Publish(SsaSession* session)
 					goto done;
 				}
 				ssa::Publisher::Messages::LogicalOperationHeader* header = ssa::Publisher::Messages::LogicalOperationHeader::Load(buf);
-				printf("LOGICAL_OPERATION: %d\n", header->id_);
 				if ((lgc_op = lgc_op_array_[header->id_]) != NULL) {
 					// the buffer buf must have enough space to hold the rest of the logical 
 					// operation when lgc_op decodes it

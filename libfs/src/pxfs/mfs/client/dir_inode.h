@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
-#include "common/types.h"
-#include "common/const.h"
+#include "pxfs/common/types.h"
+#include "pxfs/common/const.h"
 #include "pxfs/client/inode.h"
 #include "ssa/containers/assoc/hashtable.h"
 #include "ssa/containers/name/container.h"

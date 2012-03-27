@@ -37,13 +37,10 @@ StorageAllocator::Load(StoragePool* pool)
 int
 StorageAllocator::AllocateExtent(SsaSession* session, size_t nbytes, int flags, void** ptr)
 {
-	printf(">>>>>>>>>>>>>>>>>>>>>>>ALLOC: %d\n", nbytes);
-	ssa::Publisher::Messages::ContainerOperation::AllocateExtent cmd;
-	session->journal()->Write(&cmd, sizeof(cmd));
-
 	if (flags & kMetadata) {
 		*ptr = malloc(nbytes);
 	} else {
+		session->journal() << ssa::Publisher::Messages::ContainerOperation::AllocateExtent();
 		return pool_->AllocateExtent(nbytes, ptr);
 	}
 	return E_SUCCESS;

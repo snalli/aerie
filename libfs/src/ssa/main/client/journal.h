@@ -62,6 +62,15 @@ public:
 		return buffer_.Write(buf, size);
 	}
 
+	
+	// thing must be shallow
+	template <typename T>
+	inline friend Journal* operator<< (Journal* journal, const T& thing) {
+		journal->Write(&thing, sizeof(thing));
+		return journal;
+    }
+
+
 private:
 	SsaSession* session_;
 	Buffer      buffer_;
