@@ -29,6 +29,7 @@ public:
 	{
 		PARSER_ADD_ACTION(AllocateExtent);
 		PARSER_ADD_ACTION(LinkBlock);
+		PARSER_ADD_ACTION(LockCertificate);
 	}
 };
 

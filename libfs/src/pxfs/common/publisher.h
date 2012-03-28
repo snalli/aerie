@@ -26,7 +26,7 @@ struct Publisher::Messages::LogicalOperation {
 struct Publisher::Messages::LogicalOperation::Write: public LogicalOperationHeader {
 	Write(InodeNumber)
 		: i_(0),
-		  LogicalOperationHeader(kWrite)
+		  LogicalOperationHeader(kWrite, sizeof(Write))
 	{ }
 
 	static Write* Load(void* src) {

@@ -1,6 +1,7 @@
 #ifndef __STAMNOS_SSA_CLIENT_JOURNAL_H
 #define __STAMNOS_SSA_CLIENT_JOURNAL_H
 
+#include <stdio.h>
 #include <stdint.h>
 #include "ssa/main/client/ssa-opaque.h"
 #include "ssa/main/client/shbuf.h"
@@ -57,19 +58,19 @@ public:
 
 	int TransactionBegin(int id = 0);
 	int TransactionEnd();
-	int LogicalOperation(int id);
 	int Write(const void* buf, size_t size) {
 		return buffer_.Write(buf, size);
 	}
 
-	
-	// thing must be shallow
-	template <typename T>
-	inline friend Journal* operator<< (Journal* journal, const T& thing) {
-		journal->Write(&thing, sizeof(thing));
+	inline friend Journal* operator<< (Journal* journal, const ssa::Publisher::Messages::ContainerOperationHeader& header) {
+		journal->Write(&header, sizeof(header) + header.payload_size_);
 		return journal;
     }
-
+	
+	inline friend Journal* operator<< (Journal* journal, const ssa::Publisher::Messages::LogicalOperationHeader& header) {
+		journal->Write(&header, sizeof(header) + header.payload_size_);
+		return journal;
+    }
 
 private:
 	SsaSession* session_;

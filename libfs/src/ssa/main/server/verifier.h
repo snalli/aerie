@@ -10,6 +10,12 @@ typedef int (*ActionFunction)(ssa::server::SsaSession* session, char* buf, ssa::
 class Verifier {
 public:
 	int Parse(::ssa::server::SsaSession* session, ::ssa::Publisher::Messages::BaseMessage* next);
+	
+	struct LockCertificate {
+		static int Action(ssa::server::SsaSession* session, ssa::Publisher::Messages::ContainerOperation::LockCertificate* msg) {
+			return E_SUCCESS;
+		}
+	};
 
 	ActionFunction action_[8];
 };
@@ -21,10 +27,10 @@ int Action(ssa::server::SsaSession* session,
            ssa::Publisher::Messages::ContainerOperationHeader* header) 
 {
 	ssa::server::SsaSharedBuffer* shbuf = session->shbuf_;
-	size_t                        size = sizeof(T);
-	T* physical_op_msg;
-	if (size > sizeof(*header)) {
-		shbuf->Read(&buf[sizeof(*header)], size - sizeof(*header));
+	size_t                        size = header->payload_size_;
+	T*                            physical_op_msg;
+	if (size > 0) {
+		shbuf->Read(&buf[sizeof(*header)], size);
 		physical_op_msg = T::Load(buf);
 	}
 	return A::Action(session, physical_op_msg);

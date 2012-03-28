@@ -32,16 +32,5 @@ Journal::TransactionEnd()
 }
 
 
-int
-Journal::LogicalOperation(int id)
-{
-	printf("LOGICAL_OPERATION(%d)\n", id);
-	LogicalOperationHeaderMessage header = LogicalOperationHeaderMessage(id);
-	buffer_.Write(&header, sizeof(header));
-	return E_SUCCESS;
-}
-
-
-
 } // namespace client
 } // namespace ssa

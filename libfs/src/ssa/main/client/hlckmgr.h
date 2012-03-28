@@ -149,6 +149,7 @@ public:
 	void RegisterLockCallback(HLockCallback* hcb) { hcb_ = hcb; };
 	void UnregisterLockCallback() { hcb_ = NULL; };
 
+	int LockChain(HLock* hlock, LockId lckarray[]);
 	void PrintDebugInfo();
 	unsigned int id() { return lm_->id(); }
 

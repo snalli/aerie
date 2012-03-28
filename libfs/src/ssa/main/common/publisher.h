@@ -4,6 +4,7 @@
 #include "bcs/bcs.h"
 #include "ssa/main/server/ssa-opaque.h"
 #include "ssa/main/common/obj.h"
+#include "ssa/main/common/cc.h"
 
 // All structures assume a little endian machine
 
@@ -86,22 +87,26 @@ struct Publisher::Messages::TransactionEnd: public BaseMessageT<TransactionEnd> 
 
 
 struct Publisher::Messages::LogicalOperationHeader: public BaseMessageT<LogicalOperationHeader> {
-	LogicalOperationHeader(char id)
+	LogicalOperationHeader(char id, size_t total_size)
 		: id_(id),
+		  payload_size_(total_size - sizeof(LogicalOperationHeader)),
 		  BaseMessageT<LogicalOperationHeader>(kLogicalOperation)
 	{ }
 
-	char id_; 
+	char   id_; 
+	size_t payload_size_;
 };
 
 
 struct Publisher::Messages::ContainerOperationHeader: public BaseMessageT<ContainerOperationHeader> {
-	ContainerOperationHeader(int id)
+	ContainerOperationHeader(char id, short total_size)
 		: id_(id),
+		  payload_size_(total_size - sizeof(ContainerOperationHeader)),
 		  BaseMessageT<ContainerOperationHeader>(kContainerOperation)
 	{ }
-
-	int  id_; 
+	
+	short payload_size_;
+	char  id_; 
 };
 
 
@@ -109,16 +114,18 @@ struct Publisher::Messages::ContainerOperationHeader: public BaseMessageT<Contai
 struct Publisher::Messages::ContainerOperation {
 	enum OperationCode {
 		kAllocateExtent = 1,
-		kLinkBlock
+		kLinkBlock,
+		kLockCertificate
 	};
 	struct AllocateExtent;
 	struct LinkBlock;
+	struct LockCertificate;
 };
 
 
 struct Publisher::Messages::ContainerOperation::AllocateExtent: public ContainerOperationHeader {
 	AllocateExtent()
-		: ContainerOperationHeader(kAllocateExtent)
+		: ContainerOperationHeader(kAllocateExtent, sizeof(AllocateExtent))
 	{ }
 
 	static AllocateExtent* Load(void* src) {
@@ -129,7 +136,7 @@ struct Publisher::Messages::ContainerOperation::AllocateExtent: public Container
 
 struct Publisher::Messages::ContainerOperation::LinkBlock: public ContainerOperationHeader {
 	LinkBlock(ssa::common::ObjectId oid, uint64_t bn, void* ptr)
-		: ContainerOperationHeader(kLinkBlock),
+		: ContainerOperationHeader(kLinkBlock, sizeof(LinkBlock)),
 		  oid_(oid),
 		  bn_(bn), 
 		  ptr_(ptr)
@@ -142,6 +149,20 @@ struct Publisher::Messages::ContainerOperation::LinkBlock: public ContainerOpera
 	ssa::common::ObjectId oid_;
 	uint64_t              bn_;
 	void*                 ptr_;
+};
+
+#include <stdio.h>
+
+struct Publisher::Messages::ContainerOperation::LockCertificate: public ContainerOperationHeader {
+	LockCertificate(int nlocks)
+		: ContainerOperationHeader(kLockCertificate, sizeof(LockCertificate) + nlocks*sizeof(ssa::cc::common::LockId))
+	{ }
+	
+	static LockCertificate* Load(void* src) {
+		return reinterpret_cast<LockCertificate*>(src);
+	}
+	
+	ssa::cc::common::LockId locks_[0];
 };
 
 

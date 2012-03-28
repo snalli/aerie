@@ -6,6 +6,7 @@
 #include "ssa/main/common/proxy.h"
 #include "ssa/main/client/stm.h"
 #include "ssa/main/client/session.h"
+#include "ssa/main/common/publisher.h"
 
 namespace ssa {
 
@@ -47,6 +48,26 @@ public:
 		return session->hlckmgr_->Release(hlock_);
 	}
 
+	// deprecated: this lock certificate contains just a chain of locks. 
+	// verifying the lock chain at the server side is requires looking 
+	// up whether a node is the child of another node, which is 
+	// computationally expensive if we don't provide a name or another hint
+	// to help the lookup. Relying on the name though is tricky. For example, 
+	// if there is a rename, the certificate cannot be validated.
+	void JournalLockCertificate(SsaSession* session) {
+		char*                                                     buf[128];
+		ssa::cc::common::LockId                                   lckarray[16];
+		int                                                       nlocks = session->hlckmgr_->LockChain(hlock_, lckarray);
+		Publisher::Messages::ContainerOperation::LockCertificate* certificate = new(buf) Publisher::Messages::ContainerOperation::LockCertificate(nlocks);
+
+		assert(sizeof(*certificate) + certificate->payload_size_ < 128); // otherwise we write outside buffer buf
+		if (nlocks > 0) {
+			for (int i=0; i<nlocks; i++) {
+				certificate->locks_[i] = lckarray[nlocks - i - 1];
+			}
+			session->journal() << *certificate;
+		}
+	}
 private:
 	ssa::cc::client::HLock* hlock_; // hierarchical lock
 	ssa::cc::client::Lock*  lock_;  // flat lock 

@@ -1084,6 +1084,22 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 }
 
 
+// returns the chain of locks from hlock up to a public ancestor lock
+int
+HLockManager::LockChain(HLock* hlock, LockId lckarray[]) 
+{
+	int    nlocks = 0;
+	HLock* tmp = hlock;
+	for (tmp = hlock; tmp && tmp->lock_ != NULL; tmp = tmp->parent_) {
+		lckarray[nlocks++] = tmp->lid_;
+		if (!tmp->parent_) { break;	}
+	}
+	assert(tmp);
+	
+	return nlocks;
+}
+
+
 void
 HLockManager::PrintDebugInfo()
 {
