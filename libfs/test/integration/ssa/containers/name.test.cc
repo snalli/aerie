@@ -27,7 +27,7 @@ SUITE(ContainersNameContainer)
 		NameContainer::Reference*          rw_reft;
 
 		EVENT("BeforeMapObjects");
-		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
 		
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);

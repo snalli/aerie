@@ -10,6 +10,7 @@
 #include "ssa/main/client/ssa.h"
 #include "ssa/main/client/stm.h"
 #include "ssa/main/client/salloc.h"
+#include "ssa/main/client/omgr.h"
 #include "spa/pool/pool.h"
 #include "pxfs/common/fs_protocol.h"
 #include "pxfs/mfs/client/mfs.h"
@@ -367,6 +368,12 @@ Client::Unlink(const char* pathname)
 	return global_namespace->Unlink(global_session, pathname);
 }
 
+int 
+Client::Sync()
+{
+	global_session->omgr()->CloseAllObjects(global_session, true);
+	return 0;
+}
 
 /// Check whether we can communicate with the server
 int

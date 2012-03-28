@@ -23,6 +23,7 @@ public:
 	ssa::client::StorageAllocator* salloc() { return salloc_; }
 	ssa::client::Journal* journal() { return journal_; }
 	ssa::client::StorageSystem*      stsystem() { return stsystem_; }
+	ssa::client::ObjectManager*      omgr() { return stsystem_->omgr(); };
 
 	ssa::client::StorageSystem*      stsystem_;
 	ssa::cc::client::LockManager*    lckmgr_;

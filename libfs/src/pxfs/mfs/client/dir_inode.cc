@@ -6,6 +6,7 @@
 #include "pxfs/client/session.h"
 #include "pxfs/client/const.h"
 #include "pxfs/mfs/client/inode_factory.h"
+#include "pxfs/common/publisher.h"
 
 namespace mfs {
 namespace client {
@@ -83,6 +84,8 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 	int ret; 
 
 	dbg_log (DBG_INFO, "In inode %lx, link %s to inode %lx\n", ino(), name, ip->ino());
+
+	session->journal() << Publisher::Messages::LogicalOperation::Link(ino(), name, ip->ino());
 
 	// special case: if inode oid is zero then we link to a pseudo-inode. 
 	// keep this link in the in-core state parent_

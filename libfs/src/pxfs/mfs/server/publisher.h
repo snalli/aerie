@@ -14,6 +14,7 @@ class Publisher {
 public:
 	static int Init();
 	static int Register(::ssa::server::StorageSystem* stsystem);
+	static int Link(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
 	static int Write(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
 
 private:

@@ -31,6 +31,16 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
         rendezvous = []
     ))
 
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSDirInode:TestFileWrite',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSDirInode:TestFileWrite')])
+        },
+        rendezvous = []
+    ))
+
 
     #
     # DIRECTORY INODE TESTS (MULTIPLE CLIENTS)

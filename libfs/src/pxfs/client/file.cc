@@ -2,6 +2,7 @@
 #include <iostream>
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/session.h"
+#include "pxfs/common/publisher.h"
 
 // FIXME BUG Data race: 
 //       Lookup may race with a concurrent ReleaseFile and return a 
@@ -24,6 +25,7 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 
 	pthread_mutex_lock(&mutex_);
 	session->journal()->TransactionBegin();
+	session->journal() << Publisher::Messages::LogicalOperation::Write(ip_->ino());
 	if ((ret = ip_->Write(session, const_cast<char*>(src), off_, n) > 0)) {
 		off_ += ret;
 	}

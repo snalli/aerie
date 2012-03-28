@@ -26,7 +26,6 @@ int
 FileInode::Write(::client::Session* session, char* src, uint64_t off, uint64_t n)
 {
 	int ret;
-	session->journal() << Publisher::Messages::LogicalOperation::Write(this->ino());
 	ret = rw_ref()->proxy()->interface()->Write(session, src, off, n);
 	return ret;
 }

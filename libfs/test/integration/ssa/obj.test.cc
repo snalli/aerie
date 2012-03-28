@@ -96,7 +96,7 @@ SUITE(SSA_Object)
 		DummyRWReference*                  dummy_rw_ref;
 
 		EVENT("BeforeMapObjects");
-		CHECK(MapObjects<Dummy>(session, SELF, OID) == 0);
+		CHECK(MapObjects<Dummy>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
 		
 		ssa::client::rw::ObjectManager<Dummy, DummyVersionManager>* dummy_mgr = new ssa::client::rw::ObjectManager<Dummy, DummyVersionManager>;

@@ -57,18 +57,18 @@ struct SsaFixture: public LockRegionFixture, IPCFixture {
 
 template<class T>
 int 
-MapObjects(Session* session, testfw::Test* test, ssa::common::ObjectId* oid_table)
+MapObjects(Session* session, testfw::Test* test, ssa::common::ObjectId* oid_table, int start, int n)
 {
 	char buf[128];
 
 	if (strcmp(test->Tag(), "C1:T1") == 0) {
-		for (int i=0; i<16; i++) {
+		for (int i=start; i<start+n; i++) {
 			T* optr = T::Make(session);
 			sprintf(buf, "Object_%d", i);
 			global_storage_system->registry()->Add(buf, optr->oid());
 		}
 	}
-	for (int i=0; i<16; i++) {
+	for (int i=start; i<start+n; i++) {
 		ssa::common::ObjectId oid;
 		sprintf(buf, "Object_%d", i);
 		assert(global_storage_system->registry()->Lookup(buf, &oid) == 0);

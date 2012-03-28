@@ -214,3 +214,10 @@ FRONTAPI(lseek) (int fd, off_t offset, int whence)
 	}
 	return ret;
 }
+
+
+int
+FRONTAPI(sync) ()
+{
+	return Client::Sync();
+}

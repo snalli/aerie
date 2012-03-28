@@ -11,7 +11,8 @@ namespace server {
 int
 Publisher::Register(::ssa::server::StorageSystem* stsystem)
 {
-	stsystem->publisher()->RegisterOperation(1, Publisher::Write);
+	stsystem->publisher()->RegisterOperation(::Publisher::Messages::LogicalOperation::kLink, Publisher::Link);
+	stsystem->publisher()->RegisterOperation(::Publisher::Messages::LogicalOperation::kWrite, Publisher::Write);
 	return E_SUCCESS;
 }
 
@@ -32,6 +33,24 @@ T* LoadLogicalOperation(::ssa::server::SsaSession* session, char* buf)
 }
 
 
+int
+Publisher::Link(::ssa::server::SsaSession* session, char* buf, 
+                ::ssa::Publisher::Messages::BaseMessage* next)
+{
+	int                   ret;
+	ssa::common::ObjectId oid;
+	
+	::Publisher::Messages::LogicalOperation::Link* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::Link>(session, buf);
+	
+	oid = ssa::common::ObjectId(lgc_op->parino_);
+	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
+		return ret;
+	}
+
+	return E_SUCCESS;
+}
+
+
 // buffer buf already holds the logical operation header
 int
 Publisher::Write(::ssa::server::SsaSession* session, char* buf, 
@@ -43,6 +62,7 @@ Publisher::Write(::ssa::server::SsaSession* session, char* buf,
 	::Publisher::Messages::LogicalOperation::Write* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::Write>(session, buf);
 	
 	oid = ssa::common::ObjectId(lgc_op->ino_);
+	printf("OID: %p\n", oid.u64());
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
 		return ret;
 	}

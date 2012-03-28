@@ -28,7 +28,7 @@ SUITE(SSA_STM)
 		NameContainer::Reference*          rw_reft;
 
 		EVENT("BeforeMapObjects");
-		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
 		
 		ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;
@@ -50,7 +50,7 @@ SUITE(SSA_STM)
 		NameContainer::Reference*          rw_reft;
 
 		EVENT("BeforeMapObjects");
-		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID) == 0);
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
 		
 		ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>* mgr = new ssa::client::rw::ObjectManager<NameContainer::Object, NameContainer::VersionManager>;

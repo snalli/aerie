@@ -29,5 +29,6 @@ char* FRONTAPI(getcwd) (char* path, size_t size);
 ssize_t FRONTAPI(write) (int fd, const void *buf, size_t count);
 ssize_t FRONTAPI(read) (int fd, const void *buf, size_t count);
 off_t FRONTAPI(lseek) (int fd, off_t offset, int whence);
+int FRONTAPI(sync) ();
 
 #endif /* __STAMNOS_FS_CLIENT_C_FRONT_API_H */

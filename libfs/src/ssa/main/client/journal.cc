@@ -14,7 +14,6 @@ typedef ::ssa::Publisher::Messages::ContainerOperationHeader ContainerOperationH
 int
 Journal::TransactionBegin(int id)
 {
-	printf("TRANSACTION_BEGIN\n");
 	TransactionBeginMessage tx = TransactionBeginMessage(id);
 	buffer_.Write(&tx, sizeof(tx));
 	return E_SUCCESS;
@@ -24,7 +23,6 @@ Journal::TransactionBegin(int id)
 int
 Journal::TransactionEnd()
 {
-	printf("TRANSACTION_END\n");
 	TransactionEndMessage tx = TransactionEndMessage();
 	buffer_.Write(&tx, sizeof(tx));
 	buffer_.Flush(session_->stsystem()->shbuf());

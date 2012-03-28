@@ -18,8 +18,10 @@ public:
 
 struct Publisher::Messages::LogicalOperation {
 	enum OperationCode {
-		kWrite = 1
+		kLink = 1,
+		kWrite
 	};
+	struct Link;
 	struct Write;
 };
 
@@ -35,6 +37,26 @@ struct Publisher::Messages::LogicalOperation::Write: public LogicalOperationHead
 
 	InodeNumber ino_;
 };
+
+
+struct Publisher::Messages::LogicalOperation::Link: public LogicalOperationHeader {
+	Link(InodeNumber parino, const char* name, InodeNumber childino)
+		: parino_(parino),
+		  childino_(childino),
+		  LogicalOperationHeader(kLink, sizeof(Link))
+	{ 
+		strcpy(name_, name); 
+	}
+
+	static Link* Load(void* src) {
+		return reinterpret_cast<Link*>(src);
+	}
+
+	InodeNumber parino_;
+	InodeNumber childino_;
+	char        name_[32];
+};
+
 
 
 #endif // __STAMNOS_PXFS_COMMON_PUBLISHER_H

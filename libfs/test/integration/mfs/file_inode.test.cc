@@ -10,6 +10,7 @@
 #include "ssa/containers/typeid.h"
 #include "test/integration/ssa/ssa.fixture.h"
 #include "pxfs/mfs/client/file_inode.h"
+#include "pxfs/common/publisher.h"
 #include "mfs.fixture.h"
 
 
@@ -36,7 +37,7 @@ SUITE(MFSFileInode)
 
 
 		EVENT("BeforeMapObjects");
-		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
+		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
 		
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[0], &rw_ref) == E_SUCCESS);
@@ -71,7 +72,7 @@ SUITE(MFSFileInode)
 
 
 		EVENT("BeforeMapObjects");
-		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
+		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
 		
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[0], &rw_ref) == E_SUCCESS);
@@ -106,7 +107,7 @@ SUITE(MFSFileInode)
 
 
 		EVENT("BeforeMapObjects");
-		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID) == 0);
+		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
 		
 		for (int i=0; i<8; i++) {
@@ -119,7 +120,9 @@ SUITE(MFSFileInode)
 		for (int i=7; i>=0; i--) {
 			finode[i]->Lock(session, lock_protocol::Mode::XL);
 			strcpy(buf, "WRITE");
+			// do the logical journaling ourselves because we bypass the file system interface
 			session->journal()->TransactionBegin();
+			session->journal() << Publisher::Messages::LogicalOperation::Write(finode[i]->ino());
 			finode[i]->Write(session, buf, 0, strlen(buf)+1);
 			session->journal()->TransactionEnd();
 			finode[i]->Unlock(session);

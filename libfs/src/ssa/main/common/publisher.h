@@ -151,7 +151,6 @@ struct Publisher::Messages::ContainerOperation::LinkBlock: public ContainerOpera
 	void*                 ptr_;
 };
 
-#include <stdio.h>
 
 struct Publisher::Messages::ContainerOperation::LockCertificate: public ContainerOperationHeader {
 	LockCertificate(int nlocks)

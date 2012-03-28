@@ -4,6 +4,7 @@
 #include "ssa/main/common/publisher.h"
 #include "common/errno.h"
 #include "common/util.h"
+#include "bcs/main/common/cdebug.h"
 #include "bcs/bcs.h"
 
 namespace ssa {
@@ -87,6 +88,9 @@ Publisher::Publish(SsaSession* session)
 	}
 	ret = E_SUCCESS;
 done:
+	if (ret != E_SUCCESS) {
+		dbg_log(DBG_INFO, "FAILED VALIDATION FOR CLIENT %d\n", session->clt());
+	}
 	shbuf->Release();
 	return ret;
 }
