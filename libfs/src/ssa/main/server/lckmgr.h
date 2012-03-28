@@ -97,6 +97,17 @@ public:
 	lock_protocol::status AcquireInternal(int clt, int seq, Lock* l, lock_protocol::Mode::Set mode_set, int flags, int& mode_granted);
 	lock_protocol::status ConvertInternal(int clt, int seq, Lock* l, lock_protocol::Mode mode, int flags, int& unused);
 
+	lock_protocol::Mode LockMode(int clt, lock_protocol::LockId lid) 
+	{
+		Lock* l;
+		if (locks_.find(lid) != locks_.end() && (l = locks_[lid])->gtque_.Exists(clt)) {
+			printf("%p\n", l);
+			ClientRecord* cr = l->gtque_.Find(clt);
+			return cr->mode();
+		}
+		return lock_protocol::Mode::NONE;
+	}
+
 private:
 	LockMap                                 locks_;
 	std::set<lock_protocol::LockId>         revoke_set_;

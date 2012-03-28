@@ -43,8 +43,7 @@ public:
 	}
 	
 	Object()
-		: self_(ssa::common::ObjectId(0)),
-		  parent_(ssa::common::ObjectId(0))
+		: self_(ssa::common::ObjectId(0))
 	{ 
 		set_type(T_NAME_CONTAINER);
 	}
@@ -61,7 +60,6 @@ private:
 	}
 
 	ssa::common::ObjectId  self_;    // entry '.'
-	ssa::common::ObjectId  parent_;  // entry '..'
 	HashTable<Session>     ht_;      // entries
 };
 

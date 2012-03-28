@@ -92,8 +92,13 @@ struct ObjectIdHashFcn {
 
 class Object {
 public:
+	static Object* Load(ObjectId oid) {
+		return static_cast<Object*>(oid.addr());
+	}
+
 	Object()
 		: type_(0),
+		  parent_(ObjectId(0)),
 		  nlink_(0)
 	{ }
 
@@ -109,6 +114,14 @@ public:
 		type_ = type;
 	}
 
+	void set_parent(ObjectId oid) {
+		parent_ = oid;
+	}
+	
+	ObjectId parent() {
+		return parent_;
+	}
+
 	int nlink() {
 		return nlink_;
 	}
@@ -118,8 +131,9 @@ public:
 	}
 
 protected:
-	ObjectType type_;  //!< Magic number identifying object type
-	int        nlink_; //!< Number of containers linking to this container
+	ObjectType type_;   //!< Magic number identifying object type
+	int        nlink_;  //!< Number of containers linking to this container
+	ObjectId   parent_; //!< Parent container. Valid only when nlink_ == 1
 };
 
 

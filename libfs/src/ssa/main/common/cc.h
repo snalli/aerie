@@ -37,6 +37,10 @@ public:
 		return u64_ & ((1LLU << LOCK_NUMBER_LEN_LOG2) - 1);
 	}
 
+	uint64_t u64() const { 
+		return u64_;
+	}
+
 	bool operator==(const LockId& other) const {
 		return (u64_ == other.u64_);
 	}

@@ -27,7 +27,7 @@ HLockManager::HLockManager(::server::Ipc* ipc)
 int
 HLockManager::Init()
 {
-	dbg_log(DBG_INFO, "Initializing Hierachical Lock Manager\n");
+	dbg_log(DBG_INFO, "Initializing Hierachical Lock Manager: %p\n", this);
 
 	pthread_mutex_init(&mutex_, NULL);
 

@@ -2,6 +2,7 @@
 #include "ssa/main/server/stsystem.h"
 #include "ssa/main/server/session.h"
 #include "ssa/main/server/shbuf.h"
+#include "ssa/main/server/verifier.h"
 #include "ssa/containers/byte/verifier.h"
 #include "common/errno.h"
 
@@ -36,8 +37,15 @@ int
 Publisher::Write(::ssa::server::SsaSession* session, char* buf, 
                  ::ssa::Publisher::Messages::BaseMessage* next)
 {
-	::Publisher::Messages::LogicalOperation::Write* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::Write>(session, buf);
+	int                   ret;
+	ssa::common::ObjectId oid;
 
+	::Publisher::Messages::LogicalOperation::Write* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::Write>(session, buf);
+	
+	oid = ssa::common::ObjectId(lgc_op->ino_);
+	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
+		return ret;
+	}
 	return write_verifier_->Parse(session, next);
 }
 
@@ -45,11 +53,13 @@ Publisher::Write(::ssa::server::SsaSession* session, char* buf,
 int
 Publisher::Init()
 {
+	lock_verifier_ = new LockVerifier();
 	write_verifier_ = new WriteVerifier();
 	return E_SUCCESS;
 }
 
 
 WriteVerifier* Publisher::write_verifier_ = NULL;
+LockVerifier*  Publisher::lock_verifier_ = NULL;
 
 } // namespace server

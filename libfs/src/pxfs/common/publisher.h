@@ -24,8 +24,8 @@ struct Publisher::Messages::LogicalOperation {
 };
 
 struct Publisher::Messages::LogicalOperation::Write: public LogicalOperationHeader {
-	Write(InodeNumber)
-		: i_(0),
+	Write(InodeNumber ino)
+		: ino_(ino),
 		  LogicalOperationHeader(kWrite, sizeof(Write))
 	{ }
 
@@ -33,7 +33,7 @@ struct Publisher::Messages::LogicalOperation::Write: public LogicalOperationHead
 		return reinterpret_cast<Write*>(src);
 	}
 
-	int i_;
+	InodeNumber ino_;
 };
 
 

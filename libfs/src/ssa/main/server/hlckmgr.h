@@ -26,6 +26,10 @@ public:
 	lock_protocol::status Acquire(int clt, int seq, unsigned long long lid_u64, int mode_set, int flags, unsigned long long arg, int& mode_granted);
 	lock_protocol::status Convert(int clt, int seq, unsigned long long lid_u64, int mode, int flags, int& unused);
 	lock_protocol::status Release(int clt, int seq, unsigned long long lid_u64, int flags, int& unused);
+	
+	lock_protocol::Mode LockMode(int clt, lock_protocol::LockId lid) {
+		return lm_->LockMode(clt, lid);
+	}
 
 private:
 	::server::Ipc*  ipc_;

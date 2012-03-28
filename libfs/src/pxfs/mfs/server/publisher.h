@@ -4,9 +4,11 @@
 #include "ssa/main/server/ssa-opaque.h"
 #include "pxfs/common/publisher.h"
 
+
 namespace server {
 
 class WriteVerifier;
+class LockVerifier;
 
 class Publisher {
 public:
@@ -16,6 +18,7 @@ public:
 
 private:
 	static WriteVerifier* write_verifier_;
+	static LockVerifier*  lock_verifier_;
 };
 
 

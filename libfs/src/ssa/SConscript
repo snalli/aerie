@@ -34,6 +34,7 @@ srv_lib_sources = [
                    'main/server/salloc.cc',
                    'main/server/shbuf.cc',
                    'main/server/session.cc',
+                   'main/server/verifier.cc',
                    'containers/name/container-server.cc',
                   ]
 

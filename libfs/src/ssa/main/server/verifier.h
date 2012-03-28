@@ -5,21 +5,11 @@
 #ifndef __STAMNOS_SSA_SERVER_CONTAINER_VERIFIER_H
 #define __STAMNOS_SSA_SERVER_CONTAINER_VERIFIER_H
 
+#include "ssa/main/common/obj.h"
+#include "ssa/main/server/session.h"
+#include "ssa/main/common/publisher.h"
+
 typedef int (*ActionFunction)(ssa::server::SsaSession* session, char* buf, ssa::Publisher::Messages::ContainerOperationHeader*);
-
-class Verifier {
-public:
-	int Parse(::ssa::server::SsaSession* session, ::ssa::Publisher::Messages::BaseMessage* next);
-	
-	struct LockCertificate {
-		static int Action(ssa::server::SsaSession* session, ssa::Publisher::Messages::ContainerOperation::LockCertificate* msg) {
-			return E_SUCCESS;
-		}
-	};
-
-	ActionFunction action_[8];
-};
-
 
 template<typename T, typename A>
 int Action(ssa::server::SsaSession* session, 
@@ -35,6 +25,31 @@ int Action(ssa::server::SsaSession* session,
 	}
 	return A::Action(session, physical_op_msg);
 };
+
+
+namespace server {
+
+
+class Verifier {
+public:
+	int Parse(::ssa::server::SsaSession* session, ::ssa::Publisher::Messages::BaseMessage* next);
+	
+	struct LockCertificate {
+		static int Action(ssa::server::SsaSession* session, ssa::Publisher::Messages::ContainerOperation::LockCertificate* msg) {
+			return E_SUCCESS;
+		}
+	};
+
+	ActionFunction action_[8];
+};
+
+
+class LockVerifier {
+public:
+	int VerifyLock(::ssa::server::SsaSession* session, ssa::common::ObjectId oid);
+
+};
+
 
 
 int
@@ -68,5 +83,6 @@ Verifier::Parse(::ssa::server::SsaSession* session,
     action_[ssa::Publisher::Messages::ContainerOperation::k##__physical_op] =                \
         Action<ssa::Publisher::Messages::ContainerOperation::__physical_op, __physical_op>;
 
+} // namespace server
 
 #endif // __STAMNOS_SSA_SERVER_CONTAINER_VERIFIER_H
