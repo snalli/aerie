@@ -267,6 +267,9 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		// along the chain from root to cwd. the lock manager should detect this
 		// case and bootstrap. use LockInode?
 		// idup(cwd_inode)
+		// TODO: 
+		// try to acquire the cached lock. if we can't then we bootstrap
+		// by calling LockInodeReverse to acquire locks in the reverse order 
 		assert(0 && "TODO");
 	}
 
