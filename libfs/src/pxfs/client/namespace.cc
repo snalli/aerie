@@ -371,7 +371,7 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 
 	dbg_log (DBG_INFO, "Link: %s -> %s\n", oldpath, newpath);
 
-	if ((ret = global_namespace->Namei(session, pathname, lock_protocol::Mode::XL, 
+	if ((ret = global_namespace->Namei(session, oldpath, lock_protocol::Mode::XL, 
 	                                   &ip)) < 0) 
 	{
 		return ret;
@@ -385,7 +385,7 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 	assert(ip->set_nlink(ip->nlink() + 1) == 0);
 	ip->Unlock(session);
 	
-	if ((ret = global_namespace->Nameiparent(session, pathname, lock_protocol::Mode::XL, 
+	if ((ret = global_namespace->Nameiparent(session, newpath, lock_protocol::Mode::XL, 
 	                                         name, &dp)) < 0) 
 	{
 		goto bad;
@@ -399,7 +399,7 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 bad:
 	//FIXME: re-lock
 	assert(ip->set_nlink(ip->nlink() - 1) == 0);
-	return ret
+	return ret;
 }
 
 
