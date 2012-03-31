@@ -23,10 +23,8 @@
 
 
 //TODO: pathname resolution against current working directory, chdir
-//TODO: integrate LockInode
 //TODO: directory operations update object version
-//TODO: port rename
-//TODO: test rename
+//TODO: port and test rename
 
 // LOCK PROTOCOL
 // 
@@ -366,45 +364,42 @@ NameSpace::Namei(Session* session, const char* path, lock_protocol::Mode lock_mo
 int
 NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	char          name[128];
+	Inode*        dp;
+	Inode*        ip;
+	int           ret;
 
-	//session->journal() << Publisher::Messages::LogicalOperation::Link(ino(), name, ip->ino());
-/*
-  char name[DIRSIZ], *new, *old;
-  struct inode *dp, *ip;
+	dbg_log (DBG_INFO, "Link: %s -> %s\n", oldpath, newpath);
 
-  if(argstr(0, &old) < 0 || argstr(1, &new) < 0)
-    return -1;
-  if((ip = namei(old)) == 0)
-    return -1;
-  ilock(ip);
-  if(ip->type == T_DIR){
-    iunlockput(ip);
-    return -1;
-  }
-  ip->nlink++;
-  iupdate(ip);
-  iunlock(ip);
+	if ((ret = global_namespace->Namei(session, pathname, lock_protocol::Mode::XL, 
+	                                   &ip)) < 0) 
+	{
+		return ret;
+	}
+	if (ip->type() == kDirInode) {
+		ip->Put();
+		ip->Unlock(session);
+		return -E_INVAL;
+	}
 
-  if((dp = nameiparent(new, name)) == 0)
-    goto bad;
-  ilock(dp);
-  if(dp->dev != ip->dev || dirlink(dp, name, ip->inum) < 0){
-    iunlockput(dp);
-    goto bad;
-  }
-  iunlockput(dp);
-  iput(ip);
-  return 0;
+	assert(ip->set_nlink(ip->nlink() + 1) == 0);
+	ip->Unlock(session);
+	
+	if ((ret = global_namespace->Nameiparent(session, pathname, lock_protocol::Mode::XL, 
+	                                         name, &dp)) < 0) 
+	{
+		goto bad;
+	}
+
+	assert(dp->Link(session, name, ip, false) == 0);
+
+	session->journal() << Publisher::Messages::LogicalOperation::Link(dp->ino(), name, ip->ino());
+	return 0;
 
 bad:
-  ilock(ip);
-  ip->nlink--;
-  iupdate(ip);
-  iunlockput(ip);
-  return -1;
-}
-*/
+	//FIXME: re-lock
+	assert(ip->set_nlink(ip->nlink() - 1) == 0);
+	return ret
 }
 
 
@@ -414,7 +409,6 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	char          name[128];
 	Inode*        dp;
 	Inode*        ip;
-	SuperBlock*   sb;
 	int           ret;
 
 	dbg_log (DBG_INFO, "Unlink: %s\n", pathname);	
