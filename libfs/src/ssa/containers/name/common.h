@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <typeinfo>
 #include "ssa/containers/assoc/hashtable.h"
-#include "ssa/containers/const.h"
+#include "ssa/containers/containers.h"
 #include "ssa/main/client/salloc.h"
 #include "ssa/main/common/obj.h"
 #include "bcs/main/common/cdebug.h"
@@ -28,7 +28,7 @@ public:
 	static Object* Make(Session* session) {
 		ssa::common::ObjectId oid;
 		
-		if (session->salloc_->AllocateContainer(session, T_NAME_CONTAINER, &oid) < 0) {
+		if (session->salloc()->AllocateContainer(session, T_NAME_CONTAINER, &oid) < 0) {
 			dbg_log(DBG_ERROR, "No storage available\n");
 		}
 		return Load(oid);

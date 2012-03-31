@@ -865,7 +865,6 @@ HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 		        id(), tid, tid, lid.c_str());
 		r = lock_protocol::NOENT;
 	}
-
 	return r;
 }
 
@@ -981,22 +980,33 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 	release_set.clear();
 	assert(DowngradePublicLockRecursive(hlock, new_mode, &release_set) == 0);
 	
+	// prepare locks for downgrade(release/convert), then call any pre-downgrade callbacks,
+	// and finally downgrade locks.
+	for (itr = release_set.begin(); itr != release_set.end(); itr++) {
+		HLock*              hl = itr->hlock_;
+		lock_protocol::Mode new_mode = itr->mode_;
+		if (new_mode == lock_protocol::Mode::NL) {
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+				    "[%d] Preparing hierarchical lock %s for revocation\n", id(), hl->lid_.c_str()); 
+			// if lock is LOCKED then wait to be released. 
+			// may need to abort any other dependent lock requests to avoid deadlock?
+			pthread_mutex_lock(&hl->mutex_);
+			hl->WaitStatus(HLock::CONVERTING);
+			pthread_mutex_unlock(&hl->mutex_);
+		}
+	}
+
 	if (hcb_) {
 		hcb_->PreDowngrade();
 	}
 	
-	// downgrade locks
+	// downgrade/convert locks
 	for (itr = release_set.begin(); itr != release_set.end(); itr++) {
 		HLock*              hl = itr->hlock_;
 		lock_protocol::Mode new_mode = itr->mode_;
 		if (new_mode == lock_protocol::Mode::NL) {
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 				    "[%d] Revoking hierarchical lock %s\n", id(), hl->lid_.c_str()); 
-			// if lock is LOCKED then wait to be released. 
-			// may need to abort any other dependent lock requests to avoid deadlock?
-			pthread_mutex_lock(&hl->mutex_);
-			hl->WaitStatus(HLock::CONVERTING);
-			pthread_mutex_unlock(&hl->mutex_);
 			if (hcb_) {
 				hcb_->OnRelease(hl);
 			}
@@ -1007,7 +1017,7 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 			hl->ancestor_recursive_mode_ = lock_protocol::Mode::NL;
 			hl->lock_ = NULL;
 			hl->parent_ = NULL;
-			hl->set_status(HLock::NONE); // I should have called EndConverting but it
+			hl->set_status(HLock::NONE); // I should call EndConverting instead but it
 			                             // cannot set status to NONE
 		} else {
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 

@@ -20,6 +20,7 @@
     ACTION(E_IPC, "Interprocess communication error")                        \
     ACTION(E_UNKNOWNFS, "Unknown file system type")                          \
     ACTION(E_ERRNO, "Standard C library error; check errno for details")     \
+    ACTION(E_VRFY, "Verification error")                                     \
 
 
 #ifdef __ENUM_MEMBER

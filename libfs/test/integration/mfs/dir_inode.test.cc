@@ -40,17 +40,17 @@ SUITE(MFSDirInode)
 		/* foo */
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[2], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
-		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "foo", cinode->ino());
+		session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dinode->ino(), "foo", cinode->ino());
 		CHECK(dinode->Link(session, "foo", cinode, false) == 0);
 		/* bar */
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[3], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
-		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "bar", cinode->ino());
+		session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dinode->ino(), "bar", cinode->ino());
 		CHECK(dinode->Link(session, "bar", cinode, false) == 0);
 		/* doc */
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[4], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
-		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "doc", cinode->ino());
+		session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dinode->ino(), "doc", cinode->ino());
 		CHECK(dinode->Link(session, "doc", cinode, false) == 0);
 	}
 
@@ -68,7 +68,7 @@ SUITE(MFSDirInode)
 		}
 	}
 
-
+	// no publish; we just check whether the local functionality works
 	TEST_FIXTURE(SsaFixture, TestLink)
 	{
 		::client::Inode*                   inode;
@@ -84,9 +84,8 @@ SUITE(MFSDirInode)
 		dinode = new ::mfs::client::DirInode(rw_ref);
 		
 		dinode->Lock(session, lock_protocol::Mode::XL);
-		InitDirectoryInode(session, dinode);
 		
-		session->journal()->TransactionBegin();
+		InitDirectoryInode(session, dinode);
 		
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
@@ -94,16 +93,16 @@ SUITE(MFSDirInode)
 
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
-		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "media", cinode->ino());
 		CHECK(dinode->Link(session, "media", cinode, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
 		
-		session->journal()->TransactionCommit();
 		dinode->Unlock(session);
+		libfs_sync();
 	}
 
 
-	TEST_FIXTURE(MFSFixture, TestUnlink)
+	// no publish; we just check whether the local functionality works
+	TEST_FIXTURE(SsaFixture, TestUnlink)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -124,14 +123,11 @@ SUITE(MFSDirInode)
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
 
-		session->journal() << Publisher::Messages::LogicalOperation::Unlink(dinode->ino(), "foo");
 		CHECK(dinode->Unlink(session, "foo") == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) != E_SUCCESS);
 
-
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
-		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "foo", cinode->ino());
 		CHECK(dinode->Link(session, "foo", cinode, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		
@@ -139,7 +135,42 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(MFSFixture, TestLink1_publisher)
+	TEST_FIXTURE(SsaFixture, TestMakeDir)
+	{
+		::client::Inode*                   inode;
+		ssa::common::ObjectProxyReference* rw_ref;
+		NameContainer::Reference*          rw_reft;
+		::mfs::client::DirInode*           dinode;
+		::mfs::client::DirInode*           cinode;
+
+		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
+		
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<NameContainer::Reference*>(rw_ref);
+		dinode = new ::mfs::client::DirInode(rw_ref);
+		
+		dinode->Lock(session, lock_protocol::Mode::XL);
+		
+		session->journal()->TransactionBegin();
+		InitDirectoryInode(session, dinode);
+		
+		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
+
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
+		cinode = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dinode->ino(), "media", cinode->ino());
+		CHECK(dinode->Link(session, "media", cinode, false) == E_SUCCESS);
+		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
+		
+		session->journal()->TransactionCommit();
+		dinode->Unlock(session);
+		libfs_sync();
+	}
+
+
+	TEST_FIXTURE(SsaFixture, TestMakeDir1_publisher)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -158,6 +189,7 @@ SUITE(MFSDirInode)
 		EVENT("BeforeLock");
 		dinode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
+		session->journal()->TransactionBegin();
 		InitDirectoryInode(session, dinode);
 
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
@@ -166,9 +198,10 @@ SUITE(MFSDirInode)
 		
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		child1 = new ::mfs::client::DirInode(rw_ref);
-		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "media", child1->ino());
+		session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dinode->ino(), "media", child1->ino());
 		CHECK(dinode->Link(session, "media", child1, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
+		session->journal()->TransactionCommit();
 		
 		dinode->Unlock(session);
 		EVENT("AfterUnlock");
@@ -176,7 +209,7 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(MFSFixture, TestLink1_consumer)
+	TEST_FIXTURE(SsaFixture, TestMakeDir1_consumer)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
@@ -205,18 +238,14 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(MFSFixture, TestLink2_publisher)
+	TEST_FIXTURE(SsaFixture, TestMakeDir2_publisher)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           child1;
-
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+	
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
@@ -229,18 +258,22 @@ SUITE(MFSDirInode)
 		EVENT("BeforeLock");
 		dinode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
+		session->journal()->TransactionBegin();
 		InitDirectoryInode(session, dinode);
-
+		
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
 		
+		session->journal() << Publisher::Messages::LogicalOperation::Unlink(dinode->ino(), "foo");
 		CHECK(dinode->Unlink(session, "foo") == E_SUCCESS);
 
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		child1 = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dinode->ino(), "foo", child1->ino());
 		CHECK(dinode->Link(session, "foo", child1, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
+		session->journal()->TransactionCommit();
 		
 		dinode->Unlock(session);
 		EVENT("AfterUnlock");
@@ -248,17 +281,13 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(MFSFixture, TestLink2_consumer)
+	TEST_FIXTURE(SsaFixture, TestMakeDir2_consumer)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
@@ -281,18 +310,13 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(MFSFixture, TestUnlink1_publisher)
+	TEST_FIXTURE(SsaFixture, TestUnlink1_publisher)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           child1;
-
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
@@ -305,30 +329,28 @@ SUITE(MFSDirInode)
 		EVENT("BeforeLock");
 		dinode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
+		session->journal()->TransactionBegin();
 		InitDirectoryInode(session, dinode);
 
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
 		
+		session->journal() << Publisher::Messages::LogicalOperation::Unlink(dinode->ino(), "foo");
 		CHECK(dinode->Unlink(session, "foo") == E_SUCCESS);
 		
+		session->journal()->TransactionCommit();
 		dinode->Unlock(session);
 		EVENT("AfterUnlock");
 		EVENT("End");
 	}
 
-	TEST_FIXTURE(MFSFixture, TestUnlink1_consumer)
+	TEST_FIXTURE(SsaFixture, TestUnlink1_consumer)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
-
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
@@ -344,7 +366,11 @@ SUITE(MFSDirInode)
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) != E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
-		
+
+		// check internal consistency of the persistent object of dinode
+		NameContainer::Object* obj = NameContainer::Object::Load(OID[1]);
+		CHECK(obj->nlink() == 2);
+
 		dinode->Unlock(session);
 		EVENT("AfterUnlock");
 		EVENT("End");

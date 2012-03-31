@@ -10,6 +10,15 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     # DIRECTORY INODE TESTS (SINGLE CLIENT)
     #
 
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSDirInode:TestMakeDir',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSDirInode:TestMakeDir')])
+        },
+        rendezvous = []
+    ))
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
         name = 'MFSDirInode:TestLink',
@@ -48,12 +57,12 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'MFSDirInode:TestLinkConcurrent1',
+        name = 'MFSDirInode:TestMakeDirConcurrent1',
         init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
-            'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink1_publisher')]),
-            'C2': ( testProgram, [('T1', 'MFSDirInode:TestLink1_consumer')])
+            'C1': ( testProgram, [('T1', 'MFSDirInode:TestMakeDir1_publisher')]),
+            'C2': ( testProgram, [('T1', 'MFSDirInode:TestMakeDir1_consumer')])
         },
         rendezvous = [
                       ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
@@ -64,12 +73,12 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
 
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
-        name = 'MFSDirInode:TestLinkConcurrent2',
+        name = 'MFSDirInode:TestMakeDirConcurrent2',
         init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
-            'C1': ( testProgram, [('T1', 'MFSDirInode:TestLink2_publisher')]),
-            'C2': ( testProgram, [('T1', 'MFSDirInode:TestLink2_consumer')])
+            'C1': ( testProgram, [('T1', 'MFSDirInode:TestMakeDir2_publisher')]),
+            'C2': ( testProgram, [('T1', 'MFSDirInode:TestMakeDir2_consumer')])
         },
         rendezvous = [
                       ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),

@@ -8,7 +8,6 @@
 #include "ssa/main/client/rwproxy.h"
 #include "ssa/main/client/omgr.h"
 #include "ssa/containers/name/container.h"
-#include "ssa/containers/typeid.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "test/integration/ssa/ssa.fixture.h"

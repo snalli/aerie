@@ -75,7 +75,7 @@ Verifier::Parse(::ssa::server::SsaSession* session,
 		printf("PHYSICAL_OPERATION: %d\n", header->id_);
 		action_[header->id_](session, buf, header);
 	}
-	return E_SUCCESS;
+	return 1; /* thre is one next message  */
 }
 
 

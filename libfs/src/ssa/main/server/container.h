@@ -7,6 +7,9 @@
 namespace ssa {
 namespace server {
 
+
+// For use when type is not known at static time but provided during runtime
+
 class ContainerAbstractFactory {
 public:
 	virtual ::ssa::common::Object* Make(::ssa::server::SsaSession* session, char* b) = 0;

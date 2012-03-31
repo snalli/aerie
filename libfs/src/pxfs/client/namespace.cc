@@ -462,10 +462,10 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	assert(dp->Unlink(session, name) == E_SUCCESS);
 	//FIXME: inode link/unlink should take care of the nlink
 	if (ip->type() == kDirInode) {
-		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's ..
+		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's backlink ..
 	}
 
-	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for child's ..
+	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for parent's forward link
 	//FIXME: who deallocates the inode if nlink == 0 ???
 	
 	dp->Put();

@@ -5,6 +5,7 @@
 #include "ssa/containers/byte/container.h"
 #include "ssa/main/common/obj.h"
 #include "pxfs/server/const.h"
+#include "pxfs/server/session.h"
 #include "pxfs/common/types.h"
 
 namespace server {
@@ -18,7 +19,8 @@ public:
 	
 	Inode(InodeNumber ino, int type)
 		: ino_(ino),
-		  type_(type)
+		  type_(type),
+		  oid_(ssa::common::ObjectId(ino))
 	{ }
 	
 	static int type(InodeNumber ino) {
@@ -33,8 +35,11 @@ public:
 		return -1;
 	}
 
-	InodeNumber ino_;
-	int         type_;
+	ssa::common::ObjectId oid() { return oid_; }
+
+	ssa::common::ObjectId oid_;
+	InodeNumber           ino_;
+	int                   type_;
 };
 
 
@@ -48,11 +53,11 @@ public:
 		: Inode(ino, type)
 	{ }
 
-	// construct inode into ip
-	static T* Make(T* ip, InodeNumber ino) {
-		ssa::common::ObjectId oid;
+	// construct inode over existing persistent persistent object into ip
+	static T* Load(Session* session, InodeNumber ino, T* ip) {
 		return new(ip) T(ino);
 	}
+	
 };
 
 

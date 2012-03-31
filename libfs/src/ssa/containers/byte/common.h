@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <typeinfo>
 #include "ssa/containers/radix/radixtree.h"
-#include "ssa/containers/const.h"
+#include "ssa/containers/containers.h"
 #include "ssa/main/common/obj.h"
 #include "ssa/main/common/const.h"
 #include "spa/const.h"
@@ -43,7 +43,7 @@ public:
 	static Object* Make(Session* session) {
 		ssa::common::ObjectId oid;
 		
-		if (session->salloc_->AllocateContainer(session, T_BYTE_CONTAINER, &oid) < 0) {
+		if (session->salloc()->AllocateContainer(session, T_BYTE_CONTAINER, &oid) < 0) {
 			dbg_log(DBG_ERROR, "No storage available\n");
 		}
 		return Load(oid);

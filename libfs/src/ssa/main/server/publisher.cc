@@ -65,6 +65,7 @@ Publisher::Publish(SsaSession* session)
 				break;
 			} 
 			if (msg->type_ == ssa::Publisher::Messages::kTransactionCommit) {
+				printf("DONE\n");
 				break;
 			} 
 			if (msg->type_ == ssa::Publisher::Messages::kLogicalOperation) {
@@ -80,8 +81,12 @@ Publisher::Publish(SsaSession* session)
 					if ((ret = lgc_op(session, buf, &next)) < 0) {
 						goto done;
 					}
-					msg = &next;
-					continue;
+					// check whether the logical operation handler read one message ahead
+					if (ret > 0) {
+						msg = &next;
+						continue;
+					}
+					break;
 				}
 			}
 		}

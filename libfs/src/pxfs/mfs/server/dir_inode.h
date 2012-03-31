@@ -6,7 +6,8 @@
 
 namespace server {
 
-class Session; // forward declaration
+class Session;   // forward declaration
+class FileInode; // forward declaration
 
 class DirInode: public InodeT<DirInode> {
 public:
@@ -15,11 +16,27 @@ public:
 	{ }
 
 	DirInode(InodeNumber ino)
-		: InodeT(ino, kDirInode)
-	{ }
+		: InodeT<DirInode>(ino, kDirInode)
+	{ 
+		ssa::common::ObjectId oid(ino);
+		obj_ = ssa::containers::server::NameContainer::Object::Load(oid);
+	}
+
+	// mark persistent object address by ino as allocated and construct inode into ip
+	static DirInode* Make(Session* session, InodeNumber ino, DirInode* ip) {
+		return new(ip) DirInode(ino);
+	}
+
 
 	int Link(Session* session, const char* name, uint64_t ino);
+	int Link(Session* session, const char* name, DirInode* child);
+	int Link(Session* session, const char* name, FileInode* child);
+	int Lookup(Session* session, const char* name, InodeNumber* ino);
+	int Unlink(Session* session, const char* name);
 
+	ssa::containers::server::NameContainer::Object* obj() { return obj_; }
+	
+	ssa::containers::server::NameContainer::Object* obj_;
 };
 
 } // namespace server

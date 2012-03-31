@@ -19,10 +19,14 @@ public:
 
 struct Publisher::Messages::LogicalOperation {
 	enum OperationCode {
-		kLink = 1,
+		kMakeFile = 1,
+		kMakeDir,
+		kLink,
 		kUnlink,
 		kWrite
 	};
+	struct MakeFile;
+	struct MakeDir;
 	struct Link;
 	struct Unlink;
 	struct Write;
@@ -36,6 +40,36 @@ struct Publisher::Messages::LogicalOperation::Write: public ssa::Publisher::Mess
 	{ }
 
 	InodeNumber ino_;
+};
+
+
+struct Publisher::Messages::LogicalOperation::MakeFile: public ssa::Publisher::Messages::LogicalOperationHeaderT<MakeFile> {
+	MakeFile(InodeNumber parino, const char* name, InodeNumber childino)
+		: parino_(parino),
+		  childino_(childino),
+		  ssa::Publisher::Messages::LogicalOperationHeaderT<MakeFile>(kMakeFile, sizeof(MakeFile))
+	{ 
+		strcpy(name_, name); 
+	}
+
+	InodeNumber parino_;
+	InodeNumber childino_;
+	char        name_[32];
+};
+
+
+struct Publisher::Messages::LogicalOperation::MakeDir: public ssa::Publisher::Messages::LogicalOperationHeaderT<MakeDir> {
+	MakeDir(InodeNumber parino, const char* name, InodeNumber childino)
+		: parino_(parino),
+		  childino_(childino),
+		  ssa::Publisher::Messages::LogicalOperationHeaderT<MakeDir>(kMakeDir, sizeof(MakeDir))
+	{ 
+		strcpy(name_, name); 
+	}
+
+	InodeNumber parino_;
+	InodeNumber childino_;
+	char        name_[32];
 };
 
 

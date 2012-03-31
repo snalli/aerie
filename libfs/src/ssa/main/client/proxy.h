@@ -144,8 +144,6 @@ public:
 	}
 	
 	int vUpdate(SsaSession* session) {
-		//FIXME: updates must go to the journal and done by the server
-		object_->set_nlink(nlink_);
 		//FIXME: version counter must be updated by the server
 		object_->ccSetVersion(object_->ccVersion() + 1);
 		return 0;

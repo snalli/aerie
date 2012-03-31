@@ -188,14 +188,14 @@ public:
 		return 0;
 	}	
 
-	void* operator new(size_t nbytes, Session* session)
+	static Page* Make(Session* session)
 	{
 		void* ptr;
 		
-		if (session->salloc_->Alloc(session, nbytes, typeid(Page), &ptr) < 0) {
+		if (session->salloc()->AllocateExtent(session, sizeof(Page), 0, &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
-		return ptr;
+		return new(ptr) Page();
 	}
 
 
@@ -660,7 +660,7 @@ Bucket<Session>::Insert(Session* session, const char* key, int key_size,
 
 	// No page had space. Insert the KV pair in a new page.
 	
-	page = new(session) Page<Session>;
+	page = Page<Session>::Make(session);
 	page->Insert(session, key, key_size, val, val_size);
 	last_page->set_next(page);
 
@@ -738,10 +738,9 @@ dosplit:
 		ret=page->Split(session, splitover_page, split_predicate);
 		if (ret==-E_NOMEM) {
 			if ((new_page=splitover_page->Next()) == 0x0) {
-				//FIXME: allocate new page from chunk descriptor, not new/malloc
 				//FIXME: protect against cycle-loop resulting from infinite splits. 
 				//       is this possible? shouldn't splits converge?
-				new_page = new(session) Page<Session>;
+				new_page = Page<Session>::Make(session);
 				splitover_page->set_next(new_page);
 			}
 			splitover_page = new_page;
@@ -779,16 +778,15 @@ public:
 		: split_idx_(0),
 		  size_log2_(5),
 		  ncount_(0)
-	{ 
-	}
+	{ }
 
-	void* operator new(size_t nbytes, Session* session)
+	static HashTable* Make(Session* session)
 	{
 		void* ptr;
-		if (session->salloc_->Alloc(session, nbytes, typeid(HashTable), &ptr) < 0) {
+		if (session->salloc()->AllocateExtent(session, sizeof(HashTable), 0, &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}
-		return ptr;
+		return new(ptr) HashTable();
 	}
 
 	int Init();

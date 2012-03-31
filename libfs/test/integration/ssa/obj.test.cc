@@ -9,7 +9,7 @@
 #include "ssa/main/client/omgr.h"
 #include "ssa/main/client/salloc.h"
 #include "ssa/main/common/const.h"
-#include "ssa/containers/typeid.h"
+#include "ssa/containers/containers.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "ssa.fixture.h"
