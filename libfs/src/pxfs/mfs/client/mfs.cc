@@ -1,8 +1,6 @@
 #include "pxfs/client/backend.h"
-#include "pxfs/mfs/mfs_i.h"
 #include "pxfs/mfs/client/sb_factory.h"
 #include "pxfs/mfs/client/inode_factory.h"
-#include "pxfs/mfs/const.h"
 
 namespace mfs {
 namespace client {

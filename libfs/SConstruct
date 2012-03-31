@@ -48,6 +48,12 @@ AddOption('--test-filter',
 	metavar='NAME',
 	help='a regular expression used to match tests to run')
 
+AddOption('--test-name',
+	action="store", dest='test_name',
+	type='string',
+	metavar='NAME',
+	help='the name of the test to run')
+
 AddOption('--test-extra-args',
 	dest='test_extra_args',
 	type='string',
@@ -59,6 +65,7 @@ AddOption('--test-extra-args',
 
 mainEnv['TEST_ATTACH_GDB'] = GetOption('test_attach_gdb')
 mainEnv['TEST_FILTER'] = GetOption('test_filter')
+mainEnv['TEST_NAME'] = GetOption('test_name')
 mainEnv['TEST_STDOUT'] = GetOption('test_stdout')
 mainEnv['TEST_STDERR'] = GetOption('test_stderr')
 mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')

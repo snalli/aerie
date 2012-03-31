@@ -7,7 +7,6 @@
 #include "ssa/main/client/rwproxy.h"
 #include "ssa/main/client/omgr.h"
 #include "ssa/containers/byte/container.h"
-#include "ssa/containers/typeid.h"
 #include "test/integration/ssa/ssa.fixture.h"
 #include "pxfs/mfs/client/file_inode.h"
 #include "pxfs/common/publisher.h"
@@ -124,7 +123,7 @@ SUITE(MFSFileInode)
 			session->journal()->TransactionBegin();
 			session->journal() << Publisher::Messages::LogicalOperation::Write(finode[i]->ino());
 			finode[i]->Write(session, buf, 0, strlen(buf)+1);
-			session->journal()->TransactionEnd();
+			session->journal()->TransactionCommit();
 			finode[i]->Unlock(session);
 		}
 		EVENT("AfterUnlock");

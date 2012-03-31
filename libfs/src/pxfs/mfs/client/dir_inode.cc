@@ -85,7 +85,6 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 
 	dbg_log (DBG_INFO, "In inode %lx, link %s to inode %lx\n", ino(), name, ip->ino());
 
-	session->journal() << Publisher::Messages::LogicalOperation::Link(ino(), name, ip->ino());
 
 	// special case: if inode oid is zero then we link to a pseudo-inode. 
 	// keep this link in the in-core state parent_

@@ -64,7 +64,7 @@ Publisher::Publish(SsaSession* session)
 				ssa::Publisher::Messages::TransactionBegin* txbegin = ssa::Publisher::Messages::TransactionBegin::Load(buf);
 				break;
 			} 
-			if (msg->type_ == ssa::Publisher::Messages::kTransactionEnd) {
+			if (msg->type_ == ssa::Publisher::Messages::kTransactionCommit) {
 				break;
 			} 
 			if (msg->type_ == ssa::Publisher::Messages::kLogicalOperation) {

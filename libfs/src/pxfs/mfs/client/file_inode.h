@@ -21,8 +21,8 @@ public:
 	FileInode(ssa::common::ObjectProxyReference* ref)
 	{ 
 		ref_ = ref;
-		fs_type_ = ::common::fs::kMFS;
-		type_ = ::client::type::kFileInode;
+		fs_type_ = kMFS;
+		type_ = kFileInode;
 	}
 
 	int Read(::client::Session* session, char* dst, uint64_t off, uint64_t n); 

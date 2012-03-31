@@ -1,12 +1,15 @@
 #ifndef __STAMNOS_PXFS_COMMON_CONST_H
 #define __STAMNOS_PXFS_COMMON_CONST_H
 
-namespace common {
-namespace fs {
+enum FileSystemType {
+	kMFS = 0x1
+};
 
-const int kMFS = 1;
 
-} // namespace fs
-} // namespace common
+enum InodeType {
+	kFileInode = 0x1,
+	kDirInode = 0x2
+};
+
 
 #endif // __STAMNOS_PXFS_COMMON_CONST_H

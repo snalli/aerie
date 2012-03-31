@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <typeinfo>
 #include "bcs/main/common/cdebug.h"
-#include "ssa/containers/typeid.h"
+#include "ssa/containers/const.h"
 #include "ssa/main/common/obj.h"
 #include "common/util.h"
 #include "ssa/main/common/const.h"

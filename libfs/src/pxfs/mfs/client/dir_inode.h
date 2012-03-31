@@ -28,8 +28,8 @@ public:
 		: parent_(NULL)
 	{ 
 		ref_ = ref;
-		fs_type_ = ::common::fs::kMFS;
-		type_ = ::client::type::kDirInode;
+		fs_type_ = kMFS;
+		type_ = kDirInode;
 	}
 
 	int Read(::client::Session* session, char* dst, uint64_t off, uint64_t n) { return 0; }

@@ -10,7 +10,6 @@
 #include "ssa/main/client/omgr.h"
 #include "ssa/containers/byte/container.h"
 #include "ssa/containers/name/container.h"
-#include "ssa/containers/typeid.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "test/integration/ssa/ssa.fixture.h"
@@ -26,9 +25,12 @@ typedef ssa::containers::client::ByteContainer ByteContainer;
 
 static const char* storage_pool_path = "/tmp/stamnos_pool";
 
+// these tests bypass the file system interface so we do the logical
+// journaling ourselves 
+
 SUITE(MFSDirInode)
 {
-	void InitNames(client::Session* session, client::Inode* dinode) 
+	void InitDirectoryInode(client::Session* session, client::Inode* dinode) 
 	{
 		::client::Inode*                     inode;
 		::ssa::common::ObjectProxyReference* rw_ref;
@@ -38,16 +40,20 @@ SUITE(MFSDirInode)
 		/* foo */
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[2], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "foo", cinode->ino());
 		CHECK(dinode->Link(session, "foo", cinode, false) == 0);
 		/* bar */
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[3], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "bar", cinode->ino());
 		CHECK(dinode->Link(session, "bar", cinode, false) == 0);
 		/* doc */
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[4], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "doc", cinode->ino());
 		CHECK(dinode->Link(session, "doc", cinode, false) == 0);
 	}
+
 
 	void CreateFilesDirect(client::Session* session, ssa::common::ObjectId dir_oid, std::vector<std::string>& vec) 
 	{
@@ -63,19 +69,13 @@ SUITE(MFSDirInode)
 	}
 
 
-	TEST_FIXTURE(MFSFixture, TestLink)
+	TEST_FIXTURE(SsaFixture, TestLink)
 	{
 		::client::Inode*                   inode;
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           cinode;
-
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
-
 
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		
@@ -84,7 +84,9 @@ SUITE(MFSDirInode)
 		dinode = new ::mfs::client::DirInode(rw_ref);
 		
 		dinode->Lock(session, lock_protocol::Mode::XL);
-		InitNames(session, dinode);
+		InitDirectoryInode(session, dinode);
+		
+		session->journal()->TransactionBegin();
 		
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
@@ -92,9 +94,11 @@ SUITE(MFSDirInode)
 
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "media", cinode->ino());
 		CHECK(dinode->Link(session, "media", cinode, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
 		
+		session->journal()->TransactionCommit();
 		dinode->Unlock(session);
 	}
 
@@ -107,12 +111,6 @@ SUITE(MFSDirInode)
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           cinode;
 
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
-
-
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[1], &rw_ref) == E_SUCCESS);
@@ -120,18 +118,20 @@ SUITE(MFSDirInode)
 		dinode = new ::mfs::client::DirInode(rw_ref);
 		
 		dinode->Lock(session, lock_protocol::Mode::XL);
-		InitNames(session, dinode);
+		InitDirectoryInode(session, dinode);
 		
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "doc", 0, &inode) == E_SUCCESS);
 
+		session->journal() << Publisher::Messages::LogicalOperation::Unlink(dinode->ino(), "foo");
 		CHECK(dinode->Unlink(session, "foo") == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) != E_SUCCESS);
 
 
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		cinode = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "foo", cinode->ino());
 		CHECK(dinode->Link(session, "foo", cinode, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		
@@ -147,11 +147,6 @@ SUITE(MFSDirInode)
 		::mfs::client::DirInode*           dinode;
 		::mfs::client::DirInode*           child1;
 
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
-
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
 		EVENT("AfterMapObjects");
@@ -163,7 +158,7 @@ SUITE(MFSDirInode)
 		EVENT("BeforeLock");
 		dinode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
-		InitNames(session, dinode);
+		InitDirectoryInode(session, dinode);
 
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
@@ -171,6 +166,7 @@ SUITE(MFSDirInode)
 		
 		CHECK(global_storage_system->omgr()->GetObject(session, OID[5], &rw_ref) == E_SUCCESS);
 		child1 = new ::mfs::client::DirInode(rw_ref);
+		session->journal() << Publisher::Messages::LogicalOperation::Link(dinode->ino(), "media", child1->ino());
 		CHECK(dinode->Link(session, "media", child1, false) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "media", 0, &inode) == E_SUCCESS);
 		
@@ -186,11 +182,6 @@ SUITE(MFSDirInode)
 		ssa::common::ObjectProxyReference* rw_ref;
 		NameContainer::Reference*          rw_reft;
 		::mfs::client::DirInode*           dinode;
-
-		// FIXME
-		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 		EVENT("BeforeMapObjects");
 		CHECK(MapObjects<NameContainer::Object>(session, SELF, OID, 0, 16) == 0);
@@ -238,7 +229,7 @@ SUITE(MFSDirInode)
 		EVENT("BeforeLock");
 		dinode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
-		InitNames(session, dinode);
+		InitDirectoryInode(session, dinode);
 
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
@@ -314,7 +305,7 @@ SUITE(MFSDirInode)
 		EVENT("BeforeLock");
 		dinode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
-		InitNames(session, dinode);
+		InitDirectoryInode(session, dinode);
 
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		CHECK(dinode->Lookup(session, "bar", 0, &inode) == E_SUCCESS);
@@ -388,12 +379,11 @@ SUITE(MFSDirInode)
 		CHECK(dinode->Lookup(session, "foo", 0, &inode) == E_SUCCESS);
 		child = reinterpret_cast< ::mfs::client::FileInode*>(inode);
 		child->Lock(session, dinode, lock_protocol::Mode::XL);
-		// do the logical journaling ourselves because we bypass the file system interface
 		session->journal()->TransactionBegin();
 		session->journal() << Publisher::Messages::LogicalOperation::Write(child->ino());
 		strcpy(buf, "FOO");
 		CHECK(child->Write(session, buf, 0, strlen(buf)+1) == strlen(buf) + 1);
-		session->journal()->TransactionEnd();
+		session->journal()->TransactionCommit();
 		child->Unlock(session);
 		dinode->Unlock(session);
 		libfs_sync();

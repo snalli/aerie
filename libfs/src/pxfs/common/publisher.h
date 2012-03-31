@@ -16,40 +16,36 @@ public:
 	struct LogicalOperation;
 };
 
+
 struct Publisher::Messages::LogicalOperation {
 	enum OperationCode {
 		kLink = 1,
+		kUnlink,
 		kWrite
 	};
 	struct Link;
+	struct Unlink;
 	struct Write;
 };
 
-struct Publisher::Messages::LogicalOperation::Write: public LogicalOperationHeader {
+
+struct Publisher::Messages::LogicalOperation::Write: public ssa::Publisher::Messages::LogicalOperationHeaderT<Write> {
 	Write(InodeNumber ino)
 		: ino_(ino),
-		  LogicalOperationHeader(kWrite, sizeof(Write))
+		  ssa::Publisher::Messages::LogicalOperationHeaderT<Write>(kWrite, sizeof(Write))
 	{ }
-
-	static Write* Load(void* src) {
-		return reinterpret_cast<Write*>(src);
-	}
 
 	InodeNumber ino_;
 };
 
 
-struct Publisher::Messages::LogicalOperation::Link: public LogicalOperationHeader {
+struct Publisher::Messages::LogicalOperation::Link: public ssa::Publisher::Messages::LogicalOperationHeaderT<Link> {
 	Link(InodeNumber parino, const char* name, InodeNumber childino)
 		: parino_(parino),
 		  childino_(childino),
-		  LogicalOperationHeader(kLink, sizeof(Link))
+		  ssa::Publisher::Messages::LogicalOperationHeaderT<Link>(kLink, sizeof(Link))
 	{ 
 		strcpy(name_, name); 
-	}
-
-	static Link* Load(void* src) {
-		return reinterpret_cast<Link*>(src);
 	}
 
 	InodeNumber parino_;
@@ -57,6 +53,18 @@ struct Publisher::Messages::LogicalOperation::Link: public LogicalOperationHeade
 	char        name_[32];
 };
 
+
+struct Publisher::Messages::LogicalOperation::Unlink: public ssa::Publisher::Messages::LogicalOperationHeaderT<Unlink> {
+	Unlink(InodeNumber parino, const char* name)
+		: parino_(parino),
+		  ssa::Publisher::Messages::LogicalOperationHeaderT<Unlink>(kUnlink, sizeof(Unlink))
+	{ 
+		strcpy(name_, name); 
+	}
+
+	InodeNumber parino_;
+	char        name_[32];
+};
 
 
 #endif // __STAMNOS_PXFS_COMMON_PUBLISHER_H

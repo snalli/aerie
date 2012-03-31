@@ -20,8 +20,14 @@ def runIntegrationTests(source, target, env):
     num_timeouts = 0
     num_failures = 0
     for itest in env['INTEGRATION_TESTS']:
-        if not itest.matchFilter(env['TEST_FILTER']):
-            continue
+        # if a specific test is asked then run just that
+        # otherwise run any tests that match the filter
+        if env['TEST_NAME']:
+            if not itest.matchName(env['TEST_NAME']):
+                continue
+        else:
+            if not itest.matchFilter(env['TEST_FILTER']):
+                continue
         num_tests = num_tests + 1
         print itest.name
         ret = itest.run(scheduler, env['TEST_STDOUT'], env['TEST_EXTRA_ARGS'], env['TEST_ATTACH_GDB'])

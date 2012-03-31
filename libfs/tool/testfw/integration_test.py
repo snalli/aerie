@@ -135,6 +135,13 @@ class IntegrationTest:
         if re.match(suite_filter, suite) and re.match(test_filter, test):
             return True
         return False
+    
+    def matchName(self, name):
+        (suite_name, test_name) = split_tuple(name)
+        (suite, test) = split_tuple(self.name)
+        if suite_name == suite and test_name == test:
+            return True
+        return False
 
     def run(self, scheduler, output='deferred', extra_cmd_args='', attach_gdb = False):
         args = extra_cmd_args.split()

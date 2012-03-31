@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <typeinfo>
 #include "ssa/containers/radix/radixtree.h"
-#include "ssa/containers/typeid.h"
+#include "ssa/containers/const.h"
 #include "ssa/main/common/obj.h"
 #include "ssa/main/common/const.h"
 #include "spa/const.h"

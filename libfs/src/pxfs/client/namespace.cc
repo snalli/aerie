@@ -17,9 +17,10 @@
 #include "pxfs/client/mpinode.h"
 #include "pxfs/client/inode.h"
 #include "pxfs/client/sb.h"
+#include "pxfs/client/session.h"
+#include "pxfs/common/publisher.h"
 #include "bcs/bcs.h"
 
-#include <typeinfo>
 
 //TODO: pathname resolution against current working directory, chdir
 //TODO: integrate LockInode
@@ -367,6 +368,7 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 
+	//session->journal() << Publisher::Messages::LogicalOperation::Link(ino(), name, ip->ino());
 /*
   char name[DIRSIZ], *new, *old;
   struct inode *dp, *ip;
@@ -443,7 +445,7 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	ip->Lock(session, dp, lock_protocol::Mode::XR); 
 	assert(ip->nlink() > 0);
 
-	if (ip->type() == client::type::kDirInode) {
+	if (ip->type() == kDirInode) {
 		bool isempty;
 		assert(ip->ioctl(session, 1, &isempty) == E_SUCCESS);
 		if (!isempty) {
@@ -455,9 +457,11 @@ NameSpace::Unlink(Session* session, const char *pathname)
 		}
 	}
 
+	session->journal() << Publisher::Messages::LogicalOperation::Unlink(dp->ino(), name);
+	
 	assert(dp->Unlink(session, name) == E_SUCCESS);
 	//FIXME: inode link/unlink should take care of the nlink
-	if (ip->type() == client::type::kDirInode) {
+	if (ip->type() == kDirInode) {
 		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's ..
 	}
 

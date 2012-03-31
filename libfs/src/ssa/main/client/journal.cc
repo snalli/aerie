@@ -6,7 +6,7 @@ namespace ssa {
 namespace client {
 
 typedef ::ssa::Publisher::Messages::TransactionBegin         TransactionBeginMessage;
-typedef ::ssa::Publisher::Messages::TransactionEnd           TransactionEndMessage;
+typedef ::ssa::Publisher::Messages::TransactionCommit        TransactionCommitMessage;
 typedef ::ssa::Publisher::Messages::LogicalOperationHeader   LogicalOperationHeaderMessage;
 typedef ::ssa::Publisher::Messages::ContainerOperationHeader ContainerOperationHeaderMessage;
 
@@ -21,9 +21,9 @@ Journal::TransactionBegin(int id)
 
 
 int
-Journal::TransactionEnd()
+Journal::TransactionCommit()
 {
-	TransactionEndMessage tx = TransactionEndMessage();
+	TransactionCommitMessage tx = TransactionCommitMessage();
 	buffer_.Write(&tx, sizeof(tx));
 	buffer_.Flush(session_->stsystem()->shbuf());
 	return E_SUCCESS;

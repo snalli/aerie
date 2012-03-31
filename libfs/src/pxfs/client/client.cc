@@ -174,8 +174,8 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 	if ((ret = dp->Lookup(session, name, 0, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
 		ip->Lock(session, dp, lock_protocol::Mode::XR); 
-		if (type == client::type::kFileInode && 
-		    ip->type() == client::type::kFileInode) 
+		if (type == kFileInode && 
+		    ip->type() == kFileInode) 
 		{
 			*ipp = ip;
 			dp->Put();
@@ -197,7 +197,7 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 
 	printf("allocated inode\n");
 	ip->set_nlink(1);
-	if (type == client::type::kDirInode) {
+	if (type == kDirInode) {
 		assert(dp->set_nlink(dp->nlink() + 1) == 0); // for child's ..
 		assert(ip->Link(session, ".", ip, false) == 0 );
 		assert(ip->Link(session, "..", dp, false) == 0);
@@ -231,7 +231,7 @@ Client::Open(const char* path, int flags, int mode)
 	return fd;
 
 	if (flags & O_CREAT) {
-		if ((ret = create(global_session, path, &ip, mode, client::type::kFileInode)) < 0) {
+		if ((ret = create(global_session, path, &ip, mode, kFileInode)) < 0) {
 			return ret;
 		}	
 	} else {
@@ -315,7 +315,7 @@ Client::CreateDir(const char* path, int mode)
 
 	dbg_log (DBG_INFO, "Create Directory: %s\n", path);	
 
-	if ((ret = create(global_session, path, &ip, mode, client::type::kDirInode)) < 0) {
+	if ((ret = create(global_session, path, &ip, mode, kDirInode)) < 0) {
 		return ret;
 	}
 	assert(ip->Put() == E_SUCCESS);

@@ -29,15 +29,16 @@ class Publisher::Messages {
 public:
 	enum MessageType {
 		kTransactionBegin = 0x1,
-		kTransactionEnd,
+		kTransactionCommit,
 		kLogicalOperation,
 		kContainerOperation,
 	};
 	struct BaseMessage;
 	template<typename T> struct BaseMessageT;
 	struct TransactionBegin;
-	struct TransactionEnd;
+	struct TransactionCommit;
 	struct LogicalOperationHeader;
+	template<typename T> struct LogicalOperationHeaderT;
 	struct ContainerOperationHeader;
 	struct ContainerOperation;
 };
@@ -79,9 +80,9 @@ struct Publisher::Messages::TransactionBegin: public BaseMessageT<TransactionBeg
 };
 
 
-struct Publisher::Messages::TransactionEnd: public BaseMessageT<TransactionEnd> {
-	TransactionEnd()
-		: BaseMessageT<TransactionEnd>(kTransactionEnd)
+struct Publisher::Messages::TransactionCommit: public BaseMessageT<TransactionCommit> {
+	TransactionCommit()
+		: BaseMessageT<TransactionCommit>(kTransactionCommit)
 	{ }
 };
 
@@ -95,6 +96,18 @@ struct Publisher::Messages::LogicalOperationHeader: public BaseMessageT<LogicalO
 
 	char   id_; 
 	size_t payload_size_;
+};
+
+
+template<typename T>
+struct Publisher::Messages::LogicalOperationHeaderT: public LogicalOperationHeader {
+	LogicalOperationHeaderT(char id, size_t total_size)
+		: LogicalOperationHeader(id, total_size)
+	{ }
+
+	static T* Load(void* src) {
+		return reinterpret_cast<T*>(src);
+	}
 };
 
 

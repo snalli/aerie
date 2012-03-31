@@ -1,7 +1,8 @@
-#ifndef __STAMNOS_FS_CLIENT_CONST_H
-#define __STAMNOS_FS_CLIENT_CONST_H
+#ifndef __STAMNOS_PXFS_CLIENT_CONST_H
+#define __STAMNOS_PXFS_CLIENT_CONST_H
 
 #include <fcntl.h> // for open flags constant
+#include "pxfs/common/const.h"
 #include "common/errno.h"
 
 // namespace scoped constants 
@@ -30,13 +31,6 @@ const int kFileN = 1024;
 }
 
 
-namespace type {
-
-const int kFileInode = 1;
-const int kDirInode  = 2;
-
-} // namespace type
-
 } // namespace client
 
-#endif // __STAMNOS_FS_CLIENT_CONST_H
+#endif // __STAMNOS_PXFS_CLIENT_CONST_H

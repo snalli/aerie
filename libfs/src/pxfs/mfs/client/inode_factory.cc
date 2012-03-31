@@ -1,7 +1,7 @@
 #include "pxfs/mfs/client/inode_factory.h"
 #include "bcs/bcs.h"
 #include "pxfs/client/backend.h"
-#include "ssa/containers/typeid.h"
+#include "ssa/containers/const.h"
 #include "pxfs/mfs/client/dir_inode.h"
 #include "pxfs/mfs/client/file_inode.h"
 
@@ -109,10 +109,10 @@ InodeFactory::MakeInode(::client::Session* session, int type, ::client::Inode** 
 	int ret = E_SUCCESS;
 
 	switch (type) {
-		case ::client::type::kDirInode:
+		case kDirInode:
 			ret = MakeDirInode(session, ipp);
 			break;
-		case ::client::type::kFileInode:	
+		case kFileInode:	
 			ret = MakeFileInode(session, ipp);
 			break;
 		default:

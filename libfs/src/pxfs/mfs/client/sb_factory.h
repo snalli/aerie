@@ -15,7 +15,7 @@ public:
 	int Make(::client::Session* session, ::client::SuperBlock** sbp);
 	int Load(::client::Session* session, ssa::common::ObjectId oid, ::client::SuperBlock** sbp);
 	int TypeID() {
-		return ::common::fs::kMFS;
+		return kMFS;
 	}
 	std::string TypeStr() {
 		return "mfs";

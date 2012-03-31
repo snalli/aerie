@@ -57,7 +57,7 @@ public:
 	{ }
 
 	int TransactionBegin(int id = 0);
-	int TransactionEnd();
+	int TransactionCommit();
 	int Write(const void* buf, size_t size) {
 		return buffer_.Write(buf, size);
 	}

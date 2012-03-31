@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <typeinfo>
 #include "ssa/containers/assoc/hashtable.h"
-#include "ssa/containers/typeid.h"
+#include "ssa/containers/const.h"
 #include "ssa/main/client/salloc.h"
 #include "ssa/main/common/obj.h"
 #include "bcs/main/common/cdebug.h"
