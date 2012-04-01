@@ -14,6 +14,11 @@ class SuperBlock;  // forward declaration
 
 class Inode {
 public:
+	enum IoctlRequest {
+		kIsEmpty = 1,
+		kSize
+	};
+
 	Inode();
 
 	virtual int Write(client::Session* session, char* src, uint64_t off, uint64_t n) = 0;

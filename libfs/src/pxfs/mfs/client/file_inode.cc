@@ -108,7 +108,19 @@ FileInode::Sync(::client::Session* session)
 int 
 FileInode::ioctl(::client::Session* session, int request, void* info)
 {
-	return E_SUCCESS;
+	int ret = E_SUCCESS;
+	switch (request)
+	{
+		case kIsEmpty: {
+			bool isempty = (rw_ref()->proxy()->interface()->Size(session) == 0) ? false: true;
+			*((bool *) info) = isempty;
+		} break;
+		case kSize: {
+			uint64_t size = rw_ref()->proxy()->interface()->Size(session);
+			*((bool *) info) = size;
+		} break;
+	}
+	return ret;
 }
 
 

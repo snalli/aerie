@@ -28,7 +28,6 @@ __thread Session* thread_session;
 FileSystemObjectManager*    global_fsomgr;
 FileManager*                global_fmgr;
 NameSpace*                  global_namespace;
-Session*                    global_session;
 Ipc*                        global_ipc_layer;
 ssa::client::StorageSystem* global_storage_system;
 
@@ -48,7 +47,6 @@ Client::Init(const char* xdst)
 
 	global_storage_system = new ssa::client::StorageSystem(global_ipc_layer);
 	global_storage_system->Init();
-	global_session = new Session(global_storage_system);
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
@@ -63,7 +61,7 @@ Client::Init(const char* xdst)
 	mfs::client::RegisterBackend(global_fsomgr);
 
 	global_namespace = new NameSpace("GLOBAL");
-	return global_namespace->Init(global_session);
+	return global_namespace->Init(CurrentSession());
 }
 
 
@@ -148,10 +146,10 @@ Client::Mount(const char* source,
 	if ((ret = global_storage_system->Mount(source, target, flags, mntrep.desc_)) < 0) {
 		return ret;
 	}
-	if ((ret = global_fsomgr->LoadSuperBlock(global_session, mntrep.desc_.oid_, fstype, &sb)) < 0) {
+	if ((ret = global_fsomgr->LoadSuperBlock(CurrentSession(), mntrep.desc_.oid_, fstype, &sb)) < 0) {
 		return ret;
 	}
-	return global_namespace->Mount(global_session, path, sb);
+	return global_namespace->Mount(CurrentSession(), path, sb);
 }
 
 
@@ -228,14 +226,14 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 }
 
 
-// TODO: implement file open
 int 
 Client::Open(const char* path, int flags, int mode)
 {
-	Inode* ip;
-	int    ret;
-	int    fd;
-	File*  fp;
+	Inode*   ip;
+	int      ret;
+	int      fd;
+	File*    fp;
+	Session* session = CurrentSession();
 	
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
@@ -246,20 +244,21 @@ Client::Open(const char* path, int flags, int mode)
 	}
 	
 	if (flags & O_CREAT) {
-		if ((ret = create(global_session, path, &ip, mode, kFileInode)) < 0) {
+		// returns with the inode ip referenced and locked
+		if ((ret = create(session, path, &ip, mode, kFileInode)) < 0) {
 			return ret;
 		}	
 		//FIXME: we need to tell the lock manager to keep a capability around 
-		//as we might need to acquire the lock again after someone deleted the file
+		//as we might need to acquire the lock again after someone deleted or moved
+		//the file
 	} else {
 		lock_protocol::Mode lock_mode = lock_protocol::Mode::XL; // FIXME: do we need XL, or SL is good enough?
-		if ((ret = global_namespace->Namei(global_session, path, lock_mode, &ip)) < 0) {
+		if ((ret = global_namespace->Namei(session, path, lock_mode, &ip)) < 0) {
 			return ret;
 		}	
 	}
-	// complete initialization of the file
-	fp->set_ip(ip);
-	ip->Unlock(global_session);
+	fp->Init(ip, flags);
+	ip->Unlock(session);
 
 	return fd;
 }
@@ -296,7 +295,7 @@ Client::Write(int fd, const char* src, uint64_t n)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Write(global_session, src, n);
+	return fp->Write(CurrentSession(), src, n);
 }
 
 
@@ -309,30 +308,37 @@ Client::Read(int fd, char* dst, uint64_t n)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Read(global_session, dst, n);
+	return fp->Read(CurrentSession(), dst, n);
 }
 
 
 uint64_t 
 Client::Seek(int fd, uint64_t offset, int whence)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
+	int   ret;
+	File* fp;
+
+	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
+		return ret;
+	}
+	return fp->Seek(CurrentSession(), offset, whence);
 }
 
 
 int
 Client::CreateDir(const char* path, int mode)
 {
-	int    ret;
-	Inode* ip;
+	int      ret;
+	Inode*   ip;
+	Session* session = CurrentSession();
 
 	dbg_log (DBG_INFO, "Create Directory: %s\n", path);	
 
-	if ((ret = create(global_session, path, &ip, mode, kDirInode)) < 0) {
+	if ((ret = create(session, path, &ip, mode, kDirInode)) < 0) {
 		return ret;
 	}
 	assert(ip->Put() == E_SUCCESS);
-	assert(ip->Unlock(global_session) == E_SUCCESS);
+	assert(ip->Unlock(session) == E_SUCCESS);
 	return 0;
 }
 
@@ -371,21 +377,22 @@ Client::Rename(const char* oldpath, const char* newpath)
 int 
 Client::Link(const char* oldpath, const char* newpath)
 {
-	return global_namespace->Link(global_session, oldpath, newpath);
+	return global_namespace->Link(CurrentSession(), oldpath, newpath);
 }
 
 
 int 
 Client::Unlink(const char* pathname)
 {
-	return global_namespace->Unlink(global_session, pathname);
+	return global_namespace->Unlink(CurrentSession(), pathname);
 }
 
 int 
 Client::Sync()
 {
-	global_session->omgr()->CloseAllObjects(global_session, true);
-	return 0;
+	Session* session = CurrentSession();
+	session->omgr()->CloseAllObjects(session, true);
+	return E_SUCCESS;
 }
 
 /// Check whether we can communicate with the server

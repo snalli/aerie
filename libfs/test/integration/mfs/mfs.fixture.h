@@ -25,10 +25,7 @@ struct MFSFixture {
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
 			libfs_init2("10000");
-			
 			session = new Session(global_storage_system);
-			global_session = session;
-			
 			initialized = true;
 			// register a finalize action to be called by the test-framework 
 			// when all threads complete

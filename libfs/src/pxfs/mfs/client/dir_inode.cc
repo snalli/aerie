@@ -223,11 +223,11 @@ DirInode::ioctl(::client::Session* session, int request, void* info)
 	int ret = E_SUCCESS;
 	switch (request)
 	{
-		case 1: // is empty?
+		case kIsEmpty: {
 			// empty if only entries is self (.) and parent (..)
 			bool isempty = (rw_ref()->proxy()->interface()->Size(session) > 2) ? false: true;
 			*((bool *) info) = isempty;
-			break;
+		} break;
 	}
 	return ret;
 }

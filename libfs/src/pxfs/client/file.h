@@ -25,10 +25,12 @@ public:
 		pthread_mutex_init(&mutex_, NULL);
 	}
 
+	int Init(Inode* ip, int flags);
+
 	int Write(Session* session, const char* src, uint64_t n);
 	int Read(Session* session, char* dst, uint64_t n);
+	uint64_t Seek(client::Session* session, uint64_t offset, int whence);
 	int Release();
-	void set_ip(Inode* ip) { ip_ = ip; }
 
 private:
 	pthread_mutex_t mutex_;

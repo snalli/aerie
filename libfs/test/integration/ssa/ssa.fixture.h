@@ -38,7 +38,6 @@ struct SsaFixture: public LockRegionFixture, IPCFixture {
 			global_storage_system = new ssa::client::StorageSystem(global_ipc_layer);
 			global_storage_system->Init();
 			session = new Session(global_storage_system);
-			global_session = session;
 			assert(global_storage_system->Mount("/tmp/stamnos_pool", NULL, 0) == 0);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 

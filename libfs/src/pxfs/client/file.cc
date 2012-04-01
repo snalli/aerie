@@ -8,12 +8,30 @@
 // FIXME BUG Data race: 
 //       Lookup may race with a concurrent ReleaseFile and return a 
 //       File object that is concurrently released and is no longer
-//       valid. 
+//       valid. This is a problem with any file operation concurrent 
+//       with a file close.
 
 
 namespace client {
 
 // File implementation
+
+int 
+File::Init(Inode* ip, int flags)
+{
+	if (flags & O_RDWR) {
+		readable_ = true;
+		writable_ = true;
+	} else if (flags & O_RDONLY) {
+		readable_ = true;
+	} else if (flags & O_WRONLY) {
+		writable_ = true;
+	}
+	ip_ = ip;
+	return E_SUCCESS;
+}
+
+
 
 int 
 File::Write(client::Session* session, const char* src, uint64_t n)
@@ -58,13 +76,32 @@ File::Read(client::Session* session, char* dst, uint64_t n)
 }
 
 
+uint64_t
+File::Seek(client::Session* session, uint64_t offset, int whence)
+{
+	uint64_t size;
+	switch(whence) {
+		case SEEK_SET:
+			off_ = offset;
+			break;
+		case SEEK_CUR:
+			off_ += offset;
+			break;
+		case SEEK_END:
+			ip_->ioctl(session, Inode::kSize, (void*) &size);
+			off_ = size + offset;
+			break;
+	}
+	return off_;
+}
+
+
 // called when the File object is no longer referenced by any file descriptor
 int 
 File::Release() 
 {
-	printf("Release\n"); 
-	// TODO: release inode: iput
-	return 0;
+	//FIXME: release inode (put)
+	return E_SUCCESS;
 } 
 
 
@@ -234,8 +271,9 @@ FileManager::Put(int fd)
 		return 0;
 	}
 	pthread_mutex_unlock(&mutex_);
-
 	// ref is 0, release the File object
+	// we no longer need to hold the manager mutex as the file object
+	// is unreachable.
 	return ReleaseFile(fp);
 }
 
