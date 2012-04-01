@@ -14,6 +14,8 @@
 #include "spa/pool/pool.h"
 #include "pxfs/common/fs_protocol.h"
 #include "pxfs/mfs/client/mfs.h"
+#include "pxfs/common/publisher.h"
+
 
 
 // FIXME: Client should be a singleton. otherwise we lose control 
@@ -35,7 +37,8 @@ ssa::client::StorageSystem* global_storage_system;
 int 
 Client::Init(const char* xdst) 
 {
-	struct rlimit      rlim_nofile;
+	int            ret;
+	struct rlimit  rlim_nofile;
 
 	Config::Init();
 	
@@ -51,7 +54,10 @@ Client::Init(const char* xdst)
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
 	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
 	                              rlim_nofile.rlim_max+client::limits::kFileN);
-								  
+	if ((ret = global_fmgr->Init()) < 0) {
+		return ret;	
+	}
+
 	// register statically known file system backends
 	global_fsomgr = new FileSystemObjectManager();
 	mfs::client::RegisterBackend(global_fsomgr);
@@ -153,6 +159,8 @@ Client::Mount(const char* source,
 // allocate an inode specific to the file system
 // One way would be to keep a pointer to the superblock in the inode 
 // TODO: Support O_EXCL with O_CREAT
+//
+// returns with the inode ipp referenced (get) and locked
 static inline int
 create(::client::Session* session, const char* path, Inode** ipp, int mode, int type)
 {
@@ -188,11 +196,20 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 		dp->Unlock(session);
 		return -E_EXIST;
 	}
+	session->journal()->TransactionBegin();
 	
 	// allocated inode is write locked and referenced (refcnt=1)
 	if ((ret = global_fsomgr->CreateInode(session, dp, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
+	}
+	switch (type) {
+		case kFileInode:
+			session->journal() << Publisher::Messages::LogicalOperation::MakeFile(dp->ino(), name, ip->ino());
+			break;
+		case kDirInode:
+			session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dp->ino(), name, ip->ino());
+			break;
 	}
 
 	printf("allocated inode\n");
@@ -203,6 +220,7 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 		assert(ip->Link(session, "..", dp, false) == 0);
 	}
 	assert(dp->Link(session, name, ip, false) == 0);
+	session->journal()->TransactionCommit();
 	dp->Put();
 	dp->Unlock(session);
 	*ipp = ip;
@@ -218,7 +236,7 @@ Client::Open(const char* path, int flags, int mode)
 	int    ret;
 	int    fd;
 	File*  fp;
-
+	
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
 	}
@@ -227,26 +245,21 @@ Client::Open(const char* path, int flags, int mode)
 		return fd;
 	}
 	
-	// TODO: Initialize file object 
-	return fd;
-
 	if (flags & O_CREAT) {
 		if ((ret = create(global_session, path, &ip, mode, kFileInode)) < 0) {
 			return ret;
 		}	
+		//FIXME: we need to tell the lock manager to keep a capability around 
+		//as we might need to acquire the lock again after someone deleted the file
 	} else {
-		lock_protocol::Mode lock_mode; // FIXME: what lock_mode?
-
+		lock_protocol::Mode lock_mode = lock_protocol::Mode::XL; // FIXME: do we need XL, or SL is good enough?
 		if ((ret = global_namespace->Namei(global_session, path, lock_mode, &ip)) < 0) {
 			return ret;
 		}	
-		printf("do_open: path=%s, ret=%d, ip=%p\n", path, ret, ip);
-		//ilock(ip);
-		//if(ip->type == client::type::kFileInode && flags != O_RDONLY){
-		//  iunlockput(ip);
-		//  return -1;
-		//}
-	}	
+	}
+	// complete initialization of the file
+	fp->set_ip(ip);
+	ip->Unlock(global_session);
 
 	return fd;
 }

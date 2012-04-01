@@ -28,6 +28,7 @@ public:
 	int Write(Session* session, const char* src, uint64_t n);
 	int Read(Session* session, char* dst, uint64_t n);
 	int Release();
+	void set_ip(Inode* ip) { ip_ = ip; }
 
 private:
 	pthread_mutex_t mutex_;

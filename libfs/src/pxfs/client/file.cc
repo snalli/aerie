@@ -3,6 +3,7 @@
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/session.h"
 #include "pxfs/common/publisher.h"
+#include "common/errno.h"
 
 // FIXME BUG Data race: 
 //       Lookup may race with a concurrent ReleaseFile and return a 
@@ -76,6 +77,7 @@ FileManager::Init()
 	fdset_.resize(fdmax_ - fdmin_ + 1);
 	ftable_.resize(fdmax_ - fdmin_ + 1);
 	pthread_mutex_init(&mutex_, NULL);
+	return E_SUCCESS;
 }
 
 
@@ -114,7 +116,7 @@ FileManager::AllocFd(int start)
 	boost::dynamic_bitset<>::size_type first_bit_zero;
 
 	first_bit_zero = find_first_zero(fdset_, start);
-
+	printf("allocfd = %d\n", first_bit_zero);
 	if (first_bit_zero == boost::dynamic_bitset<>::npos) {
 		return -1;
 	}

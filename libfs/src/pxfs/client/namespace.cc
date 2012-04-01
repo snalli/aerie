@@ -451,6 +451,7 @@ NameSpace::Unlink(Session* session, const char *pathname)
 		}
 	}
 
+	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Messages::LogicalOperation::Unlink(dp->ino(), name);
 	
 	assert(dp->Unlink(session, name) == E_SUCCESS);
@@ -462,6 +463,8 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for parent's forward link
 	//FIXME: who deallocates the inode if nlink == 0 ???
 	
+	session->journal()->TransactionCommit();
+
 	dp->Put();
 	dp->Unlock(session);
 	ip->Put();

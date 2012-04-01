@@ -31,6 +31,22 @@ FileInode::Write(::client::Session* session, char* src, uint64_t off, uint64_t n
 }
 
 
+int FileInode::nlink()
+{
+	dbg_log (DBG_INFO, "In inode %lx, nlink = %d\n", ino(), rw_ref()->proxy()->interface()->nlink());
+	
+	return rw_ref()->proxy()->interface()->nlink();
+}
+
+
+int FileInode::set_nlink(int nlink)
+{
+	dbg_log (DBG_INFO, "In inode %lx, set nlink = %d\n", ino(), nlink);
+	
+	return rw_ref()->proxy()->interface()->set_nlink(nlink);
+}
+
+
 int
 FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
@@ -42,6 +58,8 @@ FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 	}
 	return E_SUCCESS;
 }
+
+
 
 
 int

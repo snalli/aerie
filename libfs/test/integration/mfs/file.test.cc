@@ -11,39 +11,30 @@ using namespace client;
 
 static const char* storage_pool_path = "/tmp/stamnos_pool";
 
-SUITE(Namespace)
+SUITE(MFSFile)
 {
-	TEST_FIXTURE(MFSFixture, TestMkfs)
+	TEST_FIXTURE(MFSFixture, TestCreate)
 	{
-		EVENT("MkfsAfter");
-	}
+		int fd;
 
-	TEST_FIXTURE(MFSFixture, TestMount)
-	{
-		EVENT("MountBefore");
-		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
-		EVENT("MountAfter");
-	}
-
-	TEST_FIXTURE(MFSFixture, TestMkfsMkdir)
-	{
 		EVENT("E1");
 		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 		CHECK(libfs_mkdir("/home/hvolos/dir", 0) == 0);
-		CHECK(libfs_mkdir("/home/hvolos/dir/test", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_CREAT)) > 0);
+		CHECK(libfs_close(fd) == 0);
 		EVENT("E2");
 		EVENT("E3");
 	}
 
-	TEST_FIXTURE(MFSFixture, TestRmdir)
+	TEST_FIXTURE(MFSFixture, TestOpen)
 	{
+		int fd;
+
 		EVENT("E1");
 		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", 0)) > 0);
+		CHECK(libfs_close(fd) == 0);
 		EVENT("E2");
-		CHECK(libfs_rmdir("/home/hvolos/dir") != 0);
-		CHECK(libfs_rmdir("/home/hvolos/dir/test") == 0);
-		CHECK(libfs_rmdir("/home/hvolos/dir") == 0);
 		EVENT("E3");
 	}
-
 }
