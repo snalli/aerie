@@ -65,6 +65,7 @@ dbg_init(config_t* dbg_cfg, int level, const char* identifier)
 
 	FOREACH_DEBUG_MODULE(ACTION)
 #undef ACTION
+	return 0;
 }
 
 

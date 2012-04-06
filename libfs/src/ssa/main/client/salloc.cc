@@ -122,7 +122,6 @@ int
 StorageAllocator::AllocateContainerVector(SsaSession* session)
 {
 	int                                                    ret;
-	int                                                    r;
 	std::vector< ::ssa::StorageProtocol::ContainerRequest> container_req_vec;
 	std::vector<int>                                       rv;
 	std::vector<int>::iterator                             rvi;
@@ -140,6 +139,7 @@ StorageAllocator::AllocateContainerVector(SsaSession* session)
 	for (rvi = rv.begin(); rvi != rv.end(); rvi++) {
 		printf("%d\n", *rvi);
 	}
+	return E_SUCCESS;
 }
 
 

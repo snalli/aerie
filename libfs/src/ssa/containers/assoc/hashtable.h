@@ -304,7 +304,7 @@ int
 Page<Session>::Search(Session* session, const char *key, int key_size, char** valp, 
                       int* val_sizep)
 {
-	int             i;
+	unsigned int    i;
 	int             step;
 	Entry<Session>* entry;
 	int             val_size;
@@ -372,9 +372,8 @@ template<typename Session>
 int 
 Page<Session>::Delete(Session* session, const char *key, int key_size)
 {
-	int             i;
+	unsigned int    i;
 	int             step;
-	int             size;
 	Entry<Session>* entry;
 	Entry<Session>* prev_entry = NULL;
 	Entry<Session>* next_entry;
@@ -486,8 +485,8 @@ int
 Page<Session>::Split(Session* session, Page* splitover_page, const SplitPredicate& split_predicate)
 {
 	int             ret;
-	int             i;
-	int             size;
+	unsigned int    i;
+	unsigned int    size;
 	Entry<Session>* entry;
 	Entry<Session>* prev_entry = NULL;
 	Entry<Session>* next_entry;
@@ -617,10 +616,6 @@ public:
 		return 0;
 	}	
 	
-	inline bool IsEmpty() {
-
-	}
-
 	int Insert(Session* session, const char* key, int key_size, uint64_t val);
 	int Insert(Session* session, const char* key, int key_size, const char* val, int val_size);
 	int Search(Session* session, const char* key, int key_size, uint64_t* val);
@@ -775,9 +770,10 @@ template<typename Session>
 class HashTable {
 public:
 	HashTable()
-		: split_idx_(0),
+		: 
+		  ncount_(0),
 		  size_log2_(5),
-		  ncount_(0)
+		  split_idx_(0)
 	{ }
 
 	static HashTable* Make(Session* session)
@@ -847,6 +843,7 @@ HashTable<Session>::Init()
 	split_idx_ = 0;
 	size_log2_ = 5;
 	ncount_ = 0;
+	return E_SUCCESS;
 }
 
 
@@ -886,7 +883,7 @@ HashTable<Session>::Insert(Session* session, const char* key, int key_size,
 		splitover_bucket = &buckets_[split_idx_+(1<<size_log2_)];
 		bucket->Split(session, splitover_bucket, LinearSplit(size_log2_));
 		split_idx_++;
-		if (split_idx_ == (1 << size_log2_)) {
+		if (split_idx_ == (1U << size_log2_)) {
 			split_idx_ = 0;
 			size_log2_++;
 		}

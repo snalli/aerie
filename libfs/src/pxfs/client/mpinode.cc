@@ -9,7 +9,6 @@ namespace client {
 int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inodep)
 {
 	Inode* inode;
-	int    len;
 	int    i;
 
 	if (name[0] == '\0') {
@@ -36,10 +35,8 @@ int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inode
 int 
 MPInode::Link(Session* session, const char* name, Inode* inode, bool overwrite)
 {
-	int    len;
 	int    i;
 	int    empty = entries_count_;
-	Inode* ip;
 
 	for (i=0; i<entries_count_; i++) {
 		if (strcmp(entries_[i].name_, name) == 0) {

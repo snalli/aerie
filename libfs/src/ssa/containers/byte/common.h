@@ -146,7 +146,6 @@ public:
 		int                     slot_height;
 		int                     ret;
 		uint64_t                bcount;
-		int                     i;
 
 		bcobj_ = bcobj;
 		if (bn < N_DIRECT) {
@@ -251,10 +250,8 @@ public:
 
 		if (slot_.slot_base_ == NULL) {
 			// No slot. Create an orphan region larger than bcobj.
-			printf("Region::Init: no slot\n");
 			radixtree_.rnode_ = NULL;
 			radixtree_.Extend(session, bn - N_DIRECT);
-			printf("Region::Init: height = %d\n", radixtree_.height_);
 			maxbcount_ = 1 << ((radixtree_.height_)*RADIX_TREE_MAP_SHIFT);
 			base_bn_ = N_DIRECT;
 			return 0;
@@ -269,9 +266,6 @@ public:
 	///
 	int InitAtSlot(Session* session) 
 	{
-		uint64_t bcount;
-		int      ret;
-
 		if (!slot_.slot_base_) {
 			return -1;
 		}
@@ -280,14 +274,8 @@ public:
 		if (base_bn_ < N_DIRECT) {
 			maxbcount_ = 1;
 			dblock_ = slot_.slot_base_[slot_.slot_offset_];
-			printf("dblock=%p\n", dblock_);
-			//printf("Region::Init: slot_.slot_base_[slot_.slot_offset_]=%p\n", slot_.slot_base_[slot_.slot_offset_]);
-			//printf("bcobj->daddrs_[bn]=%p\n", bcobj->daddrs_[bn]);
 		} else {
 			maxbcount_ = 1 << ((slot_.slot_height_-1)*RADIX_TREE_MAP_SHIFT);
-			printf("Region::Init: slot_base=%p\n", slot_.slot_base_);
-			printf("Region::Init: slot_offset=%d\n", slot_.slot_offset_);
-			printf("Region::Init: slot_height=%d\n", slot_.slot_height_);
 			if (maxbcount_ > 1) {
 				assert(slot_.slot_base_[slot_.slot_offset_] == NULL);
 				radixtree_.rnode_ = NULL;
@@ -342,7 +330,9 @@ public:
 template<typename Session>
 class Iterator {
 public:
-	Iterator() { }
+	Iterator(Session* session = NULL)
+		: session_(session)
+	{ }
 
 	Iterator(Session* session, Object<Session>* bcobj, uint64_t bn = 0)
 		: session_(session)
@@ -358,16 +348,13 @@ public:
 	{
 		assert(bcobj);
 		current_.Init(session, bcobj, bn);
+		return E_SUCCESS;
 	}
 
 	inline int NextSlot(Session* session) 
 	{
-		RadixTreeNode<Session>* node;
-		int                     height;
-		uint64_t                size;
-		uint64_t                new_bn;
-		int                     ret = 0;
-		uint64_t                bcount;
+		int        ret = 0;
+		uint64_t   bcount;
 		
 		if (current_.base_bn_ < N_DIRECT-1) {
 			current_.slot_offset_++;
@@ -437,7 +424,7 @@ inline uint64_t min(uint64_t a, uint64_t b) {
 
 
 inline uint64_t 
-block_valid_data(int bn, uint64_t file_size)
+block_valid_data(uint64_t bn, uint64_t file_size)
 {
 	return ((((bn + 1) * kBlockSize) < file_size ) 
 	        ? kBlockSize 
@@ -519,11 +506,6 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 	uint64_t newheight;
 	uint64_t bcount;
 
-	//printf("FilePnode::InsertRegion region=%p\n", region);
-	//printf("FilePnode::InsertRegion region->radixtree_.rnode_=%p\n", region->radixtree_.rnode_);
-	//printf("FilePnode::InsertRegion region->base_bn_=%d\n", region->base_bn_);
-	//printf("FilePnode::InsertRegion region->slot_.slot_base_=%p\n", region->slot_.slot_base_);
-
 	if (region->base_bn_ < N_DIRECT) {
 		assert(region->maxbcount_ == 1);
 		// what if the region is already placed? 
@@ -536,26 +518,17 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 			} else {
 				region->slot_.slot_base_[region->slot_.slot_offset_] = region->dblock_; 
 			}
-			printf("region=%p\n", region);
-			printf("region->slot=%p\n", &region->slot_);
-			printf("region->slot_.slot_base=%p[%d]\n", region->slot_.slot_base_, region->slot_.slot_offset_);
 		} else {
 			// no slot, therefore region extends the bcobj
-			printf("extend the bcobj\n");
-			printf("radixtree_.rnode_=%p\n", radixtree_.rnode_);
 			if (radixtree_.rnode_) {
 				// bcobj's radixtree exists so we need to move it under the
 				// new region's radixtree. To do so, we first need to extend
 				// the bcobj's radixtree to reach the height of the new
 				// radixtree minus one. Then we can attach the old radixtree
 				// to the new one.
-				printf("radixtree_.height = %d\n", radixtree_.height_);
-				printf("region->radixtree_.height = %d\n", region->radixtree_.height_);
 				assert(radixtree_.height_ > 0 && 
 				       region->radixtree_.height_ > radixtree_.height_);
 				newheight = region->radixtree_.height_ - 1;
-				printf("newheight = %d\n", newheight);
-				printf("radixtree_.height = %d\n", radixtree_.height_);
 				if (newheight > radixtree_.height_) {
 					bcount = 1 << ((newheight)*RADIX_TREE_MAP_SHIFT);
 					radixtree_.Extend(session, bcount-1);
@@ -566,9 +539,6 @@ ByteContainer::Object<Session>::InsertRegion(Session* session,
 				radixtree_ = region->radixtree_;
 			} else {
 				radixtree_ = region->radixtree_;
-				printf("region=%p\n", region);
-				printf("region->radixtree_.rnode_=%p\n", region->radixtree_.rnode_);
-				printf("radixtree_.rnode_=%p\n", radixtree_.rnode_);
 			}	
 		}
 	}
@@ -594,10 +564,9 @@ ByteContainer::Object<Session>::ReadBlock(Session* session,
 	int l;
 	int rn;
 
-	printf("FilePnode::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
+	//printf("FilePnode::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
 
 	l = min(kBlockSize, size_ - bn*kBlockSize);
-	printf("size_=%d, l=%d\n", size_, l);
 	if (l < off) {
 		return 0;
 	}
@@ -605,9 +574,6 @@ ByteContainer::Object<Session>::ReadBlock(Session* session,
 
 	Region<Session> region(session, this, bn);
 	region.ReadBlock(session, dst, bn, off, rn);
-	for (int i=0; i<n; i++) {
-		printf("dst[%d]=%x\n", i, dst[i]);
-	}
 	if (n - rn > 0) {
 		memset(&dst[rn], 0, n-rn);
 	}	
@@ -628,12 +594,9 @@ ByteContainer::Object<Session>::WriteBlock(Session* session,
                                            int off, 
                                            int n)
 {
-	uint64_t  rbn;
-	void**    slot;
-	int       height;
-	int       ret;
+	int  ret;
 
-	printf("FilePnode::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
+	//printf("FilePnode::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
 	Region<Session> region(session, this, bn);
 	if ( (ret = region.WriteBlock(session, src, bn, off, n)) < 0) {
@@ -642,7 +605,6 @@ ByteContainer::Object<Session>::WriteBlock(Session* session,
 	
 	InsertRegion(session, &region);
 
-	printf("FilePnode::WriteBlock: DONE\n");
 	if ( (bn*kBlockSize + off + n) > size_ ) {
 		size_ = bn*kBlockSize + off + n;
 	}
@@ -654,9 +616,7 @@ template<typename Session>
 int 
 ByteContainer::Object<Session>::LinkBlock(Session* session, uint64_t bn, void* bp)
 {
-	uint64_t  rbn;
-	void**    slot;
-	int       ret;
+	int  ret;
 
 	Region<Session> region(session, this, bn);
 	if ( (ret = region.LinkBlock(session, bn, bp)) < 0) {
@@ -694,14 +654,6 @@ ByteContainer::Object<Session>::LookupSlot(Session* session,
                                            uint64_t bn, 
                                            Slot<Session>* slot)
 {
-	uint64_t                rbn;
-	RadixTreeNode<Session>* node;
-	int                     slot_offset;
-	int                     slot_height;
-	int                     ret;
-	uint64_t                bcount;
-	int                     i;
-
 	if (!slot) {
 		return -E_INVAL;
 	}
@@ -794,7 +746,7 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	assert(off < kBlockSize);
 	assert(off+n <= kBlockSize);
 
-	printf("FilePnode::Region::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
+	//printf("FilePnode::Region::WriteBlock(src=%p, bn=%llu, off=%d, n=%d)\n", src, bn, off, n);
 
 	if ((slot = MapSlot(session, bn, true)) == NULL) {
 		return -E_INVAL;
@@ -807,7 +759,6 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 		}
 		*slot = ptr; // FIXME: journal this 
 		bp = (char*) (*slot);
-		printf("FilePnode::Region::WriteBlock block=%p\n", *slot);
 		// Zero the part of the newly allocated block that is not written to
 		// ensure we later read zeros and not garbage.
 		if (off>0) {
@@ -828,7 +779,6 @@ int
 ByteContainer::Region<Session>::LinkBlock(Session* session, uint64_t bn, void* bp)
 {
 	void** slot;
-	int    ret;
 
 	if ((slot = MapSlot(session, bn, true)) == NULL) {
 		return -E_INVAL;
@@ -846,8 +796,6 @@ ByteContainer::Region<Session>::Write(Session* session,
                                       uint64_t off, 
                                       uint64_t n)
 {
-	printf("FilePnode::Region::Write(src=%p, off=%lu, n=%lu)\n", src, off, n);
-
 	return __Write<Session, ByteContainer::Region<Session> > (session, this, src, off, n);
 }
 
@@ -860,15 +808,12 @@ ByteContainer::Region<Session>::ReadBlock(Session* session,
                                           int off, 
                                           int n)
 {
-	void**                  slot;
-	char*                   bp;
-	int                     ret;
+	void**  slot;
+	char*   bp;
 
 	assert(off < kBlockSize);
 	assert(off+n <= kBlockSize);
 
-	printf("FilePnode::Region::ReadBlock(dst=%p, bn=%llu, off=%d, n=%d)\n", dst, bn, off, n);
-	
 	if ((slot = MapSlot(session, bn, false)) == NULL) {
 		return -E_INVAL;
 	}

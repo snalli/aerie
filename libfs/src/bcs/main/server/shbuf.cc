@@ -20,11 +20,7 @@ int
 SharedBuffer::Init(const char* suffix)
 {
 	int         ret;
-	int         fd;
 	const char* root = "/tmp/shbuf_";
-	size_t      total_size;
-	size_t      header_size;
-	void*       mmap_base;
 
 	path_ = std::string(root) + std::string(suffix);
 	size_ = SharedBufferManager::RuntimeConfig::sharedbuffer_size;
@@ -48,7 +44,6 @@ SharedBuffer::Init(const char* suffix)
 int 
 SharedBuffer::Read(char* dst, size_t n)
 {
-	printf("READ: count=%ld start=%ld n=%ld\n", Count(), start_, n);
 	if (n > Count()) {
 		// not enough data 
 		return 0;

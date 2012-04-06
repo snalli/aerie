@@ -206,7 +206,6 @@ ObjectManager::PutObject(SsaSession* session,
                          ssa::common::ObjectProxyReference& obj_ref)
 {
 	int                  ret = E_SUCCESS;
-	ObjectManagerOfType* mgr;
 
 	pthread_mutex_lock(&mutex_);
 	obj_ref.Reset(true);
@@ -292,7 +291,6 @@ ObjectManager::CloseAllObjects(SsaSession* session, bool update)
 	
 	ObjectManagerOfType*         mgr;
 	ObjectType2Manager::iterator itr;
-	int                          unused;
 	
 	pthread_mutex_lock(&mutex_);
 	

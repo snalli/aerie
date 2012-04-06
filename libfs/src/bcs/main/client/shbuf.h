@@ -12,8 +12,8 @@ namespace client {
 class SharedBuffer: public MemoryMappedRegion< ::SharedBuffer::Header> {
 public:
 	SharedBuffer(Ipc* ipc, ::SharedBuffer::Descriptor& dsc)
-		: path_(dsc.path_),
-		  ipc_(ipc),
+		: ipc_(ipc),
+		  path_(dsc.path_),
 		  id_(dsc.id_)
 	{ }
 

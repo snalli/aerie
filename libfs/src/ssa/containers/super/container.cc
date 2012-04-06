@@ -29,10 +29,10 @@ SuperContainer::VersionManager::root(SsaSession* session)
 }
 
 
-int 
+void 
 SuperContainer::VersionManager::set_root(SsaSession* session, ssa::common::ObjectId oid)
 {
-	return object()->set_root(session, oid);
+	object()->set_root(session, oid);
 }
 
 

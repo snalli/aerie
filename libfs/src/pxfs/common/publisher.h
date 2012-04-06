@@ -35,8 +35,8 @@ struct Publisher::Messages::LogicalOperation {
 
 struct Publisher::Messages::LogicalOperation::Write: public ssa::Publisher::Messages::LogicalOperationHeaderT<Write> {
 	Write(InodeNumber ino)
-		: ino_(ino),
-		  ssa::Publisher::Messages::LogicalOperationHeaderT<Write>(kWrite, sizeof(Write))
+		: ssa::Publisher::Messages::LogicalOperationHeaderT<Write>(kWrite, sizeof(Write)),
+		  ino_(ino)
 	{ }
 
 	InodeNumber ino_;
@@ -45,9 +45,9 @@ struct Publisher::Messages::LogicalOperation::Write: public ssa::Publisher::Mess
 
 struct Publisher::Messages::LogicalOperation::MakeFile: public ssa::Publisher::Messages::LogicalOperationHeaderT<MakeFile> {
 	MakeFile(InodeNumber parino, const char* name, InodeNumber childino)
-		: parino_(parino),
-		  childino_(childino),
-		  ssa::Publisher::Messages::LogicalOperationHeaderT<MakeFile>(kMakeFile, sizeof(MakeFile))
+		: ssa::Publisher::Messages::LogicalOperationHeaderT<MakeFile>(kMakeFile, sizeof(MakeFile)),
+		  parino_(parino),
+		  childino_(childino)
 	{ 
 		strcpy(name_, name); 
 	}
@@ -60,9 +60,9 @@ struct Publisher::Messages::LogicalOperation::MakeFile: public ssa::Publisher::M
 
 struct Publisher::Messages::LogicalOperation::MakeDir: public ssa::Publisher::Messages::LogicalOperationHeaderT<MakeDir> {
 	MakeDir(InodeNumber parino, const char* name, InodeNumber childino)
-		: parino_(parino),
-		  childino_(childino),
-		  ssa::Publisher::Messages::LogicalOperationHeaderT<MakeDir>(kMakeDir, sizeof(MakeDir))
+		: ssa::Publisher::Messages::LogicalOperationHeaderT<MakeDir>(kMakeDir, sizeof(MakeDir)),
+		  parino_(parino),
+		  childino_(childino)
 	{ 
 		strcpy(name_, name); 
 	}
@@ -75,9 +75,9 @@ struct Publisher::Messages::LogicalOperation::MakeDir: public ssa::Publisher::Me
 
 struct Publisher::Messages::LogicalOperation::Link: public ssa::Publisher::Messages::LogicalOperationHeaderT<Link> {
 	Link(InodeNumber parino, const char* name, InodeNumber childino)
-		: parino_(parino),
-		  childino_(childino),
-		  ssa::Publisher::Messages::LogicalOperationHeaderT<Link>(kLink, sizeof(Link))
+		: ssa::Publisher::Messages::LogicalOperationHeaderT<Link>(kLink, sizeof(Link)),
+		  parino_(parino),
+		  childino_(childino)
 	{ 
 		strcpy(name_, name); 
 	}
@@ -90,8 +90,8 @@ struct Publisher::Messages::LogicalOperation::Link: public ssa::Publisher::Messa
 
 struct Publisher::Messages::LogicalOperation::Unlink: public ssa::Publisher::Messages::LogicalOperationHeaderT<Unlink> {
 	Unlink(InodeNumber parino, const char* name)
-		: parino_(parino),
-		  ssa::Publisher::Messages::LogicalOperationHeaderT<Unlink>(kUnlink, sizeof(Unlink))
+		: ssa::Publisher::Messages::LogicalOperationHeaderT<Unlink>(kUnlink, sizeof(Unlink)),
+		  parino_(parino)
 	{ 
 		strcpy(name_, name); 
 	}

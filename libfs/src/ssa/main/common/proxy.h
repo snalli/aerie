@@ -28,7 +28,7 @@ public:
 		return owner_;
 	}
 
-	void* set_owner(void* owner) {
+	void set_owner(void* owner) {
 		owner_ = owner;
 	}
 

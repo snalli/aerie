@@ -98,8 +98,8 @@ public:
 
 	Object()
 		: type_(0),
-		  parent_(ObjectId(0)),
-		  nlink_(0)
+		  nlink_(0),
+		  parent_(ObjectId(0))
 	{ }
 
 	ObjectId oid() {
@@ -169,7 +169,7 @@ public:
 	{ }
 
 	VersionNumber ccVersion() { return version_; }
-	VersionNumber ccSetVersion(VersionNumber version) { version_ = version; }
+	void ccSetVersion(VersionNumber version) { version_ = version; }
 
 protected:
 	//! bit flags that indicate the state of the object

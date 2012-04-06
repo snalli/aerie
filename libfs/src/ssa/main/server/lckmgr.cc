@@ -51,25 +51,25 @@ static int revoke_table[8][8] = {
 
 
 ClientRecord::ClientRecord()
-	: clt_(-1), 
-	  seq_(-1),
+	: seq_(-1),
+	  clt_(-1), 
 	  mode_(lock_protocol::Mode::NL)
 { }
 
 
 ClientRecord::ClientRecord(ClientRecord::id_t clt, int seq, ClientRecord::Mode mode)
-	: clt_(clt), 
-	  seq_(seq),
+	: seq_(seq),
+	  clt_(clt), 
 	  mode_(mode)
 { }
 
 
 Lock::Lock(lock_protocol::LockId lid)
-	: lid_(lid),
+	: gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  expected_clt_(-1), 
 	  retry_responded_(false), 
 	  revoke_sent_(false),
-	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode(lock_protocol::Mode::NL))
+	  lid_(lid)
 {
 	pthread_cond_init(&retry_responded_cv_, NULL);
 }
@@ -241,8 +241,6 @@ LockManager::AcquireInternal(int clt, int seq, Lock* l,
                              lock_protocol::Mode::Set mode_set, int flags, 
                              int& mode_granted)
 {
-	char                  statestr[128];
-	uint32_t              next_state;
 	int                   wq_len;
 	lock_protocol::status r;
 	lock_protocol::Mode   mode;
@@ -334,7 +332,6 @@ LockManager::ConvertInternal(int clt, int seq, Lock* l,
 {
 	std::map<int, ClientRecord>::iterator itr_icr;
 	lock_protocol::status                 r = lock_protocol::NOENT;
-	int                                   next_status;
 
 	if (locks_.find(l->lid_) != locks_.end() && locks_[l->lid_]->gtque_.Exists(clt))
 	{
@@ -483,7 +480,6 @@ LockManager::revoker()
 		{
 			int           clt = (*itr_icr).first;
 			ClientRecord& cr = (*itr_icr).second;
-			::server::ClientDescriptor* cl_dsc = ipc_->Client(clt);
 			revoke_type = revoke_table[cr.mode().value()][waiting_cr.mode().value()];
 			if (revoke_type == Lock::RVK_NO) {
 				// false alarm 

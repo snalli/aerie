@@ -18,8 +18,8 @@ public:
 	};
 
 	PersistentHeap(PersistentRegion* pregion, Header* header)
-		: header_(header),
-		  pregion_(pregion)
+		: pregion_(pregion),
+		  header_(header)
 	{ }
 
 	static int Open(const char* filename, size_t maxsize,

@@ -23,8 +23,8 @@ public:
 
 private:
 	char   buf_[1024];
-	size_t count_;
 	size_t size_;
+	size_t count_;
 };
 
 

@@ -35,8 +35,8 @@ class StorageSystem {
 public:
 	StorageSystem(::server::Ipc* ipc, StoragePool* pool)
 		: ipc_(ipc),
-		  pool_(pool),
 		  salloc_(NULL),
+		  pool_(pool),
 		  can_commit_suicide_(false)
 	{ 
 		pthread_mutex_init(&mutex_, NULL);

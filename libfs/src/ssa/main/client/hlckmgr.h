@@ -179,6 +179,7 @@ inline int
 HLock::AddChild(HLock* hlock)
 {
 	children_.insert(hlock);
+	return E_SUCCESS;
 }
 
 

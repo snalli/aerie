@@ -74,10 +74,6 @@ struct RunTestIfExactMatchFilter
 
 	bool operator()(const UnitTest::Test* const test) const
 	{
-		int suite_filter_len;
-		int test_filter_len;
-		
-		//std::cout << "EXACT MATCH: " << test->m_details.suiteName << "/" << test->m_details.testName << std::endl;
 		if (((suite_filter_ && (strcmp(test->m_details.suiteName, suite_filter_) == 0)) ||
 		     !suite_filter_) &&
 		    ((test_filter_ && (strcmp(test->m_details.testName, test_filter_) == 0)) ||
@@ -119,12 +115,12 @@ private:
 
 inline
 Test::Test(ArgValMap* global, ArgValMap* local)
-	: suite_name_(NULL),
+	: msgid_(-1),
+	  semid_(-1),
+	  filter_type_(NULL),
+	  suite_name_(NULL),
 	  test_name_(NULL),
 	  tag_name_(NULL),
-	  filter_type_(NULL),
-	  semid_(-1),
-	  msgid_(-1),
 	  oss_(std::ostringstream::out)
 {
 	std::string* val;
@@ -141,13 +137,13 @@ Test::Test(ArgValMap* global, ArgValMap* local)
 #endif		
 
 	if (global) {
-		if (val = global->ArgVal(std::string("tag"))) {
+		if ((val = global->ArgVal(std::string("tag")))) {
 			tag_name_ = val->c_str();
 		}
-		if (val = global->ArgVal(std::string("filter"))) {
+		if ((val = global->ArgVal(std::string("filter")))) {
 			filter_type_ = val->c_str();
 		}
-		if (val = global->ArgVal(std::string("deferred"))) {
+		if ((val = global->ArgVal(std::string("deferred")))) {
 			deferred_ = true;
 		} else {
 			deferred_ = false;
@@ -155,36 +151,36 @@ Test::Test(ArgValMap* global, ArgValMap* local)
 	}
 
 	if (global && !local) {
-		if (val = global->ArgVal(std::string("test"))) {
+		if ((val = global->ArgVal(std::string("test")))) {
 			test_name_ = val->c_str();
 		}
 
-		if (val = global->ArgVal(std::string("suite"))) {
+		if ((val = global->ArgVal(std::string("suite")))) {
 			suite_name_ = val->c_str();
 		}
 	}
 
 	// merge local 
 	if (local) {
-		if (val = local->ArgVal(std::string("test"))) {
+		if ((val = local->ArgVal(std::string("test")))) {
 			test_name_ = val->c_str();
 		}
 
-		if (val = local->ArgVal(std::string("suite"))) {
+		if ((val = local->ArgVal(std::string("suite")))) {
 			suite_name_ = val->c_str();
 		}
 		
-		if (val = local->ArgVal(std::string("msg"))) {
+		if ((val = local->ArgVal(std::string("msg")))) {
 			key_t msg_key = atoi(val->c_str());
 			msgid_ = msgget(msg_key, 0);
 		}
 
-		if (val = local->ArgVal(std::string("sem"))) {
+		if ((val = local->ArgVal(std::string("sem")))) {
 			key_t sem_key = atoi(val->c_str());
 			semid_ = semget(sem_key, 1, 0);
 		}
 
-		if (val = local->ArgVal(std::string("tag"))) {
+		if ((val = local->ArgVal(std::string("tag")))) {
 			if (tag_name_) {
 				tag_name_str_ = std::string(tag_name_) + TAG_DELIM;
 			}
@@ -284,10 +280,7 @@ private:
 inline int 
 TestFramework::ParseArg(int argc, char** argv)
 {
-	extern char  *optarg;
-	extern int   optind;
-	extern int   opterr;
-	char         ch;
+	char  ch;
 	
 	::optind = 1;
 	::opterr = 0;
@@ -299,8 +292,6 @@ TestFramework::ParseArg(int argc, char** argv)
 					std::string substr;
 					std::string strk;
 					std::string strv;
-					size_t      p;
-					size_t      np;
 
 					if (::optarg[0] == ',') {
 						ArgValMap* argval = new ArgValMap(std::string(&::optarg[1]));
@@ -362,7 +353,6 @@ TestFramework::TestFramework(int argc, char** argv)
 inline int
 TestFramework::RunTests()
 {
-	int ret;
 	int test_failed_count = 0;
 
 	numthreads_ = test_set_.size();

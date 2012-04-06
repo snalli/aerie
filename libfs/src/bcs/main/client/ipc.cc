@@ -21,7 +21,6 @@ Ipc::Init()
 	const char*                 hname;
 	IpcProtocol::SubscribeReply rep;
 	std::string                 idstr;
-	int                         principal_id = getuid();
 	
 	// setup RPC for making calls to the server
 	make_sockaddr(xdst_.c_str(), &dst);

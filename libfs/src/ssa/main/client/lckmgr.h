@@ -166,8 +166,8 @@ public:
 	bool                      can_retry_;   ///< set when a retry message from the server is received
 	int                       revoke_type_; ///< type of revocation requested
 	lock_protocol::Mode       public_mode_; ///< mode as known by the server and seen by the world
-	void*                     payload_;     ///< lock users may use it for anything they like
 	bool                      cancel_;      ///< cancel outstanding request
+	void*                     payload_;     ///< lock users may use it for anything they like
 	
 private:
 	LockStatus                status_;

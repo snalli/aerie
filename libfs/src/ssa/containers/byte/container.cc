@@ -52,9 +52,6 @@ public:
 			block_array_ = NULL;
 			region_ = new ByteContainer::Region(session, slot); // FIXME: pass session
 		}	
-
-		printf("interval: slot_base=%p slot_offset=%d, range=[%" PRIu64 ", %" PRIu64 "]\n", 
-		       slot_.slot_base_, slot_.slot_offset_, low_, high_);
 	}
 	  
 	inline int GetLowPoint() const { return low_;}
@@ -87,13 +84,7 @@ ByteInterval::WriteBlockNoRegion(SsaSession* session, char* src, uint64_t bn, in
 
 	assert(low_ <= bn && bn <= high_);
 
-	printf("ByteInterval::WriteBlock (src=%p, bn=%" PRIu64 ", off=%d, n=%d)\n",
-	       src, bn, off, n);
-	
 	if (!(bp = block_array_[bn - low_])) {
-		printf("ByteInterval::WriteBlock Allocate Block\n",
-	       src, bn, off, n);
-		printf("................ALLOCATE: block %d\n", bn);
 		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
 		                                             kData, &ptr)) < 0)
 		{ 
@@ -142,8 +133,6 @@ ByteInterval::WriteNoRegion(SsaSession* session, char* src, uint64_t off, uint64
 int
 ByteInterval::Write(SsaSession* session, char* src, uint64_t off, uint64_t n)
 {
-	printf("Buffered Write [%" PRIu64 ", %" PRIu64 "], region=%p\n", off, off+n-1, region_);
-
 	if (region_) {
 		return region_->Write(session, src, off, n);
 	} else {
@@ -159,9 +148,6 @@ ByteInterval::ReadBlockNoRegion(SsaSession* session, char* dst, uint64_t bn, int
 
 	assert(low_ <= bn && bn <= high_);
 
-	printf("ByteInterval::ReadBlock (dst=%p, bn=%" PRIu64 ", off=%d, n=%d)\n",
-	       dst, bn, off, n);
-	
 	if (!(bp = block_array_[bn - low_])) {
 		memset(dst, 0, n);
 	}
@@ -198,8 +184,6 @@ ByteInterval::ReadNoRegion(SsaSession* session, char* dst, uint64_t off, uint64_
 int
 ByteInterval::Read(SsaSession* session, char* dst, uint64_t off, uint64_t n)
 {
-	printf("Buffered Read [%" PRIu64 ", %" PRIu64 "], region=%p\n", off, off+n-1, region_);
-
 	if (region_) {
 		return region_->Read(session, dst, off, n);
 	} else {
@@ -244,12 +228,10 @@ ByteContainer::VersionManager::vOpen()
 int 
 ByteContainer::VersionManager::vUpdate(SsaSession* session)
 {
-	int                   ret;
-
 	ssa::vm::client::VersionManager<ByteContainer::Object>::vUpdate(session);
 
 	// TODO
-
+	
 	return 0;
 }
 
@@ -272,11 +254,9 @@ ByteContainer::VersionManager::ReadImmutable(SsaSession* session,
 	uint64_t                bcount;
 	uint64_t                size;
 	char*                   ptr;
-	uint64_t                interval_size;
-	uint64_t                interval_low;
 	ByteInterval*           interval;
 
-	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
+	//dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
 
 	fbn = off/kBlockSize;
 	start.Init(session, object(), fbn);
@@ -297,8 +277,8 @@ ByteContainer::VersionManager::ReadImmutable(SsaSession* session,
 
 		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
 
-		printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
-		       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
+		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
+		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
 
 		if (!ptr) {
 			// Downcasting via a static cast is generally dangerous, but we know 
@@ -311,7 +291,7 @@ ByteContainer::VersionManager::ReadImmutable(SsaSession* session,
 				// return zeros
 				memset(&dst[tot], 0, m);
 			} else {
-				if (ret = interval->Read(session, &dst[tot], off, m) < m) {
+				if ((ret = interval->Read(session, &dst[tot], off, m)) < m) {
 					return ((ret < 0) ? ( (tot>0)? tot: ret)  
 					                  : tot + ret);
 				}
@@ -320,7 +300,7 @@ ByteContainer::VersionManager::ReadImmutable(SsaSession* session,
 			// pinode already points to a block, therefore we do an in-place write
 			assert(bcount == 1);
 
-			printf("Direct Read [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
+			//printf("Direct Read [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
 
 			memmove(&dst[tot], &ptr[f], m);
 		}
@@ -463,8 +443,8 @@ ByteContainer::VersionManager::WriteImmutable(SsaSession* session,
 
 		ptr = (char*) ((*iter).slot_base_[(*iter).slot_offset_]);
 
-		printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
-		       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
+		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
+		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
 
 		if (!ptr) {
 			// Downcasting via a static cast is generally dangerous, but we know 
@@ -487,7 +467,7 @@ ByteContainer::VersionManager::WriteImmutable(SsaSession* session,
 				intervaltree_->Insert(interval);
 			}
 
-			if (ret = interval->Write(session, &src[tot], off, m) < m) {
+			if ((ret = interval->Write(session, &src[tot], off, m)) < m) {
 				return ((ret < 0) ? ( (tot>0)? tot: ret)  
 				                  : tot + ret);
 			}
@@ -499,7 +479,7 @@ ByteContainer::VersionManager::WriteImmutable(SsaSession* session,
 			// copy the old contents of the block if a partial copy is done
 			assert(bcount == 1);
 
-			printf("Direct Write [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
+			//printf("Direct Write [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
 			memmove(&ptr[f], &src[tot], m);
 		}
 

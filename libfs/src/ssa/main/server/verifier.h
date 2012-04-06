@@ -72,10 +72,9 @@ Verifier::Parse(::ssa::server::SsaSession* session,
 			return -1;
 		}
 		header = ssa::Publisher::Messages::ContainerOperationHeader::Load(buf);
-		printf("PHYSICAL_OPERATION: %d\n", header->id_);
 		action_[header->id_](session, buf, header);
 	}
-	return 1; /* thre is one next message  */
+	return 1; /* there is one next message  */
 }
 
 

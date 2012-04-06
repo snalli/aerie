@@ -56,9 +56,9 @@ public:
 	}
 
 	ssa::common::ObjectId root(Session* session);
-	int set_root(Session* session, ssa::common::ObjectId oid);
+	void set_root(Session* session, ssa::common::ObjectId oid);
 	ssa::common::ObjectId freelist(Session* session);
-	int set_freelist(Session* session, ssa::common::ObjectId oid);
+	void set_freelist(Session* session, ssa::common::ObjectId oid);
 
 	//int magic(Session* session);
 	//int set_magic(Session* session, int magic);
@@ -82,7 +82,7 @@ SuperContainer::Object<Session>::root(Session* session)
 
 
 template<typename Session>
-int 
+void 
 SuperContainer::Object<Session>::set_root(Session* session, ssa::common::ObjectId oid)
 {
 	root_ = oid;
@@ -98,7 +98,7 @@ SuperContainer::Object<Session>::freelist(Session* session)
 
 
 template<typename Session>
-int 
+void
 SuperContainer::Object<Session>::set_freelist(Session* session, ssa::common::ObjectId oid)
 {
 	freelist_ = oid;

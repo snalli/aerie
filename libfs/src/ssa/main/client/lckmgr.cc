@@ -59,12 +59,12 @@ Lock::Lock(LockId lid = 0)
 	  seq_(0), 
 	  used_(false), 
 	  can_retry_(false),
-	  cancel_(false),
 	  revoke_type_(0),
-	  status_(NONE),
-	  public_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode::NL),
-	  payload_(0)
+	  public_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
+	  cancel_(false),
+	  payload_(0),
+	  status_(NONE)
 {
 	pthread_cond_init(&status_cv_, NULL);
 	pthread_cond_init(&used_cv_, NULL);
@@ -111,8 +111,8 @@ static void* releasethread(void* x)
 
 
 LockManager::LockManager(::client::Ipc* ipc)
-	: last_seq_(0),
-	  ipc_(ipc)
+	: ipc_(ipc),
+	  last_seq_(0)
 {
 	assert(Init() == 0);
 }
@@ -120,8 +120,7 @@ LockManager::LockManager(::client::Ipc* ipc)
 int
 LockManager::Init() 
 {
-	int          unused;
-	int          r;
+	int r;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
 	        "[%d] Initialize LockManager\n", id());
@@ -326,7 +325,7 @@ LockManager::Releaser()
 		// if there is a user manager registered with us then make a synchronous
 		// call to revoke the lock. otherwise wait for an asynchronous release 
 		assert(lid.type() < LOCK_TYPE_COUNT);
-		if (lrvk = lrvk_[lid.type()]) {
+		if ((lrvk = lrvk_[lid.type()])) {
 			// drop lock to avoid any deadlocks caused by callbacks.
 			// releasing the lock is okay as state is consistent here. 
 			pthread_mutex_unlock(&mutex_);
@@ -802,6 +801,7 @@ LockManager::CancelLockRequestInternal(Lock* l)
 		l->cancel_ = true;
 		pthread_cond_signal(&l->retry_cv_);
 	}
+	return lock_protocol::OK;
 }
 
 
@@ -959,7 +959,7 @@ LockManager::do_convert(Lock* l, lock_protocol::Mode mode, int flags)
 	        "[%d] calling convert RPC for lock %s id=%d seq=%d\n",
 	        id(), l->lid_.c_str(), id(), l->seq_);
 	assert(l->lid_.type() < LOCK_TYPE_COUNT);
-	if (lcb = lcb_[l->lid_.type()]) {
+	if ((lcb = lcb_[l->lid_.type()])) {
 		lcb->OnConvert(l);
 	}
 	rpc_flags = flags & (lock_protocol::FLG_NOQUE | lock_protocol::FLG_CAPABILITY);
@@ -980,7 +980,7 @@ LockManager::do_release(Lock* l, int flags)
 	        "[%d] calling release RPC for lock %s id=%d seq=%d\n",
 	        id(), l->lid_.c_str(), id(), l->seq_);
 	assert(l->lid_.type() < LOCK_TYPE_COUNT);
-	if (lcb = lcb_[l->lid_.type()]) {
+	if ((lcb = lcb_[l->lid_.type()])) {
 		lcb->OnRelease(l);
 	}
 

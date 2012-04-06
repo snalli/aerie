@@ -21,7 +21,6 @@ int
 Ipc::Init()
 {
 	int   ret;
-	char* csize;
 	
 	rpcs_->reg(IpcProtocol::kRpcServerIsAlive, this, &Ipc::Alive);
 	rpcs_->reg(IpcProtocol::kRpcSubscribe, this, &Ipc::Subscribe);
@@ -96,9 +95,6 @@ Ipc::Alive(const unsigned int principal_id, int& r)
 int
 Ipc::RuntimeConfig::Init()
 {
-	int   ret;
-	char* csize;
-
 	return E_SUCCESS;
 }
 

@@ -71,8 +71,8 @@ struct Publisher::Messages::BaseMessageT: public BaseMessage {
 
 struct Publisher::Messages::TransactionBegin: public BaseMessageT<TransactionBegin> {
 	TransactionBegin(int id = 0)
-		: id_(id),
-		  BaseMessageT<TransactionBegin>(kTransactionBegin)
+		: BaseMessageT<TransactionBegin>(kTransactionBegin),
+		  id_(id)
 	{ 
 	}
 
@@ -89,9 +89,9 @@ struct Publisher::Messages::TransactionCommit: public BaseMessageT<TransactionCo
 
 struct Publisher::Messages::LogicalOperationHeader: public BaseMessageT<LogicalOperationHeader> {
 	LogicalOperationHeader(char id, size_t total_size)
-		: id_(id),
-		  payload_size_(total_size - sizeof(LogicalOperationHeader)),
-		  BaseMessageT<LogicalOperationHeader>(kLogicalOperation)
+		: BaseMessageT<LogicalOperationHeader>(kLogicalOperation),
+		  id_(id),
+		  payload_size_(total_size - sizeof(LogicalOperationHeader))
 	{ }
 
 	char   id_; 
@@ -113,13 +113,13 @@ struct Publisher::Messages::LogicalOperationHeaderT: public LogicalOperationHead
 
 struct Publisher::Messages::ContainerOperationHeader: public BaseMessageT<ContainerOperationHeader> {
 	ContainerOperationHeader(char id, short total_size)
-		: id_(id),
-		  payload_size_(total_size - sizeof(ContainerOperationHeader)),
-		  BaseMessageT<ContainerOperationHeader>(kContainerOperation)
+		: BaseMessageT<ContainerOperationHeader>(kContainerOperation),
+		  id_(id),
+		  payload_size_(total_size - sizeof(ContainerOperationHeader))
 	{ }
 	
-	short payload_size_;
 	char  id_; 
+	short payload_size_;
 };
 
 

@@ -11,11 +11,11 @@ namespace client {
 class SsaSession {
 public:
 	SsaSession(ssa::client::StorageSystem* stsystem)
-		: lckmgr_(stsystem->lckmgr()),
+		: stsystem_(stsystem),
+		  lckmgr_(stsystem->lckmgr()),
 		  hlckmgr_(stsystem->hlckmgr()),
 		  salloc_(stsystem->salloc()),
-		  omgr_(stsystem->omgr()),
-		  stsystem_(stsystem)
+		  omgr_(stsystem->omgr())
 	{ 
 		journal_ = new ssa::client::Journal(this);
 	}

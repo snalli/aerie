@@ -122,7 +122,6 @@ static boost::dynamic_bitset<>::size_type
 find_first_zero(boost::dynamic_bitset<>& fdset, 
                 boost::dynamic_bitset<>::size_type start)
 {
-	boost::dynamic_bitset<>::size_type first_bit_set;
 	boost::dynamic_bitset<>::size_type first_bit_zero;
 	boost::dynamic_bitset<>::size_type bit_set;
 	boost::dynamic_bitset<>::size_type prev_bit_set;
@@ -153,7 +152,6 @@ FileManager::AllocFd(int start)
 	boost::dynamic_bitset<>::size_type first_bit_zero;
 
 	first_bit_zero = find_first_zero(fdset_, start);
-	printf("allocfd = %d\n", first_bit_zero);
 	if (first_bit_zero == boost::dynamic_bitset<>::npos) {
 		return -1;
 	}

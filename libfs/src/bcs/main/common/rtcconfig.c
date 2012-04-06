@@ -129,7 +129,6 @@ __cconfig_lookup_valid_int(config_t *cfg,
                            int *value, 
                            int validity_check, ...)
 {
-	config_setting_t *group;
 	int              min;
 	int              max;
 	int              list_length;
@@ -137,7 +136,6 @@ __cconfig_lookup_valid_int(config_t *cfg,
 	int              val;
 	int              listval;
 	va_list          ap;
-	int              found_val  = 0;
 
 	if (__cconfig_lookup_int(cfg, name, &val) == CONFIG_TRUE) {
 		switch (validity_check) {
@@ -204,7 +202,6 @@ __cconfig_lookup_valid_string(config_t *cfg,
 	int       i;
 	char      *val;
 	va_list   ap;
-	int       found_val = 0;
 
 	if (__cconfig_lookup_string(cfg, name, &val) == CONFIG_TRUE) {
 		switch (validity_check) {
@@ -233,10 +230,9 @@ __cconfig_lookup_valid_string(config_t *cfg,
 int 
 __cconfig_init(config_t *cfg, const char *config_file)
 {
-	char  buf[128];
 	char* env_config_file;
 
-	if (env_config_file = getenv("LIBFS_CONFIG")) {
+	if ((env_config_file = getenv("LIBFS_CONFIG"))) {
 		config_file = env_config_file;
 	}
 	

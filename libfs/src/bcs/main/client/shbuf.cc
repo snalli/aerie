@@ -18,7 +18,6 @@ int
 SharedBuffer::Map()
 {
 	int ret;
-	int fd;
 	
 	if ((ret = Open(path_.c_str(), 0, kMap, this)) < 0) {
 		return ret;
@@ -26,7 +25,7 @@ SharedBuffer::Map()
 
 	DBG_LOG(DBG_DEBUG, DBG_MODULE(server_bcs), 
 	        "SharedBuffer: path = %s, size = %" PRIu64 ", base = %p\n", 
-	        path_.c_str(), size_, base_);
+	        path_.c_str(), size_, (void*) base_);
 
 	return E_SUCCESS;
 }
@@ -60,14 +59,12 @@ SharedBuffer::SignalReader()
 int 
 SharedBuffer::Write(const char* src, size_t n)
 {
-	printf("WRITE: %d %d %d\n", n, size(), Count());
 	if (n > size() - Count()) {
 		// no space 
 		SignalReader();
 	}
 	void* bptr = (void*) (base() + end());
 	if (end() > start()) {
-		printf("WRITE3: %ld %ld\n", start(), end());
 		uint64_t empty_slots = size() - end();
 		if (n > empty_slots) {
 			memcpy(bptr, src, empty_slots);
@@ -76,9 +73,7 @@ SharedBuffer::Write(const char* src, size_t n)
 			memcpy(bptr, src, n);
 		}
 	} else {
-		printf("WRITE1\n");
 		memcpy(bptr, src, n);
-		printf("WRITE2\n");
 	}
 	set_end((end() + n) % size());
 	return n;

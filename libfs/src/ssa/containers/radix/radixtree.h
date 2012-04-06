@@ -87,8 +87,10 @@ public:
 	static RadixTreeNode* Make(Session* session) {
 		int   ret;
 		void* ptr;
-		printf("RADIXTREENODE::MAKE: SESSION: %p, STORAGE_ALLOCATOR: %p\n", session, session->salloc());
-		if ((ret = session->salloc()->AllocateExtent(session, sizeof(RadixTreeNode), kMetadata, &ptr)) < 0) {
+		
+		if ((ret = session->salloc()->AllocateExtent(session, sizeof(RadixTreeNode), 
+		                                             kMetadata, &ptr)) < 0) 
+		{
 			dbg_log(DBG_ERROR, "No storage available");
 			return NULL;
 		}
@@ -159,7 +161,7 @@ __maxindex(unsigned int height)
 
 
 static void
-radix_tree_init_maxindex(uint64_t height_to_maxindex[], int array_size)
+radix_tree_init_maxindex(uint64_t height_to_maxindex[], uint64_t array_size)
 {
 	unsigned int i;
 
@@ -201,7 +203,6 @@ RadixTree<Session>::Extend(Session* session, uint64_t index)
 {
 	RadixTreeNode<Session>* node;
 	unsigned int            h;
-	int                     ret;
 
 	// Figure out what the height should be.
 	h = height_ + 1;
@@ -227,6 +228,7 @@ RadixTree<Session>::Extend(Session* session, uint64_t index)
 		rnode_ = node;
 		height_ = newheight;
 	} while (h > height_);
+
 out:
 	return 0;
 }
@@ -316,7 +318,6 @@ RadixTree<Session>::MapSlot(Session* session,
 		// Go a level down
 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
 		node = slot;
-		printf("radixtree::mapslot: slot=%p, offset=%d\n", node, offset);
 		slot = node->Slot(session, offset);
 		shift -= RADIX_TREE_MAP_SHIFT;
 		h--;

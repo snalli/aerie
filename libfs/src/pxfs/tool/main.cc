@@ -32,6 +32,7 @@ usage(const char *prog_name)
 		const char* description = command_table[i].description;
 	    fprintf(stderr, "       %s   %s\t%s\n", WHITESPACE(strlen(prog_name)), name, description);
 	}
+	return -1;
 }
 
 
@@ -42,7 +43,6 @@ main(int argc, char* argv[])
 	int (*command)(int, char* []) = NULL;
 
 	for (int i=0; command_table[i].name != NULL; i++) {
-		const char* name = command_table[i].name;
 		command = command_table[i].command;
 	}
 

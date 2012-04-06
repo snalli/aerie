@@ -30,13 +30,13 @@ Registry::Init()
 	if (ipc_) {
 		return ipc_handlers_.Register(this);
 	}
+	return E_SUCCESS;
 }
 
 
 int 
 Registry::Lookup(std::string name, ::ssa::common::ObjectId* oid)
 {
-	int                                                      i;
 	std::map<std::string, ::ssa::common::ObjectId>::iterator it;
 	
 	pthread_mutex_lock(&mutex_);
@@ -54,7 +54,6 @@ Registry::Lookup(std::string name, ::ssa::common::ObjectId* oid)
 int 
 Registry::Add(std::string name, ::ssa::common::ObjectId oid)
 {
-	int                                                                       i;
 	std::pair<std::map<std::string, ::ssa::common::ObjectId>::iterator, bool> pairret;
 	
 	pthread_mutex_lock(&mutex_);

@@ -6,11 +6,10 @@
 namespace client {
 
 Inode::Inode()
-	: sb_(NULL),
+	: ref_(NULL),
 	  refcnt_(0),
-	  ref_(NULL)
+	  sb_(NULL)
 { 
-	printf("Inode::Inode: %p\n", this);
 	pthread_mutex_init(&mutex_, NULL);
 }
 

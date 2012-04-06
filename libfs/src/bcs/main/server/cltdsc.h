@@ -10,8 +10,8 @@ namespace server {
 struct ClientDescriptor {
 public:
 	ClientDescriptor(int clt, rpcc* rpccl)
-		: clt_(clt),
-		  rpcc_(rpccl)
+		: rpcc_(rpccl),
+		  clt_(clt)
 	{ }
 	
 	int Init();

@@ -33,10 +33,8 @@ inline ArgValMap::ArgValMap(std::string argstr)
 inline int 
 extract_kv(std::string& str, std::string& strk, std::string& strv)
 {
-	char k[128];
-	char v[128];
-	int  start;
-	int  end;
+	size_t  start;
+	size_t  end;
 
 	start=str.find('-', 0);
 	if (start != std::string::npos) {
@@ -54,7 +52,6 @@ extract_kv(std::string& str, std::string& strk, std::string& strv)
 inline int 
 ArgValMap::Init(std::string argstr)
 {
-	char        ch;
 	std::string substr;
 	std::string strk;
 	std::string strv;

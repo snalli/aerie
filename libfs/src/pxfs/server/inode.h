@@ -13,14 +13,15 @@ namespace server {
 class Inode {
 public:
 	Inode()
-		: ino_(0),
+		: oid_(ssa::common::ObjectId(0)),
+		  ino_(0),
 		  type_(0)
 	{ }
 	
 	Inode(InodeNumber ino, int type)
-		: ino_(ino),
-		  type_(type),
-		  oid_(ssa::common::ObjectId(ino))
+		: oid_(ssa::common::ObjectId(ino)),
+		  ino_(ino),
+		  type_(type)
 	{ }
 	
 	static int type(InodeNumber ino) {

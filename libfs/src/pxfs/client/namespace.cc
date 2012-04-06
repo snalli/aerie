@@ -102,6 +102,7 @@ NameSpace::Init(Session* session)
 {
 	root_ = new MPInode;
 	Mount(session, "/", (SuperBlock*) KERNEL_SUPERBLOCK);
+	return E_SUCCESS;
 }
 
 
@@ -171,7 +172,6 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 	std::vector<Inode*> locked_inodes; 
 	Inode*              tmp_inode;
 	Inode*              parent_inode;
-	int                 retries = 0;
 	int                 ret;
 
 	STM_BEGIN()
@@ -246,9 +246,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	char*       path = const_cast<char*>(cpath);
 	Inode*      inode;
 	Inode*      inode_next;
-	Inode*      inode_prev = NULL;
 	int         ret;
-	SuperBlock* sb;
 	char*       old_name;
 
 	

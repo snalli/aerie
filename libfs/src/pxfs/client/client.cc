@@ -165,7 +165,6 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 	char          name[128];
 	Inode*        dp;
 	Inode*        ip;
-	SuperBlock*   sb;
 	int           ret;
 
 	// when Nameiparent returns successfully, dp is 
@@ -283,6 +282,7 @@ int
 Client::Duplicate(int oldfd, int newfd)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	return E_SUCCESS;
 }
 
 
@@ -355,22 +355,24 @@ Client::DeleteDir(const char* pathname)
 int
 Client::SetCurWrkDir(const char* path)
 {
-
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	return E_SUCCESS;
 }
 
 
 int
 Client::GetCurWrkDir(const char* path, size_t size)
 {
-
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	return E_SUCCESS;
 }
 
 
 int 
 Client::Rename(const char* oldpath, const char* newpath)
 {
-	
-
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	return E_SUCCESS;
 }
 
 

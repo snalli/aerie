@@ -74,7 +74,6 @@ FileSystem::Mount(int clt, const char* source, const char* target,
                   unsigned int flags, FileSystemProtocol::MountReply& rep) 
 {
 	int                               ret;
-	Session*                          session;
 	StorageSystemProtocol::MountReply ssrep;
 	
 	if ((ret = storage_system_->Mount(clt, source, flags, ssrep)) < 0) {

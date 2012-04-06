@@ -43,7 +43,7 @@ public:
 	int vUpdate(SsaSession* session);
 
 	ssa::common::ObjectId root(SsaSession* session);
-	int set_root(SsaSession* session, ssa::common::ObjectId oid);
+	void set_root(SsaSession* session, ssa::common::ObjectId oid);
 
 private:
 

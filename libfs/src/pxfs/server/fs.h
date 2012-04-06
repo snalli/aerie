@@ -58,8 +58,8 @@ public:
 
 private:
 	pthread_mutex_t     mutex_;
-	StorageSystem*      storage_system_;
 	Ipc*                ipc_;
+	StorageSystem*      storage_system_;
 	IpcHandlers         ipc_handlers_;
 };
 

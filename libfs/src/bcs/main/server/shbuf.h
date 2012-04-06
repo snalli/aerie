@@ -29,7 +29,7 @@ public:
 	void Release() {
 		header_->start_ = start_;
 	}
-	int Count() {
+	size_t Count() {
 		return (size_ + end_ - start_) % size_;
 	}
 

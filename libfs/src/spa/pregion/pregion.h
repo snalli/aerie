@@ -73,8 +73,8 @@ public:
 	Header(uint64_t gap, uint64_t length)
 		: initialized_(true),
 		  base_addr_(0),
-		  length_(length),
-		  gap_(gap)
+		  gap_(gap),
+		  length_(length)
 	{ }
 
 	static int Load(int fd, Header* header);

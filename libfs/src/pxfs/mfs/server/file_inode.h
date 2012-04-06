@@ -23,8 +23,6 @@ public:
 
 	// mark persistent object for inode ino as allocated and construct inode into ip
 	static FileInode* Make(Session* session, InodeNumber ino, FileInode* ip) {
-		ssa::containers::server::NameContainer::Object* obj; 	
-		
 		return new(ip) FileInode(ino);
 	}
 

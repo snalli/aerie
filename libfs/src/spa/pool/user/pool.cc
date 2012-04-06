@@ -34,7 +34,6 @@ StoragePool::Create(const char* path, size_t size)
 	int               ret;
 	int               region_flags;
 	PersistentRegion* pregion;
-	StoragePool*      pool;
 	uint64_t          npages = NumOfBlocks(size, kBlockSize);
 	uint64_t          bitset_size = DynamicBitSet::Sizeof(npages);
 	uint64_t          bitset_npages = NumOfBlocks(bitset_size, kBlockSize);
@@ -75,19 +74,20 @@ StoragePool::Open(const char* path, StoragePool** pool)
 int 
 StoragePool::AllocateExtent(uint64_t size, void** ptr)
 {
+	bool       found = false;
 	int        start;
 	uint64_t   nblocks = NumOfBlocks(size, kBlockSize);
 
 	assert(pregion_->Lock() == E_SUCCESS);
-	for (int i=0; i < bitset_->Size(); i++) {
+	for (uint64_t i=0; i < bitset_->Size(); i++) {
 		if (i + nblocks > bitset_->Size()) {
 			// overflow; no way to found empty space
 			assert(pregion_->Unlock() == E_SUCCESS);
 			return -E_NOMEM;
 		}
 		// look for contiguous blocks
-		bool found = true;
-		for (int j=i; j < i + nblocks; j++) {
+		found = true;
+		for (uint64_t j=i; j < i + nblocks; j++) {
 			if ((*bitset_)[j] == true) {
 				found = false;
 				break;
@@ -95,11 +95,14 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 		}
 		if (found) {
 			start = i;
-			for (int j=i; j < i + nblocks; j++) {
+			for (uint64_t j=i; j < i + nblocks; j++) {
 				(*bitset_)[j] = true;
 			}
 			break;
 		}
+	}
+	if (!found) {
+		return -E_NOMEM;
 	}
 	*ptr = (void*) (extents_base_ + start*kBlockSize);
 	assert(pregion_->Unlock() == E_SUCCESS);

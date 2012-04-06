@@ -95,14 +95,14 @@ namespace client {
  */
 
 HLock::HLock(LockId lid)
-	: status_(NONE),
+	: lock_(NULL),
+	  parent_(NULL),
+	  used_(false),
+	  can_retry_(false),
 	  mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  ancestor_recursive_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
-	  can_retry_(false),
-	  used_(false),
 	  lid_(lid),
-	  parent_(NULL),
-	  lock_(NULL)
+	  status_(NONE)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_cond_init(&status_cv_, NULL);
@@ -213,9 +213,9 @@ HLock::WaitStatus(LockStatus old_sts)
 
 
 HLockManager::HLockManager(LockManager* lm)
-	: lm_(lm),
+	: status_(NONE),
 	  hcb_(NULL),
-	  status_(NONE)
+	  lm_(lm)
 {
 	lm_->RegisterLockRevoke(HLock::TypeId, this);
 	pthread_mutex_init(&mutex_, NULL);
@@ -317,7 +317,6 @@ HLockManager::FindOrCreateLock(LockId lid)
 lock_protocol::status
 HLockManager::AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int flags)
 {
-	Lock*                    lock;
 	LockId                   lid = hlock->lid_;
 	lock_protocol::Mode::Set mode_set;
 	lock_protocol::Mode      mode_granted;
@@ -364,7 +363,6 @@ lock_protocol::status
 HLockManager::AttachPublicLock(HLock* hlock, lock_protocol::Mode mode, 
                                bool caller_has_parent, int flags)
 {
-	Lock*                    lock;
 	HLock*                   phlock = hlock->parent_; // parent hierarchical lock
 	LockId                   lid = hlock->lid_;
 	LockId                   plid;
@@ -452,7 +450,6 @@ HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, in
 	struct LockDsc{
 		LockId lid;
 	};
-	Lock*                          lock;
 	HLock*                         phlock = hlock->parent_;
 	HLock*                         hl;
 	HLock*                         old_hl;
@@ -591,7 +588,6 @@ lock_protocol::status
 HLockManager::AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode)
 {
 	HLockPtrSet::iterator itr;
-	lock_protocol::status r;
 	HLock*                hl;
 	HLockPtrSet&          hlock_set = hlock->children_; 
 
@@ -623,7 +619,7 @@ lock_protocol::status
 HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
                               lock_protocol::Mode mode, int flags)
 {
-	lock_protocol::status r;
+	lock_protocol::status r = lock_protocol::NOENT;
 	lock_protocol::Mode   mode_granted;
 	LockId                lid = hlock->lid_;
 
@@ -631,10 +627,7 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 	        "[%d:%lu] Acquiring hierarchical lock %s (%s)\n", id(), 
 			tid, lid.c_str(), mode.String().c_str());
 	
-	if (!hlock) {
-		r = lock_protocol::NOENT;
-		return r;
-	}
+	if (!hlock) { return r;	}
 
 	pthread_mutex_lock(&hlock->mutex_);
 
@@ -777,9 +770,10 @@ check_state:
 			}
 			break;
 		default:
+			dbg_log(DBG_CRITICAL, "[%d:%lu] Hierarchical lock %s: Invalid state\n",
+			        id(), tid, lid.c_str());
 			break;
 	}
-
 
 done:
 	pthread_mutex_unlock(&hlock->mutex_);

@@ -11,6 +11,7 @@ static int
 usage(const char *name)
 {
     fprintf(stderr, "usage: %s%s%s\n", name, " ", "create -p STORAGE_POOL_PATH -t TYPE -s SIZE");
+	return -1;
 }
 
 
@@ -18,12 +19,10 @@ int
 main_mkfs(int argc, char* argv[]) 
 {
 	extern char* optarg;
-	extern int   optind;
 	const char*  pathname = NULL;
 	const char*  type = NULL;
 	const char*  size_str = NULL;
 	uint64_t     usize = 0;
-	int          ret;
 	char         c = 0;
 
 	while ((c = getopt(argc, argv, "p:s:t:"))!=-1) {

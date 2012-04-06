@@ -18,7 +18,6 @@ main(int argc, char *argv[])
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-    int          port;
 	int          debug_level = 0;
 	char         operation[16];
 	char         ch = 0;
