@@ -76,6 +76,44 @@ File::Read(client::Session* session, char* dst, uint64_t n)
 }
 
 
+int 
+File::Write(client::Session* session, const char* src, uint64_t n, uint64_t offset)
+{
+	int ret;
+
+	if (writable_ == false) {
+		return -1;
+	}
+
+	pthread_mutex_lock(&mutex_);
+	session->journal()->TransactionBegin();
+	session->journal() << Publisher::Messages::LogicalOperation::Write(ip_->ino());
+	ret = ip_->Write(session, const_cast<char*>(src), offset, n);
+	session->journal()->TransactionCommit();
+	pthread_mutex_unlock(&mutex_);
+
+	return ret;
+}
+
+
+int
+File::Read(client::Session* session, char* dst, uint64_t n, uint64_t offset)
+{
+	int ret;
+
+	if (readable_ == false) {
+		return -1;
+	}
+
+	pthread_mutex_lock(&mutex_);
+	ret=ip_->Read(session, dst, offset, n);
+	pthread_mutex_unlock(&mutex_);
+
+	return ret;
+}
+
+
+
 uint64_t
 File::Seek(client::Session* session, uint64_t offset, int whence)
 {

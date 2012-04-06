@@ -175,7 +175,8 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 	                                         name, &dp)) < 0) {
 		return ret;
 	}
-	printf("create: dp=%p\n", dp);
+	printf("create: dp=%p, type=%d\n", dp, dp->fs_type());
+	printf("dp->ino() = %lx\n", dp->ino());
 	if ((ret = dp->Lookup(session, name, 0, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
 		ip->Lock(session, dp, lock_protocol::Mode::XR); 
@@ -287,6 +288,32 @@ Client::Duplicate(int oldfd, int newfd)
 
 
 int 
+Client::WriteOffset(int fd, const char* src, uint64_t n, uint64_t offset)
+{
+	File* fp;
+	int   ret;
+
+	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
+		return ret;
+	}
+	return fp->Write(CurrentSession(), src, n, offset);
+}
+
+
+int 
+Client::ReadOffset(int fd, char* dst, uint64_t n, uint64_t offset)
+{
+	int   ret;
+	File* fp;
+
+	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
+		return ret;
+	}
+	return fp->Read(CurrentSession(), dst, n, offset);
+}
+
+
+int 
 Client::Write(int fd, const char* src, uint64_t n)
 {
 	File* fp;
@@ -310,6 +337,7 @@ Client::Read(int fd, char* dst, uint64_t n)
 	}
 	return fp->Read(CurrentSession(), dst, n);
 }
+
 
 
 uint64_t 
@@ -355,8 +383,8 @@ Client::DeleteDir(const char* pathname)
 int
 Client::SetCurWrkDir(const char* path)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-	return E_SUCCESS;
+	Session* session = CurrentSession();
+	return global_namespace->SetCurWrkDir(session, path);
 }
 
 
@@ -389,6 +417,7 @@ Client::Unlink(const char* pathname)
 	return global_namespace->Unlink(CurrentSession(), pathname);
 }
 
+
 int 
 Client::Sync()
 {
@@ -396,6 +425,17 @@ Client::Sync()
 	session->omgr()->CloseAllObjects(session, true);
 	return E_SUCCESS;
 }
+
+
+//FIXME: we should close just the file fd and its dependencies
+int 
+Client::Sync(int fd)
+{
+	Session* session = CurrentSession();
+	session->omgr()->CloseAllObjects(session, true);
+	return E_SUCCESS;
+}
+
 
 /// Check whether we can communicate with the server
 int

@@ -46,4 +46,15 @@ SUITE(Namespace)
 		EVENT("E3");
 	}
 
+	TEST_FIXTURE(MFSFixture, TestChdir)
+	{
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		EVENT("E2");
+		CHECK(libfs_chdir("/home/hvolos/dir") == 0);
+		CHECK(libfs_chdir("test") == 0);
+		EVENT("E3");
+	}
+
+
 }

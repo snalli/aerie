@@ -29,6 +29,8 @@ public:
 
 	int Write(Session* session, const char* src, uint64_t n);
 	int Read(Session* session, char* dst, uint64_t n);
+	int Write(Session* session, const char* src, uint64_t n, uint64_t offset);
+	int Read(Session* session, char* dst, uint64_t n, uint64_t offset);
 	uint64_t Seek(client::Session* session, uint64_t offset, int whence);
 	int Release();
 

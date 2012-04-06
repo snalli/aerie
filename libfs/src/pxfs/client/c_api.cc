@@ -144,6 +144,19 @@ FRONTAPI(open) (const char* pathname, int flags)
 }
 
 
+int 
+FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
+{
+	int ret;
+
+	if ((ret = Client::Open(pathname, flags, 0)) == -E_KVFS) {
+		return open(pathname, flags);
+	}
+	return ret;
+}
+
+
+
 int FRONTAPI(close) (int fd)
 {
 	int ret;
@@ -204,6 +217,33 @@ FRONTAPI(read) (int fd, void *buf, size_t count)
 }
 
 
+ssize_t 
+FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
+{
+	int   ret;
+	const char* src = reinterpret_cast<const char*>(buf);
+
+	if ((ret = Client::WriteOffset(fd, src, count, offset)) == -E_KVFS) {
+		return pwrite(fd, buf, count, offset);
+	}
+	return ret;
+}
+
+
+ssize_t 
+FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
+{
+	int   ret;
+	char* dst = reinterpret_cast<char*>(buf);
+
+	if ((ret = Client::ReadOffset(fd, dst, count, offset)) == -E_KVFS) {
+		return pread(fd, buf, count, offset);
+	}
+	return ret;
+}
+
+
+
 off_t 
 FRONTAPI(lseek) (int fd, off_t offset, int whence)
 {
@@ -220,4 +260,11 @@ int
 FRONTAPI(sync) ()
 {
 	return Client::Sync();
+}
+
+
+int
+FRONTAPI(fsync) (int fd)
+{
+	return Client::Sync(fd);
 }

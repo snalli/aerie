@@ -101,6 +101,7 @@ int
 NameSpace::Init(Session* session) 
 {
 	root_ = new MPInode;
+	cwd_ = root_;
 	Mount(session, "/", (SuperBlock*) KERNEL_SUPERBLOCK);
 	return E_SUCCESS;
 }
@@ -121,7 +122,7 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 	Inode* inode_next;
 	int    ret;
 	char*  path = const_cast<char*>(const_path);
-	
+
 	inode = root_;
 	while((path = SkipElem(path, name)) != 0) {
 		if ((ret = inode->Lookup(session, name, 0, (Inode**) &inode_next)) < 0) {
@@ -132,7 +133,6 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 			if (*path == '\0') {
 				// reached end of path -- mount superblock
 				Inode* root_inode = sb->RootInode();
-				printf("ROOT INODE: %p\n", root_inode);
 				assert(inode->Link(session, name, root_inode, false) == 0);	
 				if (root_inode->Link(session, "..", inode, false) != 0) {
 					return -1; // superblock already mounted
@@ -173,6 +173,7 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 	Inode*              tmp_inode;
 	Inode*              parent_inode;
 	int                 ret;
+	int                 retries = 0;
 
 	STM_BEGIN()
 		// the transaction does not automatically release any acquired locks 
@@ -187,20 +188,24 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 		locked_inodes.clear();
 		// optimistically find all the inodes that appear in the path that begins
 		// from the current inode up to the root inode
-		for (tmp_inode = inode; tmp_inode != root_; tmp_inode = parent_inode) {
+		for (tmp_inode = inode; tmp_inode->oid().u64() != 0; tmp_inode = parent_inode) {
 			inode_chain.push_back(tmp_inode);
 			tmp_inode->xOpenRO(session);
 			ret = tmp_inode->xLookup(session, "..", 0, &parent_inode);
 			if (ret != E_SUCCESS) {
-
+			
 			}
+		if (retries++ > 5) {
+			assert(0);
+		}
+
 			STM_ABORT_IF_INVALID() // read-set consistency
 		}
 		// acquire hierarchical locks on the inodes in the reverse order they 
 		// appear in the list (i.e. root to leaf)
 		parent_inode = NULL;
-		for (std::vector<Inode*>::iterator it = inode_chain.end();
-		     it != inode_chain.begin();
+		for (std::vector<Inode*>::iterator it = inode_chain.end()-1;
+		     it >= inode_chain.begin();
 			 it--)
 		{
 			if (*it == inode) {
@@ -214,7 +219,6 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 				if (parent_inode) {
 					assert((*it)->Lock(session, parent_inode, lock_protocol::Mode::IX) == 0);
 				} else {
-					assert(*it == root_);
 					assert((*it)->Lock(session, lock_protocol::Mode::IX) == 0);
 				}
 			}
@@ -249,38 +253,43 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	int         ret;
 	char*       old_name;
 
-	
 	if (!path) {
 		return -E_INVAL;
 	}
 
-	printf("NameSpace::Namex(%s)\n", path);
-
+	dbg_log (DBG_INFO, "Namex: %s\n", path);
+	
+	// boundary condition: get the lock on the first inode
 	// find whether absolute or relative path
 	if (*path == '/') {
 		inode = root_;
+		path = SkipElem(path, name);
+		if (nameiparent && path != 0 && *path == '\0') {
+			inode->Lock(session, lock_mode);
+			inode->Get();
+			goto done;
+		} else {
+			inode->Lock(session, lock_protocol::Mode::IXSL);
+			inode->Get();
+		}
 	} else {
-		// TODO: if cwd is not assigned a lock then we need to re-acquire locks 
-		// along the chain from root to cwd. the lock manager should detect this
-		// case and bootstrap. use LockInode?
-		// idup(cwd_inode)
-		// TODO: 
-		// try to acquire the cached lock. if we can't then we bootstrap
-		// by calling LockInodeReverse to acquire locks in the reverse order 
-		assert(0 && "TODO");
+		inode = cwd_;
+		path = SkipElem(path, name);
+		if (nameiparent && path != 0 && *path == '\0') {
+			if (inode->Lock(session, lock_mode) != 0) {
+				LockInodeReverse(session, inode, lock_mode);
+			}
+			inode->Get();
+			goto done;
+		} else {
+			if (inode->Lock(session, lock_mode) != 0) {
+				LockInodeReverse(session, inode, lock_protocol::Mode::IXSL);
+			}
+			inode->Get();
+		}
 	}
 
-	// boundary condition: get the lock on the first inode
-	path = SkipElem(path, name);
-	if (nameiparent && path != 0 && *path == '\0') {
-		inode->Lock(session, lock_mode);
-		inode->Get();
-		goto done;
-	} else {
-		inode->Lock(session, lock_protocol::Mode::IXSL);
-		inode->Get();
-	}
-	
+
 	// consume the rest of the path by acquiring a lock on each inode in a spider
 	// locking fashion. spider locking is necessary because acquiring an
 	// hierarchical lock on an inode requires having the parent locked.
@@ -289,7 +298,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	// client asked the lock. in this case we need to boostrap the lock by
 	// acquiring locks along the chain from the root to the inode ..
 	while (path != 0) {
-		printf("Namex: inode=%p (ino=%lu), name=%s\n", inode, inode->ino(), name);
+		//printf("Namex: inode=%p (ino=%lu), name=%s\n", inode, inode->ino(), name);
 		if ((ret = inode->Lookup(session, name, 0, &inode_next)) < 0) {
 			inode->Put();
 			inode->Unlock(session);
@@ -309,7 +318,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 			}
 			inode->Put();
 			inode = inode_next;
-			printf("Namex(nameiparent=true): inode=%p\n", inode);
+			//printf("Namex(nameiparent=true): inode=%p\n", inode);
 			goto done;
 		} else {
 			if (str_is_dot(old_name) == 2) {
@@ -330,7 +339,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 			inode = inode_next;
 		}
 	}
-	printf("Namex: inode=%p\n", inode);
+	//printf("Namex: inode=%p\n", inode);
 
 done:
 	*inodep = inode;
@@ -356,6 +365,22 @@ NameSpace::Namei(Session* session, const char* path, lock_protocol::Mode lock_mo
 
 	ret = Namex(session, path, lock_mode, false, name, inodep);
 	return ret;
+}
+
+
+int 
+NameSpace::SetCurWrkDir(Session* session, const char* path)
+{
+	Inode* inode;
+	int    ret;
+
+	dbg_log (DBG_INFO, "Chdir: %s\n", path);
+
+	if ((ret = Namei(session, path, lock_protocol::Mode::IXSL, &inode)) < 0) {
+		return ret;
+	}
+	cwd_ = inode;
+	return 0;
 }
 
 

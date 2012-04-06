@@ -29,6 +29,7 @@ InodeFactory::LoadDirInode(::client::Session* session,
 			dip = reinterpret_cast<DirInode*>(ref->owner());
 		} else {
 			dip = new DirInode(ref);
+			ref->set_owner(dip);
 		}
 	} else {
 		dip = new DirInode(ref);
@@ -76,6 +77,7 @@ InodeFactory::LoadFileInode(::client::Session* session,
 			fip = reinterpret_cast<FileInode*>(ref->owner());
 		} else {
 			fip = new FileInode(ref);
+			ref->set_owner(fip);
 		}
 	} else {
 		fip = new FileInode(ref);

@@ -107,6 +107,8 @@ NameContainer::Object<Session>::Insert(Session* session, const char* name, ssa::
 {
 	uint64_t u64;
 
+	dbg_log(DBG_DEBUG, "NameContainer %p, insert %s --> %p\n", this, name, oid.u64());
+
 	if (name[0] == '\0') {
 		return -1;
 	}	

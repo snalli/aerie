@@ -37,6 +37,8 @@ public:
 	static int Duplicate(int oldfd, int newfd);
 	static int Write(int fd, const char* src, uint64_t n);
 	static int Read(int fd, char* dst, uint64_t n);
+	static int WriteOffset(int fd, const char* src, uint64_t n, uint64_t offset);
+	static int ReadOffset(int fd, char* dst, uint64_t n, uint64_t offset);
 	static int CreateDir(const char* path, int mode);
 	static int DeleteDir(const char* path);
 	static int Rename(const char* oldpath, const char* newpath);
@@ -46,6 +48,7 @@ public:
 	static int GetCurWrkDir(const char* path, size_t size);
 	static uint64_t Seek(int fd, uint64_t offset, int whence);
 	static int Sync();
+	static int Sync(int fd);
 	static int TestServerIsAlive();
 };
 

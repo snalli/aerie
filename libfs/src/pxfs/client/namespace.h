@@ -21,6 +21,7 @@ public:
 	int Mount(Session* session, const char*, SuperBlock*);
 	int Unmount(Session* session, char*);
 	int Init(Session* session);
+	int SetCurWrkDir(Session* session, const char* path);
 
 private:
 	int LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode lock_mode);
@@ -28,6 +29,7 @@ private:
 
 	char         namespace_name_[128];
 	MPInode*     root_;
+	Inode*       cwd_;
 };
 
 } // namespace client
