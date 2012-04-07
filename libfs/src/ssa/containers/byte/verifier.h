@@ -19,7 +19,6 @@ public:
 		static int Action(ssa::server::SsaSession* session, ssa::Publisher::Messages::ContainerOperation::LinkBlock* msg) {
 			ssa::common::ObjectId& oid = msg->oid_;
 			ssa::containers::server::ByteContainer::Object* object = ssa::containers::server::ByteContainer::Object::Load(oid);
-			printf("%p %p\n", msg->bn_, msg->ptr_);
 			object->LinkBlock(session, msg->bn_, msg->ptr_);
 			return E_SUCCESS;
 		}

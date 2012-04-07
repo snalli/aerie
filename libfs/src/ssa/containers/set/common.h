@@ -70,14 +70,6 @@ SetContainer<T>::Object<Session>::Read(Session* session, int pos, T* val)
 	int ret = byte_container_.Read(session, c, pos*sizeof(T), sizeof(T));
 	//return byte_container_.Read(session, (char*)val, pos*sizeof(T), sizeof(T));
 	
-	printf("READ: c[0]=%x\n", c[0]);
-	printf("READ: c[1]=%x\n", c[1]);
-	printf("READ: c[2]=%x\n", c[2]);
-	printf("READ: c[3]=%x\n", c[3]);
-	printf("READ: c[4]=%x\n", c[4]);
-	printf("READ: c[5]=%x\n", c[5]);
-	printf("READ: c[6]=%x\n", c[6]);
-	printf("READ: c[7]=%x\n", c[7]);
 	memcpy(val, c, sizeof(T));
 	return ret;
 }

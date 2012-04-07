@@ -222,7 +222,6 @@ StorageAllocator::AllocateContainer(SsaSession* session, int type, int num, ::ss
 	
 	for (int i=0; i<freeset_->Size(); i++) {
 		freeset_->Read(session, i, &set_oid);
-		printf("set_oid=%lu\n", set_oid.u64());
 		if ((set_obj = ssa::containers::server::SetContainer<ssa::common::ObjectId>::Object::Load(set_oid)) == NULL) {
 			break;
 		}
@@ -235,7 +234,6 @@ StorageAllocator::AllocateContainer(SsaSession* session, int type, int num, ::ss
 	}
 
 	if (found) {
-		printf("ALLOCATE EXISTING\n");
 		return E_SUCCESS;
 	}
 

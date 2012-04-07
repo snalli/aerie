@@ -37,8 +37,6 @@ SharedBuffer::SignalReader()
 	int ret;
 	int r;
 
-	printf("SIGNAL READER\n");
-
 	if ((ret = ipc_->call(::SharedBuffer::Protocol::kConsume, 
                           ipc_->id(), id_, r)) < 0) 
 	{

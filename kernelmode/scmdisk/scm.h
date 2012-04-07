@@ -3,6 +3,7 @@
 
 #include "scmmodel/scm.h"
 
+#undef SCM_EMULATE_LATENCY
 /* 
  * Prototypes
  */

@@ -65,7 +65,6 @@ Publisher::Publish(SsaSession* session)
 				break;
 			} 
 			if (msg->type_ == ssa::Publisher::Messages::kTransactionCommit) {
-				printf("DONE\n");
 				break;
 			} 
 			if (msg->type_ == ssa::Publisher::Messages::kLogicalOperation) {

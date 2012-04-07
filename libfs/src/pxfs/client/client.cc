@@ -175,8 +175,6 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 	                                         name, &dp)) < 0) {
 		return ret;
 	}
-	printf("create: dp=%p, type=%d\n", dp, dp->fs_type());
-	printf("dp->ino() = %lx\n", dp->ino());
 	if ((ret = dp->Lookup(session, name, 0, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
 		ip->Lock(session, dp, lock_protocol::Mode::XR); 
@@ -210,7 +208,6 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 			break;
 	}
 
-	printf("allocated inode\n");
 	ip->set_nlink(1);
 	if (type == kDirInode) {
 		assert(dp->set_nlink(dp->nlink() + 1) == 0); // for child's ..

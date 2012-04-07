@@ -101,7 +101,6 @@ public:
 	{
 		Lock* l;
 		if (locks_.find(lid) != locks_.end() && (l = locks_[lid])->gtque_.Exists(clt)) {
-			printf("%p\n", l);
 			ClientRecord* cr = l->gtque_.Find(clt);
 			return cr->mode();
 		}

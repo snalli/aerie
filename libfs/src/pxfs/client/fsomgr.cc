@@ -121,12 +121,10 @@ FileSystemObjectManager::CreateInode(Session* session, Inode* parent,
 	Inode*                    ip;
 	int                       fs_type = parent->fs_type();
 
-	printf("CREATE: fs_type=%d\n", fs_type);
 	it = inode_factory_map_.find(fs_type);
 	if (it == inode_factory_map_.end()) {
 		return -1;
 	}
-	printf("CREATE\n");
 	inode_factory = it->second;
 	if ((ret = inode_factory->Make(session, inode_type, &ip)) != E_SUCCESS) {
 		return ret;
