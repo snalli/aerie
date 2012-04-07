@@ -20,6 +20,7 @@ create_build_dir:
 		ln -s $(SRCDIR)/brd.c $(OBJDIR)/brd.c;               \
 		ln -s $(SRCDIR)/scm.c $(OBJDIR)/scm.c;               \
 		ln -s $(SRCDIR)/scm.h $(OBJDIR)/scm.h;               \
+		ln -s $(SRCDIR)/../scmmodel $(OBJDIR)/scmmodel;      \
 		ln -s $(SRCDIR)/scmdisk.h $(OBJDIR)/scmdisk.h;       \
 		ln -s $(SRCDIR)/scmdiskctl.c $(OBJDIR)/scmdiskctl.c; \
 	fi
