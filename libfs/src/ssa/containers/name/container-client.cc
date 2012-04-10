@@ -1,8 +1,11 @@
 #include "ssa/containers/name/container.h"
 #include <stdint.h>
 #include "common/errno.h"
+#include "common/prof.h"
 #include "ssa/main/client/session.h"
 #include "ssa/main/client/salloc.h"
+
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 namespace ssa {
 namespace containers {
@@ -13,8 +16,6 @@ int
 NameContainer::VersionManager::vOpen()
 {
 	ssa::vm::client::VersionManager<NameContainer::Object>::vOpen();
-	entries_.set_empty_key("");
-	entries_.set_deleted_key("__#DELETED__KEY#__"); // this must not conflict with a real key
 	entries_.clear();
 	neg_entries_count_ = 0;
 
@@ -71,7 +72,7 @@ NameContainer::VersionManager::Find(SsaSession* session,
 	EntryCache::iterator  it;
 
 	// check the private copy first before looking up the global one
-	if ((it = entries_.find(name)) != entries_.end()) {
+	if ((entries_.empty() == false) && ((it = entries_.find(name)) != entries_.end())) {
 		if (it->second.first == true) {
 			tmp_oid = it->second.second;
 		} else {
@@ -96,6 +97,7 @@ NameContainer::VersionManager::Insert(SsaSession* session,
                                       const char* name, 
                                       ssa::common::ObjectId oid)
 {
+	PROFILER_PREAMBLE
 	EntryCache::iterator   it;
 	int                    ret;
 	ssa::common::ObjectId  tmp_oid;
@@ -104,6 +106,7 @@ NameContainer::VersionManager::Insert(SsaSession* session,
 		return -1;
 	}
 
+	PROFILER_SAMPLE
 	if ((it = entries_.find(name)) != entries_.end()) {
 		if (it->second.first == true) {
 			// name exists in the volatile cache
@@ -117,13 +120,16 @@ NameContainer::VersionManager::Insert(SsaSession* session,
 		}
 	}
 
+	PROFILER_SAMPLE
 	// check whether name exists in the persistent structure
 	if ((ret = object()->Find(session, name, &tmp_oid)) == E_SUCCESS) {
 		return -E_EXIST;
 	}
+	PROFILER_SAMPLE
 
 	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, ssa::common::ObjectId> >(name, std::pair<bool, ssa::common::ObjectId>(true, oid)));
 	assert(ret_pair.second == true);
+	PROFILER_SAMPLE
 	return E_SUCCESS;
 }
 
@@ -149,6 +155,7 @@ NameContainer::VersionManager::Erase(SsaSession* session, const char* name)
 			return -E_NOENT;
 		}
 	}
+
 	// check whether name exists in the persistent structure
 	if ((ret = object()->Find(session, name, &oid)) != E_SUCCESS) {
 		return -E_NOENT;

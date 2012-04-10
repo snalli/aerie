@@ -4,12 +4,13 @@
  * \brief Object proxy manager
  */
 
+#include "ssa/main/client/omgr.h"
 #include "common/errno.h"
+#include "common/prof.h"
 #include "bcs/bcs.h"
 #include "ssa/main/client/stsystem.h"
 #include "ssa/main/client/lckmgr.h"
 #include "ssa/main/client/hlckmgr.h"
-#include "ssa/main/client/omgr.h"
 #include "ssa/main/client/rwproxy.h"
 #include "ssa/main/client/session.h"
 #include "ssa/containers/super/container.h"
@@ -18,6 +19,8 @@
 
 //TODO: Fine-grain locking in GetObject/PutObject.
 
+//#undef  PROFILER_SAMPLE
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 namespace ssa {
 namespace client {
@@ -116,6 +119,7 @@ ObjectManager::GetObjectInternal(SsaSession* session,
                                  ssa::common::ObjectProxyReference** obj_refp, 
                                  bool use_exist_obj_ref)
 {
+	PROFILER_PREAMBLE
 	int                                ret = E_SUCCESS;
 	ObjectManagerOfType*               mgr;
 	ObjectProxy*                       objproxy;
@@ -124,6 +128,7 @@ ObjectManager::GetObjectInternal(SsaSession* session,
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
 
+	PROFILER_SAMPLE
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();
 	ObjectType2Manager::iterator itr;
@@ -131,18 +136,24 @@ ObjectManager::GetObjectInternal(SsaSession* session,
 		ret = -E_INVAL; // unknown type id 
 		goto done;
 	}
+	PROFILER_SAMPLE
 	mgr = itr->second;
 	if ((ret = mgr->oid2obj_map_.Lookup(oid, &objproxy)) != E_SUCCESS) {
 		// create the object proxy
+		DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), "TESTDEBUG");
+		PROFILER_SAMPLE
 		if ((objproxy = mgr->Load(cb_session_, oid)) == NULL) {
 			ret = -E_NOMEM;
 			goto done;
 		}
+		PROFILER_SAMPLE
 		assert(mgr->oid2obj_map_.Insert(objproxy) == E_SUCCESS);
 		// no need to grab the lock on obj after creation as it's not reachable 
 		// before we release the lock manager's mutex lock
+		PROFILER_SAMPLE
 		obj_ref = new ssa::common::ObjectProxyReference();
 		obj_ref->Set(objproxy, false);
+		PROFILER_SAMPLE
 	} else {
 		// object proxy exists
 		if (use_exist_obj_ref) {
@@ -154,11 +165,13 @@ ObjectManager::GetObjectInternal(SsaSession* session,
 			obj_ref = new ssa::common::ObjectProxyReference();
 			obj_ref->Set(objproxy, true);
 		}
+		PROFILER_SAMPLE
 	}
 	ret = E_SUCCESS;
 	*obj_refp = obj_ref;
 done:
 	pthread_mutex_unlock(&mutex_);
+	PROFILER_SAMPLE
 	return ret;
 }
 

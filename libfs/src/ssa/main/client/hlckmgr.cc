@@ -1,7 +1,9 @@
 #include "ssa/main/client/hlckmgr.h"
 #include "common/bitmap.h"
+#include "common/hrtime.h"
 #include "bcs/bcs.h"
 #include "ssa/main/client/lckmgr.h"
+#include "common/hrtime.h"
 
 
 namespace ssa {
@@ -628,7 +630,7 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 			tid, lid.c_str(), mode.String().c_str());
 	
 	if (!hlock) { return r;	}
-
+	
 	pthread_mutex_lock(&hlock->mutex_);
 
 check_state:

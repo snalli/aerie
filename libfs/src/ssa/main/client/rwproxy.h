@@ -13,6 +13,7 @@
 #include "ssa/main/client/omgr.h"
 #include "ssa/main/client/session.h"
 
+
 namespace ssa {
 namespace client {
 namespace rw {
@@ -28,7 +29,8 @@ template<class Subject, class VersionManager>
 class ObjectManager: public ssa::client::ObjectManagerOfType {
 public:
 	ssa::client::ObjectProxy* Load(SsaSession* session, ObjectId oid) {
-		return new ObjectProxy<Subject, VersionManager>(session, oid);
+		ssa::client::ObjectProxy* obj = new ObjectProxy<Subject, VersionManager>(session, oid);
+		return obj;
 	}
 	
 	void Close(SsaSession* session, ObjectId oid, bool update) {

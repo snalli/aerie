@@ -21,6 +21,7 @@
 #include "pxfs/common/publisher.h"
 #include "bcs/bcs.h"
 
+//#define HRTIME_SAMPLE __HRTIME_SAMPLE
 
 //TODO: pathname resolution against current working directory, chdir
 //TODO: directory operations update object version
@@ -247,11 +248,13 @@ int
 NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_mode, 
                  bool nameiparent, char* name, Inode** inodep)
 {
+	HRTIME_DEFINITIONS
 	char*       path = const_cast<char*>(cpath);
 	Inode*      inode;
 	Inode*      inode_next;
 	int         ret;
 	char*       old_name;
+	
 
 	if (!path) {
 		return -E_INVAL;
@@ -259,6 +262,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 
 	dbg_log (DBG_INFO, "Namex: %s\n", path);
 	
+	HRTIME_SAMPLE
 	// boundary condition: get the lock on the first inode
 	// find whether absolute or relative path
 	if (*path == '/') {
@@ -267,10 +271,12 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		if (nameiparent && path != 0 && *path == '\0') {
 			inode->Lock(session, lock_mode);
 			inode->Get();
+			HRTIME_SAMPLE
 			goto done;
 		} else {
 			inode->Lock(session, lock_protocol::Mode::IXSL);
 			inode->Get();
+			HRTIME_SAMPLE
 		}
 	} else {
 		inode = cwd_;
@@ -289,7 +295,6 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		}
 	}
 
-
 	// consume the rest of the path by acquiring a lock on each inode in a spider
 	// locking fashion. spider locking is necessary because acquiring an
 	// hierarchical lock on an inode requires having the parent locked.
@@ -297,6 +302,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	// locking. however the client may no longer own the lock on the .. if another
 	// client asked the lock. in this case we need to boostrap the lock by
 	// acquiring locks along the chain from the root to the inode ..
+	HRTIME_SAMPLE
 	while (path != 0) {
 		//printf("Namex: inode=%p (ino=%lu), name=%s\n", inode, inode->ino(), name);
 		if ((ret = inode->Lookup(session, name, 0, &inode_next)) < 0) {
@@ -304,6 +310,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 			inode->Unlock(session);
 			return ret;
 		}
+		HRTIME_SAMPLE
 		old_name = name;
 		path = SkipElem(path, name);
 		if (nameiparent && path != 0 && *path == '\0') {
@@ -313,12 +320,15 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 				assert(inode_next->Lock(session, lock_mode) == E_SUCCESS);
 			} else {
 				// spider locking
+			HRTIME_SAMPLE
 				assert(inode_next->Lock(session, inode, lock_mode) == E_SUCCESS);
+			HRTIME_SAMPLE
 				inode->Unlock(session);
 			}
 			inode->Put();
 			inode = inode_next;
 			//printf("Namex(nameiparent=true): inode=%p\n", inode);
+			HRTIME_SAMPLE
 			goto done;
 		} else {
 			if (str_is_dot(old_name) == 2) {
@@ -339,7 +349,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 			inode = inode_next;
 		}
 	}
-	//printf("Namex: inode=%p\n", inode);
+	HRTIME_SAMPLE
 
 done:
 	*inodep = inode;

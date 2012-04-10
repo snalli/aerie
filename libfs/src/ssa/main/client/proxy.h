@@ -179,8 +179,10 @@ public:
 		: ssa::cc::client::ObjectProxyTemplate<Derived, Subject>(session, oid),
 		  valid_(false)
 	{ 
-		// initializing in the initialization list is risky as we need to be 
-		// sure that ssa::cc::client::ObjectProxyTemplate<Derived, Subject>
+		// CAREFUL:
+		// We don't initialize in the initialization list as it is risky. We
+		// must be sure that 
+		// ssa::cc::client::ObjectProxyTemplate<Derived, Subject>
 		// has been initialized first.
 		vm_.set_object(ssa::cc::client::ObjectProxyTemplate<Derived, Subject>::object());
 	}

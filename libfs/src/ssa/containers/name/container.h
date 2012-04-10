@@ -52,6 +52,12 @@ class NameContainer::VersionManager: public ssa::vm::client::VersionManager<Name
 	typedef google::dense_hash_map<std::string, std::pair<bool, ssa::common::ObjectId> > EntryCache;
 
 public:
+	VersionManager() 
+	{
+		entries_.set_empty_key("");
+		entries_.set_deleted_key("__#DELETED__KEY#__"); // this must not conflict with a real key
+	}
+
 	int vOpen();
 	int vUpdate(SsaSession* session);
 	

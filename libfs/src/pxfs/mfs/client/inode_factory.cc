@@ -4,6 +4,9 @@
 #include "ssa/containers/containers.h"
 #include "pxfs/mfs/client/dir_inode.h"
 #include "pxfs/mfs/client/file_inode.h"
+#include "common/prof.h"
+
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 namespace mfs {
 namespace client {
@@ -62,15 +65,17 @@ InodeFactory::LoadFileInode(::client::Session* session,
                             ::ssa::common::ObjectId oid, 
                             ::client::Inode** ipp)
 {
-	
+	PROFILER_PREAMBLE
 	int                                ret = E_SUCCESS;
 	ssa::common::ObjectProxyReference* ref;
 	FileInode*                         fip;
 
 	// atomically get a reference to the persistent object and 
 	// create the in-core Inode 
+	PROFILER_SAMPLE
 	pthread_mutex_lock(&mutex_);
 	if ((ret = session->omgr_->FindObject(session, oid, &ref)) == E_SUCCESS) {
+		PROFILER_SAMPLE
 		if (ref->owner()) {
 			// the in-core inode already exists; just return this and 
 			// we are done
@@ -78,11 +83,14 @@ InodeFactory::LoadFileInode(::client::Session* session,
 		} else {
 			fip = new FileInode(ref);
 			ref->set_owner(fip);
+			PROFILER_SAMPLE
 		}
 	} else {
 		fip = new FileInode(ref);
+		PROFILER_SAMPLE
 	}
 	pthread_mutex_unlock(&mutex_);
+	PROFILER_SAMPLE
 	*ipp = fip;
 	return ret;
 }
@@ -91,16 +99,23 @@ InodeFactory::LoadFileInode(::client::Session* session,
 int
 InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 {
+	PROFILER_PREAMBLE
 	int                                               ret = E_SUCCESS;
 	ssa::containers::client::ByteContainer::Object*   obj;
 
+	dbg_log (DBG_INFO, "Create file inode\n");
+
+	PROFILER_SAMPLE
 	if ((obj = ssa::containers::client::ByteContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
+	PROFILER_SAMPLE
+	dbg_log (DBG_INFO, "Create file inode: %p\n", obj->oid().u64());
 	if ((ret = LoadFileInode(session, obj->oid(), ipp)) < 0) {
 		// FIXME: deallocate the allocated object
 		return ret;
 	}
+	PROFILER_SAMPLE
 	return ret;
 }
 

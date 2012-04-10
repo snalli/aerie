@@ -16,12 +16,14 @@ function mkfs {
 	chmod a+wr $scmctldevice0
 	fi
 	/sbin/insmod $objdir/scmdisk.ko
-	/sbin/mke2fs -m 0 /dev/scm0
+	#/sbin/mke2fs -m 0 /dev/scm0
+	/sbin/mkfs.ext4 -m 0 /dev/scm0
 	if [ ! -d "$mountpoint" ]
 	then 
 	mkdir $mountpoint
 	fi
-	mount /dev/scm0 /mnt/scmfs -o noatime,nodiratime
+	mount /dev/scm0 /mnt/scmfs -o noatime,nodiratime -o data=ordered
+	#mount /dev/scm0 /mnt/scmfs -o noatime,nodiratime
 	chmod a+wr /mnt/scmfs
 }
 
