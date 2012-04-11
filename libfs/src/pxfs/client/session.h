@@ -1,15 +1,15 @@
 #ifndef __STAMNOS_FS_CLIENT_SESSION_H
 #define __STAMNOS_FS_CLIENT_SESSION_H
 
-#include "ssa/main/client/ssa-opaque.h"
-#include "ssa/main/client/session.h"
+#include "osd/main/client/osd-opaque.h"
+#include "osd/main/client/session.h"
 
 namespace client {
 
-class Session: public ssa::client::SsaSession {
+class Session: public osd::client::OsdSession {
 public:
-	Session(ssa::client::StorageSystem* stsystem)
-		: SsaSession(stsystem)
+	Session(osd::client::StorageSystem* stsystem)
+		: OsdSession(stsystem)
 	{ }
 };
 

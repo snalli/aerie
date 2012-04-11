@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_MFS_SERVER_DIRECTORY_INODE_H
 #define __STAMNOS_MFS_SERVER_DIRECTORY_INODE_H
 
-#include "ssa/containers/name/container.h"
+#include "osd/containers/name/container.h"
 #include "pxfs/server/inode.h"
 
 namespace server {
@@ -18,8 +18,8 @@ public:
 	DirInode(InodeNumber ino)
 		: InodeT<DirInode>(ino, kDirInode)
 	{ 
-		ssa::common::ObjectId oid(ino);
-		obj_ = ssa::containers::server::NameContainer::Object::Load(oid);
+		osd::common::ObjectId oid(ino);
+		obj_ = osd::containers::server::NameContainer::Object::Load(oid);
 	}
 
 	// mark persistent object address by ino as allocated and construct inode into ip
@@ -34,9 +34,9 @@ public:
 	int Lookup(Session* session, const char* name, InodeNumber* ino);
 	int Unlink(Session* session, const char* name);
 
-	ssa::containers::server::NameContainer::Object* obj() { return obj_; }
+	osd::containers::server::NameContainer::Object* obj() { return obj_; }
 	
-	ssa::containers::server::NameContainer::Object* obj_;
+	osd::containers::server::NameContainer::Object* obj_;
 };
 
 } // namespace server

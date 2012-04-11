@@ -1,7 +1,7 @@
 #include "pxfs/mfs/client/inode_factory.h"
 #include "bcs/bcs.h"
 #include "pxfs/client/backend.h"
-#include "ssa/containers/containers.h"
+#include "osd/containers/containers.h"
 #include "pxfs/mfs/client/dir_inode.h"
 #include "pxfs/mfs/client/file_inode.h"
 #include "common/prof.h"
@@ -15,11 +15,11 @@ pthread_mutex_t InodeFactory::mutex_ = PTHREAD_MUTEX_INITIALIZER;;
 
 int
 InodeFactory::LoadDirInode(::client::Session* session, 
-                           ::ssa::common::ObjectId oid, 
+                           ::osd::common::ObjectId oid, 
                            ::client::Inode** ipp)
 {
 	int                                ret = E_SUCCESS;
-	ssa::common::ObjectProxyReference* ref;
+	osd::common::ObjectProxyReference* ref;
 	DirInode*                          dip;
 
 	// atomically get a reference to the persistent object and 
@@ -47,9 +47,9 @@ int
 InodeFactory::MakeDirInode(::client::Session* session, ::client::Inode** ipp)
 {
 	int                                               ret = E_SUCCESS;
-	ssa::containers::client::NameContainer::Object*   obj;
+	osd::containers::client::NameContainer::Object*   obj;
 
-	if ((obj = ssa::containers::client::NameContainer::Object::Make(session)) == NULL) {
+	if ((obj = osd::containers::client::NameContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((ret = LoadDirInode(session, obj->oid(), ipp)) < 0) {
@@ -62,12 +62,12 @@ InodeFactory::MakeDirInode(::client::Session* session, ::client::Inode** ipp)
 
 int
 InodeFactory::LoadFileInode(::client::Session* session, 
-                            ::ssa::common::ObjectId oid, 
+                            ::osd::common::ObjectId oid, 
                             ::client::Inode** ipp)
 {
 	PROFILER_PREAMBLE
 	int                                ret = E_SUCCESS;
-	ssa::common::ObjectProxyReference* ref;
+	osd::common::ObjectProxyReference* ref;
 	FileInode*                         fip;
 
 	// atomically get a reference to the persistent object and 
@@ -101,12 +101,12 @@ InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 {
 	PROFILER_PREAMBLE
 	int                                               ret = E_SUCCESS;
-	ssa::containers::client::ByteContainer::Object*   obj;
+	osd::containers::client::ByteContainer::Object*   obj;
 
 	dbg_log (DBG_INFO, "Create file inode\n");
 
 	PROFILER_SAMPLE
-	if ((obj = ssa::containers::client::ByteContainer::Object::Make(session)) == NULL) {
+	if ((obj = osd::containers::client::ByteContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
 	PROFILER_SAMPLE
@@ -140,16 +140,16 @@ InodeFactory::MakeInode(::client::Session* session, int type, ::client::Inode** 
 
 
 int 
-InodeFactory::LoadInode(::client::Session* session, ssa::common::ObjectId oid, 
+InodeFactory::LoadInode(::client::Session* session, osd::common::ObjectId oid, 
                         ::client::Inode** ipp)
 {
 	int ret = E_SUCCESS;
 
 	switch (oid.type()) {
-		case ssa::containers::T_NAME_CONTAINER: // directory
+		case osd::containers::T_NAME_CONTAINER: // directory
 			ret = LoadDirInode(session, oid, ipp);
 			break;
-		case ssa::containers::T_BYTE_CONTAINER:
+		case osd::containers::T_BYTE_CONTAINER:
 			ret = LoadFileInode(session, oid, ipp);
 			break;
 		default: 
@@ -168,7 +168,7 @@ InodeFactory::Make(::client::Session* session, int type, ::client::Inode** ipp)
 
 
 int 
-InodeFactory::Load(::client::Session* session, ssa::common::ObjectId oid, 
+InodeFactory::Load(::client::Session* session, osd::common::ObjectId oid, 
                    ::client::Inode** ipp)
 {
 	return LoadInode(session, oid, ipp);

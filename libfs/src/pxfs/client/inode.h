@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "pxfs/common/types.h"
 #include "pxfs/client/const.h"
-#include "ssa/main/client/proxy.h"
+#include "osd/main/client/proxy.h"
 
 namespace client {
 
@@ -44,11 +44,11 @@ public:
 	 */
 	virtual int ioctl(::client::Session* session, int request, void* info) = 0;
 
-	ssa::common::ObjectId oid() {
+	osd::common::ObjectId oid() {
 		if (ref_) {
 			return ref_->proxy()->oid();	
 		}
-		return ssa::common::ObjectId(0);
+		return osd::common::ObjectId(0);
 	}
 
 	InodeNumber ino() {
@@ -66,7 +66,7 @@ public:
 	}
 
 //protected:
-	ssa::common::ObjectProxyReference* ref_;     // reference to the persistent object container
+	osd::common::ObjectProxyReference* ref_;     // reference to the persistent object container
 	//! process-wide mutex; used for synchronizing access to the
 	//! volatile inode metadata
 	pthread_mutex_t                    mutex_;

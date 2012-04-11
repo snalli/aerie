@@ -11,7 +11,7 @@ Import('mfsClientLibrary')
 Import('commonLibrary')
 Import('spaLibrary')
 Import('bcsClientLibrary')
-Import('ssaClientLibrary')
-depLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, ssaClientLibrary, spaLibrary, commonLibrary]
+Import('osdClientLibrary')
+depLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
 
 myTestEnv.Program('namespace', source = [Glob('*.cc')], LIBS=['pthread', 'rt']+depLibs)

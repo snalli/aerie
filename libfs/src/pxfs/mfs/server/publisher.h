@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_PXFS_MFS_SERVER_PUBLISHER_H
 #define __STAMNOS_PXFS_MFS_SERVER_PUBLISHER_H
 
-#include "ssa/main/server/ssa-opaque.h"
+#include "osd/main/server/osd-opaque.h"
 #include "pxfs/common/publisher.h"
 
 
@@ -13,12 +13,12 @@ class LockVerifier;
 class Publisher {
 public:
 	static int Init();
-	static int Register(::ssa::server::StorageSystem* stsystem);
-	static int MakeFile(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
-	static int MakeDir(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
-	static int Link(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
-	static int Unlink(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
-	static int Write(::ssa::server::SsaSession* session, char* lgc_op_hdr, ::ssa::Publisher::Messages::BaseMessage* next);
+	static int Register(::osd::server::StorageSystem* stsystem);
+	static int MakeFile(::osd::server::OsdSession* session, char* lgc_op_hdr, ::osd::Publisher::Message::BaseMessage* next);
+	static int MakeDir(::osd::server::OsdSession* session, char* lgc_op_hdr, ::osd::Publisher::Message::BaseMessage* next);
+	static int Link(::osd::server::OsdSession* session, char* lgc_op_hdr, ::osd::Publisher::Message::BaseMessage* next);
+	static int Unlink(::osd::server::OsdSession* session, char* lgc_op_hdr, ::osd::Publisher::Message::BaseMessage* next);
+	static int Write(::osd::server::OsdSession* session, char* lgc_op_hdr, ::osd::Publisher::Message::BaseMessage* next);
 
 private:
 	static WriteVerifier* write_verifier_;

@@ -12,13 +12,13 @@ namespace client {
 class InodeFactory: public ::client::InodeFactory {
 public:
 	int Make(::client::Session* session, int type, ::client::Inode** ipp);
-	int Load(::client::Session* session, ssa::common::ObjectId oid, ::client::Inode** ipp);
+	int Load(::client::Session* session, osd::common::ObjectId oid, ::client::Inode** ipp);
 
 	/* non-polymorphic functions */
 	static int MakeInode(::client::Session* session, int type, ::client::Inode** ipp);
-	static int LoadInode(::client::Session* session, ssa::common::ObjectId oid, ::client::Inode** ipp);
-	static int LoadDirInode(::client::Session* session, ssa::common::ObjectId oid, ::client::Inode** ipp);
-	static int LoadFileInode(::client::Session* session, ssa::common::ObjectId oid, ::client::Inode** ipp);
+	static int LoadInode(::client::Session* session, osd::common::ObjectId oid, ::client::Inode** ipp);
+	static int LoadDirInode(::client::Session* session, osd::common::ObjectId oid, ::client::Inode** ipp);
+	static int LoadFileInode(::client::Session* session, osd::common::ObjectId oid, ::client::Inode** ipp);
 	static int MakeDirInode(::client::Session* session, ::client::Inode** ipp);
 	static int MakeFileInode(::client::Session* session, ::client::Inode** ipp);
 

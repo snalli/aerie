@@ -1,7 +1,7 @@
-SSA layer 
+OSD layer 
 ---------
 client side: we would like to support multiple file systems as a client might simultaneously want to mount multiple filesystems.
-currently the ssa layer does not support multiple file systems: we need to fix initialization of the lock managers, storage pool to be done when we open/load the storage system
+currently the osd layer does not support multiple file systems: we need to fix initialization of the lock managers, storage pool to be done when we open/load the storage system
 
 ====
 

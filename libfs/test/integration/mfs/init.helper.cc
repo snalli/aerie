@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <list>
 #include <unistd.h>
-#include "../ssa/lock.fixture.h"
+#include "../osd/lock.fixture.h"
 #include "tool/testfw/argvmap.h"
 #include "tool/testfw/testfw.h"
 

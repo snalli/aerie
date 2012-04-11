@@ -40,10 +40,10 @@ Inode::Put()
 int
 Inode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
-	ssa::cc::client::ObjectProxy* cc_proxy;
+	osd::cc::client::ObjectProxy* cc_proxy;
 
 	if (ref_) {
-		cc_proxy = static_cast<ssa::cc::client::ObjectProxy*>(ref_->obj());	
+		cc_proxy = static_cast<osd::cc::client::ObjectProxy*>(ref_->obj());	
 		return cc_proxy->Lock(session, mode);
 	}
 	return E_SUCCESS;
@@ -53,13 +53,13 @@ Inode::Lock(::client::Session* session, lock_protocol::Mode mode)
 int
 Inode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
-	ssa::cc::client::ObjectProxy* cc_proxy;
-	ssa::cc::client::ObjectProxy* cc_proxy_parent;
+	osd::cc::client::ObjectProxy* cc_proxy;
+	osd::cc::client::ObjectProxy* cc_proxy_parent;
 
 	if (ref_) {
-		cc_proxy = static_cast<ssa::cc::client::ObjectProxy*>(ref_->obj());	
+		cc_proxy = static_cast<osd::cc::client::ObjectProxy*>(ref_->obj());	
 		if (parent_inode->ref_) {
-			cc_proxy_parent = static_cast<ssa::cc::client::ObjectProxy*>(parent_inode->ref_->obj());	
+			cc_proxy_parent = static_cast<osd::cc::client::ObjectProxy*>(parent_inode->ref_->obj());	
 			return cc_proxy->Lock(session, cc_proxy_parent, mode);
 		} else {
 			return cc_proxy->Lock(session, mode);
@@ -73,10 +73,10 @@ Inode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode
 int
 Inode::Unlock(::client::Session* session)
 {
-	ssa::cc::client::ObjectProxy* cc_proxy;
+	osd::cc::client::ObjectProxy* cc_proxy;
 
 	if (ref_) {
-		cc_proxy = static_cast<ssa::cc::client::ObjectProxy*>(ref_->obj());	
+		cc_proxy = static_cast<osd::cc::client::ObjectProxy*>(ref_->obj());	
 		return cc_proxy->Unlock(session);
 	}
 	return E_SUCCESS;

@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_TEST_SESSION_FIXTURE_H
 #define __STAMNOS_TEST_SESSION_FIXTURE_H
 
-#include "ssa/main/common/obj.h"
+#include "osd/main/common/obj.h"
 
 class Session;
 
@@ -25,7 +25,7 @@ public:
 		return E_SUCCESS;
 	}
 
-	int AllocateContainer(Session* session, int type, ssa::common::ObjectId* oid)
+	int AllocateContainer(Session* session, int type, osd::common::ObjectId* oid)
 	{
 
 	}

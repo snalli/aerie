@@ -16,7 +16,7 @@ extern NameSpace*                  global_namespace;
 extern FileManager*                global_fmgr;
 extern Session*                    global_session;
 extern Ipc*                        global_ipc_layer;        
-extern ssa::client::StorageSystem* global_storage_system;
+extern osd::client::StorageSystem* global_storage_system;
 extern FileSystemObjectManager*    global_fsomgr;
 
 extern rpcc*             rpc_client;

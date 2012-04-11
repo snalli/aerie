@@ -6,7 +6,7 @@
 #include "common/util.h"
 #include "common/errno.h"
 #include "pxfs/tool/main.h"
-#include "ssa/main/server/ssa.h"
+#include "osd/main/server/osd.h"
 
 const char* prog_name = "pxfs";
 

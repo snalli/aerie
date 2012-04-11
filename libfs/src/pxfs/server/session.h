@@ -1,16 +1,16 @@
 #ifndef __STAMNOS_FS_SERVER_SESSION_H
 #define __STAMNOS_FS_SERVER_SESSION_H
 
-#include "ssa/main/server/stsystem.h"
-#include "ssa/main/server/ssa-opaque.h"
-#include "ssa/main/server/session.h"
+#include "osd/main/server/stsystem.h"
+#include "osd/main/server/osd-opaque.h"
+#include "osd/main/server/session.h"
 #include "bcs/main/server/bcs.h"
 
 namespace server {
 
-class Session: public ssa::server::SsaSession {
+class Session: public osd::server::OsdSession {
 public:
-	Session(Ipc* ipc, ssa::server::StorageSystemT<Session>* storage_system)
+	Session(Ipc* ipc, osd::server::StorageSystemT<Session>* storage_system)
 	{ 
 		ipc_ = ipc;
 		storage_system_ = storage_system;

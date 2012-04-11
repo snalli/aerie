@@ -7,10 +7,10 @@
 #include "bcs/bcs.h"
 #include "pxfs/client/file.h"
 #include "pxfs/client/fsomgr.h"
-#include "ssa/main/client/ssa.h"
-#include "ssa/main/client/stm.h"
-#include "ssa/main/client/salloc.h"
-#include "ssa/main/client/omgr.h"
+#include "osd/main/client/osd.h"
+#include "osd/main/client/stm.h"
+#include "osd/main/client/salloc.h"
+#include "osd/main/client/omgr.h"
 #include "spa/pool/pool.h"
 #include "pxfs/common/fs_protocol.h"
 #include "pxfs/mfs/client/mfs.h"
@@ -30,7 +30,7 @@ FileSystemObjectManager*    global_fsomgr;
 FileManager*                global_fmgr;
 NameSpace*                  global_namespace;
 Ipc*                        global_ipc_layer;
-ssa::client::StorageSystem* global_storage_system;
+osd::client::StorageSystem* global_storage_system;
 
 
 
@@ -46,7 +46,7 @@ Client::Init(const char* xdst)
 	global_ipc_layer->Init();
 
 
-	global_storage_system = new ssa::client::StorageSystem(global_ipc_layer);
+	global_storage_system = new osd::client::StorageSystem(global_ipc_layer);
 	global_storage_system->Init();
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
@@ -114,7 +114,7 @@ Client::CurrentSession()
 	}
 
 	thread_session = new Session(global_storage_system);
-	thread_session->tx_ = ssa::stm::client::Self();
+	thread_session->tx_ = osd::stm::client::Self();
 	return thread_session;
 }
 
@@ -213,10 +213,10 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 	PROFILER_SAMPLE
 	switch (type) {
 		case kFileInode:
-			session->journal() << Publisher::Messages::LogicalOperation::MakeFile(dp->ino(), name, ip->ino());
+			session->journal() << Publisher::Message::LogicalOperation::MakeFile(dp->ino(), name, ip->ino());
 			break;
 		case kDirInode:
-			session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dp->ino(), name, ip->ino());
+			session->journal() << Publisher::Message::LogicalOperation::MakeDir(dp->ino(), name, ip->ino());
 			break;
 	}
 

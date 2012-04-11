@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "rpc/rpc.h"
-#include "ssa/main/common/lock_protocol.h"
-#include "ssa/main/client/hlckmgr.h"
+#include "osd/main/common/lock_protocol.h"
+#include "osd/main/client/hlckmgr.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 

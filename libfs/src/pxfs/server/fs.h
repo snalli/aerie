@@ -12,8 +12,8 @@
 #include <string>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
-#include "ssa/ssa-opaque.h"
-#include "ssa/main/common/obj.h"
+#include "osd/osd-opaque.h"
+#include "osd/main/common/obj.h"
 #include "pxfs/server/session.h"
 #include "pxfs/common/fs_protocol.h"
 
@@ -34,7 +34,7 @@ namespace server {
  *    but it can be done over shared memory
  */
 
-typedef ssa::server::StorageSystemT<Session> StorageSystem;
+typedef osd::server::StorageSystemT<Session> StorageSystem;
 
 class FileSystem {
 public:

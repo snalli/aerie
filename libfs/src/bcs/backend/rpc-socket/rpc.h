@@ -26,7 +26,7 @@ class rpc_const {
 		static const int cancel_failure = -7;
 };
 
-// rpc client enssaint.
+// rpc client enosdint.
 // manages a xid space per destination socket
 // threaded: multiple threads can be sending RPCs,
 class rpcc : public chanmgr {
@@ -245,7 +245,7 @@ class handler {
 };
 
 
-// rpc server enssaint.
+// rpc server enosdint.
 class rpcs : public chanmgr {
 
 	typedef enum {

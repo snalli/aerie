@@ -2,7 +2,7 @@
 #include "pxfs/mfs/server/file_inode.h"
 #include "pxfs/server/session.h"
 #include "pxfs/server/const.h"
-#include "ssa/main/common/obj.h"
+#include "osd/main/common/obj.h"
 #include "common/errno.h"
 #include "common/util.h"
 #include <stdio.h>
@@ -76,7 +76,7 @@ DirInode::Unlink(Session* session, const char* name)
 			// this case will later be detected by a client and provide us with a new 
 			// parent hint which we validate.
 			obj()->Erase(session, name);
-			fp->obj()->set_parent(ssa::common::ObjectId(0));
+			fp->obj()->set_parent(osd::common::ObjectId(0));
 			nlink = fp->obj()->nlink(); 
 			fp->obj()->set_nlink(nlink - 1);
 			// deallocate inode if unreachable and no client has the file open
@@ -92,7 +92,7 @@ DirInode::Unlink(Session* session, const char* name)
 				break;
 			}
 			obj()->Erase(session, name);
-			dp->obj()->set_parent(ssa::common::ObjectId(0));
+			dp->obj()->set_parent(osd::common::ObjectId(0));
 			nlink = fp->obj()->nlink();
 			dp->obj()->set_nlink(nlink - 1); // for forward link
 			obj()->set_nlink(obj()->nlink() - 1); // for child's backward link ..
@@ -113,7 +113,7 @@ int
 DirInode::Lookup(Session* session, const char* name, InodeNumber* ino)
 {
 	int                   ret;
-	ssa::common::ObjectId child_oid;
+	osd::common::ObjectId child_oid;
 
 	if ((ret = obj_->Find(session, name, &child_oid)) < 0) { return ret; }
 	*ino = child_oid.u64();

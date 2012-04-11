@@ -5,8 +5,8 @@
 #include "pxfs/common/types.h"
 #include "pxfs/common/const.h"
 #include "pxfs/client/inode.h"
-#include "ssa/containers/byte/container.h"
-#include "ssa/main/common/obj.h"
+#include "osd/containers/byte/container.h"
+#include "osd/main/common/obj.h"
 
 namespace client {
 	class Session; // forward declaration
@@ -18,7 +18,7 @@ namespace client {
 class FileInode: public ::client::Inode
 {
 public:
-	FileInode(ssa::common::ObjectProxyReference* ref)
+	FileInode(osd::common::ObjectProxyReference* ref)
 	{ 
 		ref_ = ref;
 		fs_type_ = kMFS;
@@ -44,8 +44,8 @@ public:
 
 	int ioctl(::client::Session* session, int request, void* info);
 private:
-	ssa::containers::client::ByteContainer::Reference* rw_ref() {
-		return static_cast<ssa::containers::client::ByteContainer::Reference*>(ref_);
+	osd::containers::client::ByteContainer::Reference* rw_ref() {
+		return static_cast<osd::containers::client::ByteContainer::Reference*>(ref_);
 	}
 	int              nlink_;
 };

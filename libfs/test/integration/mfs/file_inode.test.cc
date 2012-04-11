@@ -4,18 +4,18 @@
 #include "common/errno.h"
 #include "tool/testfw/integrationtest.h"
 #include "tool/testfw/testfw.h"
-#include "ssa/main/client/rwproxy.h"
-#include "ssa/main/client/omgr.h"
-#include "ssa/containers/byte/container.h"
-#include "test/integration/ssa/ssa.fixture.h"
+#include "osd/main/client/rwproxy.h"
+#include "osd/main/client/omgr.h"
+#include "osd/containers/byte/container.h"
+#include "test/integration/osd/osd.fixture.h"
 #include "pxfs/mfs/client/file_inode.h"
 #include "pxfs/common/publisher.h"
 #include "mfs.fixture.h"
 
 
-static ssa::common::ObjectId OID[16];
+static osd::common::ObjectId OID[16];
 
-typedef ssa::containers::client::ByteContainer ByteContainer;
+typedef osd::containers::client::ByteContainer ByteContainer;
 
 static const char* storage_pool_path = "/tmp/stamnos_pool";
 
@@ -25,13 +25,13 @@ SUITE(MFSFileInode)
 	{
 		char                               buf[8192];
 		::client::Inode*                   inode;
-		ssa::common::ObjectProxyReference* rw_ref;
+		osd::common::ObjectProxyReference* rw_ref;
 		ByteContainer::Reference*          rw_reft;
 		::mfs::client::FileInode*          finode;
 
 		// FIXME
 		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
+		// instead the osd layer should allow us to mount just the storage system 
 		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 
@@ -60,13 +60,13 @@ SUITE(MFSFileInode)
 	{
 		char                               buf[512];
 		::client::Inode*                   inode;
-		ssa::common::ObjectProxyReference* rw_ref;
+		osd::common::ObjectProxyReference* rw_ref;
 		ByteContainer::Reference*          rw_reft;
 		::mfs::client::FileInode*          finode;
 
 		// FIXME
 		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
+		// instead the osd layer should allow us to mount just the storage system 
 		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 
@@ -95,13 +95,13 @@ SUITE(MFSFileInode)
 	{
 		char                               buf[512];
 		::client::Inode*                   inode;
-		ssa::common::ObjectProxyReference* rw_ref;
+		osd::common::ObjectProxyReference* rw_ref;
 		ByteContainer::Reference*          rw_reft;
 		::mfs::client::FileInode*          finode[8];
 
 		// FIXME
 		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
-		// instead the ssa layer should allow us to mount just the storage system 
+		// instead the osd layer should allow us to mount just the storage system 
 		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
 
 
@@ -121,7 +121,7 @@ SUITE(MFSFileInode)
 			strcpy(buf, "WRITE");
 			// do the logical journaling ourselves because we bypass the file system interface
 			session->journal()->TransactionBegin();
-			session->journal() << Publisher::Messages::LogicalOperation::Write(finode[i]->ino());
+			session->journal() << Publisher::Message::LogicalOperation::Write(finode[i]->ino());
 			finode[i]->Write(session, buf, 0, strlen(buf)+1);
 			session->journal()->TransactionCommit();
 			finode[i]->Unlock(session);

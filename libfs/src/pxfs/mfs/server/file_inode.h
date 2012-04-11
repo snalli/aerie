@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_MFS_SERVER_FILE_INODE_H
 #define __STAMNOS_MFS_SERVER_FILE_INODE_H
 
-#include "ssa/containers/byte/container.h"
+#include "osd/containers/byte/container.h"
 #include "pxfs/server/inode.h"
 
 namespace server {
@@ -17,8 +17,8 @@ public:
 	FileInode(InodeNumber ino)
 		: InodeT<FileInode>(ino, kFileInode)
 	{ 
-		ssa::common::ObjectId oid(ino);
-		obj_ = ssa::containers::server::ByteContainer::Object::Load(oid);
+		osd::common::ObjectId oid(ino);
+		obj_ = osd::containers::server::ByteContainer::Object::Load(oid);
 	}
 
 	// mark persistent object for inode ino as allocated and construct inode into ip
@@ -26,9 +26,9 @@ public:
 		return new(ip) FileInode(ino);
 	}
 
-	ssa::containers::server::ByteContainer::Object* obj() { return obj_; }
+	osd::containers::server::ByteContainer::Object* obj() { return obj_; }
 	
-	ssa::containers::server::ByteContainer::Object* obj_;
+	osd::containers::server::ByteContainer::Object* obj_;
 };
 
 } // namespace server

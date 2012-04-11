@@ -12,7 +12,7 @@
 #include <typeinfo>
 #include "common/util.h"
 #include "common/hrtime.h"
-#include "ssa/main/client/stm.h"
+#include "osd/main/client/stm.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/mpinode.h"
 #include "pxfs/client/inode.h"
@@ -426,7 +426,7 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 
 	assert(dp->Link(session, name, ip, false) == 0);
 
-	session->journal() << Publisher::Messages::LogicalOperation::Link(dp->ino(), name, ip->ino());
+	session->journal() << Publisher::Message::LogicalOperation::Link(dp->ino(), name, ip->ino());
 	return 0;
 
 bad:
@@ -485,7 +485,7 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	}
 
 	session->journal()->TransactionBegin();
-	session->journal() << Publisher::Messages::LogicalOperation::Unlink(dp->ino(), name);
+	session->journal() << Publisher::Message::LogicalOperation::Unlink(dp->ino(), name);
 	
 	assert(dp->Unlink(session, name) == E_SUCCESS);
 	//FIXME: inode link/unlink should take care of the nlink

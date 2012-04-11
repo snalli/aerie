@@ -14,12 +14,12 @@ Import('mfsClientLibrary')
 Import('mfsServerLibrary')
 Import('commonLibrary')
 Import('spaLibrary')
-Import('ssaClientLibrary')
-Import('ssaServerLibrary')
+Import('osdClientLibrary')
+Import('osdServerLibrary')
 Import('bcsClientLibrary')
 Import('bcsServerLibrary')
-clientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, ssaClientLibrary, spaLibrary, commonLibrary]
-serverDepLibs = [mfsServerLibrary, fssLibrary, bcsServerLibrary, ssaServerLibrary, spaLibrary, commonLibrary]
+clientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, fssLibrary, bcsServerLibrary, osdServerLibrary, spaLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 testProgram = myTestEnv.Program('test', source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)
