@@ -40,10 +40,10 @@ class Region;
 template<typename Session>
 class Object: public osd::cc::common::Object {
 public:
-	static Object* Make(Session* session) {
+	static Object* Make(Session* session, osd::common::AclIdentifier acl_id = 0) {
 		osd::common::ObjectId oid;
 		
-		if (session->salloc()->AllocateContainer(session, T_BYTE_CONTAINER, &oid) < 0) {
+		if (session->salloc()->AllocateContainer(session, acl_id, T_BYTE_CONTAINER, &oid) < 0) {
 			dbg_log(DBG_ERROR, "No storage available\n");
 		}
 		return Load(oid);

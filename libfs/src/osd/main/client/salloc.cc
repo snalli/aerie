@@ -26,6 +26,78 @@ namespace client {
 //
 
 
+int
+ContainerPool::LoadFromLast(OsdSession* session)
+{
+	osd::common::ObjectId                                                 oid;
+	osd::common::Object*                                                  obj;
+
+	for (int i = last_offset_; i < set_obj_->Size(); i++) {
+		set_obj_->Read(session, i, &oid);
+		obj = osd::common::Object::Load(oid);
+		freelist_[obj->type()].push_back(FreeContainerDescriptor(oid, obj->type()));
+	}
+	last_offset_ = set_obj_->Size();
+	return E_SUCCESS;
+}
+
+
+int
+ContainerPool::Create(::client::Ipc* ipc, OsdSession* session, 
+                      osd::common::AclIdentifier acl_id, 
+                      ContainerPool** poolp)
+{
+	::osd::StorageProtocol::ContainerReply  reply;
+	ContainerPool*                          pool;
+	int                                     ret;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
+	        "[%d] Allocate a pool of containers with ACL %d\n", ipc->id(), acl_id);
+	
+	if ((ret = ipc->call(osd::StorageProtocol::kAllocateContainerSet, 
+	                     ipc->id(), acl_id, reply)) < 0) {
+		return ret;
+	} else if (ret > 0) {
+		return -ret;
+	}
+	if ((pool = new ContainerPool(reply.index, reply.oid)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = pool->LoadFromLast(session)) < 0) {
+		return ret;
+	}
+	*poolp = pool;
+		
+	return E_SUCCESS;
+}
+
+
+int 
+ContainerPool::Allocate(::client::Ipc* ipc, OsdSession* session, int type, osd::common::ObjectId* oid)
+{
+	int r;
+	int ret;
+
+
+	if (freelist_[type].empty()) {
+		if ((ret = ipc->call(osd::StorageProtocol::kAllocateContainer, 
+							 ipc->id(), capability_, type, 256, r)) < 0) {
+			return ret;
+		} else if (ret > 0) {
+			return -ret;
+		}
+		if ((ret = LoadFromLast(session)) < 0) {
+			return ret;
+		}
+	}
+	FreeContainerDescriptor& front = freelist_[type].front();
+	*oid = front.oid_;
+	//TODO: mark the allocation down in the journal.
+	freelist_[type].pop_front();
+	return E_SUCCESS;
+}
+
+
 int 
 StorageAllocator::Load(StoragePool* pool) 
 {
@@ -47,73 +119,50 @@ StorageAllocator::AllocateExtent(OsdSession* session, size_t nbytes, int flags, 
 }
 
 
-// OBSOLETE
 int 
-StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::GetContainerPool(OsdSession* session, osd::common::AclIdentifier acl_id, 
+                                   ContainerPool** poolp)
 {
-	assert(0);
+	int                  ret;
+	AclPoolMap::iterator it;
+	ContainerPool*       pool;
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
+	        "[%d] Allocate container set of ACL %d\n", ipc_->id(), acl_id);
+
+	if ((it = aclpoolmap_.find(acl_id)) == aclpoolmap_.end()) {
+		if ((ret = ContainerPool::Create(ipc_, session, acl_id, &pool)) < 0) {
+			return ret;
+		}
+		aclpoolmap_.insert(std::pair<osd::common::AclIdentifier, ContainerPool*>(acl_id, pool));
+	} else {
+		pool = it->second;	
+	}
+	*poolp = pool;
+	
+	return E_SUCCESS;
 }
 
 
-// OBSOLETE
 int 
-StorageAllocator::Alloc(OsdSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::AllocateContainer(OsdSession* session, osd::common::AclIdentifier acl_id, 
+                                    int type, osd::common::ObjectId* oidp)
 {
-	assert(0);
-	//FIXME
-	/*
-	ChunkDescriptor* achunkdsc[16];
-	size_t           roundup_bytes = (nbytes % 4096 == 0) ? nbytes: ((nbytes/4096)+1)*4096;
-
-	//chunk_store.AccessChunkList(achunkdsc, 1, PROT_READ|PROT_WRITE);
-	chunk_store.CreateChunk(roundup_bytes, CHUNK_TYPE_INODE, &achunkdsc[0]);
-	*ptr = achunkdsc[0]->chunk_;
-
-	return 0;
-	*/
-}
-
-
-int 
-StorageAllocator::AllocateContainer(OsdSession* session, int type, osd::common::ObjectId* ret_oid)
-{
-	int                                                                   ret;
-	::osd::StorageProtocol::ContainerReply                                reply;
-	osd::containers::client::SetContainer<osd::common::ObjectId>::Object* set_obj;
-	osd::common::ObjectId                                                 set_oid;
-	osd::common::ObjectId                                                 oid;
-	ObjectIdSet*                                                          freeset;
-	ObjectIdSet::iterator                                                 it;
+	int                   ret;
+	ContainerPool*        pool;
+	osd::common::ObjectId oid;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
 	        "[%d] Allocate container of type %d\n", ipc_->id(), type);
 
-	if (freeset_[type] && freeset_[type]->size() > 0) {
-		freeset = freeset_[type];
-	} else {
-		if ((ret = ipc_->call(osd::StorageProtocol::kAllocateContainer, 
-							  ipc_->id(), type, 8, reply)) < 0) {
-			return ret;
-		} else if (ret > 0) {
-			return -ret;
-		}
-		set_oid = reply.oid;
-		if ((set_obj = osd::containers::client::SetContainer<osd::common::ObjectId>::Object::Load(set_oid)) == NULL) {
-            return -1;
-        } 
-		if ((freeset = freeset_[type]) == NULL) {
-			freeset = freeset_[type] = new ObjectIdSet();
-			freeset->set_empty_key(osd::common::ObjectId(0));
-			freeset->set_deleted_key(osd::common::ObjectId(1));
-		}
-		for (int i=0; i<set_obj->Size(); i++) {
-			set_obj->Read(session, i, &oid);
-			freeset->insert(oid);
-		}
+	if ((ret = GetContainerPool(session, acl_id, &pool)) < 0) {
+		return ret;
 	}
-	it = freeset->begin();
-	*ret_oid = *it;
-	freeset->erase(it);
+	if ((ret = pool->Allocate(ipc_, session, type, &oid)) < 0) {
+		return ret;
+	}
+	*oidp = oid;
+
 	return E_SUCCESS;
 }
 

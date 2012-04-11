@@ -122,6 +122,12 @@ SUITE(OSD_Object)
 		osd::common::ObjectProxyReference* ref;
 		osd::common::ObjectId              oid;
 
-		CHECK(global_storage_system->salloc()->AllocateContainer(session, osd::containers::T_NAME_CONTAINER, &oid) == E_SUCCESS);
+		CHECK(global_storage_system->salloc()->AllocateContainer(session, 0, osd::containers::T_NAME_CONTAINER, &oid) == E_SUCCESS);
+		CHECK(global_storage_system->salloc()->AllocateContainer(session, 0, osd::containers::T_NAME_CONTAINER, &oid) == E_SUCCESS);
+		CHECK(global_storage_system->salloc()->AllocateContainer(session, 0, osd::containers::T_BYTE_CONTAINER, &oid) == E_SUCCESS);
+		CHECK(global_storage_system->salloc()->AllocateContainer(session, 0, osd::containers::T_BYTE_CONTAINER, &oid) == E_SUCCESS);
+
+		CHECK(global_storage_system->salloc()->AllocateContainer(session, 1, osd::containers::T_BYTE_CONTAINER, &oid) == E_SUCCESS);
+		CHECK(global_storage_system->salloc()->AllocateContainer(session, 1, osd::containers::T_BYTE_CONTAINER, &oid) == E_SUCCESS);
 	}
 }

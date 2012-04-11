@@ -21,6 +21,8 @@ const int kObjectAlignSize = 1 << kObjectAlignSizeShift;
 // 0 is invalid value for type ObjectType
 typedef uint16_t ObjectType;
 
+typedef int AclIdentifier;
+
 struct ObjectIdHashFcn;
 
 class ObjectId {

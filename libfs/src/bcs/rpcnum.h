@@ -33,7 +33,8 @@
 
 #define OSD_STORAGE_PROTOCOL(ACTION)                                           \
 	ACTION(osd, StorageProtocol, kAllocateContainerVector)                     \
-	ACTION(osd, StorageProtocol, kAllocateContainer)
+	ACTION(osd, StorageProtocol, kAllocateContainer)                           \
+	ACTION(osd, StorageProtocol, kAllocateContainerSet)
 
 #define OSD_REGISTRY_PROTOCOL(ACTION)                                          \
 	ACTION(osd, RegistryProtocol, kLookup)                                     \

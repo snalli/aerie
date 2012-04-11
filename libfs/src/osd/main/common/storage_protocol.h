@@ -6,6 +6,7 @@
 
 namespace osd {
 
+
 class StorageProtocol {
 public:
 	

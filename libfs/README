@@ -14,4 +14,4 @@ STYLE GUIDE
 SOURCE CODE OVERVIEW
 src/bcs    basic services
 src/pxfs   posix compliant file system
-src/ssa    storage system abstractions
+src/osd    object storage device layer 

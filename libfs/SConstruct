@@ -54,6 +54,11 @@ AddOption('--test-name',
 	metavar='NAME',
 	help='the name of the test to run')
 
+AddOption('--test-debug',
+	action="store_true", dest="test_print_debug",
+	default = False,
+	help="print debugging output")
+
 AddOption('--test-extra-args',
 	dest='test_extra_args',
 	type='string',

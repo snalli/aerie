@@ -13,8 +13,8 @@ def addIntegrationTests(env, root_dir, testProgram, serverProgram):
         init_script = os.path.join(root_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
-            'C1': ( testProgram, [('T1', 'Object:Test')]),
-            'C2': ( testProgram, [('T1', 'Object:Test')])
+            'C1': ( testProgram, [('T1', 'OSD_Object:Test')]),
+            'C2': ( testProgram, [('T1', 'OSD_Object:Test')])
         },
         rendezvous = [
                       ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),
@@ -43,7 +43,7 @@ def addIntegrationTests(env, root_dir, testProgram, serverProgram):
         init_script = os.path.join(root_dir, 'test/integration/init.sh'),
         testfw = testProgram, server = serverProgram,
         clients = { 
-            'C1': ( testProgram, [('T1', 'Object:TestAlloc')]),
+            'C1': ( testProgram, [('T1', 'OSD_Object:TestAlloc')]),
         },
         rendezvous = [
         ]
