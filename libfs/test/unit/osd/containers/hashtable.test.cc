@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include "tool/testfw/unittest.h"
-#include "osd/containers/assoc/hashtable.h"
+#include "osd/containers/map/hashtable.h"
 #include "common/errno.h"
 #include "unit/fixture/session.fixture.h"
 

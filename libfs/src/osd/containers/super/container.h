@@ -13,7 +13,7 @@
 #include <google/dense_hash_map>
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
-#include "osd/containers/assoc/hashtable.h"
+#include "osd/containers/map/hashtable.h"
 #include "osd/containers/super/common.h"
 #include "osd/main/client/session.h"
 #include "osd/main/server/session.h"

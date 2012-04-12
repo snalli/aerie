@@ -80,6 +80,14 @@ StorageSystem::Mount(const char* source, const char* target, unsigned int flags,
 
 
 int 
+StorageSystem::Mount(const char* source, unsigned int flags,
+                     StorageSystemDescriptor& desc)
+{
+	return Mount(source, NULL, desc);
+}
+
+
+int 
 StorageSystem::Mount(const char* source, const char* target, unsigned int flags)
 {
 	int                               ret;
@@ -98,6 +106,13 @@ StorageSystem::Mount(const char* source, const char* target, unsigned int flags)
 		return -ret;
 	}
 	return Mount(source, target, flags, mntrep.desc_);
+}
+
+
+int 
+StorageSystem::Mount(const char* source, unsigned int flags)
+{
+	return Mount(source, NULL, flags);
 }
 
 

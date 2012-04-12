@@ -7,7 +7,7 @@
 #include "pxfs/common/types.h"
 #include "pxfs/common/const.h"
 #include "pxfs/client/inode.h"
-#include "osd/containers/assoc/hashtable.h"
+#include "osd/containers/map/hashtable.h"
 #include "osd/containers/name/container.h"
 #include "osd/main/common/obj.h"
 

@@ -1,0 +1,42 @@
+import os
+import re
+import sys
+import string
+import testfw
+import copy
+from integration_test import runIntegrationTests
+
+Import('mainEnv', 'testEnv')
+myTestEnv = testEnv.Clone()
+
+Import('kvfscLibrary')
+Import('kvfssLibrary')
+Import('mfsClientLibrary')
+Import('mfsServerLibrary')
+Import('commonLibrary')
+Import('spaLibrary')
+Import('bcsClientLibrary')
+Import('bcsServerLibrary')
+Import('osdClientLibrary')
+Import('osdServerLibrary')
+clientDepLibs = [mfsClientLibrary, kvfscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, kvfssLibrary, bcsServerLibrary, osdServerLibrary, spaLibrary, commonLibrary]
+objects = myTestEnv['OBJECTS']
+
+serverProgram = myTestEnv.Program('smain', \
+	source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
+testProgram = myTestEnv.Program('test', \
+	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], \
+	LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)
+runtests = myTestEnv.Command("test.passed", ['test', kvfscLibrary], runIntegrationTests)
+
+
+
+###############################################################################
+# INTEGRATION TEST SCHEDULES
+############################################################################### 
+
+
+import test.integration.mfs.file
+
+test.integration.mfs.file.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)

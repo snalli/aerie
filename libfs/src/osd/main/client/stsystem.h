@@ -37,6 +37,8 @@ public:
 
 	int Open(const char* source, unsigned int flags);
 	int Close();
+	int Mount(const char* source, unsigned int flags);
+	int Mount(const char* source, unsigned int flags, StorageSystemDescriptor& desc);
 	int Mount(const char* source, const char* target, unsigned int flags);
 	int Mount(const char* source, const char* target, unsigned int flags, StorageSystemDescriptor& desc);
 
