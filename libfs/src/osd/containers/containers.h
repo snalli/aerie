@@ -21,6 +21,7 @@ namespace osd {
 namespace containers {
 
 enum {
+	T_EXTENT = 0, // must agree with osd::common::T_EXTENT
 	T_SUPER_CONTAINER = 1,
 	T_NAME_CONTAINER = 2,
 	T_BYTE_CONTAINER = 3,

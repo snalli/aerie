@@ -15,27 +15,21 @@ namespace osd {
 namespace client {
 
 
-// Storage manager
-// It allocates storage for a new object:
-// 1) from a local pool of objects (that match the ACL), or
-// 2) from the kernel storage manager, or
-// 3) by contacting the file system server
-//
-// the allocation function should take a transaction id as argument
-// to ensure the atomicity of the operation
-//
-
-
 int
-ContainerPool::LoadFromLast(OsdSession* session)
+DescriptorPool::LoadFromLast(OsdSession* session)
 {
-	osd::common::ObjectId                                                 oid;
-	osd::common::Object*                                                  obj;
+	osd::common::ObjectId   oid;
+	osd::common::ExtentId   eid;
+	osd::common::Object*    obj;
 
 	for (int i = last_offset_; i < set_obj_->Size(); i++) {
 		set_obj_->Read(session, i, &oid);
-		obj = osd::common::Object::Load(oid);
-		freelist_[obj->type()].push_back(FreeContainerDescriptor(oid, obj->type()));
+		if (oid.type() == osd::containers::T_EXTENT) {
+			eid = osd::common::ExtentId(oid);
+			extent_list_.push_back(ExtentDescriptor(eid, i));
+		} else {
+			container_list_[oid.type()].push_back(ContainerDescriptor(oid, i));
+		}
 	}
 	last_offset_ = set_obj_->Size();
 	return E_SUCCESS;
@@ -43,24 +37,24 @@ ContainerPool::LoadFromLast(OsdSession* session)
 
 
 int
-ContainerPool::Create(::client::Ipc* ipc, OsdSession* session, 
+DescriptorPool::Create(::client::Ipc* ipc, OsdSession* session, 
                       osd::common::AclIdentifier acl_id, 
-                      ContainerPool** poolp)
+                      DescriptorPool** poolp)
 {
 	::osd::StorageProtocol::ContainerReply  reply;
-	ContainerPool*                          pool;
+	DescriptorPool*                         pool;
 	int                                     ret;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
 	        "[%d] Allocate a pool of containers with ACL %d\n", ipc->id(), acl_id);
 	
-	if ((ret = ipc->call(osd::StorageProtocol::kAllocateContainerSet, 
+	if ((ret = ipc->call(osd::StorageProtocol::kAllocateObjectIdSet, 
 	                     ipc->id(), acl_id, reply)) < 0) {
 		return ret;
 	} else if (ret > 0) {
 		return -ret;
 	}
-	if ((pool = new ContainerPool(reply.index, reply.oid)) == NULL) {
+	if ((pool = new DescriptorPool(reply.index, reply.oid)) == NULL) {
 		return -E_NOMEM;
 	}
 	if ((ret = pool->LoadFromLast(session)) < 0) {
@@ -73,13 +67,12 @@ ContainerPool::Create(::client::Ipc* ipc, OsdSession* session,
 
 
 int 
-ContainerPool::Allocate(::client::Ipc* ipc, OsdSession* session, int type, osd::common::ObjectId* oid)
+DescriptorPool::AllocateContainer(::client::Ipc* ipc, OsdSession* session, int type, osd::common::ObjectId* oid)
 {
 	int r;
 	int ret;
 
-
-	if (freelist_[type].empty()) {
+	if (container_list_[type].empty()) {
 		if ((ret = ipc->call(osd::StorageProtocol::kAllocateContainer, 
 							 ipc->id(), capability_, type, 256, r)) < 0) {
 			return ret;
@@ -90,10 +83,38 @@ ContainerPool::Allocate(::client::Ipc* ipc, OsdSession* session, int type, osd::
 			return ret;
 		}
 	}
-	FreeContainerDescriptor& front = freelist_[type].front();
+	ContainerDescriptor& front = container_list_[type].front();
 	*oid = front.oid_;
 	//TODO: mark the allocation down in the journal.
-	freelist_[type].pop_front();
+	container_list_[type].pop_front();
+	return E_SUCCESS;
+}
+
+
+// the api allows multiple size extents.
+// currently the implementation provides only 4K size extents
+int
+DescriptorPool::AllocateExtent(::client::Ipc* ipc, OsdSession* session, 
+                               size_t nbytes, osd::common::ExtentId* eid)
+{
+	int ret;
+	int r;
+
+	if (extent_list_.empty()) {
+		if ((ret = ipc->call(osd::StorageProtocol::kAllocateExtent, 
+							 ipc->id(), capability_, 4096, 256, r)) < 0) {
+			return ret;
+		} else if (ret > 0) {
+			return -ret;
+		}
+		if ((ret = LoadFromLast(session)) < 0) {
+			return ret;
+		}
+	}
+	ExtentDescriptor& front = extent_list_.front();
+	*eid = front.eid_;
+	session->journal() << osd::Publisher::Message::ContainerOperation::AllocateExtent();
+	extent_list_.pop_front();
 	return E_SUCCESS;
 }
 
@@ -106,35 +127,22 @@ StorageAllocator::Load(StoragePool* pool)
 }
 
 
-int
-StorageAllocator::AllocateExtent(OsdSession* session, size_t nbytes, int flags, void** ptr)
-{
-	if (flags & kMetadata) {
-		*ptr = malloc(nbytes);
-	} else {
-		session->journal() << osd::Publisher::Message::ContainerOperation::AllocateExtent();
-		return pool_->AllocateExtent(nbytes, ptr);
-	}
-	return E_SUCCESS;
-}
-
-
 int 
-StorageAllocator::GetContainerPool(OsdSession* session, osd::common::AclIdentifier acl_id, 
-                                   ContainerPool** poolp)
+StorageAllocator::GetDescriptorPool(OsdSession* session, osd::common::AclIdentifier acl_id, 
+                                   DescriptorPool** poolp)
 {
 	int                  ret;
 	AclPoolMap::iterator it;
-	ContainerPool*       pool;
+	DescriptorPool*       pool;
 	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
 	        "[%d] Allocate container set of ACL %d\n", ipc_->id(), acl_id);
 
 	if ((it = aclpoolmap_.find(acl_id)) == aclpoolmap_.end()) {
-		if ((ret = ContainerPool::Create(ipc_, session, acl_id, &pool)) < 0) {
+		if ((ret = DescriptorPool::Create(ipc_, session, acl_id, &pool)) < 0) {
 			return ret;
 		}
-		aclpoolmap_.insert(std::pair<osd::common::AclIdentifier, ContainerPool*>(acl_id, pool));
+		aclpoolmap_.insert(std::pair<osd::common::AclIdentifier, DescriptorPool*>(acl_id, pool));
 	} else {
 		pool = it->second;	
 	}
@@ -144,21 +152,70 @@ StorageAllocator::GetContainerPool(OsdSession* session, osd::common::AclIdentifi
 }
 
 
+int
+StorageAllocator::AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, 
+                                 size_t nbytes, osd::common::ExtentId* eidp)
+{
+	int                   ret;
+	DescriptorPool*       pool;
+	osd::common::ExtentId eid;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
+	        "[%d] Allocate extent of size %lu\n", ipc_->id(), nbytes);
+	
+	if ((ret = GetDescriptorPool(session, acl_id, &pool)) < 0) {
+		return ret;
+	}
+	if ((ret = pool->AllocateExtent(ipc_, session, nbytes, &eid)) < 0) {
+		return ret;
+	}
+	*eidp = eid;
+	return E_SUCCESS;
+}
+
+
+int
+StorageAllocator::AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, size_t nbytes, int flags, void** ptr)
+{
+	int                   ret;
+	osd::common::ExtentId eid;
+	
+	if (flags & kMetadata) {
+		// The container data structures may call us to allocate storage
+		// for metadata. because we don't physically construct at the client
+		// we give them private (volatile) memory instead. 
+		*ptr = malloc(nbytes);
+		ret = E_SUCCESS;
+	} else {
+		ret = AllocateExtent(session, acl_id, nbytes, &eid);
+		*ptr = eid.addr();
+	}
+	return ret;
+}
+
+
+int
+StorageAllocator::AllocateExtent(OsdSession* session, size_t nbytes, int flags, void** ptr)
+{
+	return AllocateExtent(session, 0, nbytes, flags, ptr);
+}
+
+
 int 
 StorageAllocator::AllocateContainer(OsdSession* session, osd::common::AclIdentifier acl_id, 
                                     int type, osd::common::ObjectId* oidp)
 {
 	int                   ret;
-	ContainerPool*        pool;
+	DescriptorPool*       pool;
 	osd::common::ObjectId oid;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
 	        "[%d] Allocate container of type %d\n", ipc_->id(), type);
 
-	if ((ret = GetContainerPool(session, acl_id, &pool)) < 0) {
+	if ((ret = GetDescriptorPool(session, acl_id, &pool)) < 0) {
 		return ret;
 	}
-	if ((ret = pool->Allocate(ipc_, session, type, &oid)) < 0) {
+	if ((ret = pool->AllocateContainer(ipc_, session, type, &oid)) < 0) {
 		return ret;
 	}
 	*oidp = oid;
@@ -174,8 +231,7 @@ StorageAllocator::AllocateContainerVector(OsdSession* session)
 	std::vector< ::osd::StorageProtocol::ContainerRequest> container_req_vec;
 	std::vector<int>                                       rv;
 	std::vector<int>::iterator                             rvi;
-
-	::osd::StorageProtocol::ContainerRequest req;
+	::osd::StorageProtocol::ContainerRequest               req;
 
 	req.type = 1;
 	req.num = 2;

@@ -17,10 +17,25 @@
 namespace osd {
 namespace client {
 
+typedef osd::containers::client::SetContainer<osd::common::ObjectId>::Object ObjectIdSet;
 
-class FreeContainerDescriptor {
+
+class ExtentDescriptor {
 public:
-	FreeContainerDescriptor(osd::common::ObjectId oid, int index)
+	ExtentDescriptor(osd::common::ExtentId eid, int index)
+		: eid_(eid),
+		  index_(index)
+	{ }
+
+	osd::common::ExtentId eid_;
+	int                   index_; // Index in the persistent container set; 
+	                              // to be given to the server as a hint
+};
+
+
+class ContainerDescriptor {
+public:
+	ContainerDescriptor(osd::common::ObjectId oid, int index)
 		: oid_(oid),
 		  index_(index)
 	{ }
@@ -31,33 +46,35 @@ public:
 };
 
 
-// organizes containers of the same ACL in per type free lists 
-class ContainerPool {
+// organizes free storage descriptors of the same ACL in per type free lists 
+class DescriptorPool {
 public:
-	ContainerPool(int capability, osd::common::ObjectId oid)
+	DescriptorPool(int capability, osd::common::ObjectId oid)
 		: capability_(capability),
 		  last_offset_(0)
 	{		  	
-		set_obj_ = osd::containers::client::SetContainer<osd::common::ObjectId>::Object::Load(oid);
+		set_obj_ = ObjectIdSet::Load(oid);
 	}
 	
 	
-	static int Create(::client::Ipc* ipc, OsdSession* session, osd::common::AclIdentifier acl_id, ContainerPool** poolp);
+	static int Create(::client::Ipc* ipc, OsdSession* session, osd::common::AclIdentifier acl_id, DescriptorPool** poolp);
 	
 	int LoadFromLast(OsdSession* session);
-	int Allocate(::client::Ipc* ipc, OsdSession* session, int type, osd::common::ObjectId* oid);
+	int AllocateContainer(::client::Ipc* ipc, OsdSession* session, int type, osd::common::ObjectId* oid);
+	int AllocateExtent(::client::Ipc* ipc, OsdSession* session, size_t nbytes, osd::common::ExtentId* eid);
 
 private:
-	int                                capability_; // index in the capability table of the server
-	osd::containers::client::SetContainer<osd::common::ObjectId>::Object* set_obj_;
-	int                                last_offset_;  // the last offset of the set we loaded into the pool
-	std::list<FreeContainerDescriptor> freelist_[16]; // support 16 types: 0-15
+	int                              capability_; // index in the capability table of the server
+	ObjectIdSet*                     set_obj_;
+	int                              last_offset_;  // the last offset of the set we loaded into the pool
+	std::list<ExtentDescriptor>      extent_list_;
+	std::list<ContainerDescriptor>   container_list_[16]; // support 16 types: 0-15
 };
 
 
 class StorageAllocator {
 	typedef google::dense_hash_set< ::osd::common::ObjectId, ::osd::common::ObjectIdHashFcn > ObjectIdSet;
-	typedef google::dense_hash_map< ::osd::common::AclIdentifier, ContainerPool*> AclPoolMap;
+	typedef google::dense_hash_map< ::osd::common::AclIdentifier, DescriptorPool*> AclPoolMap;
 public:
 	
 	StorageAllocator(::client::Ipc* ipc)
@@ -70,9 +87,11 @@ public:
 	int Load(StoragePool* pool);
 
 	int AllocateExtent(OsdSession* session, size_t nbytes, int flags, void** ptr);
+	int AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, size_t nbytes, int flags, void** ptr);
+	int AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, size_t nbytes, osd::common::ExtentId* eidp);
 	int AllocateContainer(OsdSession* session, osd::common::AclIdentifier acl_id, int type, osd::common::ObjectId* oid);
 	int AllocateContainerVector(OsdSession* session);
-	int GetContainerPool(OsdSession* session, osd::common::AclIdentifier acl_id, ContainerPool** poolp);
+	int GetDescriptorPool(OsdSession* session, osd::common::AclIdentifier acl_id, DescriptorPool** poolp);
 
 private:
 	pthread_mutex_t mutex_;

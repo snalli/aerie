@@ -15,6 +15,10 @@
 namespace osd {
 namespace common {
 
+enum {
+	T_EXTENT = 0
+};
+
 const int kObjectAlignSizeShift = 6;
 const int kObjectAlignSize = 1 << kObjectAlignSizeShift;
 
@@ -84,6 +88,23 @@ private:
 };
 
 
+// TODO: incorporate size
+class ExtentId: public ObjectId {
+public:
+	ExtentId(uint64_t u64 = 0)
+		: ObjectId(u64)
+	{ }
+	
+	ExtentId(osd::common::ObjectId oid)
+		: ObjectId(oid.u64())
+	{ }
+
+	ExtentId(void* addr, int size)
+		: ObjectId(T_EXTENT, addr)
+	{ }
+};
+
+
 struct ObjectIdHashFcn {
 	std::size_t operator()(const ObjectId& oid) const {
 		boost::hash<uint64_t> hasher;
@@ -137,7 +158,6 @@ protected:
 	int        nlink_;  //!< Number of containers linking to this container
 	ObjectId   parent_; //!< Parent container. Valid only when nlink_ == 1
 };
-
 
 
 } // namespace common

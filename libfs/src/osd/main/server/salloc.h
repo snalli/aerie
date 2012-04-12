@@ -51,8 +51,9 @@ public:
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(OsdSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
 	int AllocateExtent(OsdSession* session, size_t size, int flags, void** ptr);
+	int AllocateExtent(OsdSession* session, ObjectIdSet* set, int size, int count, int& reply);
 	int CreateContainerSet(OsdSession* session, osd::common::AclIdentifier acl_id, ObjectIdSet** obj_set);
-	int AllocateContainerSet(OsdSession* session, osd::common::AclIdentifier acl_id, ::osd::StorageProtocol::ContainerReply& reply);
+	int AllocateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, ::osd::StorageProtocol::ContainerReply& reply);
 	int AllocateContainer(OsdSession* session, ObjectIdSet* set, int type, int count, int& reply);
 
 	int RegisterBaseTypes();
@@ -61,8 +62,9 @@ public:
 	public:
 		int Register(StorageAllocator* salloc);
 
-		int AllocateContainerSet(int clt, osd::common::AclIdentifier acl_id, ::osd::StorageProtocol::ContainerReply& r);
+		int AllocateObjectIdSet(int clt, osd::common::AclIdentifier acl_id, ::osd::StorageProtocol::ContainerReply& r);
 		int AllocateContainer(int clt, int set_capability, int type, int num, int& reply);
+		int AllocateExtent(int clt, int set_capability, int size, int num, int& reply);
 		int AllocateContainerVector(int clt, std::vector< ::osd::StorageProtocol::ContainerRequest> container_request_vector, std::vector<int>& result);
 
 	private:

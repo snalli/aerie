@@ -24,4 +24,12 @@ SUITE(OSD_StorageSystem)
 		global_storage_system->shbuf()->SignalReader();
 	}
 
+	TEST_FIXTURE(OsdFixture, AllocExtent)
+	{
+		osd::common::ExtentId eid;
+
+		CHECK(global_storage_system->salloc()->AllocateExtent(session, 0, 4096, &eid) == E_SUCCESS);
+		CHECK(global_storage_system->salloc()->AllocateExtent(session, 0, 4096, &eid) == E_SUCCESS);
+	}
+
 }
