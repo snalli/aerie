@@ -109,19 +109,25 @@ Table::Get(::client::Session* session, const char* key, char* dst)
 	osd::common::ObjectId                             oid;
 	osd::containers::client::NeedleContainer::Object* obj;
 	
-	// no metadata for needle container so don't use the proxy but write 
-	// directly via the object
+	Lock(session, lock_protocol::Mode::SL);
+	// no metadata for needle container so don't use the proxy. Write
+	// directly via the object instead.
 	if ((ret = rw_ref()->proxy()->interface()->Find(session, key, &oid)) != E_SUCCESS) {
-		return -E_NOENT;
+		ret = -E_NOENT;
+		goto done;
 	} else {
 		if ((obj = osd::containers::client::NeedleContainer::Object::Load(oid)) == NULL) {
-			return -E_NOMEM;
+			ret = -E_NOMEM;
+			goto done;
 		}
 	}
 	if ((ret = obj->Read(session, dst, 0, obj->Size())) < 0) {
-		return -E_NOMEM;
+		ret = -E_NOMEM;
+		goto done;
 	}
 
+done:
+	Unlock(session);
 	return ret;
 }
 
