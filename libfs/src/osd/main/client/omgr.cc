@@ -16,6 +16,8 @@
 #include "osd/containers/super/container.h"
 #include "osd/containers/name/container.h"
 #include "osd/containers/byte/container.h"
+#include "osd/containers/needle/container.h"
+
 
 //TODO: Fine-grain locking in GetObject/PutObject.
 
@@ -78,6 +80,14 @@ ObjectManager::RegisterBaseTypes()
 	// ByteContainer
 	osd::client::rw::ObjectManager<osd::containers::client::ByteContainer::Object, osd::containers::client::ByteContainer::VersionManager>* mgr = new osd::client::rw::ObjectManager<osd::containers::client::ByteContainer::Object, osd::containers::client::ByteContainer::VersionManager>;
     if ((ret = RegisterType(osd::containers::T_BYTE_CONTAINER, mgr)) < 0) {
+		return ret;
+	}
+	}
+
+	{
+	// NeedleContainer
+	osd::client::rw::ObjectManager<osd::containers::client::NeedleContainer::Object, osd::containers::client::NeedleContainer::VersionManager>* mgr = new osd::client::rw::ObjectManager<osd::containers::client::NeedleContainer::Object, osd::containers::client::NeedleContainer::VersionManager>;
+    if ((ret = RegisterType(osd::containers::T_NEEDLE_CONTAINER, mgr)) < 0) {
 		return ret;
 	}
 	}

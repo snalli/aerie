@@ -5,6 +5,7 @@
 
 #include "kvfs/client/const.h"
 #include "kvfs/client/session.h"
+#include "kvfs/client/table.h"
 
 namespace client {
 
@@ -28,10 +29,13 @@ public:
 	static Session* CurrentSession();
 	static int Mount(const char* source, uint32_t flags);
 	static int Put(const char* key, const char* src, uint64_t n);
-	static int Get(const char* key, char* dst, uint64_t n);
+	static int Get(const char* key, char* dst);
 	static int Delete(const char* key);
 	static int Sync();
 	static int TestServerIsAlive();
+
+private:
+	static ::client::Table* tp_;
 };
 
 

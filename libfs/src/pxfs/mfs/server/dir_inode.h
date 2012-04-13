@@ -22,7 +22,7 @@ public:
 		obj_ = osd::containers::server::NameContainer::Object::Load(oid);
 	}
 
-	// mark persistent object address by ino as allocated and construct inode into ip
+	// TODO: mark persistent object address by ino as allocated and construct inode into ip
 	static DirInode* Make(Session* session, InodeNumber ino, DirInode* ip) {
 		return new(ip) DirInode(ino);
 	}

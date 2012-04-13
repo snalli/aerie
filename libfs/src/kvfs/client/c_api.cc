@@ -38,7 +38,7 @@ FRONTAPI(mount) (const char* source, uint32_t flags)
 
 
 int 
-FRONTAPI(umount) (const char* target)
+FRONTAPI(umount) ()
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
 }
@@ -54,11 +54,11 @@ FRONTAPI(put) (const char* key, const void *buf, size_t count)
 
 
 ssize_t 
-FRONTAPI(get) (const char* key, void *buf, size_t count)
+FRONTAPI(get) (const char* key, void *buf)
 {
 	char* dst = reinterpret_cast<char*>(buf);
 
-	return Client::Get(key, dst, count);
+	return Client::Get(key, dst);
 }
 
 

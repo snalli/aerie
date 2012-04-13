@@ -11,16 +11,14 @@ myTestEnv = testEnv.Clone()
 
 Import('kvfscLibrary')
 Import('kvfssLibrary')
-Import('mfsClientLibrary')
-Import('mfsServerLibrary')
 Import('commonLibrary')
 Import('spaLibrary')
 Import('bcsClientLibrary')
 Import('bcsServerLibrary')
 Import('osdClientLibrary')
 Import('osdServerLibrary')
-clientDepLibs = [mfsClientLibrary, kvfscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
-serverDepLibs = [mfsServerLibrary, kvfssLibrary, bcsServerLibrary, osdServerLibrary, spaLibrary, commonLibrary]
+clientDepLibs = [kvfscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [kvfssLibrary, bcsServerLibrary, osdServerLibrary, spaLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 serverProgram = myTestEnv.Program('smain', \
@@ -37,6 +35,6 @@ runtests = myTestEnv.Command("test.passed", ['test', kvfscLibrary], runIntegrati
 ############################################################################### 
 
 
-import test.integration.mfs.file
+import test.integration.kvfs.file
 
-test.integration.mfs.file.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.kvfs.file.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)

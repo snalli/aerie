@@ -70,8 +70,8 @@ FileSystem::Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** 
 
 
 int 
-FileSystem::Mount(int clt, const char* source, const char* target, 
-                  unsigned int flags, FileSystemProtocol::MountReply& rep) 
+FileSystem::Mount(int clt, const char* source, unsigned int flags, 
+                  FileSystemProtocol::MountReply& rep) 
 {
 	int                               ret;
 	StorageSystemProtocol::MountReply ssrep;
@@ -97,13 +97,14 @@ FileSystem::IpcHandlers::Register(FileSystem* module)
 
 int
 FileSystem::IpcHandlers::Mount(unsigned int clt, std::string source, 
-                               std::string target, unsigned int flags,
+                               unsigned int flags,
                                FileSystemProtocol::MountReply& rep)
 {
 	int ret;
 	
-	if ((ret = module_->Mount(clt, source.c_str(), target.c_str(), 
-	                          flags, rep)) < 0) {
+	dbg_log (DBG_INFO, "Mount: %s\n", source.c_str());
+
+	if ((ret = module_->Mount(clt, source.c_str(), flags, rep)) < 0) {
 		return -ret;
 	}
 	return 0;

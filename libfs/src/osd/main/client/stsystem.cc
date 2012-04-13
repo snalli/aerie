@@ -64,8 +64,8 @@ int
 StorageSystem::Mount(const char* source, const char* target, unsigned int flags,
                      StorageSystemDescriptor& desc)
 {
-	printf("STORAGE_SYSTEM:MOUNT\n");
 	int ret;
+
 	if ((shbuf_ = new OsdSharedBuffer(ipc_, desc.shbuf_dsc_)) == NULL) {
 		return -E_NOMEM;
 	}
@@ -83,7 +83,7 @@ int
 StorageSystem::Mount(const char* source, unsigned int flags,
                      StorageSystemDescriptor& desc)
 {
-	return Mount(source, NULL, desc);
+	return Mount(source, NULL, flags, desc);
 }
 
 

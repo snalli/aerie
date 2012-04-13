@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include "tool/testfw/integrationtest.h"
 #include "kvfs/client/client.h"
+#include "kvfs/client/libfs.h"
 #include "kvfs/client/session.h"
 
 using namespace client;
@@ -15,7 +16,7 @@ struct KVFSFixture {
 
 	struct Finalize: testfw::AbstractFunctor {
 		void operator()() {
-			libfs_shutdown();
+			kvfs_shutdown();
 		}
 	};
 
@@ -23,7 +24,7 @@ struct KVFSFixture {
 	{
 		pthread_mutex_lock(&mutex);
 		if (!initialized) {
-			libfs_init2("10000");
+			kvfs_init2("10000");
 			session = new Session(global_storage_system);
 			initialized = true;
 			// register a finalize action to be called by the test-framework 

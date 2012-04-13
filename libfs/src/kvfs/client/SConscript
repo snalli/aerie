@@ -11,6 +11,8 @@ lib_target = 'kvfsc'
 lib_sources = [
                'c_api.cc', 
                'client.cc', 
+	       'sb.cc',
+	       'table.cc'
 	      ]
 
 kvfscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)

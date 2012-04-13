@@ -43,14 +43,14 @@ public:
 
 	FileSystem(Ipc* ipc, StorageSystem* storage_system);
 	int Init();
-	int Mount(int clt, const char* source, const char* target, unsigned int flags, FileSystemProtocol::MountReply& rep); 
+	int Mount(int clt, const char* source, unsigned int flags, FileSystemProtocol::MountReply& rep); 
 
 	StorageSystem* storage_system() { return storage_system_; }
 
 	class IpcHandlers {
 	public:
 		int Register(FileSystem* module);
-		int Mount(unsigned int clt, std::string source, std::string target, unsigned int flags, FileSystemProtocol::MountReply& rep);
+		int Mount(unsigned int clt, std::string source, unsigned int flags, FileSystemProtocol::MountReply& rep);
 
 	private:
 		FileSystem* module_;

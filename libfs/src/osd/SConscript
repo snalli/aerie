@@ -17,6 +17,7 @@ clt_lib_sources = [
                    'containers/name/container-client.cc',
                    'containers/super/container.cc',
                    'containers/byte/container.cc',
+                   'containers/needle/container.cc',
                   ]
 
 osdClientLibrary = localBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources + clt_lib_objects)

@@ -23,7 +23,6 @@
 
 //#define HRTIME_SAMPLE __HRTIME_SAMPLE
 
-//TODO: pathname resolution against current working directory, chdir
 //TODO: directory operations update object version
 //TODO: port and test rename
 

@@ -10,6 +10,7 @@
 #include "osd/containers/super/container.h"
 #include "osd/containers/name/container.h"
 #include "osd/containers/byte/container.h"
+#include "osd/containers/needle/container.h"
 #include "osd/main/server/container.h"
 #include "osd/main/server/session.h"
 
@@ -126,6 +127,14 @@ StorageAllocator::RegisterBaseTypes()
 	// ByteContainer
 	::osd::server::ContainerAbstractFactory* factory = new osd::containers::server::ByteContainer::Factory();
     if ((ret = RegisterType(osd::containers::T_BYTE_CONTAINER, factory)) < 0) {
+		return ret;
+	}
+	}
+
+	{
+	// NeedleContainer
+	::osd::server::ContainerAbstractFactory* factory = new osd::containers::server::NeedleContainer::Factory();
+    if ((ret = RegisterType(osd::containers::T_NEEDLE_CONTAINER, factory)) < 0) {
 		return ret;
 	}
 	}

@@ -19,9 +19,9 @@ extern "C" {
 int FRONTAPI(init) (int argc, char* argv[]);
 int FRONTAPI(init2) (const char* xdst);
 int FRONTAPI(shutdown) ();
-int FRONTAPI(mount) (const char* source, const char* target, const char* fstype, uint32_t flags);
-int FRONTAPI(umount) (const char* target);
-ssize_t FRONTAPI(get) (const char* key, void *buf, size_t count);
+int FRONTAPI(mount) (const char* source, uint32_t flags);
+int FRONTAPI(umount) ();
+ssize_t FRONTAPI(get) (const char* key, void *buf);
 ssize_t FRONTAPI(put) (const char* key, const void *buf, size_t count);
 int FRONTAPI(sync) ();
 

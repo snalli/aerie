@@ -5,7 +5,8 @@
 #include "osd/main/server/verifier.h"
 #include "osd/containers/byte/verifier.h"
 #include "kvfs/server/session.h"
-//#include "kvfs/mfs/server/file_inode.h"
+#include "kvfs/server/file.h"
+#include "kvfs/server/table.h"
 #include "common/errno.h"
 
 namespace server {
@@ -41,8 +42,8 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 {
 	int                   ret;
 	osd::common::ObjectId oid;
-	//DirInode              dinode;
-	//FileInode             finode;
+	Table                 table;
+	File                  file;
 	Session*              session = static_cast<Session*>(osdsession);
 	
 	::Publisher::Message::LogicalOperation::MakeFile* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeFile>(session, buf);
@@ -53,15 +54,10 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 		return ret;
 	}
 
-	/*
 	// do the operation 
-	if (Inode::type(lgc_op->parino_) != kDirInode) {
-		return -1;
-	}
-	DirInode* pp = DirInode::Load(session, lgc_op->parino_, &dinode);
-	FileInode* cp = FileInode::Make(session, lgc_op->childino_, &finode);
-	pp->Link(session, lgc_op->name_, cp);
-	*/
+	Table* tp  = Table::Load(session, lgc_op->parino_, &table);
+	File* fp = File::Make(session, lgc_op->childino_, &file);
+	tp->Insert(session, lgc_op->key_, fp);
 
 	return E_SUCCESS;
 }

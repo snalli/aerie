@@ -27,6 +27,7 @@ enum {
 	T_BYTE_CONTAINER = 3,
 	T_SET_CONTAINER = 4,
 	T_MAP_CONTAINER = 5,
+	T_NEEDLE_CONTAINER = 6,
 };
 
 } // namespace containers
