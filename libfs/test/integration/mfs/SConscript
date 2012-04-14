@@ -17,10 +17,10 @@ Import('commonLibrary')
 Import('spaLibrary')
 Import('bcsClientLibrary')
 Import('bcsServerLibrary')
-Import('ssaClientLibrary')
-Import('ssaServerLibrary')
-clientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, ssaClientLibrary, spaLibrary, commonLibrary]
-serverDepLibs = [mfsServerLibrary, fssLibrary, bcsServerLibrary, ssaServerLibrary, spaLibrary, commonLibrary]
+Import('osdClientLibrary')
+Import('osdServerLibrary')
+clientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
+serverDepLibs = [mfsServerLibrary, fssLibrary, bcsServerLibrary, osdServerLibrary, spaLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 serverProgram = myTestEnv.Program('smain', \

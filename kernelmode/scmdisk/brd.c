@@ -264,6 +264,8 @@ static void copy_from_brd(void *dst, struct brd_device *brd,
 		} else
 			memset(dst, 0, copy);
 	}
+
+	stat_aggr_uint64_add(&brd->scm->stat.bytes_read, n);
 }
 
 /*

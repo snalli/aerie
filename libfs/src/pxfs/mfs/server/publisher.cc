@@ -1,9 +1,9 @@
 #include "pxfs/mfs/server/publisher.h"
-#include "ssa/main/server/stsystem.h"
-#include "ssa/main/server/session.h"
-#include "ssa/main/server/shbuf.h"
-#include "ssa/main/server/verifier.h"
-#include "ssa/containers/byte/verifier.h"
+#include "osd/main/server/stsystem.h"
+#include "osd/main/server/session.h"
+#include "osd/main/server/shbuf.h"
+#include "osd/main/server/verifier.h"
+#include "osd/containers/byte/verifier.h"
 #include "pxfs/server/session.h"
 #include "pxfs/mfs/server/dir_inode.h"
 #include "pxfs/mfs/server/file_inode.h"
@@ -12,24 +12,24 @@
 namespace server {
 
 int
-Publisher::Register(::ssa::server::StorageSystem* stsystem)
+Publisher::Register(::osd::server::StorageSystem* stsystem)
 {
-	stsystem->publisher()->RegisterOperation(::Publisher::Messages::LogicalOperation::kMakeFile, Publisher::MakeFile);
-	stsystem->publisher()->RegisterOperation(::Publisher::Messages::LogicalOperation::kMakeDir, Publisher::MakeDir);
-	stsystem->publisher()->RegisterOperation(::Publisher::Messages::LogicalOperation::kLink, Publisher::Link);
-	stsystem->publisher()->RegisterOperation(::Publisher::Messages::LogicalOperation::kUnlink, Publisher::Unlink);
-	stsystem->publisher()->RegisterOperation(::Publisher::Messages::LogicalOperation::kWrite, Publisher::Write);
+	stsystem->publisher()->RegisterOperation(::Publisher::Message::LogicalOperation::kMakeFile, Publisher::MakeFile);
+	stsystem->publisher()->RegisterOperation(::Publisher::Message::LogicalOperation::kMakeDir, Publisher::MakeDir);
+	stsystem->publisher()->RegisterOperation(::Publisher::Message::LogicalOperation::kLink, Publisher::Link);
+	stsystem->publisher()->RegisterOperation(::Publisher::Message::LogicalOperation::kUnlink, Publisher::Unlink);
+	stsystem->publisher()->RegisterOperation(::Publisher::Message::LogicalOperation::kWrite, Publisher::Write);
 	return E_SUCCESS;
 }
 
 
 template<typename T>
-T* LoadLogicalOperation(::ssa::server::SsaSession* session, char* buf)
+T* LoadLogicalOperation(::osd::server::OsdSession* session, char* buf)
 {
 	int                                               n;
 	T*                                                lgc_op;
-	::ssa::server::SsaSharedBuffer*                   shbuf = session->shbuf_;
-	ssa::Publisher::Messages::LogicalOperationHeader* header = ssa::Publisher::Messages::LogicalOperationHeader::Load(buf);
+	::osd::server::OsdSharedBuffer*                   shbuf = session->shbuf_;
+	osd::Publisher::Message::LogicalOperationHeader* header = osd::Publisher::Message::LogicalOperationHeader::Load(buf);
 	n = sizeof(*lgc_op) - sizeof(*header);
 	if (shbuf->Read(&buf[sizeof(*header)], n) < n) {
 		return NULL;
@@ -40,19 +40,19 @@ T* LoadLogicalOperation(::ssa::server::SsaSession* session, char* buf)
 
 
 int
-Publisher::MakeFile(::ssa::server::SsaSession* ssasession, char* buf, 
-                    ::ssa::Publisher::Messages::BaseMessage* next)
+Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf, 
+                    ::osd::Publisher::Message::BaseMessage* next)
 {
 	int                   ret;
-	ssa::common::ObjectId oid;
+	osd::common::ObjectId oid;
 	DirInode              dinode;
 	FileInode             finode;
-	Session*              session = static_cast<Session*>(ssasession);
+	Session*              session = static_cast<Session*>(osdsession);
 	
-	::Publisher::Messages::LogicalOperation::MakeFile* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::MakeFile>(session, buf);
+	::Publisher::Message::LogicalOperation::MakeFile* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeFile>(session, buf);
 	
 	// verify preconditions
-	oid = ssa::common::ObjectId(lgc_op->parino_);
+	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
 		return ret;
 	}
@@ -70,19 +70,19 @@ Publisher::MakeFile(::ssa::server::SsaSession* ssasession, char* buf,
 
 
 int
-Publisher::MakeDir(::ssa::server::SsaSession* ssasession, char* buf, 
-                   ::ssa::Publisher::Messages::BaseMessage* next)
+Publisher::MakeDir(::osd::server::OsdSession* osdsession, char* buf, 
+                   ::osd::Publisher::Message::BaseMessage* next)
 {
 	int                   ret;
-	ssa::common::ObjectId oid;
+	osd::common::ObjectId oid;
 	DirInode              dinode1;
 	DirInode              dinode2;
-	Session*              session = static_cast<Session*>(ssasession);
+	Session*              session = static_cast<Session*>(osdsession);
 
-	::Publisher::Messages::LogicalOperation::MakeDir* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::MakeDir>(session, buf);
+	::Publisher::Message::LogicalOperation::MakeDir* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeDir>(session, buf);
 	
 	// verify preconditions
-	oid = ssa::common::ObjectId(lgc_op->parino_);
+	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
 		return ret;
 	}
@@ -104,18 +104,18 @@ Publisher::MakeDir(::ssa::server::SsaSession* ssasession, char* buf,
 
 
 int
-Publisher::Link(::ssa::server::SsaSession* ssasession, char* buf, 
-                ::ssa::Publisher::Messages::BaseMessage* next)
+Publisher::Link(::osd::server::OsdSession* osdsession, char* buf, 
+                ::osd::Publisher::Message::BaseMessage* next)
 {
 	int                   ret;
-	ssa::common::ObjectId oid;
+	osd::common::ObjectId oid;
 	DirInode              dinode;
-	Session*              session = static_cast<Session*>(ssasession);
+	Session*              session = static_cast<Session*>(osdsession);
 
-	::Publisher::Messages::LogicalOperation::Link* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::Link>(session, buf);
+	::Publisher::Message::LogicalOperation::Link* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Link>(session, buf);
 	
 	// verify preconditions
-	oid = ssa::common::ObjectId(lgc_op->parino_);
+	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
 		return ret;
 	}
@@ -130,19 +130,19 @@ Publisher::Link(::ssa::server::SsaSession* ssasession, char* buf,
 
 
 int
-Publisher::Unlink(::ssa::server::SsaSession* ssasession, char* buf, 
-                  ::ssa::Publisher::Messages::BaseMessage* next)
+Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf, 
+                  ::osd::Publisher::Message::BaseMessage* next)
 {
 	int                   ret;
-	ssa::common::ObjectId oid;
+	osd::common::ObjectId oid;
 	DirInode              dinode;
 	InodeNumber           child_ino;
-	Session*              session = static_cast<Session*>(ssasession);
+	Session*              session = static_cast<Session*>(osdsession);
 	
-	::Publisher::Messages::LogicalOperation::Unlink* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::Unlink>(session, buf);
+	::Publisher::Message::LogicalOperation::Unlink* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Unlink>(session, buf);
 	
 	// verify preconditions
-	oid = ssa::common::ObjectId(lgc_op->parino_);
+	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
 		return ret;
 	}
@@ -156,16 +156,16 @@ Publisher::Unlink(::ssa::server::SsaSession* ssasession, char* buf,
 
 // buffer buf already holds the logical operation header
 int
-Publisher::Write(::ssa::server::SsaSession* session, char* buf, 
-                 ::ssa::Publisher::Messages::BaseMessage* next)
+Publisher::Write(::osd::server::OsdSession* session, char* buf, 
+                 ::osd::Publisher::Message::BaseMessage* next)
 {
 	int                   ret;
-	ssa::common::ObjectId oid;
+	osd::common::ObjectId oid;
 
-	::Publisher::Messages::LogicalOperation::Write* lgc_op = LoadLogicalOperation< ::Publisher::Messages::LogicalOperation::Write>(session, buf);
+	::Publisher::Message::LogicalOperation::Write* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Write>(session, buf);
 	
 	// verify preconditions
-	oid = ssa::common::ObjectId(lgc_op->ino_);
+	oid = osd::common::ObjectId(lgc_op->ino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
 		return ret;
 	}

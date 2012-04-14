@@ -7,16 +7,17 @@
 #include "bcs/bcs.h"
 #include "pxfs/client/file.h"
 #include "pxfs/client/fsomgr.h"
-#include "ssa/main/client/ssa.h"
-#include "ssa/main/client/stm.h"
-#include "ssa/main/client/salloc.h"
-#include "ssa/main/client/omgr.h"
+#include "osd/main/client/osd.h"
+#include "osd/main/client/stm.h"
+#include "osd/main/client/salloc.h"
+#include "osd/main/client/omgr.h"
 #include "spa/pool/pool.h"
 #include "pxfs/common/fs_protocol.h"
 #include "pxfs/mfs/client/mfs.h"
 #include "pxfs/common/publisher.h"
+#include "common/prof.h"
 
-
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 // FIXME: Client should be a singleton. otherwise we lose control 
 // over instantiation and destruction of the global variables below, which
@@ -29,7 +30,7 @@ FileSystemObjectManager*    global_fsomgr;
 FileManager*                global_fmgr;
 NameSpace*                  global_namespace;
 Ipc*                        global_ipc_layer;
-ssa::client::StorageSystem* global_storage_system;
+osd::client::StorageSystem* global_storage_system;
 
 
 
@@ -45,7 +46,7 @@ Client::Init(const char* xdst)
 	global_ipc_layer->Init();
 
 
-	global_storage_system = new ssa::client::StorageSystem(global_ipc_layer);
+	global_storage_system = new osd::client::StorageSystem(global_ipc_layer);
 	global_storage_system->Init();
 	// file manager should allocate file descriptors outside OS's range
 	// to avoid collisions
@@ -113,7 +114,7 @@ Client::CurrentSession()
 	}
 
 	thread_session = new Session(global_storage_system);
-	thread_session->tx_ = ssa::stm::client::Self();
+	thread_session->tx_ = osd::stm::client::Self();
 	return thread_session;
 }
 
@@ -162,10 +163,15 @@ Client::Mount(const char* source,
 static inline int
 create(::client::Session* session, const char* path, Inode** ipp, int mode, int type)
 {
+	PROFILER_PREAMBLE
 	char          name[128];
 	Inode*        dp;
 	Inode*        ip;
 	int           ret;
+
+	dbg_log (DBG_INFO, "Create %s\n", path);
+
+	PROFILER_SAMPLE
 
 	// when Nameiparent returns successfully, dp is 
 	// locked for writing. we release the lock on dp after we get the lock
@@ -175,6 +181,8 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 	                                         name, &dp)) < 0) {
 		return ret;
 	}
+	PROFILER_SAMPLE
+
 	if ((ret = dp->Lookup(session, name, 0, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
 		ip->Lock(session, dp, lock_protocol::Mode::XR); 
@@ -192,22 +200,27 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 		dp->Unlock(session);
 		return -E_EXIST;
 	}
+	PROFILER_SAMPLE
+
 	session->journal()->TransactionBegin();
 	
+	PROFILER_SAMPLE
 	// allocated inode is write locked and referenced (refcnt=1)
 	if ((ret = global_fsomgr->CreateInode(session, dp, type, &ip)) < 0) {
 		//TODO: handle error; release directory inode
 		assert(0 && "PANIC");
 	}
+	PROFILER_SAMPLE
 	switch (type) {
 		case kFileInode:
-			session->journal() << Publisher::Messages::LogicalOperation::MakeFile(dp->ino(), name, ip->ino());
+			session->journal() << Publisher::Message::LogicalOperation::MakeFile(dp->ino(), name, ip->ino());
 			break;
 		case kDirInode:
-			session->journal() << Publisher::Messages::LogicalOperation::MakeDir(dp->ino(), name, ip->ino());
+			session->journal() << Publisher::Message::LogicalOperation::MakeDir(dp->ino(), name, ip->ino());
 			break;
 	}
 
+	PROFILER_SAMPLE
 	ip->set_nlink(1);
 	if (type == kDirInode) {
 		assert(dp->set_nlink(dp->nlink() + 1) == 0); // for child's ..
@@ -215,10 +228,12 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 		assert(ip->Link(session, "..", dp, false) == 0);
 	}
 	assert(dp->Link(session, name, ip, false) == 0);
+	PROFILER_SAMPLE
 	session->journal()->TransactionCommit();
 	dp->Put();
 	dp->Unlock(session);
 	*ipp = ip;
+	PROFILER_SAMPLE
 	return 0;
 }
 
@@ -226,12 +241,14 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 int 
 Client::Open(const char* path, int flags, int mode)
 {
+	PROFILER_PREAMBLE
 	Inode*   ip;
 	int      ret;
 	int      fd;
 	File*    fp;
 	Session* session = CurrentSession();
 	
+	PROFILER_SAMPLE
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
 	}
@@ -240,6 +257,7 @@ Client::Open(const char* path, int flags, int mode)
 		return fd;
 	}
 	
+	PROFILER_SAMPLE
 	if (flags & O_CREAT) {
 		// returns with the inode ip referenced and locked
 		if ((ret = create(session, path, &ip, mode, kFileInode)) < 0) {
@@ -253,6 +271,7 @@ Client::Open(const char* path, int flags, int mode)
 		if ((ret = global_namespace->Namei(session, path, lock_mode, &ip)) < 0) {
 			return ret;
 		}	
+		PROFILER_SAMPLE
 	}
 	fp->Init(ip, flags);
 	ip->Unlock(session);

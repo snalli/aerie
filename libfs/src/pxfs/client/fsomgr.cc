@@ -2,6 +2,9 @@
 #include "pxfs/client/fsomgr.h"
 #include "pxfs/client/sb_factory.h"
 #include "pxfs/client/inode_factory.h"
+#include "common/prof.h"
+
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 namespace client {
 
@@ -81,7 +84,7 @@ FileSystemObjectManager::CreateSuperBlock(Session* session, const char* fs_type,
 
 
 int 
-FileSystemObjectManager::LoadSuperBlock(Session* session, ssa::common::ObjectId oid, 
+FileSystemObjectManager::LoadSuperBlock(Session* session, osd::common::ObjectId oid, 
                                         int fs_type, SuperBlock** sbp)
 {
 	SuperBlockFactoryMap::iterator it;
@@ -97,7 +100,7 @@ FileSystemObjectManager::LoadSuperBlock(Session* session, ssa::common::ObjectId 
 
 
 int 
-FileSystemObjectManager::LoadSuperBlock(Session* session, ssa::common::ObjectId oid, 
+FileSystemObjectManager::LoadSuperBlock(Session* session, osd::common::ObjectId oid, 
                                         const char* fs_type, SuperBlock** sbp)
 {
 	int fs_type_id = FSTypeStrToId(fs_type);
@@ -120,17 +123,24 @@ FileSystemObjectManager::CreateInode(Session* session, Inode* parent,
 	InodeFactory*             inode_factory; 
 	Inode*                    ip;
 	int                       fs_type = parent->fs_type();
+	PROFILER_PREAMBLE
 
+	dbg_log (DBG_INFO, "Create inode\n");
+
+	PROFILER_SAMPLE
 	it = inode_factory_map_.find(fs_type);
 	if (it == inode_factory_map_.end()) {
 		return -1;
 	}
+	PROFILER_SAMPLE
 	inode_factory = it->second;
 	if ((ret = inode_factory->Make(session, inode_type, &ip)) != E_SUCCESS) {
 		return ret;
 	}
+	PROFILER_SAMPLE
     ip->Lock(session, parent, lock_protocol::Mode::XR);
     ip->Get();
+	PROFILER_SAMPLE
 	
 	*ipp = ip;
 	return E_SUCCESS;

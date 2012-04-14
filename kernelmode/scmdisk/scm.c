@@ -5,40 +5,12 @@
 #include <linux/preempt.h>
 #include "scm.h"
 
-#define MAX_NCPUS 32
 								  
 /* SCM write bandwidth */
 int SCM_BANDWIDTH_MB = 1200;
 
 /* DRAM system peak bandwidth */
 int DRAM_BANDWIDTH_MB = 7000;
-
-
-typedef struct {
-	uint64_t n_per_cpu[MAX_NCPUS];
-	double   avg_per_cpu[MAX_NCPUS];
-} stat_avg_double_t;
-
-
-typedef struct {
-	uint64_t n_per_cpu[MAX_NCPUS];
-} stat_aggr_uint64_t;
-
-
-typedef struct {
-	stat_avg_double_t  scm_bw;
-	stat_aggr_uint64_t bytes_written;
-} scm_stat_t;
-
-	
-struct scm_s {
-	spinlock_t         lock;
-	spinlock_t         bwlock; /* bandwidth model lock */
-	uint32_t           count;
-	volatile uint8_t   mode;
-	scm_stat_t         stat;
-};
-
 
 /* 
  * Statistics collection and processing
@@ -74,13 +46,13 @@ stat_avg_double_add(stat_avg_double_t *stat, double val)
 	uint64_t n;
 	int      id;
 
-	preempt_disable();
+	//preempt_disable();
 	id = smp_processor_id();
-	old_avg = stat->avg_per_cpu[smp_processor_id()];
-	n = ++stat->n_per_cpu[smp_processor_id()];
+	old_avg = stat->avg_per_cpu[id];
+	n = ++stat->n_per_cpu[id];
 	new_avg = (((double) (n-1)) / ((double) n)) * old_avg + val/((double) n);
-	stat->avg_per_cpu[smp_processor_id()] = new_avg;
-	preempt_enable();
+	stat->avg_per_cpu[id] = new_avg;
+	//preempt_enable();
 }
 
 void
@@ -104,6 +76,30 @@ stat_avg_double_read(stat_avg_double_t *stat, double *val)
 }
 
 void
+stat_aggr_uint64_add(stat_aggr_uint64_t *stat, uint64_t val)
+{
+	int      id;
+
+	//preempt_disable();
+	id = smp_processor_id();
+	stat->n_per_cpu[id] += val;
+	//preempt_enable();
+}
+
+void
+stat_aggr_uint64_read(stat_aggr_uint64_t *stat, uint64_t *val)
+{
+	uint64_t  total=0;
+	int       i;
+	
+	for (i=0; i<MAX_NCPUS; i++) {
+		total += stat->n_per_cpu[i];
+	}
+	*val = total;
+}
+
+
+void
 scm_stat_reset(scm_t *scm)
 {
 	scm_stat_t *stat;
@@ -112,6 +108,7 @@ scm_stat_reset(scm_t *scm)
 	stat = &scm->stat;
 	stat_avg_double_reset(&stat->scm_bw);
 	stat_aggr_uint64_reset(&stat->bytes_written);
+	stat_aggr_uint64_reset(&stat->bytes_read);
 }
 
 void
@@ -119,10 +116,16 @@ scm_stat_print(scm_t *scm)
 {
 	scm_stat_t *stat = &scm->stat;
 	double     scm_bw;
+	uint64_t   bytes_read;
+	uint64_t   bytes_written;
 
 	stat_avg_double_read(&stat->scm_bw, &scm_bw);
+	stat_aggr_uint64_read(&stat->bytes_read, &bytes_read);
+	stat_aggr_uint64_read(&stat->bytes_written, &bytes_written);
 	printk(KERN_INFO "SCM-DISK Statistics\n");
 	printk(KERN_INFO "SCM_BW: %d\n", (int) scm_bw);
+	printk(KERN_INFO "SCM_BYTES_READ: %lu\n", bytes_read);
+	printk(KERN_INFO "SCM_BYTES_WRITTEN: %lu\n", bytes_written);
 }
 
 

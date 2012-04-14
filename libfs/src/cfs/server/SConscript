@@ -1,0 +1,30 @@
+Import('buildEnv')
+Import('bcsServerLibrary')
+Import('osdServerLibrary')
+Import('spaLibrary')
+Import('commonLibrary')
+
+localBuildEnv = buildEnv.Clone()
+libLocalBuildEnv = buildEnv.Clone()
+
+lib_target = 'cfss'
+lib_sources = [
+               'dir_inode.cc',
+               'file_inode.cc',
+	       'fs.cc',
+	       'namespace.cc',
+               'server.cc',
+	       'session.cc'
+              ]
+
+cfssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+localBuildEnv.Append(LIBS = cfssLibrary)
+localBuildEnv.Append(LIBS = bcsServerLibrary)
+localBuildEnv.Append(LIBS = osdServerLibrary)
+localBuildEnv.Append(LIBS = spaLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program('cfsserver', ['main.cc']) 
+
+Return('cfssLibrary')

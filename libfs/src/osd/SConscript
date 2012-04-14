@@ -1,0 +1,44 @@
+Import('buildEnv')
+localBuildEnv = buildEnv.Clone()
+
+# Client OSD layer
+
+clt_lib_target = 'osdclt'
+clt_lib_objects = []
+clt_lib_sources = [
+                   'main/client/journal.cc',
+                   'main/client/hlckmgr.cc',
+                   'main/client/lckmgr.cc',
+                   'main/client/omgr.cc',
+                   'main/client/salloc.cc',
+                   'main/client/stm.cc',
+	               'main/client/stsystem.cc',
+                   'main/client/registry.cc',
+                   'containers/name/container-client.cc',
+                   'containers/super/container.cc',
+                   'containers/byte/container.cc',
+                   'containers/needle/container.cc',
+                  ]
+
+osdClientLibrary = localBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources + clt_lib_objects)
+
+
+# Server OSD layer
+
+srv_lib_target = 'osdsrv'
+srv_lib_objects = []
+srv_lib_sources = [
+                   'main/server/hlckmgr.cc',
+                   'main/server/lckmgr.cc',
+                   'main/server/publisher.cc',
+                   'main/server/registry.cc',
+                   'main/server/salloc.cc',
+                   'main/server/shbuf.cc',
+                   'main/server/session.cc',
+                   'main/server/verifier.cc',
+                   'containers/name/container-server.cc',
+                  ]
+
+osdServerLibrary = localBuildEnv.SharedLibrary(target = srv_lib_target, source = srv_lib_sources + srv_lib_objects)
+
+Return('osdClientLibrary', 'osdServerLibrary')

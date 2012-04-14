@@ -45,4 +45,24 @@ static inline unsigned long long hrtime_cycles(void)
 #endif
 
 
+#define HRTIME_DEFINITIONS                   \
+	hrtime_t      start = hrtime_cycles();   \
+	hrtime_t      stop;                      \
+	int           startln = __LINE__; 
+
+#define HRTIME_START          \
+	start = hrtime_cycles();  \
+	startln = __LINE__;
+
+#define HRTIME_END            \
+	stop = hrtime_cycles();
+
+#define __HRTIME_SAMPLE        \
+	stop = hrtime_cycles();    \
+	printf("%s:%s:%d-%d: %llu\n", __FILE__, __FUNCTION__, startln, __LINE__, stop-start); \
+	start = hrtime_cycles();   \
+	startln = __LINE__;
+
+#define HRTIME_SAMPLE
+
 #endif /* _HRTIME_H_121AJ1 */

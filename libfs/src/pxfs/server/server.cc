@@ -1,6 +1,6 @@
 #include "pxfs/server/server.h"
 #include "bcs/main/server/bcs.h"
-#include "ssa/main/server/ssa.h"
+#include "osd/main/server/osd.h"
 #include "pxfs/mfs/server/mfs.h"
 #include "pxfs/server/fs.h"
 

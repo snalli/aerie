@@ -1,8 +1,8 @@
 #include <string>
 #include "common/errno.h"
 #include "bcs/bcs.h"
-#include "ssa/main/server/ssa.h"
-#include "ssa/main/server/sessionmgr.h"
+#include "osd/main/server/osd.h"
+#include "osd/main/server/sessionmgr.h"
 #include "spa/pool/pool.h"
 #include "pxfs/common/fs_protocol.h"
 #include "pxfs/server/fs.h"

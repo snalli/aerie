@@ -1,0 +1,29 @@
+Import('buildEnv')
+Import('bcsClientLibrary')
+Import('osdClientLibrary')
+Import('spaLibrary')
+Import('commonLibrary')
+
+libLocalBuildEnv = buildEnv.Clone()
+localBuildEnv = buildEnv.Clone()
+
+lib_target = 'kvfsc'
+lib_sources = [
+               'c_api.cc', 
+               'client.cc', 
+	       'sb.cc',
+	       'table.cc'
+	      ]
+
+kvfscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+# Be careful with linkage order for static libraries
+localBuildEnv.Append(LIBS = kvfscLibrary)
+localBuildEnv.Append(LIBS = bcsClientLibrary)
+localBuildEnv.Append(LIBS = osdClientLibrary)
+localBuildEnv.Append(LIBS = spaLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+#localBuildEnv.Program('kvfsclient', ['main.cc']) 
+
+Return('kvfscLibrary')

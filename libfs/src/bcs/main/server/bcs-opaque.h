@@ -1,5 +1,5 @@
 /**
- * \brief Opaque declarations of the SSA classes for use as forward 
+ * \brief Opaque declarations of the OSD classes for use as forward 
  * declarations in header files 
  */ 
 

@@ -3,10 +3,10 @@
 
 #include "pxfs/client/session.h"
 
-namespace ssa {
+namespace osd {
 namespace client {
 
-#define __STAMNOS_SSA_CLIENT_STORAGE_ALLOCATOR_H // ugly trick to prevent salloc.h from redefining 
+#define __STAMNOS_OSD_CLIENT_STORAGE_ALLOCATOR_H // ugly trick to prevent salloc.h from redefining 
 
 // StorageAllocator
 class StorageAllocator {
@@ -23,7 +23,7 @@ public:
 		return E_SUCCESS;
 	}
 
-	int AllocateContainer(::client::Session* session, int type, ssa::common::ObjectId* oid)
+	int AllocateContainer(::client::Session* session, int type, osd::common::ObjectId* oid)
 	{
 
 	}
@@ -31,12 +31,12 @@ public:
 };
 
 } // namespace client
-} // namespace ssa
+} // namespace osd
 
 
-class PseudoStorageSystem: public ssa::client::StorageSystem {
+class PseudoStorageSystem: public osd::client::StorageSystem {
 public:
-	PseudoStorageSystem(ssa::client::StorageAllocator* salloc)
+	PseudoStorageSystem(osd::client::StorageAllocator* salloc)
 		: StorageSystem(NULL)
 	{ 
 		salloc_ = salloc;
@@ -48,7 +48,7 @@ struct ClientFixture
 	ClientFixture() 
 		: session(NULL)
 	{ 
-		ssa::client::StorageAllocator* salloc = new ssa::client::StorageAllocator();
+		osd::client::StorageAllocator* salloc = new osd::client::StorageAllocator();
 		PseudoStorageSystem* stsystem = new PseudoStorageSystem(salloc);
 		session = new client::Session(stsystem);
 	}

@@ -7,9 +7,9 @@
 #include "pxfs/common/types.h"
 #include "pxfs/common/const.h"
 #include "pxfs/client/inode.h"
-#include "ssa/containers/assoc/hashtable.h"
-#include "ssa/containers/name/container.h"
-#include "ssa/main/common/obj.h"
+#include "osd/containers/map/hashtable.h"
+#include "osd/containers/name/container.h"
+#include "osd/main/common/obj.h"
 
 namespace client {
 	class Session; // forward declaration
@@ -24,7 +24,7 @@ class DirInode: public ::client::Inode
 {
 friend class FileInode;
 public:
-	DirInode(ssa::common::ObjectProxyReference* ref)
+	DirInode(osd::common::ObjectProxyReference* ref)
 		: parent_(NULL)
 	{ 
 		ref_ = ref;
@@ -52,8 +52,8 @@ public:
 	int ioctl(::client::Session* session, int request, void* info);
 
 private:
-	ssa::containers::client::NameContainer::Reference* rw_ref() {
-		return static_cast<ssa::containers::client::NameContainer::Reference*>(ref_);
+	osd::containers::client::NameContainer::Reference* rw_ref() {
+		return static_cast<osd::containers::client::NameContainer::Reference*>(ref_);
 	}
 	int              nlink_;
 	::client::Inode* parent_; // special case; see comment under link

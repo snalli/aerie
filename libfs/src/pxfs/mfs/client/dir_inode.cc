@@ -1,12 +1,15 @@
 #include "pxfs/mfs/client/dir_inode.h"
 #include <stdint.h>
 #include "common/util.h"
+#include "common/prof.h"
 #include "pxfs/client/backend.h"
 #include "pxfs/client/inode.h"
 #include "pxfs/client/session.h"
 #include "pxfs/client/const.h"
 #include "pxfs/mfs/client/inode_factory.h"
 #include "pxfs/common/publisher.h"
+
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 namespace mfs {
 namespace client {
@@ -17,9 +20,10 @@ namespace client {
 int 
 DirInode::Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
 {
+	PROFILER_PREAMBLE
 	int                   ret;
 	::client::Inode*      ip;
-	ssa::common::ObjectId oid;
+	osd::common::ObjectId oid;
 	
 	dbg_log (DBG_INFO, "Inode [%p, %lx]: lookup %s\n", this, ino(), name);
 
@@ -30,13 +34,16 @@ DirInode::Lookup(::client::Session* session, const char* name, int flags, ::clie
 		ip = parent_;
 		goto done;
 	}
-
+	PROFILER_SAMPLE
 	if ((ret = rw_ref()->proxy()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
+		PROFILER_SAMPLE
 		return ret;
 	}
+	PROFILER_SAMPLE
 	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
 		return ret;
 	}
+	PROFILER_SAMPLE
 
 done:
 	ip->Get();
@@ -50,7 +57,7 @@ DirInode::xLookup(::client::Session* session, const char* name, int flags, ::cli
 {
 	int                   ret;
 	::client::Inode*      ip;
-	ssa::common::ObjectId oid;
+	osd::common::ObjectId oid;
 	
 	dbg_log (DBG_INFO, "Inode [%p, ino=%lx]: xLookup %s \n", this, ino(), name);
 
@@ -79,6 +86,7 @@ int
 DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip, 
                bool overwrite)
 {
+	PROFILER_PREAMBLE
 	int ret; 
 
 	dbg_log (DBG_INFO, "Inode [%p, %lx]: link %s -> (%p, ino=%lx)\n", this, ino(), name, ip, ip->ino());
@@ -87,16 +95,19 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 
 	// special case: if inode oid is zero then we link to a pseudo-inode. 
 	// keep this link in the in-core state parent_
-	if (ip->oid() == ssa::common::ObjectId(0)) {
+	PROFILER_SAMPLE
+	if (ip->oid() == osd::common::ObjectId(0)) {
 		pthread_mutex_lock(&mutex_);
 		parent_ = ip;
 		pthread_mutex_unlock(&mutex_);
 		return E_SUCCESS;
 	}
 
+	PROFILER_SAMPLE
 	if ((ret = rw_ref()->proxy()->interface()->Insert(session, name, ip->oid())) != E_SUCCESS) {
 		return ret;
 	}
+	PROFILER_SAMPLE
 	return E_SUCCESS;
 }
 
@@ -154,7 +165,7 @@ int DirInode::set_nlink(int nlink)
 int
 DirInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
-	ssa::containers::client::NameContainer::Proxy* cc_proxy;
+	osd::containers::client::NameContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -167,8 +178,8 @@ DirInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 int
 DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
-	ssa::containers::client::NameContainer::Proxy* cc_proxy;
-	ssa::containers::client::NameContainer::Proxy* cc_proxy_parent;
+	osd::containers::client::NameContainer::Proxy* cc_proxy;
+	osd::containers::client::NameContainer::Proxy* cc_proxy_parent;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -190,7 +201,7 @@ DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::M
 int
 DirInode::Unlock(::client::Session* session)
 {
-	ssa::containers::client::NameContainer::Proxy* cc_proxy;
+	osd::containers::client::NameContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	

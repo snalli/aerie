@@ -3,8 +3,8 @@
 
 #include "common/types.h"
 #include "pxfs/client/inode.h"
-#include "ssa/main/client/hlckmgr.h"
-#include "ssa/main/common/obj.h"
+#include "osd/main/client/hlckmgr.h"
+#include "osd/main/common/obj.h"
 
 /**
  *
@@ -28,7 +28,7 @@ class Session; // forward declaration
 class SuperBlock {
 public:
 	virtual client::Inode* RootInode() = 0;	
-	virtual ssa::common::ObjectId oid() = 0;
+	virtual osd::common::ObjectId oid() = 0;
 };
 
 

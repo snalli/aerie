@@ -7,7 +7,7 @@
 #include "common/errno.h"
 #include "common/types.h"
 #include "unit/fixture/client.fixture.h"
-#include "ssa/main/common/obj.h"
+#include "osd/main/common/obj.h"
 #include "pxfs/client/namespace.h"
 #include "pxfs/client/sb.h"
 #include "pxfs/client/inode.h"
@@ -89,7 +89,7 @@ public:
 	}
 
 	client::Inode* RootInode() { return root_; }
-	ssa::common::ObjectId oid() { return ssa::common::ObjectId(0); }
+	osd::common::ObjectId oid() { return osd::common::ObjectId(0); }
 
 private:
 	client::Inode* root_;

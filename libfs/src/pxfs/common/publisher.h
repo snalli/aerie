@@ -1,23 +1,23 @@
 #ifndef __STAMNOS_PXFS_COMMON_PUBLISHER_H
 #define __STAMNOS_PXFS_COMMON_PUBLISHER_H
 
-#include "ssa/main/common/publisher.h"
+#include "osd/main/common/publisher.h"
 #include "pxfs/common/types.h"
 
 class Publisher {
 public:
-	class Messages;
+	class Message;
 };
 
 
-class Publisher::Messages {
+class Publisher::Message {
 public:
-	typedef ssa::Publisher::Messages::LogicalOperationHeader LogicalOperationHeader;
+	typedef osd::Publisher::Message::LogicalOperationHeader LogicalOperationHeader;
 	struct LogicalOperation;
 };
 
 
-struct Publisher::Messages::LogicalOperation {
+struct Publisher::Message::LogicalOperation {
 	enum OperationCode {
 		kMakeFile = 1,
 		kMakeDir,
@@ -33,9 +33,9 @@ struct Publisher::Messages::LogicalOperation {
 };
 
 
-struct Publisher::Messages::LogicalOperation::Write: public ssa::Publisher::Messages::LogicalOperationHeaderT<Write> {
+struct Publisher::Message::LogicalOperation::Write: public osd::Publisher::Message::LogicalOperationHeaderT<Write> {
 	Write(InodeNumber ino)
-		: ssa::Publisher::Messages::LogicalOperationHeaderT<Write>(kWrite, sizeof(Write)),
+		: osd::Publisher::Message::LogicalOperationHeaderT<Write>(kWrite, sizeof(Write)),
 		  ino_(ino)
 	{ }
 
@@ -43,9 +43,9 @@ struct Publisher::Messages::LogicalOperation::Write: public ssa::Publisher::Mess
 };
 
 
-struct Publisher::Messages::LogicalOperation::MakeFile: public ssa::Publisher::Messages::LogicalOperationHeaderT<MakeFile> {
+struct Publisher::Message::LogicalOperation::MakeFile: public osd::Publisher::Message::LogicalOperationHeaderT<MakeFile> {
 	MakeFile(InodeNumber parino, const char* name, InodeNumber childino)
-		: ssa::Publisher::Messages::LogicalOperationHeaderT<MakeFile>(kMakeFile, sizeof(MakeFile)),
+		: osd::Publisher::Message::LogicalOperationHeaderT<MakeFile>(kMakeFile, sizeof(MakeFile)),
 		  parino_(parino),
 		  childino_(childino)
 	{ 
@@ -58,9 +58,9 @@ struct Publisher::Messages::LogicalOperation::MakeFile: public ssa::Publisher::M
 };
 
 
-struct Publisher::Messages::LogicalOperation::MakeDir: public ssa::Publisher::Messages::LogicalOperationHeaderT<MakeDir> {
+struct Publisher::Message::LogicalOperation::MakeDir: public osd::Publisher::Message::LogicalOperationHeaderT<MakeDir> {
 	MakeDir(InodeNumber parino, const char* name, InodeNumber childino)
-		: ssa::Publisher::Messages::LogicalOperationHeaderT<MakeDir>(kMakeDir, sizeof(MakeDir)),
+		: osd::Publisher::Message::LogicalOperationHeaderT<MakeDir>(kMakeDir, sizeof(MakeDir)),
 		  parino_(parino),
 		  childino_(childino)
 	{ 
@@ -73,9 +73,9 @@ struct Publisher::Messages::LogicalOperation::MakeDir: public ssa::Publisher::Me
 };
 
 
-struct Publisher::Messages::LogicalOperation::Link: public ssa::Publisher::Messages::LogicalOperationHeaderT<Link> {
+struct Publisher::Message::LogicalOperation::Link: public osd::Publisher::Message::LogicalOperationHeaderT<Link> {
 	Link(InodeNumber parino, const char* name, InodeNumber childino)
-		: ssa::Publisher::Messages::LogicalOperationHeaderT<Link>(kLink, sizeof(Link)),
+		: osd::Publisher::Message::LogicalOperationHeaderT<Link>(kLink, sizeof(Link)),
 		  parino_(parino),
 		  childino_(childino)
 	{ 
@@ -88,9 +88,9 @@ struct Publisher::Messages::LogicalOperation::Link: public ssa::Publisher::Messa
 };
 
 
-struct Publisher::Messages::LogicalOperation::Unlink: public ssa::Publisher::Messages::LogicalOperationHeaderT<Unlink> {
+struct Publisher::Message::LogicalOperation::Unlink: public osd::Publisher::Message::LogicalOperationHeaderT<Unlink> {
 	Unlink(InodeNumber parino, const char* name)
-		: ssa::Publisher::Messages::LogicalOperationHeaderT<Unlink>(kUnlink, sizeof(Unlink)),
+		: osd::Publisher::Message::LogicalOperationHeaderT<Unlink>(kUnlink, sizeof(Unlink)),
 		  parino_(parino)
 	{ 
 		strcpy(name_, name); 

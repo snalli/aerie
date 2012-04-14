@@ -50,7 +50,7 @@ int FileInode::set_nlink(int nlink)
 int
 FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
-	ssa::containers::client::ByteContainer::Proxy* cc_proxy;
+	osd::containers::client::ByteContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -65,8 +65,8 @@ FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 int
 FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
-	ssa::containers::client::ByteContainer::Proxy* cc_proxy;
-	ssa::containers::client::NameContainer::Proxy* cc_proxy_parent;
+	osd::containers::client::ByteContainer::Proxy* cc_proxy;
+	osd::containers::client::NameContainer::Proxy* cc_proxy_parent;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -88,7 +88,7 @@ FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::
 int
 FileInode::Unlock(::client::Session* session)
 {
-	ssa::containers::client::ByteContainer::Proxy* cc_proxy;
+	osd::containers::client::ByteContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	

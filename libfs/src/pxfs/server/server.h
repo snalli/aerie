@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_PXFS_SERVER_H
 #define __STAMNOS_PXFS_SERVER_H
 
-#include "ssa/ssa-opaque.h"
+#include "osd/osd-opaque.h"
 #include "bcs/bcs-opaque.h"
 
 namespace server {

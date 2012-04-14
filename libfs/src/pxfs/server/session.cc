@@ -1,6 +1,6 @@
 #include "pxfs/server/session.h"
-#include "ssa/main/server/ssa.h"
-#include "ssa/main/server/session.h"
+#include "osd/main/server/osd.h"
+#include "osd/main/server/session.h"
 #include "common/errno.h"
 
 
@@ -9,7 +9,7 @@ namespace server {
 int 
 Session::Init(int clt) 
 {
-	ssa::server::SsaSession::Init(clt);
+	osd::server::OsdSession::Init(clt);
 	return E_SUCCESS;
 }
 

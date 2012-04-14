@@ -3,11 +3,13 @@
 #include <stdio.h>
 #include "common/util.h"
 #include "common/errno.h"
+#include "common/hrtime.h"
 
 namespace client {
 
 int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inodep)
 {
+	HRTIME_DEFINITIONS
 	Inode* inode;
 	int    i;
 
@@ -15,15 +17,18 @@ int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inode
 		return -E_INVAL;
 	}
 
+	HRTIME_SAMPLE
 	// look up for mounted entries 
 	for (i=0; i<entries_count_; i++) {
 		if (strcmp(entries_[i].name_, name) == 0) {
 			inode = entries_[i].inode_;
 			inode->Get();
 			*inodep = inode;
+			HRTIME_SAMPLE
 			return E_SUCCESS;
 		}
 	}
+	HRTIME_SAMPLE
 
 	// if no mount-point found then the caller should check the OS file-system 
 	return -E_KVFS; 

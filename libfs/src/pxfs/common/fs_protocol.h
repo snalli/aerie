@@ -2,7 +2,7 @@
 #define __STAMNOS_PXFS_FILESYSTEM_PROTOCOL_H
 
 #include "bcs/bcs.h"
-#include "ssa/main/common/stsystem.h"
+#include "osd/main/common/stsystem.h"
 
 
 class FileSystemProtocol {
