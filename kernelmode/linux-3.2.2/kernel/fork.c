@@ -75,7 +75,7 @@
 #include <asm/tlbflush.h>
 
 #include <trace/events/sched.h>
-
+#include "../mm/scm.h"
 /*
  * Protected counters by write_lock_irq(&tasklist_lock)
  */
@@ -531,6 +531,7 @@ struct mm_struct *mm_alloc(void)
 void __mmdrop(struct mm_struct *mm)
 {
 	BUG_ON(mm == &init_mm);
+	clear_ppgd_from_mm(mm);
 	mm_free_pgd(mm);
 	destroy_context(mm);
 	mmu_notifier_mm_destroy(mm);

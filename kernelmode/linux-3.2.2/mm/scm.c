@@ -1,17 +1,3 @@
-/*header from mmap.c
-
-1. system call to allocate chunks
-	-- interface exposed to the trusted server process
-
-2. memory offliner
-	-- logically offline the memory and use it for scm
-
-3. mapping information between virtual address space and physical address space
-	-- this acts as the bridge between the previous 2 points
-	
-4. page fault handler
-	-- page fault can happen when the virtual address to physical address mapping is missing in the page table*/
-
 /*
  * mm/scm.c
  *
@@ -19,27 +5,39 @@
  *
  * Storage class memory		<sankarp@cs.wisc.edu>
  */
+
 #include "scm.h"
 
+/*
+ * Variables used to maintain the mapping between virtual memory chunks
+ * to physical memory chunks
+ */
 struct memory_block **mem_block;
 unsigned long memblocksz = 0;
 unsigned long memblocksz_mb = 0;
 
 /*
-Simple lock implementation - This can be modified to a read write lock. This 
-might be needed if features like reallocating chunks are done where the
-status of memory sections can change significantly and more functions need to
-be covered by the locks. But just the allocate_persistent_chunk() is the only
-function protected by lock. 
+ * Persistent page table that is shared across users
+ */
+ppgtable_user ppgtbl[MAXUSERS];
+unsigned long ppgtbl_index = 0;
+DEFINE_MUTEX(ppgtbl_lock);
+
+/*
+ * Simple lock implementation - This can be modified to a read write lock. This 
+ * might be needed if features like reallocating chunks are done where the
+ * status of memory sections can change significantly and more functions need to
+ * be covered by the locks. But just the allocate_persistent_chunk() is the only
+ * function protected by lock. 
 */
 DEFINE_MUTEX(scm_lock);
 
 /*
-OS exposes 128 MB memory blocks (hotplug granularity). So, the bitmap size
-should be physical memory size / 128 MB. The variable max_block_pindex tracks 
-the block with the highest numbered physical index. The scm_init() defines the 
-freememblocks as bitmap. 
-*/
+ * OS exposes 128 MB memory blocks (hotplug granularity). So, the bitmap size
+ * should be physical memory size / 128 MB. The variable max_block_pindex 
+ * tracks the block with the highest numbered physical index. The scm_init() 
+ * defines the freememblocks as bitmap. 
+ */
 #define MEMBLOCKS_BMAPSZ BITS_TO_LONGS(max_block_pindex)
 #define MAX_MEMBLOCKS_RND MEMBLOCKS_BMAPSZ*sizeof(long)*8
 #define MAX_MEMBLOCKS    max_block_pindex+1
@@ -48,23 +46,29 @@ unsigned long *freememblocks;
 unsigned long max_block_pindex = 0;
 
 /*
-This was done to avoid introducing a read write lock. Page fault handler needs
-to grab read lock in order to avoid any inconsistent views in the mapping
-structure due to changes in page table structure. 
-At any point passive_map1 and passive_map2 should have the same values 
-except when the chunk allocator is currently working. The active_mapping
-points to either of these structures and thereby offering a consitent view
-to the readers (page fault handler). This is similar to RCU mechanism. 
-The active_mapping pointer can be atomically modified to point to passive_map1
-or passive_map2.
-*/
+ * This was done to avoid introducing a read write lock. Page fault handler 
+ * needs to grab read lock in order to avoid any inconsistent views in the 
+ * mapping structure due to changes in page table structure. 
+ * At any point passive_map1 and passive_map2 should have the same values 
+ * except when the chunk allocator is currently working. The active_mapping
+ * points to either of these structures and thereby offering a consitent view
+ * to the readers (page fault handler). This is similar to RCU mechanism. 
+ * The active_mapping pointer can be atomically modified to point to 
+ * passive_map1 or passive_map2.
+ */
 virt_phys_map *active_mapping;
 virt_phys_map passive_map1;
 virt_phys_map passive_map2;
 int current_map;
 extern int sections_per_block;
 
-void update_removable_memblocks()
+/*
+ * The removable state of the memory regions seem to be changing. So, before 
+ * every call to allocate_persistent_chunks, the removable state of all memory 
+ * region is checked. Since the chunk allocation is not in the critical path,
+ * this does not cause any additional overhead. 
+ */
+static void update_removable_memblocks()
 {
 	unsigned long startbit = 0, scanbit;
 	struct memory_block *mblock;
@@ -78,10 +82,8 @@ void update_removable_memblocks()
 		scanbit = bitmap_find_next_zero_area(freememblocks,
 					MAX_MEMBLOCKS, startbit, 1, NOALIGN);
 
-		//printk(KERN_ERR"bscan bit %d", scanbit);
 		if(scanbit > max_block_pindex || scanbit == (unsigned long)-1)
 			break;
-		//printk(KERN_ERR"ascan bit %d", scanbit);
 
 		startbit = scanbit+1;
 		mblock = mem_block[scanbit];
@@ -94,8 +96,6 @@ void update_removable_memblocks()
 
 	for(i = 0;i < MEMBLOCKS_BMAPSZ; i++)
 		printk(KERN_ERR"after BITMAP %llx", freememblocks[i]);
-
-	//printk(KERN_ERR"BITS SET %d", bitmap_weight(freememblocks, MEMBLOCKS_BMAPSZ));
 }
 
 /*
@@ -106,6 +106,7 @@ void init_scm(void)
 {
 	struct memory_block *mblock;
 	unsigned long i, phys_index;
+	unsigned long onegb = 1024*1024*1024;
 
 	//printk(KERN_ERR"possible devices %d", MAX_MEMBLOCKS);
 
@@ -315,6 +316,19 @@ SYSCALL_DEFINE2(alloc_persistent, unsigned long, v_addr, unsigned long, size_mb)
 	return SUCCESS;
 }
 
+/*
+ * Page fault handler for persistent region
+ * 1. Establishes the page table entry
+ * 2. Responsible for setting up the protection bits for every page based 
+ * on the process
+ * 
+ * __do_fault() - lies in page fault handling code path - checks if the address
+ * that faulted lies in persistent space by checking the persistent field
+ * of the vma node. If so, the code path ends up here.
+ */
+unsigned long pgfault_serviced = 0;
+bool ppg_tracker = false;
+
 int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma, 
 			unsigned long address, pte_t *pte, pmd_t *pmd,
 			unsigned int flags)
@@ -328,7 +342,7 @@ int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	bool block_fnd = false;
 	struct page* first_page;
 
-	printk(KERN_ERR"faulting address %lx", address);
+	//printk(KERN_ERR"do_persistent_fault: faulting address %lx", address);
 
 	for(i = vpmap->max_virtindex; i >= 0; i--)
 	{
@@ -350,10 +364,12 @@ int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 
 		first_page = pfn_to_page(vpmap->vpblock[i].p_index << PFN_SECTION_SHIFT);
 		p_start = page_to_pfn(first_page); 
+		p_start = p_start << PAGE_SHIFT;
 		p_w_off = p_start + va_off;
 
 		page_nr = p_w_off >> PAGE_SHIFT;
-		printk(KERN_ERR"va_pg %lx; va_off %lx; p_start %lx; p_w_off %lx; page_nr %lx;", va_pg, va_off, p_start, p_w_off, page_nr);
+		pgfault_serviced++;
+		//printk(KERN_ERR"%s: va_pg %lx; va_off %lx; p_start %lx; p_w_off %lx; page_nr %lx;", current->comm, va_pg, va_off, p_start, p_w_off, page_nr);
 	}
 
 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
@@ -362,7 +378,7 @@ int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (flags & FAULT_FLAG_WRITE)
 		entry = pte_mkwrite(pte_mkdirty(entry));
 
-	printk(KERN_ERR"persistent pte entry %lx", entry);
+	//printk(KERN_ERR"persistent pte entry %lx", entry);
 	set_pte_at(mm, address, page_table, entry);
 	update_mmu_cache(vma, address, page_table);
 
@@ -370,3 +386,73 @@ int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 
 	return 0;
 }
+
+void pud_assign(struct mm_struct *mm, pgd_t *pgd, pud_t *new)
+{
+	spin_lock(&mm->page_table_lock);
+	pgd_populate(mm, pgd, new);
+	spin_unlock(&mm->page_table_lock);
+}
+
+pud_t *find_shared_ppgtbl_entry(uid_t uid, bool create_new, bool incref)
+{
+	unsigned long i;
+	pud_t *ppud = NULL;
+
+	if(create_new == true)
+		mutex_lock(&ppgtbl_lock);
+
+	for(i = 0;i < ppgtbl_index; i++)
+	{
+		if(ppgtbl[i].uid == uid)
+		{
+			ppud = ppgtbl[i].ppud;
+			goto ppgd_ret; 
+		}
+	}
+
+	// Does not support more than MAXUSERS
+	if(ppgtbl_index+1 >= MAXUSERS || create_new == false)
+		goto ppgd_ret;
+
+	ppg_tracker = true;
+	ppgtbl[ppgtbl_index].uid = uid;
+	ppud = ppgtbl[ppgtbl_index].ppud = pud_alloc_one(NULL, 0x0);
+	ppgtbl_index++;
+
+	for(i = 0;i < ppgtbl_index; i++)
+	{
+		ppud = ppgtbl[i].ppud;
+		printk(KERN_ERR"USER SHARED %d.ppgtbl UID %lx PUD %lx pfn %lx", 
+			i, ppgtbl[i].uid, ppud, __pa(ppud));
+	}
+
+ppgd_ret:
+	if(create_new == true)
+		mutex_unlock(&ppgtbl_lock);
+
+	if(ppud != NULL && incref == true)
+		get_page(pfn_to_page(__pa(ppud) >> PAGE_SHIFT));
+
+	return ppud;
+}
+
+void clear_ppgd_from_mm(struct mm_struct *mm)
+{
+	pgd_t *pgd;
+	pud_t *pud, *shared_pud;
+
+	pgd = pgd_offset(mm, PERS_START);
+	pud = pud_offset(pgd, PERS_START);
+	shared_pud = find_shared_ppgtbl_entry(current->cred->uid, false, false);
+
+	if(pud == shared_pud)
+	{
+	//printk(KERN_ERR"REVOKE %s pgd--%lx *pgd--%lx pud--%lx pid--%lx", 
+	//		current->comm, pgd, *pgd, pud, current->cred->uid);
+		spin_lock(&mm->page_table_lock);
+		*(unsigned long *)pgd = 0x0;
+		spin_unlock(&mm->page_table_lock);
+	}
+}
+
