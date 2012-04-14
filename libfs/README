@@ -15,3 +15,16 @@ SOURCE CODE OVERVIEW
 src/bcs    basic services
 src/pxfs   posix compliant file system
 src/osd    object storage device layer 
+
+
+
+
+
+POSIX SHARED MEMORY
+We use POSIX shared memory. 
+Make sure you have this in /etc/fstab:
+
+shm        /dev/shm    tmpfs    nodev,nosuid,noexec    0    0
+
+
+Periodically clean /dev/shm 

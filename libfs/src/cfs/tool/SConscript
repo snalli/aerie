@@ -1,0 +1,24 @@
+Import('buildEnv')
+Import('spaLibrary')
+Import('cfssLibrary')
+Import('bcsServerLibrary')
+Import('osdServerLibrary')
+Import('mfsServerLibrary')
+Import('commonLibrary')
+
+
+localBuildEnv = buildEnv.Clone()
+
+sources = [
+           'main.cc',
+           'mkfs.cc',
+          ]
+
+localBuildEnv.Append(LIBS = cfssLibrary)
+localBuildEnv.Append(LIBS = bcsServerLibrary)
+localBuildEnv.Append(LIBS = osdServerLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = mfsServerLibrary)
+localBuildEnv.Append(LIBS = spaLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program(target = 'cfs', source = sources)

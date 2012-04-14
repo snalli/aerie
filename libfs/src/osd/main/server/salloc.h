@@ -19,11 +19,61 @@ class Session;  // forward declaration
 namespace osd {
 namespace server {
 
+typedef osd::containers::server::SetContainer<osd::common::ObjectId>::Object ObjectIdSet;
+
 
 struct AclObjectPair {
 	osd::common::AclIdentifier acl_id;
 	osd::common::ObjectId      oid;
 };
+
+
+class ExtentDescriptor {
+public:
+	ExtentDescriptor(osd::common::ExtentId eid, int index)
+		: eid_(eid),
+		  index_(index)
+	{ }
+
+	osd::common::ExtentId eid_;
+	int                   index_; // Index in the persistent container set; 
+	                              // to be given to the server as a hint
+};
+
+
+class ContainerDescriptor {
+public:
+	ContainerDescriptor(osd::common::ObjectId oid, int index)
+		: oid_(oid),
+		  index_(index)
+	{ }
+
+	osd::common::ObjectId oid_;
+	int                   index_; // Index in the persistent container set; 
+	                              // to be given to the server as a hint
+};
+
+
+// organizes free storage descriptors of the same ACL in per type free lists 
+class DescriptorPool {
+public:
+	DescriptorPool(osd::common::ObjectId set_oid)
+	{		  	
+		set_obj_ = ObjectIdSet::Load(set_oid);
+	}
+	
+	static int Create(OsdSession* session, osd::common::ObjectId set_oid, DescriptorPool** poolp);
+	
+	int Load(OsdSession* session);
+	int AllocateContainer(OsdSession* session, StorageAllocator* salloc, int type, osd::common::ObjectId* oid);
+	int AllocateExtent(OsdSession* session, StorageAllocator* salloc, size_t nbytes, osd::common::ExtentId* eid);
+
+private:
+	ObjectIdSet*                     set_obj_;
+	std::list<ExtentDescriptor>      extent_list_;
+	std::list<ContainerDescriptor>   container_list_[16]; // support 16 types: 0-15
+};
+
 
 
 /**
@@ -36,9 +86,9 @@ struct AclObjectPair {
 
 class StorageAllocator {
 	typedef google::dense_hash_map< ::osd::common::ObjectType, ::osd::server::ContainerAbstractFactory*> ObjectType2Factory; 
-	typedef osd::containers::server::SetContainer<osd::common::ObjectId>::Object ObjectIdSet;
 	typedef osd::containers::server::SetContainer<AclObjectPair>::Object FreeSet;
 	typedef std::multimap<osd::common::AclIdentifier, ObjectIdSet*> FreeMap;
+	typedef google::dense_hash_map< ::osd::common::AclIdentifier, DescriptorPool*> AclPoolMap;
 
 public:
 	static int Load(::server::Ipc* ipc, StoragePool* pool, StorageAllocator** sallocp);
@@ -51,10 +101,13 @@ public:
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(OsdSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
 	int AllocateExtent(OsdSession* session, size_t size, int flags, void** ptr);
-	int AllocateExtent(OsdSession* session, ObjectIdSet* set, int size, int count, int& reply);
-	int CreateContainerSet(OsdSession* session, osd::common::AclIdentifier acl_id, ObjectIdSet** obj_set);
+	int AllocateExtentAndFillSet(OsdSession* session, ObjectIdSet* set, int size, int count);
+	int CreateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, ObjectIdSet** obj_set);
+	int AllocateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, osd::common::ObjectId* set_oid);
 	int AllocateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, ::osd::StorageProtocol::ContainerReply& reply);
-	int AllocateContainer(OsdSession* session, ObjectIdSet* set, int type, int count, int& reply);
+	int AllocateContainer(OsdSession* session, osd::common::AclIdentifier acl_id, int type, osd::common::ObjectId* oidp);
+	int AllocateContainerAndFillSet(OsdSession* session, ObjectIdSet* set, int type, int count);
+	int GetDescriptorPool(OsdSession* session, osd::common::AclIdentifier acl_id, DescriptorPool** poolp);
 
 	int RegisterBaseTypes();
 	int RegisterType(::osd::common::ObjectType type_id, ::osd::server::ContainerAbstractFactory* objfactory);
@@ -82,6 +135,7 @@ private:
 	FreeMap                          freemap_; // pointer to the persistent free set
 	ObjectType2Factory               objtype2factory_map_; 
 	bool                             can_commit_suicide_;
+	AclPoolMap                       aclpoolmap_; // per ACL descriptor pools for local use only
 };
 
 

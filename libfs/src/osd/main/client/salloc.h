@@ -60,6 +60,7 @@ public:
 	static int Create(::client::Ipc* ipc, OsdSession* session, osd::common::AclIdentifier acl_id, DescriptorPool** poolp);
 	
 	int LoadFromLast(OsdSession* session);
+	int Load(OsdSession* session);
 	int AllocateContainer(::client::Ipc* ipc, OsdSession* session, int type, osd::common::ObjectId* oid);
 	int AllocateExtent(::client::Ipc* ipc, OsdSession* session, size_t nbytes, osd::common::ExtentId* eid);
 

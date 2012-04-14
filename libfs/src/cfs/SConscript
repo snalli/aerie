@@ -1,0 +1,6 @@
+cfscLibrary = SConscript('client/SConscript')
+Export('cfscLibrary')
+cfssLibrary = SConscript('server/SConscript')
+Export('cfssLibrary')
+
+SConscript('tool/SConscript')

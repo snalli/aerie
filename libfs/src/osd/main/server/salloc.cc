@@ -19,6 +19,100 @@ namespace osd {
 namespace server {
 
 
+int
+DescriptorPool::Load(OsdSession* session)
+{
+	osd::common::ObjectId   oid;
+	osd::common::ExtentId   eid;
+	osd::common::Object*    obj;
+
+	extent_list_.clear();
+	for (int i = 0; i < 16; i++) {
+		container_list_[i].clear();
+	}
+
+	for (int i = 0; i < set_obj_->Size(); i++) {
+		set_obj_->Read(session, i, &oid);
+		if (oid.type() == osd::containers::T_EXTENT) {
+			eid = osd::common::ExtentId(oid);
+			extent_list_.push_back(ExtentDescriptor(eid, i));
+		} else {
+			container_list_[oid.type()].push_back(ContainerDescriptor(oid, i));
+		}
+	}
+	return E_SUCCESS;
+}
+
+
+int
+DescriptorPool::Create(OsdSession* session, 
+                       osd::common::ObjectId set_oid, 
+                       DescriptorPool** poolp)
+{
+	DescriptorPool*  pool;
+	int              ret;
+
+	if ((pool = new DescriptorPool(set_oid)) == NULL) {
+		return -E_NOMEM;
+	}
+	if ((ret = pool->Load(session)) < 0) {
+		return ret;
+	}
+	*poolp = pool;
+		
+	return E_SUCCESS;
+}
+
+
+int 
+DescriptorPool::AllocateContainer(OsdSession* session, StorageAllocator* salloc, int type, osd::common::ObjectId* oid)
+{
+	int r;
+	int ret;
+
+	if (container_list_[type].empty()) {
+		if ((ret = salloc->AllocateContainerAndFillSet(session, set_obj_, type, 256)) < 0) {
+			return ret;
+		}
+		if ((ret = Load(session)) < 0) {
+			return ret;
+		}
+	}
+	ContainerDescriptor& front = container_list_[type].front();
+	*oid = front.oid_;
+	//TODO: mark the allocation down in the journal.
+	container_list_[type].pop_front();
+	return E_SUCCESS;
+}
+
+
+// deprecated: the server shouldn't use this to allocate extents but instead use directly the 
+// extent allocator
+// the api allows multiple size extents.
+// currently the implementation provides only 4K size extents
+int
+DescriptorPool::AllocateExtent(OsdSession* session, StorageAllocator* salloc, 
+                               size_t nbytes, osd::common::ExtentId* eid)
+{
+	int ret;
+	int r;
+
+	if (extent_list_.empty()) {
+		if ((ret = salloc->AllocateExtentAndFillSet(session, set_obj_, nbytes, 256)) < 0) {
+			return ret;
+		}
+		if ((ret = Load(session)) < 0) {
+			return ret;
+		}
+	}
+	ExtentDescriptor& front = extent_list_.front();
+	*eid = front.eid_;
+	//TODO: mark the allocation down in the journal
+	extent_list_.pop_front();
+	return E_SUCCESS;
+}
+
+
 StorageAllocator::StorageAllocator(::server::Ipc* ipc, StoragePool* pool, FreeSet* freeset)
 	: ipc_(ipc),
 	  pool_(pool),
@@ -26,6 +120,8 @@ StorageAllocator::StorageAllocator(::server::Ipc* ipc, StoragePool* pool, FreeSe
 { 
 	pthread_mutex_init(&mutex_, NULL);
 	objtype2factory_map_.set_empty_key(0);
+	aclpoolmap_.set_empty_key(INT_MAX);
+	aclpoolmap_.set_deleted_key(INT_MAX-1);
 }
 
 
@@ -163,6 +259,38 @@ done:
 }
 
 
+// for local use only: when the server needs to allocate storage for itself
+int 
+StorageAllocator::GetDescriptorPool(OsdSession* session, osd::common::AclIdentifier acl_id, 
+                                    DescriptorPool** poolp)
+{
+	int                   ret;
+	AclPoolMap::iterator  it;
+	DescriptorPool*       pool;
+	osd::common::ObjectId set_oid;
+	
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
+	        "Allocate container set of ACL %d\n", acl_id);
+
+	if ((it = aclpoolmap_.find(acl_id)) == aclpoolmap_.end()) {
+		if ((ret = AllocateObjectIdSet(session, acl_id, &set_oid)) < 0) {
+			return ret;
+		}
+		if ((ret = DescriptorPool::Create(session, set_oid, &pool)) < 0) {
+			return ret;
+		}
+		aclpoolmap_.insert(std::pair<osd::common::AclIdentifier, DescriptorPool*>(acl_id, pool));
+	} else {
+		pool = it->second;	
+	}
+	*poolp = pool;
+	
+	return E_SUCCESS;
+}
+
+
+
+
 // OBSOLETE
 int 
 StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
@@ -192,8 +320,8 @@ StorageAllocator::AllocateExtent(OsdSession* session, size_t size, int flags, vo
 
 
 int 
-StorageAllocator::AllocateExtent(OsdSession* session, ObjectIdSet* set, int size, 
-                                 int count, int& reply)
+StorageAllocator::AllocateExtentAndFillSet(OsdSession* session, ObjectIdSet* set, 
+                                           int size, int count)
 {
 	int                     ret;
 	size_t                  extent_size;
@@ -220,8 +348,8 @@ StorageAllocator::AllocateExtent(OsdSession* session, ObjectIdSet* set, int size
 
 // not thread safe
 int
-StorageAllocator::CreateContainerSet(OsdSession* session, osd::common::AclIdentifier acl_id, 
-                                     ObjectIdSet::Object** obj_set)
+StorageAllocator::CreateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, 
+                                    ObjectIdSet::Object** obj_set)
 {
 	char*   buffer;
 	size_t  extent_size;
@@ -243,7 +371,7 @@ StorageAllocator::CreateContainerSet(OsdSession* session, osd::common::AclIdenti
 // set may already contain containers if instantiated from an existing set
 int
 StorageAllocator::AllocateObjectIdSet(OsdSession* session, osd::common::AclIdentifier  acl_id, 
-                                      ::osd::StorageProtocol::ContainerReply& reply)
+                                      osd::common::ObjectId* set_oid)
 {
 	int                   ret;
 	FreeMap::iterator     it;
@@ -258,7 +386,7 @@ StorageAllocator::AllocateObjectIdSet(OsdSession* session, osd::common::AclIdent
 	// find an existing set matching the acl or create a new one
 	it = freemap_.find(acl_id);
 	if (it == freemap_.end()) {
-		if ((ret = CreateContainerSet(session, acl_id, &obj_set)) < 0) {
+		if ((ret = CreateObjectIdSet(session, acl_id, &obj_set)) < 0) {
 			goto done;
 		}
 	} else {
@@ -269,10 +397,7 @@ StorageAllocator::AllocateObjectIdSet(OsdSession* session, osd::common::AclIdent
 		}
 		freemap_.erase(it);
 	}
-	// Assign the set to the client
-	reply.oid = obj_set->oid();
-	reply.index = session->sets_.size(); // location to index the table of assigned free sets
-	session->sets_.push_back(reply.oid);
+	*set_oid = obj_set->oid();
 	ret = E_SUCCESS;
 done:
 	pthread_mutex_unlock(&mutex_);
@@ -280,10 +405,51 @@ done:
 }
 
 
+int
+StorageAllocator::AllocateObjectIdSet(OsdSession* session, osd::common::AclIdentifier  acl_id, 
+                                      ::osd::StorageProtocol::ContainerReply& reply)
+{
+	int                   ret;
+	osd::common::ObjectId oid;
+
+	if ((ret = AllocateObjectIdSet(session, acl_id, &oid)) < 0) {
+		return ret;
+	}
+	// Assign the set to the client
+	reply.oid = oid;
+	reply.index = session->sets_.size(); // location to index the table of assigned free sets
+	session->sets_.push_back(reply.oid);
+	return E_SUCCESS;
+}
+
+
+// allocate container -- for local use only: for serving the storage needs of the server
+int 
+StorageAllocator::AllocateContainer(OsdSession* session, 
+                                    osd::common::AclIdentifier acl_id, int type, 
+                                    osd::common::ObjectId* oidp)
+{
+	int                   ret;
+	DescriptorPool*       pool;
+	osd::common::ObjectId oid;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), "Allocate container of type %d\n", type);
+
+	if ((ret = GetDescriptorPool(session, acl_id, &pool)) < 0) {
+		return ret;
+	}
+	if ((ret = pool->AllocateContainer(session, this, type, &oid)) < 0) {
+		return ret;
+	}
+	*oidp = oid;
+	return E_SUCCESS;
+}
+	
+
 // Allocate containers and put then in the set
 int 
-StorageAllocator::AllocateContainer(OsdSession* session, ObjectIdSet* set, int type, 
-                                    int count, int& reply)
+StorageAllocator::AllocateContainerAndFillSet(OsdSession* session, ObjectIdSet* set, 
+                                              int type, int count)
 {
 	int                     ret;
 	char*                   buffer;
@@ -374,7 +540,7 @@ StorageAllocator::IpcHandlers::AllocateContainer(int clt, int set_capability, in
 	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(oid)) == NULL) {
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(server_salloc), "[%d] Cannot load persistent object\n", clt);
 	}
-	if ((ret = salloc_->AllocateContainer(osdsession, obj_set, type, num, reply)) < 0) {
+	if ((ret = salloc_->AllocateContainerAndFillSet(osdsession, obj_set, type, num)) < 0) {
 		return -ret;
 	}
 	return E_SUCCESS;
@@ -403,7 +569,7 @@ StorageAllocator::IpcHandlers::AllocateExtent(int clt, int set_capability, int s
 	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(oid)) == NULL) {
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(server_salloc), "[%d] Cannot load persistent object\n", clt);
 	}
-	if ((ret = salloc_->AllocateExtent(osdsession, obj_set, size, num, reply)) < 0) {
+	if ((ret = salloc_->AllocateExtentAndFillSet(osdsession, obj_set, size, num)) < 0) {
 		return -ret;
 	}
 	return E_SUCCESS;

@@ -54,6 +54,15 @@
 #define KVFS_FILESYSTEM_PROTOCOL(ACTION)                                       \
 	ACTION(kvfs, FileSystemProtocol, kMount)
 
+#define CFS_FILESYSTEM_PROTOCOL(ACTION)                                        \
+	ACTION(cfs, FileSystemProtocol, kMount)                                    \
+	ACTION(cfs, FileSystemProtocol, kMakeDir)                                  \
+	ACTION(cfs, FileSystemProtocol, kMakeFile)                                 \
+	ACTION(cfs, FileSystemProtocol, kNamei)                                    \
+	ACTION(cfs, FileSystemProtocol, kWrite)                                    \
+	ACTION(cfs, FileSystemProtocol, kRead)                                     \
+	ACTION(cfs, FileSystemProtocol, kLink)                                     \
+	ACTION(cfs, FileSystemProtocol, kUnlink)
 
 class StamnosGlobalRpcNumbers {
 public:
@@ -70,6 +79,7 @@ public:
 		OSD_STORAGESYSTEM_PROTOCOL(ALL_RPC_NUMBER)
 		PXFS_FILESYSTEM_PROTOCOL(ALL_RPC_NUMBER)
 		KVFS_FILESYSTEM_PROTOCOL(ALL_RPC_NUMBER)
+		CFS_FILESYSTEM_PROTOCOL(ALL_RPC_NUMBER)
 	};
 
 };

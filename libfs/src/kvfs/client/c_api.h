@@ -1,7 +1,4 @@
 // The C front API of the library.
-//
-// This API helps the user to use both kernel and library file systems 
-// transparently.
 
 #ifndef __STAMNOS_FS_CLIENT_C_FRONT_API
 #define __STAMNOS_FS_CLIENT_C_FRONT_API

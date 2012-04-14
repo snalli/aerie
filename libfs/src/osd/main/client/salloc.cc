@@ -16,6 +16,31 @@ namespace client {
 
 
 int
+DescriptorPool::Load(OsdSession* session)
+{
+	osd::common::ObjectId   oid;
+	osd::common::ExtentId   eid;
+	osd::common::Object*    obj;
+
+	extent_list_.clear();
+	for (int i = 0; i < 16; i++) {
+		container_list_[i].clear();
+	}
+
+	for (int i = 0; i < set_obj_->Size(); i++) {
+		set_obj_->Read(session, i, &oid);
+		if (oid.type() == osd::containers::T_EXTENT) {
+			eid = osd::common::ExtentId(oid);
+			extent_list_.push_back(ExtentDescriptor(eid, i));
+		} else {
+			container_list_[oid.type()].push_back(ContainerDescriptor(oid, i));
+		}
+	}
+	return E_SUCCESS;
+}
+
+
+int
 DescriptorPool::LoadFromLast(OsdSession* session)
 {
 	osd::common::ObjectId   oid;
@@ -129,7 +154,7 @@ StorageAllocator::Load(StoragePool* pool)
 
 int 
 StorageAllocator::GetDescriptorPool(OsdSession* session, osd::common::AclIdentifier acl_id, 
-                                   DescriptorPool** poolp)
+                                    DescriptorPool** poolp)
 {
 	int                  ret;
 	AclPoolMap::iterator it;
