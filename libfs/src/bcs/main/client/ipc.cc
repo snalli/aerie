@@ -13,11 +13,6 @@ Ipc::Ipc(const char* xdst)
 	: xdst_(xdst)
 { }
 
-static void* service_loop(void* arg)
-{
-	rpcs* r = (rpcs*) arg;
-	r->main_service_loop();
-}
 
 int 
 Ipc::InitRpcFast()
@@ -42,10 +37,7 @@ Ipc::InitRpcFast()
 	ss << "/tmp/client_rpcs_";
 	ss << rport;
 	rpcs_ = new rpcs(ss.str().c_str());
-	sleep(1);
-	pthread_t thread;
-	pthread_create(&thread, NULL, service_loop, (void*) rpcs_);
-	sleep(1); // to ensure the main_service_loop starts
+	rpcs_->main_service_loop();
 	idstr = ss.str();
 	std::cout << "Client: id=" << idstr <<std::endl;
 

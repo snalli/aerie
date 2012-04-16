@@ -734,7 +734,9 @@ void rpcs::init_rpc_registry(const char* sh_file) {
 
   DBG_LOG(DBG_INFO, DBG_MODULE(rpc), "Init RPC registry %s\n", sh_file);
 
-  srand(time(NULL));
+  //srand(time(NULL));
+  set_rand_seed();
+
   rpc_reg.rpc_reg_lock = (rpc_signal_wait_t*) map_shared_file_server(sh_file, NULL, BINDER);
   assert(rpc_reg.rpc_reg_lock != NULL);
   rpc_reg.rpc_reg_reply = (rpc_msg_t*) &(rpc_reg.rpc_reg_lock[1]);
@@ -790,7 +792,7 @@ void rpcs::check_registry_incoming() {
 
     char filename[24];
     new_server_qe = (server_lock_t*) malloc(sizeof(server_lock_t));
-    new_server_qe->client_id = rand(); 
+    new_server_qe->client_id = random(); 
     sprintf(filename, "%d", new_server_qe->client_id);
     strcpy(rpc_reg.rpc_reg_reply->data, filename);
     init_rpc(filename, new_server_qe);
