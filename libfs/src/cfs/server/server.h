@@ -11,7 +11,8 @@ class FileSystem; // forward declaration
 class Server {
 public:
 	static Server* Instance();
-	void Start(const char* pathname, int flags, int port);
+	void Init(const char* pathname, int flags, int port);
+	void Start();
 
 	Ipc* ipc_layer() { return ipc_layer_; }
 

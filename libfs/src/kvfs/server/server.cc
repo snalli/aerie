@@ -22,7 +22,7 @@ Server::Instance()
 
 
 void 
-Server::Start(const char* pathname, int flags, int port)
+Server::Init(const char* pathname, int flags, int port)
 {
 	port_ = port;
 
@@ -30,6 +30,24 @@ Server::Start(const char* pathname, int flags, int port)
 	ipc_layer_->Init();
 
 	assert(FileSystem::Load(ipc_layer_, pathname, flags, &fs_) == E_SUCCESS);
+}
+
+
+void 
+Server::Start()
+{
+#ifdef _RPCFAST
+	//ipc_layer_->rpc()->main_service_loop();
+	while (1) {
+		sleep(1);
+	}
+#endif
+
+#ifdef _RPCSOCKET
+	while (1) {
+		sleep(1);
+	}
+#endif
 }
 
 } // namespace server

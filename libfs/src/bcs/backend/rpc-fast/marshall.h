@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#define max(a,b) ((a>b)?a:b)
+#define rpcfast_max(a,b) ((a>b)?a:b)
 
 struct req_header {
   req_header(unsigned int cid=0, int p=0): proc(p),client_id(cid){}
@@ -33,9 +33,9 @@ enum {
 	DEFAULT_RPC_SZ = 1024,
 #if RPC_CHECKSUMMING
 	//size of rpc_header includes a 4-byte int to be filled by tcpchan and uint64_t checksum
-	RPC_HEADER_SZ = max(sizeof(req_header), sizeof(reply_header)) + sizeof(rpc_sz_t) + sizeof(rpc_checksum_t)
+	RPC_HEADER_SZ = rpcfast_max(sizeof(req_header), sizeof(reply_header)) + sizeof(rpc_sz_t) + sizeof(rpc_checksum_t)
 #else
-		RPC_HEADER_SZ = max(sizeof(req_header), sizeof(reply_header)) + sizeof(rpc_sz_t)
+		RPC_HEADER_SZ = rpcfast_max(sizeof(req_header), sizeof(reply_header)) + sizeof(rpc_sz_t)
 #endif
 };
 

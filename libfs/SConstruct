@@ -6,6 +6,15 @@ configure(mainEnv)
 
 sys.path.append(os.path.join(Dir('#').abspath, 'tool'))
 
+
+AddOption("--rpc",
+	dest="rpc_type",
+	type='string',
+	nargs = 1,
+	action="store", 
+	default = 'socket',
+	help="Set RPC library: socket, fast")
+
 AddOption("--test",
 	action="store_true", dest="run_tests",
 	default = False,
@@ -68,6 +77,7 @@ AddOption('--test-extra-args',
 	help='a regular expression used to match tests to run')
 
 
+mainEnv['RPC'] = GetOption('rpc_type')
 mainEnv['TEST_ATTACH_GDB'] = GetOption('test_attach_gdb')
 mainEnv['TEST_FILTER'] = GetOption('test_filter')
 mainEnv['TEST_NAME'] = GetOption('test_name')
@@ -75,11 +85,17 @@ mainEnv['TEST_STDOUT'] = GetOption('test_stdout')
 mainEnv['TEST_STDERR'] = GetOption('test_stderr')
 mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')
 
+if mainEnv['RPC'] == 'fast':
+	mainEnv.Append(CPPDEFINES = ['-D_RPCFAST'])
+else:
+	mainEnv.Append(CPPDEFINES = ['-D_RPCSOCKET'])
+
 #mainEnv.Append(LIBS = ['tcmalloc'])
 #mainEnv.Append(LIBS = ['hoard'])
 #mainEnv.Append(CCFLAGS=' -g -O0')
 #mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
-mainEnv.Append(CCFLAGS='-g -O3')
+#mainEnv.Append(CCFLAGS='-g -O3')
+mainEnv.Append(CCFLAGS='-g')
 #mainEnv.Append(CCFLAGS=' -g -O2 -Wall -Wno-unused-function -Wno-unused-parameter -Wno-unused-label')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
 

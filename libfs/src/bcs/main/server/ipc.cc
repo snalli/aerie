@@ -1,4 +1,5 @@
 #include "bcs/main/server/ipc.h"
+#include <sstream>
 #include "bcs/main/common/ipc_protocol.h"
 #include "bcs/main/server/sessionmgr.h"
 #include "bcs/main/server/shbufmgr.h"
@@ -9,12 +10,29 @@
 
 namespace server {
 
+#ifdef _RPCSOCKET
 Ipc::Ipc(int port)
 {
 	pthread_mutex_init(&mutex_, NULL);
 	rpcs_ = new rpcs(port);
 	sessionmgr_ = new BaseSessionManager();
 }
+#endif
+
+
+#ifdef _RPCFAST
+Ipc::Ipc(int port)
+{
+	std::stringstream ss;
+
+	pthread_mutex_init(&mutex_, NULL);
+	ss << "/tmp/server_rpcs_";
+	ss << port;
+	rpcs_ = new rpcs(ss.str().c_str());
+	sessionmgr_ = new BaseSessionManager();
+	rpcs_->main_service_loop();
+}
+#endif 
 
 
 int
@@ -56,6 +74,7 @@ Ipc::Client(int clt)
 int
 Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
 {
+#ifdef _RPCSOCKET
 	int                  ret;
 	sockaddr_in          dstsock;
 	rpcc*                rpccl;
@@ -75,6 +94,27 @@ Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
 	}
 	pthread_mutex_unlock(&mutex_);
 	return r;
+#endif 
+
+#ifdef _RPCFAST
+	int                  ret;
+	rpcc*                rpccl;
+	IpcProtocol::status  r = IpcProtocol::OK;
+
+	pthread_mutex_lock(&mutex_);
+	rpccl = new rpcc(id.c_str());
+	ClientDescriptor* cl_dsc = new ClientDescriptor(clt, rpccl);
+	if ((ret = cl_dsc->Init()) < 0) {
+		return -ret;
+	}
+	if (rpccl->bind() == 0) {
+		clients_[clt] = cl_dsc;
+	} else {
+		DBG_LOG(DBG_WARNING, DBG_MODULE(server_bcs), "failed to bind client %d\n", clt);
+	}
+	pthread_mutex_unlock(&mutex_);
+	return r;
+#endif 
 }
 
 

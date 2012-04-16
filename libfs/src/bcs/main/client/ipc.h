@@ -12,6 +12,8 @@ public:
 	Ipc(const char* xdst);
 
 	int Init();
+	int InitRpcSocket();
+	int InitRpcFast();
 
 	unsigned int id() { return rpcc_->id(); }
 
@@ -19,7 +21,12 @@ public:
 	int Test();
 
 	RPC_REGISTER_HANDLER(rpcs_)
+#ifdef _RPCSOCKET	
 	RPC_CALL(rpcc_, rpcc::to_max)
+#endif
+#ifdef _RPCFAST
+	RPC_CALL(rpcc_)
+#endif
 
 private:
 	std::string                xdst_;

@@ -9,6 +9,7 @@ class rpcs;
 typedef struct sthr_args {
   unsigned tid, core;
   rpcs* serv_obj;
+  pthread_mutex_t mutex;
 } sthr_args_t;
 
 
