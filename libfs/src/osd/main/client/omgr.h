@@ -16,6 +16,7 @@
 #include "osd/main/client/hlckmgr.h"
 #include "osd/main/client/osd-opaque.h"
 #include "osd/main/client/session.h"
+#include "osd/containers/containers.h"
 
 
 namespace osd {
@@ -67,7 +68,7 @@ private:
 	
 	int                          id_;
 	pthread_mutex_t              mutex_;
-	ObjectType2Manager           objtype2mgr_map_; 
+	ObjectManagerOfType*         objtype2mgr_tbl_[osd::containers::T_CONTAINER_TYPE_COUNT];
 	osd::client::StorageSystem*  stsystem_;
 	OsdSession*                  cb_session_; /**< the session used when calling call-back methods */
 };

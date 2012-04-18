@@ -17,6 +17,7 @@ Ipc::Ipc(const char* xdst)
 int 
 Ipc::InitRpcFast()
 {
+#ifdef _RPCFAST
 	int                         r;
 	int                         rport;
 	const char*                 hname;
@@ -50,6 +51,7 @@ Ipc::InitRpcFast()
 	}
 		DBG_LOG(DBG_DEBUG, DBG_MODULE(client_lckmgr), 
 		        "subscribed client: %u\n", rpcc_->id());
+#endif
 	return E_SUCCESS;
 }
 
@@ -87,8 +89,8 @@ Ipc::InitRpcSocket()
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
 		        "failed to subscribe client: %u\n", rpcc_->id());
 	}
-	return E_SUCCESS;
 #endif
+	return E_SUCCESS;
 }
 
 

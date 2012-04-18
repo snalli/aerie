@@ -33,13 +33,14 @@ main(int argc, char *argv[])
 	port = 20000 + (getpid() % 10000);
 
 	char ch = 0;
-	while ((ch = getopt(argc, argv, "csd:p:lT:"))!=-1) {
+	while ((ch = getopt(argc, argv, "cs:d:p:lT:"))!=-1) {
 		switch (ch) {
 			case 'T':
 				/* test framework argument -- ignore */
 				break;
 			case 's':
 				pathname = optarg;
+				break;
 			case 'd':
 				debug_level = atoi(optarg);
 				break;

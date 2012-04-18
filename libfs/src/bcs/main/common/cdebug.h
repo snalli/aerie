@@ -61,6 +61,9 @@ extern const char* dbg_identifier;
 
 #define DBG_MODULE(name) dbg_module_##name
 
+
+#ifdef __STAMNOS_EXPAND_DEBUG
+
 #define dbg_log(level, format, ...)                                            \
   do {                                                                         \
     FILE* ferr = stdout;                                                       \
@@ -101,6 +104,12 @@ extern const char* dbg_identifier;
     }			                                                               \
   } while(0);
 
+#else /* ! __STAMNOS_EXPAND_DEBUG */
+
+#define dbg_log(level, format, ...)
+#define DBG_LOG(level, module, format, ...)
+
+#endif /* __STAMNOS_EXPAND_DEBUG */
 
 
 #define VERIFY(condition)                                                      \
