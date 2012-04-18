@@ -1,6 +1,7 @@
 Import('buildEnv')
 localBuildEnv = buildEnv.Clone()
-lib_sources = []
+#localBuildEnv.Append(CPPDEFINES = ['-DNOPAPI', '-DNUMTHREADS=1', '-DRPCS_VER_2', '-DRPC_LIB'])
+lib_sources = ['rpc.cc']
 lib_objects = localBuildEnv.SharedObject(lib_sources)
-rpcLibrary = localBuildEnv.SharedLibrary('rpc', lib_objects)
+rpcLibrary = localBuildEnv.SharedLibrary('fastrpc', lib_objects)
 Return('rpcLibrary', 'lib_objects')

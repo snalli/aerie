@@ -1,5 +1,5 @@
-
-#include "rpc.h"
+#include "bcs/backend/rpc-fast/rpc.h"
+#include "bcs/main/common/cdebug.h"
 
 #include <time.h>
 #include <string.h> //for strnlen
@@ -9,6 +9,20 @@
 using namespace std;
 
 #define MAX_BIND_FILENAME_LEN 25
+
+int fast_rpc::pin_to_core(int core) {
+    cpu_set_t cpu_mask;
+
+    CPU_ZERO(&cpu_mask);
+    CPU_SET(core, &cpu_mask);
+
+    if(sched_setaffinity(0, sizeof(cpu_mask), &cpu_mask) < 0) {
+      DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "Error while setting the CPU affinity: core=%d\n", core);
+      return -1;
+    }
+    return 0;
+}
+
 
 inline
 void set_rand_seed()
@@ -52,13 +66,9 @@ rpcc::bind()
 
   if (ret == 0) {
     bind_done_ = true;
-#ifdef DEBUG	
-    cout << " rpcc bind successful, shared-file: " << sh_chan_shf << ", client id - " << client_id <<"\n";
-#endif
-
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "rpcc bind successful, shared-file: %s, client id - %d\n", sh_chan_shf.c_str(), client_id);
   } else {
-    //jsl_log(JSL_DBG_2, "rpcc::bind failed %d\n",ret);
-    cout << "rpcc bind failed\n";
+    DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "rpcc bind failed\n");
   }
   return ret;
 }
@@ -124,12 +134,14 @@ rpcc::call1(unsigned int proc, marshall &req, unmarshall &rep)
 }
 
 
-rpcs::rpcs(char* bind_f)
+rpcs::rpcs(const char* bind_f)
+	: bind_f_(bind_f)
 {
 	set_rand_seed();
 
-	cout << "created rpcs server object!\n";
-	//jsl_log(JSL_DBG_2, "rpcs::rpcs created with nonce %d\n", nonce_);
+    DBG_LOG(DBG_INFO, DBG_MODULE(rpc), "created rpcs server object!\n");
+
+	//main_service_loop(bind_f);
 
 	//reg(rpc_const::bind, this, &rpcs::rpcbind); // we handled binding manually..
 }
@@ -143,9 +155,8 @@ rpcs::~rpcs()
 void
 rpcs::reg1(unsigned int proc, handler *h)
 {
-#ifdef DEBUG	
-  cout << "registering for service... " << proc <<"\n";
-#endif
+  DBG_LOG(DBG_INFO, DBG_MODULE(rpc), "registering for service... %u\n", proc);
+  
   assert(procs_.count(proc) == 0);
   procs_[proc] = h;
   assert(procs_.count(proc) >= 1);
@@ -495,31 +506,23 @@ void rpcs::handle_comm_q(server_lock_t* rpc_serv) {
     return;
 
   if( (now_serv == MAX_TICKETS-1) && (rpc_serv->rpc_comm_l->ticket) > now_serv) { //boundary check!
-#ifdef DEBUG
-    printf("s: curr_ticket %d\n", rpc_serv->rpc_comm_l->ticket);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "s: curr_ticket %d\n", rpc_serv->rpc_comm_l->ticket);
     return;
   }    
   
-#ifdef DEBUG
-  printf("Got someone in comm_queue.. nowserv: %d\n", now_serv);
-#endif
+  DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got someone in comm_queue... nowserv: %d\n", now_serv);
 
   //someone in queue, serve and increment now_serving_rpc_comm + 1 and num_expected ++;
   //this assumes that there wont be more than MAX_TICKETS set of processes/threads competing
   
   //+ 1 for ignoring the ticket itself
   if(rpc_serv->rpc_comm_sig[now_serv].signal != 0) { //client is not already signaled
-#ifdef DEBUG
-    printf("signal: %d, for nowserv: %d\n",rpc_serv->rpc_comm_sig[now_serv].signal, now_serv);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "signal: %d, for nowserv: %d\n", rpc_serv->rpc_comm_sig[now_serv].signal, now_serv);
     return; //lets come back later
     //assert(0 && "signal not reset or free");
   }
   else if(rpc_serv->head_send_q[now_serv].signal != 0) {
-#ifdef DEBUG
-    printf("sendQ signal: %d, for nowserv: %d is not released yet\n",rpc_serv->rpc_comm_sig[now_serv].signal, now_serv);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "signal: %d, for nowserv: %d is not released yet\n", rpc_serv->rpc_comm_sig[now_serv].signal, now_serv);
 
     return; //lets come back later
   }
@@ -726,10 +729,14 @@ void rpcs::sanity_check() {
   assert(sizeof(msg.data) == sizeof(resp)); //should be the same!
 }
 
-void rpcs::init_rpc_registry(char* sh_file) {
+void rpcs::init_rpc_registry(const char* sh_file) {
   unsigned i;
 
-  srand(time(NULL));
+  DBG_LOG(DBG_INFO, DBG_MODULE(rpc), "Init RPC registry %s\n", sh_file);
+
+  //srand(time(NULL));
+  set_rand_seed();
+
   rpc_reg.rpc_reg_lock = (rpc_signal_wait_t*) map_shared_file_server(sh_file, NULL, BINDER);
   assert(rpc_reg.rpc_reg_lock != NULL);
   rpc_reg.rpc_reg_reply = (rpc_msg_t*) &(rpc_reg.rpc_reg_lock[1]);
@@ -785,7 +792,7 @@ void rpcs::check_registry_incoming() {
 
     char filename[24];
     new_server_qe = (server_lock_t*) malloc(sizeof(server_lock_t));
-    new_server_qe->client_id = rand(); 
+    new_server_qe->client_id = random(); 
     sprintf(filename, "%d", new_server_qe->client_id);
     strcpy(rpc_reg.rpc_reg_reply->data, filename);
     init_rpc(filename, new_server_qe);
@@ -844,6 +851,8 @@ void* rpcs::rpc_server_kernel(void* arg) {
 
   assert(pin_to_core(targ->core) == 0);
 
+  //HARIS: release the caller
+  pthread_mutex_unlock(&targ->mutex);
   /* sprintf(&tmp[0], "%d pinned-to %d \n", tid, targ->core ); */
   /* sprintf(&(rpc_log.file[len]), "%s",tmp); */
   /* rpc_log.len[tid] = strlen(tmp);  */
@@ -854,6 +863,8 @@ void* rpcs::rpc_server_kernel(void* arg) {
 #ifdef RPCS_VER_2
     int myturn;
 #endif
+
+    //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Check Registry\n");
 
     if(tid == 0) //dispatched thread
       check_registry_incoming();
@@ -954,8 +965,13 @@ static void* server_kernel_handler(void* arg) {
   serv->rpc_server_kernel(arg);
 }
 
+int rpcs::main_service_loop()
+{
+	return main_service_loop(bind_f_.c_str());
+}
 
-int rpcs::main_service_loop(char* sh_file) {
+
+int rpcs::main_service_loop(const char* sh_file) {
 
   assert(NUMTHREADS == 1); //only single thread for now!
 
@@ -967,20 +983,23 @@ int rpcs::main_service_loop(char* sh_file) {
   pthread_t thread[NUMTHREADS];
   sthr_args_t t_args[NUMTHREADS];
 
+
+  DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Fork service threads\n");
   for(tid = 0; tid < NUMTHREADS; tid++) {
 
     t_args[tid].tid = tid;
     t_args[tid].core = tid;//atoi(argv[tid+1]);
     t_args[tid].serv_obj = this;
-    if( (rc=pthread_create( &thread[tid], NULL, &server_kernel_handler, (void*) &t_args[tid])) )  {
+	pthread_mutex_init(&t_args[tid].mutex, NULL);
+	pthread_mutex_lock(&t_args[tid].mutex);
+    if( (rc=pthread_create( &thread[tid], NULL, server_kernel_handler, &t_args[tid])) )  {
       printf("Thread creation failed: %d\n", rc);
     }
-
+	pthread_mutex_lock(&t_args[tid].mutex); // wait for the forked thread
   }
-
-  for(tid = 0; tid <NUMTHREADS; tid++) {
-    pthread_join( thread[tid], NULL);
-  }
+//  for(tid = 0; tid <NUMTHREADS; tid++) {
+ //   pthread_join( thread[tid], NULL);
+  //}
 
 
   return 0;

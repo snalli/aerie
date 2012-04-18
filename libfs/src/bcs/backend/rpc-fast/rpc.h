@@ -1,9 +1,11 @@
-#ifndef rpc_h
-#define rpc_h
+#ifndef __RPCFAST_RPC_H
+#define __RPCFAST_RPC_H
 
 #include <list>
 #include <map>
 #include <vector>
+
+#include "bcs/main/common/cdebug.h"
 
 #include "rpc_signal.h"
 
@@ -12,6 +14,13 @@
 
 #ifdef DMALLOC
 #include "dmalloc.h"
+#endif
+
+#include "rpcfastconfig.h"
+
+#ifndef DEBUG
+# undef DBG_LOG
+# define DBG_LOG
 #endif
 
 using namespace std;
@@ -86,12 +95,10 @@ class fast_rpc {
 
     int fd = open(&filename[0], OPEN_MODE, PERM);
 
-#ifdef DEBUG
-    printf("MAP SHARED FILE: %s\n", filename);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Map shared file %s\n", filename.c_str());
 
     if(fd < 0) {
-      printf("ERROR: %d : opening file\n", fd);
+      DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "%d: error opening file\n", fd);
       return NULL;
     }
 
@@ -100,7 +107,7 @@ class fast_rpc {
     channel =  mmap (0, filesize, PROT_READ | PROT_WRITE,
 		     MAP_SHARED, fd, 0);
     if(channel == MAP_FAILED) {
-      printf("ERROR mmaping file\n");
+      DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "error mapping file\n");
       return NULL;
     }
 
@@ -119,9 +126,7 @@ class fast_rpc {
     for(i = 0; i < sizeInChar; i++)
       chksum ^= data[i];
 
-#ifdef DEBUG
-    printf("Checksum of %s is %d\n", data, chksum);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Checksum of %s is %d\n", data, chksum);
 
     return chksum;
   }
@@ -159,9 +164,7 @@ class fast_rpc {
 
     volatile unsigned* sh_chan = &(rpc_sig->signal);
 
-#ifdef DEBUG 
-    printf("REGISTRATION: Going to spin ..\n");
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Registration: Going to spin ...\n");
 
     //simple spin lock
     if(unbind)
@@ -170,33 +173,25 @@ class fast_rpc {
     while(!__sync_bool_compare_and_swap(&(rpc_sig->signal), 0, sig));
 
     //send rpc register request to server
-#ifdef DEBUG 
-    printf("Got the lock!\n");
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got the lock!\n");
   
     if(unbind) {
       strcpy(rpc_msg->data, client_sh_ch);
       rpc_msg->signal = 1; //ACK to server
       close(fd); 
-#ifdef DEBUG
-      printf("CLIENT UNBOUND successful!\n");
-#endif
+      DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "CLIENT UNBOUND successful!\n");
       return 0; //client done! bye!
     }
 
     while(rpc_msg->signal!=1);
 
-#ifdef DEBUG 
-    printf("Got reply from server!\n");
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got reply from server!\n");
 
     assert(rpc_msg->signal == 1);
   
     strcpy(client_sh_ch, rpc_msg->data);
 
-#ifdef DEBUG 
-    printf("File to load is : %s\n", client_sh_ch);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "File to load is: %s\n", client_sh_ch);
 
     rpc_msg->signal = 2; //ACK to server
 
@@ -211,9 +206,7 @@ class fast_rpc {
     if(myticket == MAX_TICKETS - 1)
       __sync_fetch_and_sub(&(rpc_sync->ticket), MAX_TICKETS);
     myticket = myticket % MAX_TICKETS;
-#ifdef DEBUG
-    printf("My Ticket: %d!\n", myticket);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "My Ticket: %d\n", myticket);
 
     rpc_signal_wait_t* rpc_signal = (rpc_signal_wait_t*) &rpc_sync[1];
 
@@ -238,9 +231,8 @@ class fast_rpc {
 
 
     rpcwait_incoming(&(rpc_signal[myticket].signal)); //spin on signal
-#ifdef DEBUG
-    printf("Got signal!\n");
-#endif
+    
+	DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got signal!\n");
 
     //rpc_signal[myticket].signal = 0; //reset the signal
     return myticket;
@@ -252,9 +244,7 @@ class fast_rpc {
     myticket = enqueue_send_and_wait(rpc_sync);
     rpc_signal_wait_t* rpc_signal = (rpc_signal_wait_t*) &rpc_sync[1];
 
-#ifdef DEBUG
-    printf("Client: %d, going to send sth!\n", myticket);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Client: %d, going to send sth!\n", myticket);
 
     rpc_msg_t* mybuff = getQHead(rpc_sync);
     mybuff = &(mybuff[myticket /* rpc_signal[ticket]->offset */]);
@@ -276,16 +266,12 @@ class fast_rpc {
 
     mybuff->signal = 1;
 
-#ifdef DEBUG
-    printf("SENT! %d\n", myticket);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "SENT! %d\n", myticket);
 
     //FIXME: change it with xchg based wait...
     while(mybuff->signal != 2); //spin on the signal
 
-#ifdef DEBUG
-    printf("%d: Got the response!\n", myticket);
-#endif 
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "%d: got the response!\n", myticket);
 
     __sync_synchronize();
     mybuff->signal = 0;
@@ -295,9 +281,7 @@ class fast_rpc {
       ret_buf = (char*) malloc (ret_sz * sizeof(char));
       mybuff->data[ret_sz] = '\0';
       memcpy(ret_buf, mybuff->data, mybuff->sizeInChar);
-#ifdef DEBUG
-      cout << "Checksum matches! success!\n ";
-#endif
+      DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Checksum matches! success!\n");
       return 0;
     }
     else {
@@ -307,23 +291,9 @@ class fast_rpc {
       cout << "Client: Error with reponse from server\n";
       return -1;
     }
-
-
   }
 
-  int pin_to_core(int core) {
-    cpu_set_t cpu_mask;
-
-    CPU_ZERO(&cpu_mask);
-    CPU_SET(core, &cpu_mask);
-
-    if(sched_setaffinity(0, sizeof(cpu_mask), &cpu_mask) < 0) {
-      printf("ERROR while setting the CPU affinity\n");
-      return -1;
-    }
-    return 0;
-  }
-
+  int pin_to_core(int core);
 };
 
 
@@ -581,8 +551,10 @@ class rpcs : public fast_rpc {
 
 	void* map_shared_file_server(string filename, int * fdret, int type = OTHER);
 	void sanity_check();
-	void init_rpc_registry(char* sh_file);
+	void init_rpc_registry(const char* sh_file);
 	void init_rpc(char* filename, server_lock_t* ne);
+
+	std::string bind_f_;
 
 	protected:
 
@@ -594,11 +566,12 @@ class rpcs : public fast_rpc {
 	void dispatch(char* buf, unsigned int &sz /*return buffer is the same*/);
 	
 	//should be called in the user's server class after registering all its services
-	int main_service_loop(char* sh_file);
+	int main_service_loop(const char* sh_file);
+	int main_service_loop();
 
 	void *rpc_server_kernel(void* arg);
 
-	rpcs(char* bind_file);
+	rpcs(const char* bind_file);
 	~rpcs();
 
 	//RPC handler for clients binding
@@ -871,4 +844,4 @@ int cmp_timespec(const struct timespec &a, const struct timespec &b);
 void add_timespec(const struct timespec &a, int b, struct timespec *result);
 int diff_timespec(const struct timespec &a, const struct timespec &b);
 
-#endif
+#endif // __RPCFAST_RPC_H 

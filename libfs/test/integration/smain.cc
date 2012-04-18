@@ -62,10 +62,7 @@ main(int argc, char *argv[])
 
 	printf("Starting file system server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
 
-	server::Server::Instance()->Start(pathname, 0, port);
+	server::Server::Instance()->Init(pathname, 0, port);
 	assert(TestInit() == E_SUCCESS);
-
-	while (1) {
-		sleep(1);
-	}
+	server::Server::Instance()->Start();
 }

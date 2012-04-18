@@ -16,8 +16,13 @@ public:
 	
 	int Init();
 	int clt() { return clt_; }
-	
+
+#ifdef _RPCSOCKET
 	RPC_CALL(rpcc_, rpcc::to_max)
+#endif
+#ifdef _RPCFAST
+	RPC_CALL(rpcc_)
+#endif
 
 protected:
 	rpcc*         rpcc_;
