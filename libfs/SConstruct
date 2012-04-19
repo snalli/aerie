@@ -97,6 +97,9 @@ mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')
 if mainEnv['RPC'] == 'fast':
 	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCFAST'])
 	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
+else if mainEnv['RPC'] == 'fast-two':
+	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCFAST'])
+	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCFAST'])
 else:
 	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCNET'])
 	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])

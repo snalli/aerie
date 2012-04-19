@@ -349,17 +349,17 @@ StorageAllocator::AllocateExtentAndFillSet(OsdSession* session, ObjectIdSet* set
 // not thread safe
 int
 StorageAllocator::CreateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, 
-                                    ObjectIdSet::Object** obj_set)
+                                    ObjectIdSet** obj_set)
 {
 	char*   buffer;
 	size_t  extent_size;
 	int     ret;
 
-	extent_size = sizeof(ObjectIdSet::Object);
+	extent_size = sizeof(ObjectIdSet);
 	if ((ret = pool_->AllocateExtent(extent_size, (void**) &buffer)) < 0) {
 		return ret;
 	}
-	if ((*obj_set = ObjectIdSet::Object::Make(session, buffer)) == NULL) {
+	if ((*obj_set = ObjectIdSet::Make(session, buffer)) == NULL) {
 		return -E_NOMEM;
 	}
 
