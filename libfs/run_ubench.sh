@@ -3,7 +3,7 @@
 # do cleanup
 
 DEBUG_LEVEL=0
-UBENCH_NAME='ubench_pxfs'
+UBENCH_NAME='ubench_cfs'
 UBENCH_CMD='+fs_create -p /pxfs -n 1024'
 #UBENCH_NAME='ubench_osd'
 #UBENCH_CMD='+hlock -o -c -n 16384'
