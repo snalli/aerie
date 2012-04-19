@@ -18,13 +18,9 @@
 
 #include "rpcfastconfig.h"
 
-#ifndef DEBUG
-# undef DBG_LOG
-# define DBG_LOG
-#endif
-
 using namespace std;
 
+namespace rpcfast {
 
 class rpc_const {
 	public: 
@@ -843,5 +839,7 @@ rpcs::reg(unsigned int proc, S*sob, int (S::*meth)(const A1 a1, const A2 a2,
 int cmp_timespec(const struct timespec &a, const struct timespec &b);
 void add_timespec(const struct timespec &a, int b, struct timespec *result);
 int diff_timespec(const struct timespec &a, const struct timespec &b);
+
+} // namespace rpcfast
 
 #endif // __RPCFAST_RPC_H 

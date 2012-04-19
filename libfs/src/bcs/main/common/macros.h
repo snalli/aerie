@@ -60,10 +60,8 @@
 	}
 
 
-#ifdef _RPCSOCKET
-
-#define RPC_CALL(RPCC, to_max)                                                      \
-    typedef rpcc::TO TO;                                                            \
+#define RPCNET_CALL(RPCC, to_max)                                                   \
+    typedef rpcnet::rpcc::TO TO;                                                    \
                                                                                     \
     template<class R>                                                               \
         int call(unsigned int proc, R & r, TO to = to_max)                          \
@@ -123,12 +121,8 @@
 	    return RPCC->call(proc, a1, a2, a3, a4, a5, a6, a7, r, to);                 \
 	}                                                                               
 
-#endif // _RPCSOCKET
 
-
-#ifdef _RPCFAST
-
-#define RPC_CALL(RPCC)                                                              \
+#define RPCFAST_CALL(RPCC)                                                          \
     template<class R>                                                               \
         int call(unsigned int proc, R & r)                                          \
     {                                                                               \
@@ -185,9 +179,6 @@
     {                                                                               \
 	    return RPCC->call(proc, a1, a2, a3, a4, a5, a6, a7, r);                     \
 	}                                                                               
-
-#endif // _RPCFAST
-
 
 
 #endif // __STAMNOS_BCS_COMMON_RPC_H

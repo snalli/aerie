@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <valgrind/callgrind.h>
-#include "ubench/osd/main.h"
-#include "time.h"
+#include "ubench/time.h"
+#include "ubench/osd/osd.h"
 
+using namespace client;
 
 static int
 usage() 

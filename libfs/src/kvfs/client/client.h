@@ -17,10 +17,6 @@ extern Ipc*                        global_ipc_layer;
 extern osd::client::StorageSystem* global_storage_system;
 //extern FileSystemObjectManager*    global_fsomgr;
 
-extern rpcc*             rpc_client;
-extern rpcs*             rpc_server;
-
-
 class Client {
 public:
 	static int Init(const char* xdst);

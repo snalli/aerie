@@ -16,28 +16,19 @@ usage()
 
 
 static int 
-__ubench_open(osd::client::OsdSession* session, int objtype, int numops)
+__ubench_rpc(osd::client::OsdSession* session, int objtype, int numops)
 {
 	MEASURE_TIME_PREAMBLE
-	int                                              ret = E_SUCCESS;
-	osd::containers::client::ByteContainer::Object** obj = (osd::containers::client::ByteContainer::Object**) malloc(sizeof(osd::containers::client::ByteContainer::Object*) * numops);
-	osd::common::ObjectProxyReference*               ref;
-	unsigned long long                               runtime;
-	hrtime_t                                         runtime_cycles;
-
-	for (int i = 0; i < numops; i++) {
-		if ((obj[i] = osd::containers::client::ByteContainer::Object::Make(session)) == NULL) {
-			return -E_NOMEM;
-		}
-	}
+	int                                             ret = E_SUCCESS;
+	unsigned long long                              runtime;
+	hrtime_t                                        runtime_cycles;
+	int                                             r;
 	
 	MEASURE_TIME_START
 	CALLGRIND_TOGGLE_COLLECT
 
 	for (int i = 0; i < numops; i++) {
-		if ((ret = session->omgr_->GetObject(session, obj[i]->oid(), &ref)) < 0) {
-			return ret;
-		}
+		global_ipc_layer->call(IpcProtocol::kRpcServerIsAlive, 0, r);
 	}
 
 	CALLGRIND_TOGGLE_COLLECT
@@ -52,7 +43,7 @@ __ubench_open(osd::client::OsdSession* session, int objtype, int numops)
 
 
 int
-ubench_open(int argc, char* argv[])
+ubench_rpc(int argc, char* argv[])
 {
 	extern int optind;
 	extern int opterr;
@@ -78,6 +69,5 @@ ubench_open(int argc, char* argv[])
 		}
 	}
 	osd::client::OsdSession* session = new osd::client::OsdSession(global_storage_system);
-	__ubench_open(session, objtype, numops);
-	return __ubench_open(session, objtype, numops);
+	return __ubench_rpc(session, objtype, numops);
 }

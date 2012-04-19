@@ -241,14 +241,12 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 int 
 Client::Open(const char* path, int flags, int mode)
 {
-	PROFILER_PREAMBLE
 	Inode*   ip;
 	int      ret;
 	int      fd;
 	File*    fp;
 	Session* session = CurrentSession();
 	
-	PROFILER_SAMPLE
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
 	}
@@ -257,7 +255,6 @@ Client::Open(const char* path, int flags, int mode)
 		return fd;
 	}
 	
-	PROFILER_SAMPLE
 	if (flags & O_CREAT) {
 		// returns with the inode ip referenced and locked
 		if ((ret = create(session, path, &ip, mode, kFileInode)) < 0) {
@@ -443,12 +440,10 @@ Client::Sync()
 }
 
 
-//FIXME: we should close just the file fd and its dependencies
+// current pxfs synchronously writes data and metadata
 int 
 Client::Sync(int fd)
 {
-	Session* session = CurrentSession();
-	session->omgr()->CloseAllObjects(session, true);
 	return E_SUCCESS;
 }
 

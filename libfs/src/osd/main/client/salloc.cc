@@ -99,7 +99,7 @@ DescriptorPool::AllocateContainer(::client::Ipc* ipc, OsdSession* session, int t
 
 	if (container_list_[type].empty()) {
 		if ((ret = ipc->call(osd::StorageProtocol::kAllocateContainer, 
-							 ipc->id(), capability_, type, 256, r)) < 0) {
+							 ipc->id(), capability_, type, 1024, r)) < 0) {
 			return ret;
 		} else if (ret > 0) {
 			return -ret;
@@ -127,7 +127,7 @@ DescriptorPool::AllocateExtent(::client::Ipc* ipc, OsdSession* session,
 
 	if (extent_list_.empty()) {
 		if ((ret = ipc->call(osd::StorageProtocol::kAllocateExtent, 
-							 ipc->id(), capability_, 4096, 256, r)) < 0) {
+							 ipc->id(), capability_, 4096, 1024, r)) < 0) {
 			return ret;
 		} else if (ret > 0) {
 			return -ret;

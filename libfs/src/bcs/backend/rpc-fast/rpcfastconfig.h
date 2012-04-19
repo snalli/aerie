@@ -5,6 +5,5 @@
 #define NUMTHREADS 1
 #define RPCS_VER_2 
 #define RPC_LIB
-#define DEBUG
 
 #endif // __RPCFAST_CONFIG_H

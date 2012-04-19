@@ -12,8 +12,6 @@ public:
 	Ipc(const char* xdst);
 
 	int Init();
-	int InitRpcSocket();
-	int InitRpcFast();
 
 	unsigned int id() { return rpcc_->id(); }
 
@@ -21,19 +19,29 @@ public:
 	int Test();
 
 	RPC_REGISTER_HANDLER(rpcs_)
-#ifdef _RPCSOCKET	
-	RPC_CALL(rpcc_, rpcc::to_max)
+#ifdef _CLT2SVR_RPCNET	
+	RPCNET_CALL(rpcc_, rpcnet::rpcc::to_max)
 #endif
-#ifdef _RPCFAST
-	RPC_CALL(rpcc_)
+#ifdef _CLT2SVR_RPCFAST
+	RPCFAST_CALL(rpcc_)
 #endif
 
 private:
 	std::string                xdst_;
 	/// the RPC object through which we make calls to the server
-	rpcc*                      rpcc_;
+#ifdef _CLT2SVR_RPCNET	
+	rpcnet::rpcc*              rpcc_;
+#endif
+#ifdef _CLT2SVR_RPCFAST	
+	rpcfast::rpcc*             rpcc_;
+#endif
 	/// the RPC object through which we receive callbacks from the server
-	rpcs*                      rpcs_;
+#ifdef _SVR2CLT_RPCNET	
+	rpcnet::rpcs*              rpcs_;
+#endif
+#ifdef _SVR2CLT_RPCFAST	
+	rpcfast::rpcs*             rpcs_;
+#endif
 };
 
 } // namespace client

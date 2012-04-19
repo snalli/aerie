@@ -4,6 +4,8 @@
 
 #define S_LOG_FILE 10
 
+namespace rpcfast {
+
 class rpcs;
 
 typedef struct sthr_args {
@@ -25,3 +27,5 @@ typedef struct sthr_args {
 #define MAX_TIME 5000
 
 //local to the server, will be changed ONLY by server 
+//
+} // namespace rpcfast

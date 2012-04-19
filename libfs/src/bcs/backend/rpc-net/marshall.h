@@ -1,5 +1,5 @@
-#ifndef marshall_h
-#define marshall_h
+#ifndef __STAMNOS_RPCNET_MARSHALL_H
+#define __STAMNOS_RPCNET_MARSHALL_H
 
 #include <iostream>
 #include <sstream>
@@ -11,6 +11,8 @@
 #include <string.h>
 
 #define yfs_max(a,b) ((a>b)?a:b)
+
+namespace rpcnet {
 
 struct req_header {
 	req_header(int x=0, int p=0, int c = 0, int s = 0, int xi = 0):
@@ -207,7 +209,6 @@ unmarshall& operator>>(unmarshall &, unsigned long long &);
 unmarshall& operator>>(unmarshall &, long long int &);
 unmarshall& operator>>(unmarshall &, std::string &);
 
-#include <stdio.h>
 
 template <class C> marshall &
 operator<<(marshall &m, std::vector<C> v)
@@ -261,4 +262,6 @@ operator>>(unmarshall &u, std::map<A,B> &d) {
 	return u;
 }
 
-#endif
+} // namespace rpcnet
+
+#endif // __STAMNOS_RPCNET_MARSHALL_H

@@ -1,0 +1,18 @@
+import os, sys
+Import('mainEnv')
+
+buildEnv = mainEnv.Clone()
+buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
+buildEnv.Append(CPPPATH = ['#src', '#'])
+
+commonSource = ['open.cc', 'create.cc', 'unlink.cc']
+vfsSource = ['vfs.cc']
+pxfsSource = ['pxfs.cc']
+cfsSource = ['cfs.cc']
+
+commonObject = buildEnv.Object(commonSource)
+vfsObject = buildEnv.Object(vfsSource) + commonObject
+pxfsObject = buildEnv.Object(pxfsSource) + commonObject
+cfsObject = buildEnv.Object(cfsSource) + commonObject
+
+Return('vfsObject', 'pxfsObject', 'cfsObject') 

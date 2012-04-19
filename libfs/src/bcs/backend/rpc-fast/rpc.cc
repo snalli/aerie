@@ -10,6 +10,8 @@ using namespace std;
 
 #define MAX_BIND_FILENAME_LEN 25
 
+namespace rpcfast {
+
 int fast_rpc::pin_to_core(int core) {
     cpu_set_t cpu_mask;
 
@@ -79,20 +81,15 @@ rpcc::unbind()
   
   int ret = rpc_bind(binder_shf, &sh_chan_shf[0], true); //FAST_RPC CLIENT UNBIND REQUEST
 
-#ifdef DEBUG	
-  cout << " client unbound request \n";
-#endif
+  DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "client unbound request\n");
 
   if (ret == 0) {
     bind_done_ = false;
     client_id = 0;
     sh_chan_shf = string("");
-#ifdef DEBUG	
-    cout << " rpcc unbind successful!!\n";
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "rpcc unbind successful!\n");
   } else {
-    //jsl_log(JSL_DBG_2, "rpcc::bind failed %d\n",ret);
-    cout << "rpcc unbind failed\n";
+    DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "rpcc unbind failed!\n");
   }
 
   return ret;
@@ -106,9 +103,7 @@ rpcc::call1(unsigned int proc, marshall &req, unmarshall &rep)
   char* ret_buf = NULL;
   int ret_sz, ret;
 
-#ifdef DEBUG	
-  cout << "call to proc: " << proc << "\n";
-#endif
+  DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "call to proc: %d\n", proc);
 
   req_header h(client_id,proc);
   req.pack_req_header(h);
@@ -122,9 +117,7 @@ rpcc::call1(unsigned int proc, marshall &req, unmarshall &rep)
     //succeeded sending the msg
     unmarshall tmp_rep(ret_buf, ret_sz);
     reply_header rep_h;
-#ifdef DEBUG	
-    cout << "send msg succeeded\n";
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "send msg succeeded\n");
     tmp_rep.unpack_reply_header(&rep_h);
     assert(rep_h.client_id == client_id && "client id is not same as mine!");
     rep.take_in(tmp_rep);
@@ -193,9 +186,7 @@ rpcs::dispatch(char* buf, unsigned int& sz /*return buffer is the same*/)
 
   rh.ret = f->fn(req, rep);
   rh.client_id = h.client_id;
-#ifdef DEBUG
-  cout << "returned value is: " << rh.ret <<"\n";
-#endif
+  DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "returned value is: %d\n", rh.ret);
   assert(rh.ret >= 0 || 
 	 rh.ret == rpc_const::unmarshal_args_failure);
 
@@ -615,20 +606,14 @@ void rpcs::handle_send_q(server_lock_t* rpc_serv, unsigned tid) {
     //check checksum
     if(chkChksum(currqe->rpc_request->data, currqe->rpc_request->sizeInChar, currqe->rpc_request->checksum)) {
       ret = 10;
-#ifdef DEBUG
-      printf("Got a valid send req: %s..\n", currqe->rpc_request->data);
-#endif
+      DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got a valid send req: %s..\n", currqe->rpc_request->data);
     }
     else {
-#ifdef DEBUG
-      printf("error with checksum\n");
-#endif
+      DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "error with checksum\n");
 	ret = -1; //remove
     }
 
-#ifdef DEBUG
-    printf("Server: Serving... %u\n", currqe->client_ticket);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Server: Serving... %u\n", currqe->client_ticket);
 
 
     dispatch(&currqe->rpc_request->data[0], currqe->rpc_request->sizeInChar);
@@ -645,9 +630,7 @@ void rpcs::handle_send_q(server_lock_t* rpc_serv, unsigned tid) {
     currqe->rpc_request->signal = 2; //response complete
     mt_log_service(tid, currqe->start); //log the end time and total serviced in logfile
 
-#ifdef DEBUG
-    printf("Server: Signaled with response : %u..\n",  currqe->client_ticket);
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Server: Signaled with response: %u..\n", currqe->client_ticket);
 
     free(*curr); //deallocte it 
     rpc_serv->sendq.erase(curr); //remove it from queue
@@ -657,9 +640,7 @@ void rpcs::handle_send_q(server_lock_t* rpc_serv, unsigned tid) {
     if(rpc_serv->num_served == rpc_serv->num_expected) {
       rpc_serv->num_served = rpc_serv->num_expected = 0;
       rpc_serv->sendq.clear(); //safe???
-#ifdef DEBUG
-      printf("no more in queue\n");
-#endif      
+      DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "no more in queue\n");
       break;
     }
 
@@ -822,9 +803,7 @@ void rpcs::check_registry_incoming() {
       assert(0 && "client id for unbind NOT found!");
     close((*itr)->fd);
     rpc_reg.rpc_queue.erase(itr);
-#ifdef DEBUG
-    cout << "Client unbound!\n";
-#endif
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Client unbound\n");
     //reset the lock and signal
     rpc_reg.rpc_reg_reply->signal = 0; //reset the signal
     rpc_reg.rpc_reg_lock->signal = 0;  //reset lock
@@ -869,9 +848,7 @@ void* rpcs::rpc_server_kernel(void* arg) {
     if(tid == 0) //dispatched thread
       check_registry_incoming();
 
-#ifdef DEBUG 
-    //printf("S: Finished checking registry ..\n");
-#endif
+    //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "finished checking registry\n");
 
 #ifdef RPCS_VER_2
     //goes to the starting "client queue" based on thread id
@@ -885,16 +862,12 @@ void* rpcs::rpc_server_kernel(void* arg) {
       
       s_ce = *curr;
 
-#ifdef DEBUG 
-      //printf("S: Going into handling COMM requests ..\n");
-#endif
+      //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "S: Going unto handling COMM requests ..\n");
 
       //services only one of them and then returns
       handle_comm_q(s_ce); 
 
-#ifdef DEBUG 
-      //  printf("S: Going into handling SEND requests ..\n");
-#endif
+      //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "S: Going unto handling SEND requests ..\n");
 
       //higher priority -- checks for all of them at once
       handle_send_q(s_ce, tid); 
@@ -902,9 +875,7 @@ void* rpcs::rpc_server_kernel(void* arg) {
       //increment the globaltimestamp for each service-loop
       s_ce->gtstamp++; 
 
-#ifdef DEBUG 
-      //  printf("S: DONE with one SERVICE LOOP..\n");
-#endif
+      //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "S: DONE with one SERVICE LOOP..\n");
     }
  
 
@@ -928,16 +899,12 @@ void* rpcs::rpc_server_kernel(void* arg) {
 	rpc_log.num_locked[tid]++;
 	continue; //locked look for some other work
       }
-#ifdef DEBUG 
-      //printf("S: Going into handling COMM requests ..\n");
-#endif
+      //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "S: Going into handling COMM requests ..\n");
 
       //services only one of them and then returns
       handle_comm_q(s_ce); 
 
-#ifdef DEBUG 
-      //  printf("S: Going into handling SEND requests ..\n");
-#endif
+      //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "S: Going into handling SEND requests ..\n");
 
       //higher priority -- checks for all of them at once
       handle_send_q(s_ce, tid); 
@@ -945,9 +912,7 @@ void* rpcs::rpc_server_kernel(void* arg) {
       //increment the globaltimestamp for each service-loop
       s_ce->gtstamp++; 
 
-#ifdef DEBUG 
-      //  printf("S: DONE with one SERVICE LOOP..\n");
-#endif
+      //DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "S: DONE with one SERVICE LOOP..\n");
       s_ce->lock_queue = UNLOCKED; //unlock queue since you are done with one service cycle
     }
  
@@ -1004,3 +969,5 @@ int rpcs::main_service_loop(const char* sh_file) {
 
   return 0;
 }
+
+} // namespace rpcfast

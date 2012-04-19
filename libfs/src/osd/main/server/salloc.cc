@@ -71,7 +71,7 @@ DescriptorPool::AllocateContainer(OsdSession* session, StorageAllocator* salloc,
 	int ret;
 
 	if (container_list_[type].empty()) {
-		if ((ret = salloc->AllocateContainerAndFillSet(session, set_obj_, type, 256)) < 0) {
+		if ((ret = salloc->AllocateContainerAndFillSet(session, set_obj_, type, 1024)) < 0) {
 			return ret;
 		}
 		if ((ret = Load(session)) < 0) {
@@ -98,7 +98,7 @@ DescriptorPool::AllocateExtent(OsdSession* session, StorageAllocator* salloc,
 	int r;
 
 	if (extent_list_.empty()) {
-		if ((ret = salloc->AllocateExtentAndFillSet(session, set_obj_, nbytes, 256)) < 0) {
+		if ((ret = salloc->AllocateExtentAndFillSet(session, set_obj_, nbytes, 1024)) < 0) {
 			return ret;
 		}
 		if ((ret = Load(session)) < 0) {

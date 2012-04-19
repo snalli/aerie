@@ -76,6 +76,15 @@ AddOption('--test-extra-args',
 	default = '',
 	help='a regular expression used to match tests to run')
 
+AddOption('--build-debug',
+	action="store_true", dest="build_debug",
+	default = True,
+	help="build with debug info and debug output [default]")
+
+AddOption('--no-build-debug',
+	action="store_false", dest="build_debug",
+	default = True,
+	help="build with debug info and debug output [default]")
 
 mainEnv['RPC'] = GetOption('rpc_type')
 mainEnv['TEST_ATTACH_GDB'] = GetOption('test_attach_gdb')
@@ -86,12 +95,12 @@ mainEnv['TEST_STDERR'] = GetOption('test_stderr')
 mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')
 
 if mainEnv['RPC'] == 'fast':
-	mainEnv.Append(CPPDEFINES = ['-D_RPCFAST'])
+	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCFAST'])
+	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
 else:
-	mainEnv.Append(CPPDEFINES = ['-D_RPCSOCKET'])
+	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCNET'])
+	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
 
-#mainEnv.Append(LIBS = ['tcmalloc'])
-#mainEnv.Append(LIBS = ['hoard'])
 #mainEnv.Append(CCFLAGS=' -g -O0')
 #mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
 mainEnv.Append(CCFLAGS='-g -O3')
@@ -99,7 +108,10 @@ mainEnv.Append(CCFLAGS='-g -O3')
 #mainEnv.Append(CCFLAGS=' -g -O2 -Wall -Wno-unused-function -Wno-unused-parameter -Wno-unused-label')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
 
-#mainEnv.Append(CPPDEFINES = ['-D__STAMNOS_EXPAND_DEBUG'])
+if GetOption('build_debug'):
+	mainEnv.Append(CPPDEFINES = ['-D__STAMNOS_EXPAND_DEBUG'])
+	mainEnv.Append(CCFLAGS='-g')
+
 
 if ARGUMENTS.get('VERBOSE') != "1":
 	mainEnv['CCCOMSTR']     = "(COMPILE)  $TARGET"
@@ -123,7 +135,7 @@ if mainEnv['LIBHOARD']:
 	mainEnv.Append(CPPPATH = [mainEnv['LIBHOARD']])
 	mainEnv.Append(LIBPATH = [mainEnv['LIBHOARD']])
 	mainEnv.Append(RPATH = [mainEnv['LIBHOARD']])
-	mainEnv.Append(LIBS = ['hoard'])
+	mainEnv.Append(LIBFS = ['hoard'])
 
 
 Export('mainEnv')

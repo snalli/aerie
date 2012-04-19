@@ -19,16 +19,11 @@ extern Session*                    global_session;
 extern Ipc*                        global_ipc_layer;        
 extern osd::client::StorageSystem* global_storage_system;
 
-extern rpcc*             rpc_client;
-extern rpcs*             rpc_server;
-
-
 class Client {
 public:
 	static int Init(const char* xdst);
 	static int Init(int argc, char* argv[]);
 	static int Shutdown(); 
-	static Session* CurrentSession();
 	static int Mount(const char* source, const char* target, const char* fstype, uint32_t flags);
 	static int Mkfs(const char* target, const char* fstype, uint32_t nblocks, uint32_t block_size, uint32_t flags);
 	static int Open(const char* path, int flags, int mode);

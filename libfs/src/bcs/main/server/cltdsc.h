@@ -7,6 +7,27 @@
 
 namespace server {
 
+#ifdef _SVR2CLT_RPCNET
+struct ClientDescriptor {
+public:
+	ClientDescriptor(int clt, rpcnet::rpcc* rpccl)
+		: rpcc_(rpccl),
+		  clt_(clt)
+	{ }
+	
+	int Init();
+	int clt() { return clt_; }
+
+	RPCNET_CALL(rpcc_, rpcnet::rpcc::to_max)
+
+protected:
+	rpcnet::rpcc* rpcc_;
+	int           clt_;
+};
+#endif
+
+
+#ifdef _SVR2CLT_RPCFAST
 struct ClientDescriptor {
 public:
 	ClientDescriptor(int clt, rpcc* rpccl)
@@ -17,17 +38,14 @@ public:
 	int Init();
 	int clt() { return clt_; }
 
-#ifdef _RPCSOCKET
-	RPC_CALL(rpcc_, rpcc::to_max)
-#endif
-#ifdef _RPCFAST
-	RPC_CALL(rpcc_)
-#endif
+	RPCFAST_CALL(rpcc_)
 
 protected:
 	rpcc*         rpcc_;
 	int           clt_;
 };
+#endif
+
 
 
 } // namespace server

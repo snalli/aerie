@@ -4,21 +4,7 @@ Import('mainEnv')
 buildEnv = mainEnv.Clone()
 buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
 buildEnv.Append(CPPPATH = ['#src', '#'])
-buildEnv.Append(LIBS = ['config'])
 
-Import('fscLibrary')
-Import('fssLibrary')
-Import('mfsClientLibrary')
-Import('mfsServerLibrary')
-Import('commonLibrary')
-Import('spaLibrary')
-Import('bcsClientLibrary')
-Import('bcsServerLibrary')
-Import('osdClientLibrary')
-Import('osdServerLibrary')
-
-clientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
-
-ubenchSource = ['main.cc', 'create.cc', 'open.cc', 'lock.cc', 'hlock.cc']
-
-ubenchProgram = buildEnv.Program('ubench', ubenchSource, LIBS=['pthread', 'rt'] + clientDepLibs)
+ubenchSource = ['create.cc', 'open.cc', 'lock.cc', 'hlock.cc', 'rpc.cc', 'osd.cc']
+ubenchObject = buildEnv.Object(ubenchSource)
+Return('ubenchObject') 

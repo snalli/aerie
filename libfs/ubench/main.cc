@@ -4,53 +4,37 @@
 #include <string.h>
 #include <assert.h>
 #include <string>
+#include <vector>
 #include <getopt.h>
 #include <iostream>
 #include <list>
-#include "bcs/bcs.h"
-#include "ubench/osd/main.h"
-
-extern int ubench_create(int argc, char* argv[]);
-extern int ubench_open(int argc, char* argv[]);
-extern int ubench_lock(int argc, char* argv[]);
-extern int ubench_hlock(int argc, char* argv[]);
-extern int ubench_hlock_create(int argc, char* argv[]);
-
-const char*                 poolpath = "/tmp/stamnos_pool";
-const char*                 progname = "ubench";
-osd::client::StorageSystem* global_storage_system;
-Ipc*                        global_ipc_layer;
+#include "ubench/main.h"
+#include <sched.h>
 
 
-UbenchDescriptor ubench_table[] = {
-	{ "create", ubench_create},
-	{ "open", ubench_open},
-	{ "lock", ubench_lock},
-	{ "hlock", ubench_hlock},
-	{ "hlock_create", ubench_hlock_create},
-	{ NULL, NULL }
-};
+const char*                   progname = "ubench";
+std::vector<UbenchDescriptor> ubench_table;
+
+extern int RegisterUbench();
+extern int Init(int debug_level, const char* xdst);
+extern int ShutDown();
 
 
-int 
-Init(const char* xdst)
-{
-	global_ipc_layer = new client::Ipc(xdst);
-	assert((global_ipc_layer->Init()) == 0);
-	global_storage_system = new osd::client::StorageSystem(global_ipc_layer);
-	assert((global_storage_system->Init()) == 0);
-	assert(global_storage_system->Mount(poolpath, NULL, 0) == 0);
+/*
+static 
+int pin_to_core(int core) {
+	cpu_set_t cpu_mask;
 
-	return 0;
+    CPU_ZERO(&cpu_mask);
+    CPU_SET(core, &cpu_mask);
+
+    if(sched_setaffinity(0, sizeof(cpu_mask), &cpu_mask) < 0) {
+      DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "Error while setting the CPU affinity: core=%d\n", core);
+      return -1;
+    }
+    return 0;
 }
-
-
-int
-ShutDown()
-{
-
-	return 0;
-}
+*/
 
 
 static void 
@@ -72,13 +56,14 @@ main(int argc, char *argv[])
 	int               debug_level = -1;
 	uid_t             principal_id;
 	char              ch = 0;
-	char*             xdst=NULL;
+	const char*       xdst="10000";
 	char*             ubench_name = NULL;
 	extern int        opterr;
 	extern char*      optarg;
 	std::string       unused;
 	int               generic_argc;
 	int               (*ubench_function)(int, char* []);
+
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
@@ -99,7 +84,7 @@ main(int argc, char *argv[])
 		ubench_name = &argv[generic_argc][1];
 	}
 	opterr=0;
-	while ((ch = getopt(generic_argc, argv, "d:h:"))!=-1) {
+	while ((ch = getopt(generic_argc, argv, "d:h:t:"))!=-1) {
 		switch (ch) {
 			case 'd':
 				debug_level = atoi(optarg);
@@ -114,27 +99,26 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (!xdst || !ubench_name) {
+	if (!ubench_name) {
 		usage(progname);
 	}
 
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 32*1024);
-
-	for (int i=0; ubench_table[i].ubench_name != NULL; i++) {
-		if (strcmp(ubench_table[i].ubench_name, ubench_name) == 0) {
+	
+	RegisterUbench();
+	for (int i=0; i < ubench_table.size(); i++) {
+		if (strcmp(ubench_table[i].ubench_name.c_str(), ubench_name) == 0) {
 			ubench_function = ubench_table[i].ubench_function;
+			break;
 		}
 	}
 	if (!ubench_name) {
 		return -1;
 	}
 
-	Config::Init();
-	Debug::Init(debug_level, NULL);
-
-	if ((ret = Init(xdst)) < 0) {
+	if ((ret = Init(debug_level, xdst)) < 0) {
 		return ret;
 	}
 

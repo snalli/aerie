@@ -27,16 +27,16 @@ public:
 
 	int Init(InodeNumber ino, int flags);
 
-	int Write(Session* session, const char* src, uint64_t n);
-	int Read(Session* session, char* dst, uint64_t n);
-	int Write(Session* session, const char* src, uint64_t n, uint64_t offset);
-	int Read(Session* session, char* dst, uint64_t n, uint64_t offset);
-	uint64_t Seek(client::Session* session, uint64_t offset, int whence);
+	int Write(const char* src, uint64_t n);
+	int Read(char* dst, uint64_t n);
+	int Write(const char* src, uint64_t n, uint64_t offset);
+	int Read(char* dst, uint64_t n, uint64_t offset);
+	uint64_t Seek(uint64_t offset, int whence);
 	int Release();
 
 private:
-	int ReadInternal(Session* session, char* dst, uint64_t n, uint64_t offset);
-	int WriteInternal(Session* session, const char* dst, uint64_t n, uint64_t offset);
+	int ReadInternal(char* dst, uint64_t n, uint64_t offset);
+	int WriteInternal(const char* dst, uint64_t n, uint64_t offset);
 
 	pthread_mutex_t mutex_;
 	int             ref_;       // reference count

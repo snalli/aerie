@@ -73,6 +73,8 @@
 
 #include "jsl_log.h"
 
+namespace rpcnet {
+
 const rpcc::TO rpcc::to_max = { 120000 };
 const rpcc::TO rpcc::to_min = { 1000 };
 
@@ -123,16 +125,16 @@ rpcc::rpcc(sockaddr_in d, bool retrans) :
 	//xid starts with 1 and latest received reply starts with 0
 	xid_rep_window_.push_back(0);
 
-	jsl_log(JSL_DBG_2, "rpcc::rpcc cltn_nonce is %d lossy %d\n", 
-			clt_nonce_, lossytest_); 
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), 
+	        "rpcc::rpcc cltn_nonce is %d lossy %d\n", clt_nonce_, lossytest_); 
 }
 
 //IMPORTANT: destruction should happen only when no external threads
 //are blocked inside rpcc or will use rpcc in the future
 rpcc::~rpcc()
 {
-	jsl_log(JSL_DBG_2, "rpcc::~rpcc delete nonce %d channo=%d\n", 
-			clt_nonce_, chan_?chan_->channo():-1); 
+    DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), 
+	        "rpcc::~rpcc delete nonce %d channo=%d\n", clt_nonce_, chan_?chan_->channo():-1); 
 	if (chan_) {
 		chan_->closeconn();
 		chan_->decref();
@@ -1029,3 +1031,5 @@ diff_timespec(const struct timespec &end, const struct timespec &start)
 	}
 	return diff;
 }
+
+} // namespace rpcnet

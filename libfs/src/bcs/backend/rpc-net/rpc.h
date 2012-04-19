@@ -1,5 +1,5 @@
-#ifndef rpc_h
-#define rpc_h
+#ifndef __STAMNOS_RPCNET_RPC_h
+#define __STAMNOS_RPCNET_RPC_h
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -13,6 +13,8 @@
 #ifdef DMALLOC
 #include "dmalloc.h"
 #endif
+
+namespace rpcnet {
 
 class rpc_const {
 	public:
@@ -602,4 +604,7 @@ int cmp_timespec(const struct timespec &a, const struct timespec &b);
 void add_timespec(const struct timespec &a, int b, struct timespec *result);
 int diff_timespec(const struct timespec &a, const struct timespec &b);
 
-#endif
+
+} // namespace rpcnet
+
+#endif // __STAMNOS_RPCNET_RPC_h

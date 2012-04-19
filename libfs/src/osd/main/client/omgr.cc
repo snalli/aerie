@@ -326,8 +326,9 @@ ObjectManager::CloseAllObjects(OsdSession* session, bool update)
 
 	// now close all the objects 
 	for (int i=0; i < osd::containers::T_CONTAINER_TYPE_COUNT; i++) {
-		mgr = objtype2mgr_tbl_[i];
-		mgr->CloseAll(session, false);
+		if (mgr = objtype2mgr_tbl_[i]) {
+			mgr->CloseAll(session, false);
+		}
 	}
 
 	pthread_mutex_unlock(&mutex_);

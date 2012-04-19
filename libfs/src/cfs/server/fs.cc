@@ -119,7 +119,6 @@ FileSystem::MakeFile(Session* session, const char* path,
 	InodeNumber childino;
 	
 	dbg_log (DBG_INFO, "Create file %s\n", path);
-	
 	if ((ret = session->namespace_->Nameiparent(session, path, name, &parino)) < 0) {
 		return ret;
 	}

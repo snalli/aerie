@@ -10,29 +10,24 @@
 
 namespace server {
 
-#ifdef _RPCSOCKET
 Ipc::Ipc(int port)
 {
+#ifdef _CLT2SVR_RPCNET
 	pthread_mutex_init(&mutex_, NULL);
-	rpcs_ = new rpcs(port);
+	rpcs_ = new rpcnet::rpcs(port);
 	sessionmgr_ = new BaseSessionManager();
-}
 #endif
-
-
-#ifdef _RPCFAST
-Ipc::Ipc(int port)
-{
+#ifdef _CLT2SVR_RPCFAST
 	std::stringstream ss;
 
 	pthread_mutex_init(&mutex_, NULL);
 	ss << "/tmp/server_rpcs_";
 	ss << port;
-	rpcs_ = new rpcs(ss.str().c_str());
+	rpcs_ = new rpcfast::rpcs(ss.str().c_str());
 	sessionmgr_ = new BaseSessionManager();
 	rpcs_->main_service_loop();
+#endif
 }
-#endif 
 
 
 int
@@ -74,15 +69,15 @@ Ipc::Client(int clt)
 int
 Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
 {
-#ifdef _RPCSOCKET
+#ifdef _SVR2CLT_RPCNET
 	int                  ret;
 	sockaddr_in          dstsock;
-	rpcc*                rpccl;
+	rpcnet::rpcc*        rpccl;
 	IpcProtocol::status  r = IpcProtocol::OK;
 
 	pthread_mutex_lock(&mutex_);
-	make_sockaddr(id.c_str(), &dstsock);
-	rpccl = new rpcc(dstsock);
+	rpcnet::make_sockaddr(id.c_str(), &dstsock);
+	rpccl = new rpcnet::rpcc(dstsock);
 	ClientDescriptor* cl_dsc = new ClientDescriptor(clt, rpccl);
 	if ((ret = cl_dsc->Init()) < 0) {
 		return -ret;
@@ -96,13 +91,13 @@ Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
 	return r;
 #endif 
 
-#ifdef _RPCFAST
+#ifdef _SVR2CLT_RPCFAST
 	int                  ret;
-	rpcc*                rpccl;
+	rpcfast::rpcc*       rpccl;
 	IpcProtocol::status  r = IpcProtocol::OK;
 
 	pthread_mutex_lock(&mutex_);
-	rpccl = new rpcc(id.c_str());
+	rpccl = new rpcfast::rpcc(id.c_str());
 	ClientDescriptor* cl_dsc = new ClientDescriptor(clt, rpccl);
 	if ((ret = cl_dsc->Init()) < 0) {
 		return -ret;

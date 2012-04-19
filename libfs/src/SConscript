@@ -8,7 +8,8 @@ buildEnv.Append(LIBS = ['config'])
 
 Export('buildEnv')
 
-rpcLibrary, bcsClientLibrary, bcsServerLibrary = SConscript('bcs/SConscript')
+rpcNetLibrary, rpcLibrary, bcsClientLibrary, bcsServerLibrary = SConscript('bcs/SConscript')
+Export('rpcNetLibrary')
 Export('rpcLibrary')
 Export('bcsClientLibrary')
 Export('bcsServerLibrary')

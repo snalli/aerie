@@ -42,12 +42,15 @@ measure_time_summary(int numops, unsigned long long runtime, hrtime_t runtime_cy
 	hrtime_t runtime_hrtime = HRTIME_CYCLE2NS(runtime_cycles);
 	
 	ss << "runtime        " << runtime << " us (" << runtime/1000 << ")" << std::endl;
-	ss << "avg_runtime    " << runtime/numops << " us (" << runtime/numops/1000 << ")" << std::endl;
+	if (numops>1) {
+		ss << "avg_runtime    " << runtime/numops << " us (" << runtime/numops/1000 << ")" << std::endl;
+	}
 	
 	ss << "runtime        " << runtime_cycles << " cycles";
 	ss << "( " << runtime_hrtime << " ns)" << std::endl;
-	ss << "avg_runtime    " << runtime_cycles/numops << " cycles";
-	ss << "( " << runtime_hrtime/numops << " ns)" << std::endl;
-	
+	if (numops>1) {
+		ss << "avg_runtime    " << runtime_cycles/numops << " cycles";
+		ss << "( " << runtime_hrtime/numops << " ns)" << std::endl;
+	}
 	return ss.str();
 }
