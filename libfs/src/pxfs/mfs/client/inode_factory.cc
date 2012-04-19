@@ -110,7 +110,7 @@ InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 		return -E_NOMEM;
 	}
 	PROFILER_SAMPLE
-	dbg_log (DBG_INFO, "Create file inode: %p\n", obj->oid().u64());
+	dbg_log (DBG_INFO, "Create file inode: %p\n", (void*) obj->oid().u64());
 	if ((ret = LoadFileInode(session, obj->oid(), ipp)) < 0) {
 		// FIXME: deallocate the allocated object
 		return ret;

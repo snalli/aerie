@@ -1,13 +1,13 @@
 /*****************************************************************************
- *                         STORAGE ABSTRACTION LAYER                         *
+ *                              SCM PRIMITIVES LAYER                         *
  *****************************************************************************/ 
 
 /**
 
 @section spa_overview Overview
 
-The Storage Pool Allocation (SPA) layer () provides the basic storage allocation 
-abstraction and interface for use by applications.
+The SCM Primitives (SCMP) layer provides persistence and storage allocation 
+primitives for use by applications.
 
 
 POOL

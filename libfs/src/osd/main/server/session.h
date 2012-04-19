@@ -14,12 +14,14 @@ class OsdSession: public ::server::BcsSession {
 public:
 
 	osd::server::StorageAllocator* salloc();
+	osd::server::Journal* journal() { return journal_; }
 
 	int Init(int clt);
 
 //protected:
 	osd::server::OsdSharedBuffer*      shbuf_;
 	osd::server::StorageSystem*        storage_system_;
+	osd::server::Journal*              journal_;
 	std::vector<osd::common::ObjectId> sets_; // sets of pre-allocated containers to client
 };
 

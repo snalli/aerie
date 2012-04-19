@@ -28,7 +28,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-// TODO: any allocations and assignments done by Mapslot must be journalled
 
 #ifndef __STAMNOS_OSD_COMMON_RADIXTREE_H
 #define __STAMNOS_OSD_COMMON_RADIXTREE_H
@@ -99,6 +98,7 @@ public:
 
 	int Link(Session* session, int slot_index, void* item)
 	{
+		session->journal()->Store(&slots[slot_index], item);
 		slots[slot_index] = item;
 		return E_SUCCESS;
 	}

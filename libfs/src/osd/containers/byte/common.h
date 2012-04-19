@@ -14,6 +14,8 @@
 #include "osd/containers/containers.h"
 #include "osd/main/common/obj.h"
 #include "osd/main/common/const.h"
+#include "osd/main/client/journal.h"
+#include "osd/main/server/journal.h"
 #include "scm/const.h"
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
