@@ -10,7 +10,6 @@ libLocalBuildEnv = buildEnv.Clone()
 lib_target = 'cfss'
 lib_sources = [
                'dir_inode.cc',
-               'file_inode.cc',
 	       'fs.cc',
 	       'namespace.cc',
                'server.cc',
