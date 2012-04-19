@@ -27,7 +27,11 @@ DirInode::Link(Session* session, const char* name, uint64_t ino)
 int 
 DirInode::Link(Session* session, const char* name, DirInode* child)
 {
-	obj_->Insert(session, name, child->oid());
+	int ret;
+	if ((ret = obj_->Insert(session, name, child->oid())) < 0) {
+		dbg_log (DBG_ERROR, "Failed: trying to link a file as %s\n", name);
+		return ret;
+	}
 	switch (str_is_dot(name)) {
 		case 1: // .
 			break;
@@ -46,11 +50,15 @@ DirInode::Link(Session* session, const char* name, DirInode* child)
 int 
 DirInode::Link(Session* session, const char* name, FileInode* child)
 {
+	int ret;
 	if (str_is_dot(name) > 0) {
-		dbg_log (DBG_INFO, "Validation failed: trying to link a file as %s\n", name);
+		dbg_log (DBG_INFO, "Failed: trying to link a file as %s\n", name);
 		return -E_VRFY;
 	}
-	obj_->Insert(session, name, child->oid());
+	if ((ret = obj_->Insert(session, name, child->oid())) < 0) {
+		dbg_log (DBG_ERROR, "Failed: trying to link a file as %s\n", name);
+		return ret;
+	}
 	child->obj()->set_parent(oid());
 	child->obj()->set_nlink(child->obj()->nlink() + 1);
 	return E_SUCCESS;

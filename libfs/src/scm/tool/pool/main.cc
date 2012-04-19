@@ -5,7 +5,7 @@
 #include <iostream>
 #include "common/util.h"
 #include "common/errno.h"
-#include "spa/tool/pool/main.h"
+#include "scm/tool/pool/main.h"
 
 const char* prog_name = "pool";
 

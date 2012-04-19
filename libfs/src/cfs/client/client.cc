@@ -10,7 +10,7 @@
 #include "osd/main/client/stm.h"
 #include "osd/main/client/salloc.h"
 #include "osd/main/client/omgr.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "cfs/common/fs_protocol.h"
 #include "cfs/common/publisher.h"
 #include "common/prof.h"

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <stdio.h>
-#include "spa/pheap/vistaheap.h"
+#include "scm/pheap/vistaheap.h"
 #include "common/errno.h"
 
 class PersistentRegion;  // forward declaration

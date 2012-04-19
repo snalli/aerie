@@ -9,7 +9,7 @@
 #include "osd/main/client/stm.h"
 #include "osd/main/client/salloc.h"
 #include "osd/main/client/omgr.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "kvfs/client/session.h"
 #include "kvfs/client/sb.h"
 #include "kvfs/common/fs_protocol.h"

@@ -18,9 +18,9 @@ pool_kernel_sources = [
 
 lib_sources += pool_user_sources
 
-spaLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+scmLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 
 localBuildEnv.Program(target = 'tool/pool/pool', source = lib_sources + ['tool/pool/main.cc', 'tool/pool/mkpool.cc'])
 
-Return('spaLibrary')
+Return('scmLibrary')

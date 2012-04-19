@@ -1,7 +1,7 @@
 #include "osd/main/server/salloc.h"
 #include <stdio.h>
 #include <stddef.h>
-#include "spa/const.h"
+#include "scm/const.h"
 #include "common/errno.h"
 #include "common/util.h"
 #include "bcs/bcs.h"

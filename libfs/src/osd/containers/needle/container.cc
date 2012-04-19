@@ -7,7 +7,7 @@
 #include "osd/main/client/salloc.h"
 #include "osd/main/common/const.h"
 #include "osd/main/common/publisher.h"
-#include "spa/const.h"
+#include "scm/scm.h"
 
 namespace osd {
 namespace containers {

@@ -9,8 +9,8 @@ myTestEnv = testEnv.Clone()
 Import('fscLibrary')
 Import('mfsClientLibrary')
 Import('commonLibrary')
-Import('spaLibrary')
+Import('scmLibrary')
 Import('bcsClientLibrary')
-depLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, spaLibrary, commonLibrary]
+depLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, scmLibrary, commonLibrary]
 
 #myTestEnv.Program('lock_tester', source = [Glob('*.cc')], LIBS=['pthread', 'rt']+depLibs)

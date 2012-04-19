@@ -11,7 +11,7 @@
 #include "osd/main/common/obj.h"
 #include "osd/main/client/osd-opaque.h"
 #include "osd/containers/set/container.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 
 
 namespace osd {

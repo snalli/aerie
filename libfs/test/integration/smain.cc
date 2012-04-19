@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 
-	printf("Starting file system server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
+	printf("Starting file system server on port %d\n", port);
 
 	server::Server::Instance()->Init(pathname, 0, port);
 	assert(TestInit() == E_SUCCESS);

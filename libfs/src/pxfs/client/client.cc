@@ -11,7 +11,7 @@
 #include "osd/main/client/stm.h"
 #include "osd/main/client/salloc.h"
 #include "osd/main/client/omgr.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "pxfs/common/fs_protocol.h"
 #include "pxfs/mfs/client/mfs.h"
 #include "pxfs/common/publisher.h"

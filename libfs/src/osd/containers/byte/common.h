@@ -14,7 +14,7 @@
 #include "osd/containers/containers.h"
 #include "osd/main/common/obj.h"
 #include "osd/main/common/const.h"
-#include "spa/const.h"
+#include "scm/const.h"
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
 

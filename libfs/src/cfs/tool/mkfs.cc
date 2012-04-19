@@ -1,7 +1,7 @@
 #include <getopt.h>
 #include <iostream>
 #include "common/util.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "cfs/tool/main.h"
 #include "cfs/server/session.h"
 #include "cfs/server/cfs.h"

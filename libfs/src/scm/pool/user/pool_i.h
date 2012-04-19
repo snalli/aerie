@@ -1,7 +1,7 @@
 #ifndef __STAMNOS_SPA_POOL_USER_INTERNAL_H
 #define __STAMNOS_SPA_POOL_USER_INTERNAL_H
 
-#include "spa/pool/user/pool.h"
+#include "scm/pool/user/pool.h"
 #include "common/bitset.h"
 
 

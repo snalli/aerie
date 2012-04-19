@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
-#include "spa/const.h"
+#include "scm/const.h"
 #include "common/errno.h"
 #include "common/util.h"
 

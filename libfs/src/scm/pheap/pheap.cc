@@ -1,9 +1,9 @@
-#include "spa/pheap/pheap.h"
+#include "scm/pheap/pheap.h"
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
-#include "spa/pregion/pregion.h"
-#include "spa/pheap/vistaheap.h"
+#include "scm/pregion/pregion.h"
+#include "scm/pheap/vistaheap.h"
 #include "common/errno.h"
 #include "common/util.h"
 #include "bcs/main/common/cdebug.h"

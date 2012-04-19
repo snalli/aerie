@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include "bcs/main/common/debug.h"
 #include "bcs/main/server/shbufmgr.h"
-#include "spa/spa.h"
+#include "scm/scm.h"
 #include "common/util.h"
 #include "common/mmapregion.h"
 

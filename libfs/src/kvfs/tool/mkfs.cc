@@ -1,7 +1,7 @@
 #include <getopt.h>
 #include <iostream>
 #include "common/util.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "kvfs/tool/main.h"
 #include "kvfs/server/session.h"
 #include "kvfs/server/fs.h"

@@ -11,14 +11,14 @@ Import('cfscLibrary')
 Import('fscLibrary')
 Import('mfsClientLibrary')
 Import('commonLibrary')
-Import('spaLibrary')
+Import('scmLibrary')
 Import('bcsClientLibrary')
 Import('osdClientLibrary')
 
-osdClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
-vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
-pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
-cfsClientDepLibs = [cfscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
+osdClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+cfsClientDepLibs = [cfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 
 osdObject = SConscript('osd/SConscript')
 vfsObject, pxfsObject, cfsObject = SConscript('fs/SConscript')

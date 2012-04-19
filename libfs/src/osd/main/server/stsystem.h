@@ -3,7 +3,7 @@
 
 #include "osd/main/server/sessionmgr.h"
 #include "bcs/bcs.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "osd/main/server/osd-opaque.h"
 #include "osd/main/common/stsystem.h"
 
@@ -19,8 +19,8 @@
 #include "osd/containers/super/container.h"
 #include "osd/containers/name/container.h"
 #include "osd/containers/set/container.h"
-#include "spa/pool/pool.h"
-#include "spa/const.h"
+#include "scm/pool/pool.h"
+#include "scm/const.h"
 
 #include <iostream>
 

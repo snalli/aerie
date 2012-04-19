@@ -2,8 +2,8 @@
 #include <iostream>
 #include "common/util.h"
 #include "common/errno.h"
-#include "spa/pool/pool.h"
-#include "spa/tool/pool/main.h"
+#include "scm/pool/pool.h"
+#include "scm/tool/pool/main.h"
 #include "pxfs/server/session.h"
 
 
