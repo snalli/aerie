@@ -298,6 +298,7 @@ SCM_WB_FLUSH(scm_storeset_t *set, volatile scm_word_t *addr)
 		stop = asm_rdtscp();
 		emulate_latency_ns(SCM_LATENCY_WRITE - CYCLE2NS(stop-start));
 # else
+		asm_mfence();
 		asm_clflush(addr); 	
 		emulate_latency_ns(SCM_LATENCY_WRITE);
 # endif		
@@ -305,6 +306,7 @@ SCM_WB_FLUSH(scm_storeset_t *set, volatile scm_word_t *addr)
 	}	
 
 #else /* !SCM_EMULATE_LATENCY */ 
+	asm_mfence();
 	asm_clflush(addr); 	
 	asm_mfence();
 #endif /* !SCM_EMULATE_LATENCY */ 
