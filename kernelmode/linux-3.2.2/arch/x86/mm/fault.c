@@ -1155,12 +1155,6 @@ retry:
 	 * we can handle it..
 	 */
 good_area:
-	if(vma->persistent == true)
-	{ 
-		/* fault handling given to scm.c */
-		//printk(KERN_ERR"tracking success till this point"); 
-	}
-
 	if (unlikely(access_error(error_code, vma))) {
 		bad_area_access_error(regs, error_code, address);
 		return;
@@ -1174,11 +1168,6 @@ good_area:
 	fault = handle_mm_fault(mm, vma, address, flags);
 
 	if (unlikely(fault & (VM_FAULT_RETRY|VM_FAULT_ERROR))) {
-		if(fault &VM_FAULT_PERS_PROT)
-		{
-			bad_area_access_error(regs, error_code, address);
-			return;
-		}
 		if (mm_fault_error(regs, error_code, address, fault))
 			return;
 	}

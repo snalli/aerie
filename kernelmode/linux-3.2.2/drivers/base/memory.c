@@ -31,7 +31,7 @@ static DEFINE_MUTEX(mem_sysfs_mutex);
 
 #define MEMORY_CLASS_NAME	"memory"
 
-int sections_per_block;
+static int sections_per_block;
 
 static inline int base_memory_block_id(int section_nr)
 {
@@ -118,7 +118,7 @@ unsigned long __weak memory_block_size_bytes(void)
 	return MIN_MEMORY_BLOCK_SIZE;
 }
 
-unsigned long get_memory_block_size(void)
+static unsigned long get_memory_block_size(void)
 {
 	unsigned long block_sz;
 
@@ -158,22 +158,6 @@ static ssize_t show_mem_end_phys_index(struct sys_device *dev,
 
 	phys_index = mem->end_section_nr / sections_per_block;
 	return sprintf(buf, "%08lx\n", phys_index);
-}
-
-/*
- * If the memory block is removable 
- */
-int is_removable(struct memory_block *mem)
-{
-	unsigned long i, pfn;
-	int ret = 1;
-
-	for (i = 0; i < sections_per_block; i++) {
-		pfn = section_nr_to_pfn(mem->start_section_nr + i);
-		ret &= is_mem_section_removable(pfn, PAGES_PER_SECTION);
-	}
-
-	return ret;
 }
 
 /*
@@ -300,10 +284,6 @@ memory_block_action(unsigned long phys_index, unsigned long action)
 			break;
 		case MEM_OFFLINE:
 			start_paddr = page_to_pfn(first_page) << PAGE_SHIFT;
-
-			printk(KERN_ERR"pfn %lx", page_to_pfn(first_page));
-			printk(KERN_ERR"paddr %lx", start_paddr);
-
 			ret = remove_memory(start_paddr,
 					    nr_pages << PAGE_SHIFT);
 			break;
@@ -316,14 +296,12 @@ memory_block_action(unsigned long phys_index, unsigned long action)
 	return ret;
 }
 
-int memory_block_change_state(struct memory_block *mem,
+static int memory_block_change_state(struct memory_block *mem,
 		unsigned long to_state, unsigned long from_state_req)
 {
 	int ret = 0;
 
 	mutex_lock(&mem->state_mutex);
-
-	printk(KERN_ERR"hotplug attempted curstate %d fstate %d", mem->state, from_state_req);
 
 	if (mem->state != from_state_req) {
 		ret = -EINVAL;
@@ -679,17 +657,12 @@ int unregister_memory_section(struct mem_section *section)
 /*
  * Initialize the sysfs support for memory devices...
  */
-extern unsigned long max_block_pindex;
-extern void init_scm(void);
 int __init memory_dev_init(void)
 {
 	unsigned int i;
 	int ret;
 	int err;
-	unsigned long block_sz, phys_index = 0;
-	struct memory_block *mblock;
-	unsigned long start_pfn, start_paddr;
-	struct page *first_page;
+	unsigned long block_sz;
 
 	memory_sysdev_class.kset.uevent_ops = &memory_uevent_ops;
 	ret = sysdev_class_register(&memory_sysdev_class);
@@ -708,23 +681,9 @@ int __init memory_dev_init(void)
 			continue;
 		err = add_memory_section(0, __nr_to_section(i), MEM_ONLINE,
 					 BOOT);
-		mblock = find_memory_block(__nr_to_section(i));
-		phys_index = mblock->start_section_nr/sections_per_block;
-
-		first_page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
-		start_paddr = page_to_pfn(first_page) << PAGE_SHIFT;
-                printk(KERN_ERR"boot index %lx", phys_index);
-                printk(KERN_ERR"removable %lx", is_mem_section_removable(page_to_pfn(first_page), PAGES_PER_SECTION*sections_per_block));
-                printk(KERN_ERR"boot pfn %lx", page_to_pfn(first_page));
-                printk(KERN_ERR"boot paddr %lx", start_paddr);
-
-		if(max_block_pindex < phys_index)
-			max_block_pindex = phys_index;
 		if (!ret)
 			ret = err;
 	}
-
-	init_scm();
 
 	err = memory_probe_init();
 	if (!ret)

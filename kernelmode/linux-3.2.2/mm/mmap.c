@@ -30,14 +30,13 @@
 #include <linux/perf_event.h>
 #include <linux/audit.h>
 #include <linux/khugepaged.h>
-#include <linux/cred.h>
+
 #include <asm/uaccess.h>
 #include <asm/cacheflush.h>
 #include <asm/tlb.h>
 #include <asm/mmu_context.h>
 
 #include "internal.h"
-#include "scm.h"
 
 #ifndef arch_mmap_check
 #define arch_mmap_check(addr, len, flags)	(0)
@@ -935,56 +934,6 @@ void vm_stat_account(struct mm_struct *mm, unsigned long flags,
 		mm->reserved_vm += pages;
 }
 #endif /* CONFIG_PROC_FS */
-
-unsigned long do_mmap_pgoff_wrapper(struct file *file, unsigned long addr,
-                        unsigned long len, unsigned long prot,
-                        unsigned long flags, unsigned long pgoff)
-{
-        unsigned long ret = -EINVAL;
-        unsigned long ret_p = -EINVAL;
-
-        ret = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
-
-        if(current->persistent_region_defined == false)
-        {
-		int i;
-                unsigned long p_addr = PERS_START;
-                unsigned long p_len = PERS_SPACE; 
-                unsigned long p_flags = MAP_SHARED | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED; 
-                unsigned long p_prot = PROT_READ | PROT_WRITE;
-                unsigned long p_pgoff = 0;
-		struct vm_area_struct *vma = NULL;
-
-		//for(i = 0;i < 20; i++)
-		//	printk(KERN_ERR"%s virtual hole", current->comm);
-
-                ret_p = do_mmap_pgoff(NULL, p_addr, p_len, p_prot, p_flags, p_pgoff);
-		//for(i = 0;i < 20; i++)
-		//	printk(KERN_ERR"%s virtual space returned %ld", current->comm, ret_p);
-		vma = find_vma(current->mm, p_addr);
-		if(vma)
-		{
-			vma->persistent = true;
-
-			// Initialize shared page table for persistent region
-			{
-				ppgtable_user *p = find_shared_ppgtbl_entry(
-					current->cred->uid, true, true);
-				if(p != NULL)
-				{
-					pud_assign(current->mm, 
-				  		pgd_offset(current->mm, p_addr),
-						p->ppud);
-				}
-				else
-					printk(KERN_ERR"Too many users and shared user data structure cannot be allocated");
-			}
-		}
-                current->persistent_region_defined = true;
-	}
-        return ret;
-}
-EXPORT_SYMBOL(do_mmap_pgoff_wrapper);
 
 /*
  * The caller must hold down_write(&current->mm->mmap_sem).
@@ -2286,8 +2235,6 @@ void exit_mmap(struct mm_struct *mm)
 	unsigned long nr_accounted = 0;
 	unsigned long end;
 
-	clear_ppgd_from_mm(mm);
-
 	/* mm's last user has gone, and its about to be pulled down */
 	mmu_notifier_release(mm);
 
@@ -2324,7 +2271,7 @@ void exit_mmap(struct mm_struct *mm)
 	while (vma)
 		vma = remove_vma(vma);
 
-	//BUG_ON(mm->nr_ptes > (FIRST_USER_ADDRESS+PMD_SIZE-1)>>PMD_SHIFT);
+	BUG_ON(mm->nr_ptes > (FIRST_USER_ADDRESS+PMD_SIZE-1)>>PMD_SHIFT);
 }
 
 /* Insert vm structure into process list sorted by address

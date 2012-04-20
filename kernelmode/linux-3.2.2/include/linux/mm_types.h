@@ -209,7 +209,6 @@ struct vm_area_struct {
 
 	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
 	unsigned long vm_flags;		/* Flags, see mm.h. */
-	bool persistent;		/* all bits in vm_flags are taken */
 
 	struct rb_node vm_rb;
 

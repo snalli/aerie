@@ -856,9 +856,5 @@ asmlinkage long sys_process_vm_writev(pid_t pid,
 				      const struct iovec __user *rvec,
 				      unsigned long riovcnt,
 				      unsigned long flags);
-asmlinkage long sys_alloc_persistent(unsigned long v_addr,
-				    unsigned long size_mb);
-asmlinkage long sys_mpprotect(void *ext,
-			     uid_t uid,
-			     int rw);
+
 #endif
