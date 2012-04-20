@@ -30,7 +30,7 @@ protected:
 #ifdef _SVR2CLT_RPCFAST
 struct ClientDescriptor {
 public:
-	ClientDescriptor(int clt, rpcc* rpccl)
+	ClientDescriptor(int clt, rpcfast::rpcc* rpccl)
 		: rpcc_(rpccl),
 		  clt_(clt)
 	{ }
@@ -41,8 +41,8 @@ public:
 	RPCFAST_CALL(rpcc_)
 
 protected:
-	rpcc*         rpcc_;
-	int           clt_;
+	rpcfast::rpcc* rpcc_;
+	int            clt_;
 };
 #endif
 

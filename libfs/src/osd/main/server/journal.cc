@@ -10,12 +10,18 @@ Journal::TransactionBegin(int id)
 	return E_SUCCESS;
 }
 
-
 int
 Journal::TransactionCommit()
 {
 	return E_SUCCESS;
 }
+
+int
+Journal::TransactionAbort()
+{
+	return E_SUCCESS;
+}
+
 
 
 } // namespace server

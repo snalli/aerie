@@ -17,6 +17,7 @@ public:
 
 	int TransactionBegin(int id = 0);
 	int TransactionCommit();
+	int TransactionAbort();
 
 	template<typename T>
 	void Store(volatile T* addr, T val)
