@@ -101,7 +101,8 @@ ByteInterval::WriteBlockNoRegion(OsdSession* session, char* src, uint64_t bn, in
 		memset(&bp[off+n], 0, kBlockSize-n); 
 	}
 
-	memmove(&bp[off], src, n);
+	//memmove(&bp[off], src, n);
+	scm_memcpy(&bp[off], src, n);
 	return n;
 }
 
@@ -299,9 +300,6 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 		} else {
 			// pinode already points to a block, therefore we do an in-place write
 			assert(bcount == 1);
-
-			//printf("Direct Read [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
-
 			memmove(&dst[tot], &ptr[f], m);
 		}
 
@@ -473,14 +471,9 @@ ByteContainer::VersionManager::WriteImmutable(OsdSession* session,
 			}
 		} else {
 			// pinode already points to a block, therefore we do an in-place write
-
-			// TODO: if we want to support copy on write then we should not 
-			// overwrite the block but instead go through the inverval and if needed 
-			// copy the old contents of the block if a partial copy is done
 			assert(bcount == 1);
-
-			//printf("Direct Write [%" PRIu64 " , %" PRIu64 " ]\n", off, off+m-1);
-			memmove(&ptr[f], &src[tot], m);
+			//memmove(&ptr[f], &src[tot], m);
+			scm_memcpy(&ptr[f], &src[tot], m);
 		}
 
 		f = 0; // after the first block is written, each other block is written 

@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
+#include "scm/scm/scm.h"
 #include "osd/containers/byte/radixtree.h"
 #include "osd/containers/containers.h"
 #include "osd/main/common/obj.h"
@@ -769,7 +770,8 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 		memset(&bp[off+n], 0, kBlockSize-n); 
 	}
 	bp = (char*) (*slot);
-	memmove(&bp[off], src, n);
+	//memmove(&bp[off], src, n); 
+	scm_mempcy(&bp[off], src, n);
 
 	return n;
 }
