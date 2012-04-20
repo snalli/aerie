@@ -61,11 +61,18 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 	if (Inode::type(lgc_op->parino_) != kDirInode) {
 		return -1;
 	}
+	session->journal()->TransactionBegin();
 	DirInode* pp = DirInode::Load(session, lgc_op->parino_, &dinode);
 	FileInode* cp = FileInode::Make(session, lgc_op->childino_, &finode);
-	pp->Link(session, lgc_op->name_, cp);
-	
+	if ((ret = pp->Link(session, lgc_op->name_, cp)) < 0) {
+		goto abort;
+	}
+	session->journal()->TransactionCommit();
 	return E_SUCCESS;
+	
+abort:
+	session->journal()->TransactionAbort();
+	return ret;
 }
 
 
@@ -91,13 +98,19 @@ Publisher::MakeDir(::osd::server::OsdSession* osdsession, char* buf,
 	if (Inode::type(lgc_op->parino_) != kDirInode) {
 		return -E_VRFY;
 	}
+	session->journal()->TransactionBegin();
 	DirInode* pp = DirInode::Load(session, lgc_op->parino_, &dinode1);
 	DirInode* cp = DirInode::Make(session, lgc_op->childino_, &dinode2);
-	if ((ret = pp->Link(session, lgc_op->name_, cp)) < 0) { return ret; }
-	if ((ret = cp->Link(session, ".", cp)) < 0) { return ret; }
-	if ((ret = cp->Link(session, "..", pp)) < 0) { return ret; }
+	if ((ret = pp->Link(session, lgc_op->name_, cp)) < 0) { goto abort; }
+	if ((ret = cp->Link(session, ".", cp)) < 0) { goto abort; }
+	if ((ret = cp->Link(session, "..", pp)) < 0) { goto abort; }
 
+	session->journal()->TransactionCommit();
 	return E_SUCCESS;
+
+abort:
+	session->journal()->TransactionAbort();
+	return ret;
 }
 
 
@@ -124,8 +137,16 @@ Publisher::Link(::osd::server::OsdSession* osdsession, char* buf,
 	if (Inode::type(lgc_op->parino_) != kDirInode) {
 		return -1;
 	}
+	session->journal()->TransactionBegin();
 	DirInode* dp = DirInode::Load(session, lgc_op->parino_, &dinode);
-	return dp->Link(session, lgc_op->name_, lgc_op->childino_);
+	if ((ret = dp->Link(session, lgc_op->name_, lgc_op->childino_)) < 0) { goto abort; }
+
+	session->journal()->TransactionCommit();
+	return E_SUCCESS;
+
+abort:
+	session->journal()->TransactionAbort();
+	return ret;
 }
 
 
@@ -148,8 +169,18 @@ Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf,
 	}
 
 	// do the operation 
+	session->journal()->TransactionBegin();
 	DirInode* dp = DirInode::Load(session, lgc_op->parino_, &dinode);
-	return dp->Unlink(session, lgc_op->name_);
+	if ((ret = dp->Unlink(session, lgc_op->name_)) < 0) {
+		goto abort;
+	}
+
+	session->journal()->TransactionCommit();
+	return E_SUCCESS;
+
+abort:
+	session->journal()->TransactionAbort();
+	return ret;
 }
 
 
@@ -170,7 +201,16 @@ Publisher::Write(::osd::server::OsdSession* session, char* buf,
 		return ret;
 	}
 	// verify each container operation and then apply it
-	return write_verifier_->Parse(session, next);
+	if ((ret = write_verifier_->Parse(session, next)) < 0) {
+		goto abort;
+	}
+
+	session->journal()->TransactionCommit();
+	return E_SUCCESS;
+
+abort:
+	session->journal()->TransactionAbort();
+	return ret;
 }
 
 
