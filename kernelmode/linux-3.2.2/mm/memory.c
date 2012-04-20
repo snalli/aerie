@@ -3424,12 +3424,29 @@ int handle_pte_fault(struct mm_struct *mm,
 			return do_anonymous_page(mm, vma, address,
 						 pte, pmd, flags);
 		}
-
+		if(vma->persistent == true)
+		{
+			/* case where read nor write access is available
+			   pte is not present. So any sort of access to this
+			   page would trap into the OS */
+			printk(KERN_ERR"fault: address %lx entry %lx", address, *pte);
+			return VM_FAULT_PERS_PROT; 
+		}
 		if (pte_file(entry))
 			return do_nonlinear_fault(mm, vma, address,
 					pte, pmd, flags, entry);
 		return do_swap_page(mm, vma, address,
 					pte, pmd, flags, entry);
+	}
+
+	if(vma->persistent == true)
+	{
+		/* case where write access is not available
+		   pte is present but rw bit is not set. 
+		   So, any write access would trap into the OS.
+ 		*/
+		printk(KERN_ERR"fault: address %lx entry %lx", address, *pte);
+		return VM_FAULT_PERS_PROT; 
 	}
 
 	ptl = pte_lockptr(mm, pmd);
@@ -3463,8 +3480,9 @@ unlock:
 /*
  * By the time we get here, we already hold the mm semaphore
  */
-int pgoff__ = 0;
 extern unsigned long pgfault_serviced;
+unsigned long ppmd;
+bool ppmd_tracker;
 
 int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 		unsigned long address, unsigned int flags)
@@ -3474,7 +3492,7 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	pmd_t *pmd;
 	pte_t *pte;
 	int ret;
-	//unsigned long vaddr = PERS_START, i, limit = 128, onegb = 1024*1024*1024;
+	bool incref;
 
 	__set_current_state(TASK_RUNNING);
 
@@ -3487,15 +3505,8 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (unlikely(is_vm_hugetlb_page(vma)))
 		return hugetlb_fault(mm, vma, address, flags);
 
-	/*if(current->comm[0] == 'z' && current->comm[1] == 'z' && pgoff__ < 2)
-		for(i = 0; i < limit; i++)
-		{
-			printk(KERN_ERR"%ld GB --> pgd %lx pud %lx pmd %lx ", i, pgd_index(vaddr+(i*onegb)), pud_index(vaddr+(i*onegb)), pmd_index(vaddr+(i*onegb)));
-			pgoff__++;
-		}
-	*/
-
-	//if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+	if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+		incref = true;
 	//	printk(KERN_ERR"process : %s", current->comm);
 
 	pgd = pgd_offset(mm, address);
@@ -3506,6 +3517,8 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	pud = pud_alloc(mm, pgd, address);
 	if (!pud)
 		return VM_FAULT_OOM;
+	if(incref)
+		get_page(pfn_to_page(__pa(pud) >> PAGE_SHIFT));
 	//if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
 	//	printk(KERN_ERR"handle_mm_fault pud %lx offset %lx *pud %lx",
 	//		pud, pud_index(address), *pud); 
@@ -3514,6 +3527,11 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	pmd = pmd_alloc(mm, pud, address);
 	if (!pmd)
 		return VM_FAULT_OOM;
+	if(incref){
+		get_page(pfn_to_page(__pa(pmd) >> PAGE_SHIFT));
+		ppmd_tracker = true;
+		ppmd = (unsigned long)pmd;
+	}
 	//if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
 	//	printk(KERN_ERR"handle_mm_fault pmd %lx offset %lx *pmd %lx",
 	//		pmd, pmd_index(address), *pmd); 

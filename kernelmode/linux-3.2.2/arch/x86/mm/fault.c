@@ -990,9 +990,6 @@ static int fault_in_kernel_space(unsigned long address)
  * and the problem, and then passes it off to one of the appropriate
  * routines.
  */
-
-//extern void do_persistent_fault(unsigned long);
-
 dotraplinkage void __kprobes
 do_page_fault(struct pt_regs *regs, unsigned long error_code)
 {
@@ -1161,8 +1158,7 @@ good_area:
 	if(vma->persistent == true)
 	{ 
 		/* fault handling given to scm.c */
-		//do_persistent_fault(address);
-		printk(KERN_ERR"tracking success till this point"); 
+		//printk(KERN_ERR"tracking success till this point"); 
 	}
 
 	if (unlikely(access_error(error_code, vma))) {
@@ -1178,6 +1174,11 @@ good_area:
 	fault = handle_mm_fault(mm, vma, address, flags);
 
 	if (unlikely(fault & (VM_FAULT_RETRY|VM_FAULT_ERROR))) {
+		if(fault &VM_FAULT_PERS_PROT)
+		{
+			bad_area_access_error(regs, error_code, address);
+			return;
+		}
 		if (mm_fault_error(regs, error_code, address, fault))
 			return;
 	}

@@ -947,6 +947,7 @@ unsigned long do_mmap_pgoff_wrapper(struct file *file, unsigned long addr,
 
         if(current->persistent_region_defined == false)
         {
+		int i;
                 unsigned long p_addr = PERS_START;
                 unsigned long p_len = PERS_SPACE; 
                 unsigned long p_flags = MAP_SHARED | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED; 
@@ -954,25 +955,29 @@ unsigned long do_mmap_pgoff_wrapper(struct file *file, unsigned long addr,
                 unsigned long p_pgoff = 0;
 		struct vm_area_struct *vma = NULL;
 
+		//for(i = 0;i < 20; i++)
+		//	printk(KERN_ERR"%s virtual hole", current->comm);
+
                 ret_p = do_mmap_pgoff(NULL, p_addr, p_len, p_prot, p_flags, p_pgoff);
+		//for(i = 0;i < 20; i++)
+		//	printk(KERN_ERR"%s virtual space returned %ld", current->comm, ret_p);
 		vma = find_vma(current->mm, p_addr);
 		if(vma)
 		{
 			vma->persistent = true;
 
 			// Initialize shared page table for persistent region
-			//if(strstr(current->comm, "reader_") ||
-			//	strstr(current->comm, "writer"))
 			{
-				pud_t *pud = find_shared_ppgtbl_entry(
+				ppgtable_user *p = find_shared_ppgtbl_entry(
 					current->cred->uid, true, true);
-				pud_assign(current->mm, 
-					pgd_offset(current->mm, p_addr), pud);
-	//printk(KERN_ERR"ASSIGN %s: pgd--%lx *pgd--%lx pud--%lx pid--%lx",
-	//				current->comm, 
-	//				pgd_offset(current->mm, p_addr),
-	//				*(pgd_offset(current->mm, p_addr)),
-	//				pud, current->cred->uid);
+				if(p != NULL)
+				{
+					pud_assign(current->mm, 
+				  		pgd_offset(current->mm, p_addr),
+						p->ppud);
+				}
+				else
+					printk(KERN_ERR"Too many users and shared user data structure cannot be allocated");
 			}
 		}
                 current->persistent_region_defined = true;

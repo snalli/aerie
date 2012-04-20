@@ -21,6 +21,7 @@ unsigned long memblocksz_mb = 0;
  */
 ppgtable_user ppgtbl[MAXUSERS];
 unsigned long ppgtbl_index = 0;
+unsigned long pg_prot_mapsize = 0;
 DEFINE_MUTEX(ppgtbl_lock);
 
 /*
@@ -109,6 +110,10 @@ void init_scm(void)
 	unsigned long onegb = 1024*1024*1024;
 
 	//printk(KERN_ERR"possible devices %d", MAX_MEMBLOCKS);
+	pg_prot_mapsize = PERS_SPACE;
+	pg_prot_mapsize /= EXTENTSIZE;
+	pg_prot_mapsize *= 2;
+	pg_prot_mapsize /= sizeof(unsigned long);
 
 	freememblocks = (unsigned long *)kmalloc
 		(sizeof(unsigned long) * MEMBLOCKS_BMAPSZ, GFP_KERNEL);
@@ -144,6 +149,11 @@ void init_scm(void)
 	passive_map1.max_virtindex = passive_map2.max_virtindex = -1;
 }
 
+/*
+ * Allocating persistent chunks - a bitmap of free memory regions is
+ * maintained. Consecutive memory regions satisfying the request size
+ * will be offlined and sent to the requester.
+ */
 long allocate_persistent_chunk(unsigned long *p_index, unsigned long size_mb)
 {
 	//The constraints on the requested size should be checked by the caller
@@ -213,6 +223,11 @@ long allocate_persistent_chunk(unsigned long *p_index, unsigned long size_mb)
 	return SUCCESS;
 }
 
+/*
+ * System call used to allocate persistent chunks to the user. This entry
+ * function makes some checks like if the virtual address has already been
+ * allocated, request lies in chunk boundary etc.
+ */
 SYSCALL_DEFINE2(alloc_persistent, unsigned long, v_addr, unsigned long, size_mb)
 {
 	/*
@@ -316,6 +331,122 @@ SYSCALL_DEFINE2(alloc_persistent, unsigned long, v_addr, unsigned long, size_mb)
 	return SUCCESS;
 }
 
+SYSCALL_DEFINE3(mpprotect, void *, extseg, uid_t, uid, int, rw)
+{
+	extent ext = *(extent *)extseg;
+	unsigned long offset = 0;
+	unsigned long nr_extents = 0;
+	bool read = false, write = false;
+	unsigned long *pgprotmap, i, address;
+	long int oldr = 0, oldw = 0;
+	ppgtable_user *p;
+	struct mm_struct *mm;
+	pgd_t *pgd;
+	pud_t *pud;
+	pmd_t *pmd;
+	pte_t *pte;
+	pte_t *page_table;
+        pte_t entry;
+        spinlock_t *ptl;
+
+	mm = current->mm;
+	p = find_shared_ppgtbl_entry(current->cred->uid, false, false);
+	if(!p)
+		return NOUSERERROR; 
+
+	pgprotmap = p->page_prot_map;
+
+	//printk(KERN_ERR"Changing protection Extent base : %lx Size : %lx", ext.base, ext.size);
+
+	// check if given extent size is in granularity of extent
+	if(ext.base & (EXTENTSIZE-1) || ext.size & (EXTENTSIZE-1))
+		return SZALIGNERROR;
+
+	// find the base extents covered by the extent segment sent by user
+	// fetch the appropriate extent protection bitmap
+	offset = ext.base - PERS_START;
+	offset = offset >> EXTENT_SHIFT;	
+
+	nr_extents = ext.size >> EXTENT_SHIFT;	
+
+	// apply protection bits to the user based bitmap
+	rw = rw & 0x3;
+	if(rw & 0x2)
+		read = true;
+	if(rw & 0x1)
+		write = true;
+
+	for(i = 0; i < nr_extents; i++)
+	{
+		address = ext.base + (i*EXTENTSIZE);
+		oldr = test_bit(((offset+i)*2), pgprotmap); 
+		oldw = test_bit(((offset+i)*2)+1, pgprotmap); 
+
+		/* Change the protection bits in the bitmap 
+		   maintained in the user shared structure */
+		if(read)
+			set_bit(((offset+i)*2), pgprotmap); 
+		else
+			clear_bit(((offset+i)*2), pgprotmap); 
+		if(write)
+			set_bit(((offset+i)*2)+1, pgprotmap); 
+		else
+			clear_bit(((offset+i)*2)+1, pgprotmap); 
+
+		/* Check if TLb flush can be avoided by any chance 
+
+		   If the old and the currently applid protection rights
+		   remains the same, then changing the bitmap is enough 
+		
+		We don't need to modify the pte entries either if we are not
+		going t flush the TLB. During the page fault, the handler
+		will refer to the bitmap to find the appropriate rights.
+		So, it's enough if the bitmap is updated */	
+		//if(!oldr && !oldw)
+		//	continue;
+		if((!!oldr == !!(rw&0x2)) && (!!oldw == !!(rw&0x1)))
+			continue;
+
+		//printk(KERN_ERR"Address %lx %d %d %d", address, oldr, oldw, rw);
+
+		/* Update the pte entires if it exeist and flush  TLB entry */
+		pgd = pgd_offset(mm, address);	
+		if(pgd_none(*pgd))
+			continue;
+		pud = pud_offset(pgd, address);
+		if(pud_none(*pud))
+			continue;
+		pmd = pmd_offset(pud, address);
+		if(pmd_none(*pmd))
+			continue;
+		pte = pte_offset_map(pmd, address);
+		if(pte == NULL)
+			continue;
+		if(pte_none(*pte))
+			continue;
+		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
+		entry = *pte;
+		entry = set_base_pte_flags(entry);
+		if(write)
+		{ 
+			entry = pte_mkwrite(entry);
+			entry = pte_mkpresent(entry);
+		}
+		if(read)
+		{
+			// if dirty then cache flush something like that
+			entry = pte_mkpresent(entry);
+			entry = pte_mkclean(entry);
+		}
+		set_pte_at(mm, address, page_table, entry);
+		pte_unmap_unlock(page_table, ptl);
+		//printk(KERN_ERR"flushing for %lx and entry %lx", address, entry);
+		__flush_tlb_one(address);
+	}
+
+	return SUCCESS; 
+}
+
 /*
  * Page fault handler for persistent region
  * 1. Establishes the page table entry
@@ -333,7 +464,7 @@ int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 			unsigned long address, pte_t *pte, pmd_t *pmd,
 			unsigned int flags)
 {
-	int i;
+	int i, ret = 0;
         spinlock_t *ptl;
         pte_t entry;
 	pte_t *page_table;
@@ -341,8 +472,10 @@ int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	virt_phys_map *vpmap = active_mapping;
 	bool block_fnd = false;
 	struct page* first_page;
+	ppgtable_user *p;
+	unsigned long *pgprotmap, ee_offset;
 
-	//printk(KERN_ERR"do_persistent_fault: faulting address %lx", address);
+	p = find_shared_ppgtbl_entry(current->cred->uid, false, false);
 
 	for(i = vpmap->max_virtindex; i >= 0; i--)
 	{
@@ -371,20 +504,59 @@ int do_persistent_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 		pgfault_serviced++;
 		//printk(KERN_ERR"%s: va_pg %lx; va_off %lx; p_start %lx; p_w_off %lx; page_nr %lx;", current->comm, va_pg, va_off, p_start, p_w_off, page_nr);
 	}
+	else
+	{
+		printk(KERN_ERR"%lx is not in physical memory backed region", address);
+		return VM_FAULT_PERS_PROT;	
+	}
 
 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
 	entry = pfn_pte(page_nr, vma->vm_page_prot);
 
-	if (flags & FAULT_FLAG_WRITE)
-		entry = pte_mkwrite(pte_mkdirty(entry));
+	/* set protection bits */
+	if(!p)
+	{
+		printk(KERN_ERR"User shared data structure for user %lx is not found", current->cred->uid);
+		return VM_FAULT_PERS_PROT;	
+	}
 
-	//printk(KERN_ERR"persistent pte entry %lx", entry);
+	pgprotmap = p->page_prot_map;
+	ee_offset = address - PERS_START;
+	ee_offset = ee_offset >> EXTENT_SHIFT;
+
+	//printk(KERN_ERR"extent offset : %ld", ee_offset);
+	
+	if(flags & FAULT_FLAG_WRITE)
+	{
+		if(test_bit((ee_offset*2)+1, pgprotmap))
+			entry = pte_mkwrite(pte_mkdirty(entry));
+		else
+		{
+			printk(KERN_ERR"user %lx does not have write access to address %lx", current->cred->uid, address);
+			entry = clear_pte_flags(entry);
+			ret = VM_FAULT_PERS_PROT;	
+		}	
+	}
+	else // read access
+	{
+		entry = pte_wrprotect(entry);
+		entry = pte_mkclean(entry);
+		// if read bit is not set return error
+		if(!test_bit((ee_offset*2), pgprotmap))
+		{
+			printk(KERN_ERR"user %lx does not have read access to address %lx", current->cred->uid, address);
+			entry = clear_pte_flags(entry);
+			ret = VM_FAULT_PERS_PROT;
+		}
+	}
+
+	//printk(KERN_ERR"VA %lx persistent pte entry %lx", address, entry);
 	set_pte_at(mm, address, page_table, entry);
 	update_mmu_cache(vma, address, page_table);
 
 	pte_unmap_unlock(page_table, ptl);
 
-	return 0;
+	return ret;
 }
 
 void pud_assign(struct mm_struct *mm, pgd_t *pgd, pud_t *new)
@@ -394,10 +566,11 @@ void pud_assign(struct mm_struct *mm, pgd_t *pgd, pud_t *new)
 	spin_unlock(&mm->page_table_lock);
 }
 
-pud_t *find_shared_ppgtbl_entry(uid_t uid, bool create_new, bool incref)
+ppgtable_user *find_shared_ppgtbl_entry(uid_t uid, bool create_new, bool incref)
 {
 	unsigned long i;
-	pud_t *ppud = NULL;
+	ppgtable_user *p = NULL;
+	pud_t *ppud = NULL, *ppud_ret = NULL;
 
 	if(create_new == true)
 		mutex_lock(&ppgtbl_lock);
@@ -406,7 +579,7 @@ pud_t *find_shared_ppgtbl_entry(uid_t uid, bool create_new, bool incref)
 	{
 		if(ppgtbl[i].uid == uid)
 		{
-			ppud = ppgtbl[i].ppud;
+			p = &(ppgtbl[i]);
 			goto ppgd_ret; 
 		}
 	}
@@ -417,7 +590,11 @@ pud_t *find_shared_ppgtbl_entry(uid_t uid, bool create_new, bool incref)
 
 	ppg_tracker = true;
 	ppgtbl[ppgtbl_index].uid = uid;
-	ppud = ppgtbl[ppgtbl_index].ppud = pud_alloc_one(NULL, 0x0);
+	ppud_ret = ppgtbl[ppgtbl_index].ppud = pud_alloc_one(NULL, 0x0);
+	ppgtbl[ppgtbl_index].page_prot_map = (unsigned long *)kmalloc
+		(sizeof(unsigned long) * pg_prot_mapsize, GFP_KERNEL);
+	bitmap_zero(ppgtbl[ppgtbl_index].page_prot_map, pg_prot_mapsize);
+	p = &(ppgtbl[ppgtbl_index]);
 	ppgtbl_index++;
 
 	for(i = 0;i < ppgtbl_index; i++)
@@ -431,22 +608,23 @@ ppgd_ret:
 	if(create_new == true)
 		mutex_unlock(&ppgtbl_lock);
 
-	if(ppud != NULL && incref == true)
-		get_page(pfn_to_page(__pa(ppud) >> PAGE_SHIFT));
+	if(ppud_ret != NULL && incref == true)
+		get_page(pfn_to_page(__pa(ppud_ret) >> PAGE_SHIFT));
 
-	return ppud;
+	return p;
 }
 
 void clear_ppgd_from_mm(struct mm_struct *mm)
 {
 	pgd_t *pgd;
-	pud_t *pud, *shared_pud;
+	pud_t *pud;
+	ppgtable_user *p;
 
 	pgd = pgd_offset(mm, PERS_START);
 	pud = pud_offset(pgd, PERS_START);
-	shared_pud = find_shared_ppgtbl_entry(current->cred->uid, false, false);
-
-	if(pud == shared_pud)
+	p = find_shared_ppgtbl_entry(current->cred->uid, false, false);
+	
+	if(p != NULL && pud == p->ppud)
 	{
 	//printk(KERN_ERR"REVOKE %s pgd--%lx *pgd--%lx pud--%lx pid--%lx", 
 	//		current->comm, pgd, *pgd, pud, current->cred->uid);

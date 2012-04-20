@@ -2340,13 +2340,24 @@ void __pagevec_free(struct pagevec *pvec)
 
 #define pfn_to_virt(pfn) __va((pfn) << PAGE_SHIFT)
 extern bool ppg_tracker;
+extern bool ppmd_tracker;
+extern unsigned long ppmd;
+
 void __free_pages(struct page *page, unsigned int order)
 {
 	unsigned long addr = pfn_to_virt(page_to_pfn(page));
 	if (put_page_testzero(page)) {
 		if(addr == ppgtbl[0].ppud && ppg_tracker == true)
 		{
-			printk(KERN_ERR"OMG - freeing which is not supposed to %lx by %s", addr, current->comm);
+			printk(KERN_ERR"OMG - freeing pmd %lx by %s", 
+				addr, current->comm);
+			dump_stack();
+		}
+
+		if(addr == ppmd && ppmd_tracker == true)
+		{
+			printk(KERN_ERR"OMG - freeing pud %lx by %s", 
+				addr, current->comm);
 			dump_stack();
 		}
 
