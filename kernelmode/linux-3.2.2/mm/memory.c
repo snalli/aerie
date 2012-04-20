@@ -66,6 +66,7 @@
 #include <asm/pgtable.h>
 
 #include "internal.h"
+#include "scm.h"
 
 #ifndef CONFIG_NEED_MULTIPLE_NODES
 /* use the per-pgdat data instead for discontigmem - mbligh */
@@ -399,18 +400,21 @@ void tlb_remove_table(struct mmu_gather *tlb, void *table)
 
 void pgd_clear_bad(pgd_t *pgd)
 {
+	dump_stack();
 	pgd_ERROR(*pgd);
 	pgd_clear(pgd);
 }
 
 void pud_clear_bad(pud_t *pud)
 {
+	dump_stack();
 	pud_ERROR(*pud);
 	pud_clear(pud);
 }
 
 void pmd_clear_bad(pmd_t *pmd)
 {
+	dump_stack();
 	pmd_ERROR(*pmd);
 	pmd_clear(pmd);
 }
@@ -563,6 +567,12 @@ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *vma,
 	while (vma) {
 		struct vm_area_struct *next = vma->vm_next;
 		unsigned long addr = vma->vm_start;
+
+		/*if(vma->persistent == true)
+		{
+			vma = next;
+			continue;
+		}*/
 
 		/*
 		 * Hide vma from rmap and truncate_pagecache before freeing
@@ -1323,6 +1333,9 @@ unsigned long unmap_vmas(struct mmu_gather *tlb,
 	mmu_notifier_invalidate_range_start(mm, start_addr, end_addr);
 	for ( ; vma && vma->vm_start < end_addr; vma = vma->vm_next) {
 		unsigned long end;
+
+		if(vma->persistent == true)
+			continue;
 
 		start = max(vma->vm_start, start_addr);
 		if (start >= vma->vm_end)
@@ -3183,6 +3196,8 @@ static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	vmf.page = NULL;
 
 	ret = vma->vm_ops->fault(vma, &vmf);
+	//if(current->comm[0] == 'z' && current->comm[1] == 'z')
+	//	printk(KERN_ERR"__do_Fault for zz.o %lx", vma->vm_ops->fault);
 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
 			    VM_FAULT_RETRY)))
 		goto uncharge_out;
@@ -3274,6 +3289,11 @@ static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 				get_page(dirty_page);
 			}
 		}
+		/*if(current->comm[0] == 'z' && current->comm[1] == 'z')
+		{
+		printk(KERN_ERR"pfn valid %d present %d", pfn_valid(page_to_pfn(page)), pfn_present(page_to_pfn(page)));
+		printk(KERN_ERR"__do_fault pte entry %lx page_nr %lx", entry, page_to_pfn(page));
+		}*/
 		set_pte_at(mm, address, page_table, entry);
 
 		/* no need to invalidate: a not-present page won't be cached */
@@ -3393,6 +3413,9 @@ int handle_pte_fault(struct mm_struct *mm,
 	entry = *pte;
 	if (!pte_present(entry)) {
 		if (pte_none(entry)) {
+			if(vma->persistent == true)
+				return do_persistent_fault(mm, vma, address,
+						pte, pmd, flags);
 			if (vma->vm_ops) {
 				if (likely(vma->vm_ops->fault))
 					return do_linear_fault(mm, vma, address,
@@ -3401,11 +3424,29 @@ int handle_pte_fault(struct mm_struct *mm,
 			return do_anonymous_page(mm, vma, address,
 						 pte, pmd, flags);
 		}
+		if(vma->persistent == true)
+		{
+			/* case where read nor write access is available
+			   pte is not present. So any sort of access to this
+			   page would trap into the OS */
+			printk(KERN_ERR"fault: address %lx entry %lx", address, *pte);
+			return VM_FAULT_PERS_PROT; 
+		}
 		if (pte_file(entry))
 			return do_nonlinear_fault(mm, vma, address,
 					pte, pmd, flags, entry);
 		return do_swap_page(mm, vma, address,
 					pte, pmd, flags, entry);
+	}
+
+	if(vma->persistent == true)
+	{
+		/* case where write access is not available
+		   pte is present but rw bit is not set. 
+		   So, any write access would trap into the OS.
+ 		*/
+		printk(KERN_ERR"fault: address %lx entry %lx", address, *pte);
+		return VM_FAULT_PERS_PROT; 
 	}
 
 	ptl = pte_lockptr(mm, pmd);
@@ -3439,6 +3480,10 @@ unlock:
 /*
  * By the time we get here, we already hold the mm semaphore
  */
+extern unsigned long pgfault_serviced;
+unsigned long ppmd;
+bool ppmd_tracker;
+
 int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 		unsigned long address, unsigned int flags)
 {
@@ -3446,6 +3491,8 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	pud_t *pud;
 	pmd_t *pmd;
 	pte_t *pte;
+	int ret;
+	bool incref;
 
 	__set_current_state(TASK_RUNNING);
 
@@ -3458,13 +3505,45 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (unlikely(is_vm_hugetlb_page(vma)))
 		return hugetlb_fault(mm, vma, address, flags);
 
+	if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+		incref = true;
+	//	printk(KERN_ERR"process : %s", current->comm);
+
 	pgd = pgd_offset(mm, address);
+	//if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+	//	printk(KERN_ERR"handle_mm_fault pgd %lx offset %lx *pgd %lx",
+	//		pgd, pgd_index(address), *pgd); 
+
 	pud = pud_alloc(mm, pgd, address);
 	if (!pud)
 		return VM_FAULT_OOM;
+	if(incref)
+		get_page(pfn_to_page(__pa(pud) >> PAGE_SHIFT));
+	//if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+	//	printk(KERN_ERR"handle_mm_fault pud %lx offset %lx *pud %lx",
+	//		pud, pud_index(address), *pud); 
+
+
 	pmd = pmd_alloc(mm, pud, address);
 	if (!pmd)
 		return VM_FAULT_OOM;
+	if(incref){
+		get_page(pfn_to_page(__pa(pmd) >> PAGE_SHIFT));
+		ppmd_tracker = true;
+		ppmd = (unsigned long)pmd;
+	}
+	//if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+	//	printk(KERN_ERR"handle_mm_fault pmd %lx offset %lx *pmd %lx",
+	//		pmd, pmd_index(address), *pmd); 
+
+	if(pmd >= 0xffff900000000000)
+		if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+		{
+		printk(KERN_ERR"page table serviced : %lx", pgfault_serviced);
+		printk(KERN_ERR"BUGBUGBUG : pgd %lx *pgd %lx pud %lx *pud %lx",
+				pgd, *pgd, pud, *pud);
+		}
+
 	if (pmd_none(*pmd) && transparent_hugepage_enabled(vma)) {
 		if (!vma->vm_ops)
 			return do_huge_pmd_anonymous_page(mm, vma, address,
@@ -3500,7 +3579,24 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	 */
 	pte = pte_offset_map(pmd, address);
 
-	return handle_pte_fault(mm, vma, address, pte, pmd, flags);
+	ret = handle_pte_fault(mm, vma, address, pte, pmd, flags);
+
+	/*if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+		printk(KERN_ERR"After handling");
+
+	if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+		printk(KERN_ERR"handle_mm_fault pgd %lx offset %lx *pgd %lx",
+			pgd, pgd_index(address), *pgd); 
+
+	if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+		printk(KERN_ERR"handle_mm_fault pud %lx offset %lx *pud %lx",
+			pud, pud_index(address), *pud); 
+
+	if(address >= PERS_START && address <= PERS_START+PERS_SPACE)
+		printk(KERN_ERR"handle_mm_fault pmd %lx offset %lx *pmd %lx",
+			pmd, pmd_index(address), *pmd);*/ 
+
+	return ret;
 }
 
 #ifndef __PAGETABLE_PUD_FOLDED

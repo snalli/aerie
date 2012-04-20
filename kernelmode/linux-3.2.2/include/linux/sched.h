@@ -1572,6 +1572,7 @@ struct task_struct {
 #ifdef CONFIG_HAVE_HW_BREAKPOINT
 	atomic_t ptrace_bp_refcnt;
 #endif
+	bool persistent_region_defined;
 };
 
 /* Future-safe accessor for struct task_struct's cpus_allowed. */
