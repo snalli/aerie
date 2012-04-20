@@ -859,6 +859,8 @@ asmlinkage long sys_process_vm_writev(pid_t pid,
 asmlinkage long sys_alloc_persistent(unsigned long v_addr,
 				    unsigned long size_mb);
 asmlinkage long sys_mpprotect(void *ext,
-			     uid_t uid,
-			     int rw);
+			      void *rights,
+			      int count);
+asmlinkage long sys_flush_pg(int flush_all);
+
 #endif

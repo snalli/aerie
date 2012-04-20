@@ -4,6 +4,7 @@
 #include <linux/syscalls.h>
 #include <linux/slab.h>
 #include <linux/types.h>
+#include <linux/cpumask.h>
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
@@ -31,6 +32,12 @@ static pte_t inline clear_pte_flags(pte_t pte)
 {
 	pteval_t v = native_pte_val(pte);
 	return native_make_pte(v & ~0xfff);
+}
+
+static pte_t inline flush_pte(pte_t pte)
+{
+	pteval_t v = native_pte_val(pte);
+	return native_make_pte(v & 0x0);
 }
 
 static pte_t inline set_base_pte_flags(pte_t pte)
@@ -73,12 +80,18 @@ typedef struct {
 	uid_t uid;
 	pud_t *ppud;
 	unsigned long *page_prot_map;
+	struct mm_struct d_mm;
 }ppgtable_user;
 
 typedef struct {
 	unsigned long base;
 	unsigned long size;
 }extent;
+
+typedef struct {
+	uid_t uid;
+	int rw;
+}user_file_rights;
 
 extern ppgtable_user ppgtbl[];
 extern unsigned long ppgtbl_index;

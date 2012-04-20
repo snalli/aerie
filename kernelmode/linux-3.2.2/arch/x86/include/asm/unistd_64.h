@@ -690,6 +690,8 @@ __SYSCALL(__NR_process_vm_writev, sys_process_vm_writev)
 __SYSCALL(__NR_alloc_persistent, sys_alloc_persistent)
 #define __NR_mpprotect				313
 __SYSCALL(__NR_mpprotect, sys_mpprotect)
+#define __NR_flush_pg				314
+__SYSCALL(__NR_flush_pg, sys_flush_pg)
 
 #ifndef __NO_STUBS
 #define __ARCH_WANT_OLD_READDIR
