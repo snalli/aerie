@@ -1,11 +1,10 @@
-#include <stdio.h>
-#include <syscall.h>
 #include "cheader.h"
 
 int main(int argc, char** argv)
 {
-	void *caster; 
-	extent trial;
+	void *caster, *rights; 
+	extent etrial;
+	user_file_rights rtrial;
 	int rw;
 	char sizeunit;
 	int size;
@@ -37,15 +36,19 @@ int main(int argc, char** argv)
 
 	printf("rw bit used %d\n", rw);
 
-	trial.base = 0x8000000000;
-	trial.size = size_b;
+	etrial.base = 0x8000000000;
+	etrial.size = size_b;
+
+	rtrial.uid = 0;
+	rtrial.rw = rw;
 
 	printf("size in bytes : %lx\n", size_b);
 
-	caster = (void *)&trial;
+	caster = (void *)&etrial;
+	rights = (void *)&rtrial;
 
 	start_timer();
-	printf("error : %d\n", syscall(313, caster, 0, rw));
+	printf("error : %d\n", syscall(313, caster, rights, 1));
 	end_timer();
 
 	print_time_diff();
