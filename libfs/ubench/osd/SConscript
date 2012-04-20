@@ -1,0 +1,10 @@
+import os, sys
+Import('mainEnv')
+
+buildEnv = mainEnv.Clone()
+buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
+buildEnv.Append(CPPPATH = ['#src', '#'])
+
+ubenchSource = ['create.cc', 'open.cc', 'lock.cc', 'hlock.cc', 'rpc.cc', 'osd.cc']
+ubenchObject = buildEnv.Object(ubenchSource)
+Return('ubenchObject') 

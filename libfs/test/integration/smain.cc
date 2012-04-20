@@ -33,13 +33,14 @@ main(int argc, char *argv[])
 	port = 20000 + (getpid() % 10000);
 
 	char ch = 0;
-	while ((ch = getopt(argc, argv, "csd:p:lT:"))!=-1) {
+	while ((ch = getopt(argc, argv, "cs:d:p:lT:"))!=-1) {
 		switch (ch) {
 			case 'T':
 				/* test framework argument -- ignore */
 				break;
 			case 's':
 				pathname = optarg;
+				break;
 			case 'd':
 				debug_level = atoi(optarg);
 				break;
@@ -60,7 +61,7 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 
-	printf("Starting file system server on port %d RPC_HEADER_SZ %d\n", port, RPC_HEADER_SZ);
+	printf("Starting file system server on port %d\n", port);
 
 	server::Server::Instance()->Init(pathname, 0, port);
 	assert(TestInit() == E_SUCCESS);

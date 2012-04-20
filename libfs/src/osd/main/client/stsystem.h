@@ -4,7 +4,7 @@
 #include "bcs/main/client/bcs-opaque.h"
 #include "osd/main/client/osd-opaque.h"
 #include "osd/main/common/stsystem.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 
 namespace osd {
 namespace client {

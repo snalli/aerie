@@ -12,6 +12,8 @@
 #include "osd/containers/map/hashtable.h"
 #include "osd/containers/containers.h"
 #include "osd/main/client/salloc.h"
+#include "osd/main/client/journal.h"
+#include "osd/main/server/journal.h"
 #include "osd/main/common/obj.h"
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
@@ -107,7 +109,7 @@ NameContainer::Object<Session>::Insert(Session* session, const char* name, osd::
 {
 	uint64_t u64;
 
-	dbg_log(DBG_DEBUG, "NameContainer %p, insert %s --> %p\n", this, name, oid.u64());
+	dbg_log(DBG_DEBUG, "NameContainer %p, insert %s --> %p\n", this, name, (void*) oid.u64());
 
 	if (name[0] == '\0') {
 		return -1;

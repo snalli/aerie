@@ -209,6 +209,8 @@ protected:
 // Marshalling/unmarshalling functions for Object Identifier.
 // (these live in the global namespace to be visible from the rpc library
 
+namespace rpcnet {
+
 inline marshall& operator<<(marshall &m, ::osd::common::ObjectId oid) {
 	m << (unsigned long long) oid.u64();
 	return m;
@@ -221,5 +223,26 @@ inline unmarshall& operator>>(unmarshall &u, ::osd::common::ObjectId& oid) {
 	oid = ::osd::common::ObjectId(u64);
 	return u;
 }
+
+} // namespace rpcnet
+
+
+namespace rpcfast {
+
+inline marshall& operator<<(marshall &m, ::osd::common::ObjectId oid) {
+	m << (unsigned long long) oid.u64();
+	return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, ::osd::common::ObjectId& oid) {
+	unsigned long long u64;
+	u >> u64;
+	oid = ::osd::common::ObjectId(u64);
+	return u;
+}
+
+} // namespace rpcfast
+
 
 #endif // __STAMNOS_SA_COMMON_OBJECT_H

@@ -23,13 +23,13 @@ Export('testEnv')
 thedir = os.path.join(Dir('#').abspath, 'test/unit')
 dirs = [ name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
 
-Import('spaLibrary')
+Import('scmLibrary')
 Import('fscLibrary')
 Import('mfsClientLibrary')
 Import('commonLibrary')
 Import('bcsClientLibrary')
 Import('osdClientLibrary')
-depLibs = [mfsClientLibrary, spaLibrary, fscLibrary, osdClientLibrary, bcsClientLibrary, commonLibrary]
+depLibs = [mfsClientLibrary, scmLibrary, fscLibrary, osdClientLibrary, bcsClientLibrary, commonLibrary]
 
 source = [Glob('*/*.test.cc'), Glob('*/*.fixture.cc'), Glob('*/*.helper.cc'), 'main.cc']
 source += [Glob('*/*/*.test.cc'), Glob('*/*/*.fixture.cc'), Glob('*/*/*.helper.cc')]

@@ -3,7 +3,7 @@
 #include "bcs/bcs.h"
 #include "osd/main/server/osd.h"
 #include "osd/main/server/sessionmgr.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "cfs/common/fs_protocol.h"
 #include "cfs/server/fs.h"
 #include "cfs/server/session.h"
@@ -119,15 +119,15 @@ FileSystem::MakeFile(Session* session, const char* path,
 	InodeNumber childino;
 	
 	dbg_log (DBG_INFO, "Create file %s\n", path);
-	
 	if ((ret = session->namespace_->Nameiparent(session, path, name, &parino)) < 0) {
 		return ret;
 	}
 	
 	DirInode* pp = DirInode::Load(session, parino, &dinode1);
 	FileInode* cp = FileInode::Make(session, &finode);
-	pp->Link(session, name, cp);
-	
+	if ((ret = pp->Link(session, name, cp)) < 0) {
+		return ret;
+	}
 	ino = cp->ino();
 
 	return E_SUCCESS;

@@ -10,10 +10,9 @@
 #include "osd/main/client/stm.h"
 #include "osd/main/client/salloc.h"
 #include "osd/main/client/omgr.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "cfs/common/fs_protocol.h"
 #include "cfs/common/publisher.h"
-#include "cfs/client/session.h"
 #include "common/prof.h"
 #include "cfs/common/types.h"
 #include "cfs/common/shreg.h"
@@ -25,8 +24,6 @@
 //current working directory
 
 namespace client {
-
-__thread Session* thread_session;
 
 FileManager*                global_fmgr;
 Ipc*                        global_ipc_layer;
@@ -101,19 +98,6 @@ Client::Shutdown()
 }
 
 
-Session*
-Client::CurrentSession()
-{
-	if (thread_session) {
-		return thread_session;
-	}
-
-	thread_session = new Session(global_storage_system);
-	thread_session->tx_ = osd::stm::client::Self();
-	return thread_session;
-}
-
-
 int 
 Client::Mount(const char* source, 
               const char* target, 
@@ -152,7 +136,7 @@ Client::Mount(const char* source,
 //
 // returns with the inode ipp referenced (get) and locked
 static inline int
-create(::client::Session* session, const char* path, int mode, int type, InodeNumber* inop)
+create(const char* path, int mode, int type, InodeNumber* inop)
 {
 	char                              name[128];
 	int                               ret;
@@ -200,7 +184,6 @@ Client::Open(const char* path, int flags, int mode)
 	File*                           fp;
 	FileSystemProtocol::InodeNumber protocol_ino;
 	InodeNumber                     ino;
-	Session*                        session = CurrentSession();
 	
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
@@ -211,7 +194,7 @@ Client::Open(const char* path, int flags, int mode)
 	}
 	
 	if (flags & O_CREAT) {
-		if ((ret = create(session, path, mode, kFileInode, &ino)) < 0) {
+		if ((ret = create(path, mode, kFileInode, &ino)) < 0) {
 			return ret;
 		}	
 	} else {
@@ -263,7 +246,7 @@ Client::WriteOffset(int fd, const char* src, uint64_t n, uint64_t offset)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Write(CurrentSession(), src, n, offset);
+	return fp->Write(src, n, offset);
 }
 
 
@@ -276,7 +259,7 @@ Client::ReadOffset(int fd, char* dst, uint64_t n, uint64_t offset)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Read(CurrentSession(), dst, n, offset);
+	return fp->Read(dst, n, offset);
 }
 
 
@@ -289,7 +272,7 @@ Client::Write(int fd, const char* src, uint64_t n)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Write(CurrentSession(), src, n);
+	return fp->Write(src, n);
 }
 
 
@@ -302,7 +285,7 @@ Client::Read(int fd, char* dst, uint64_t n)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Read(CurrentSession(), dst, n);
+	return fp->Read(dst, n);
 }
 
 
@@ -316,7 +299,7 @@ Client::Seek(int fd, uint64_t offset, int whence)
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
-	return fp->Seek(CurrentSession(), offset, whence);
+	return fp->Seek(offset, whence);
 }
 
 
@@ -325,11 +308,10 @@ Client::CreateDir(const char* path, int mode)
 {
 	int         ret;
 	InodeNumber ino;
-	Session*    session = CurrentSession();
 
 	dbg_log (DBG_INFO, "Create Directory: %s\n", path);	
 
-	if ((ret = create(session, path, mode, kDirInode, &ino)) < 0) {
+	if ((ret = create(path, mode, kDirInode, &ino)) < 0) {
 		return ret;
 	}
 	return 0;
@@ -348,7 +330,6 @@ Client::DeleteDir(const char* pathname)
 int
 Client::SetCurWrkDir(const char* path)
 {
-	Session* session = CurrentSession();
 	//FIXME: save the path to cwd. we pass it to the server when we need a name resolution.
 	//return global_namespace->SetCurWrkDir(session, path);
 }
@@ -406,21 +387,20 @@ Client::Unlink(const char* path)
 }
 
 
+// current cfs synchronously writes data and metadata when doing 
+// the call to the server
 int 
 Client::Sync()
 {
-	Session* session = CurrentSession();
-	session->omgr()->CloseAllObjects(session, true);
 	return E_SUCCESS;
 }
 
 
-//FIXME: we should close just the file fd and its dependencies
+// current cfs synchronously writes data and metadata when doing 
+// the call to the server
 int 
 Client::Sync(int fd)
 {
-	Session* session = CurrentSession();
-	session->omgr()->CloseAllObjects(session, true);
 	return E_SUCCESS;
 }
 

@@ -1,0 +1,21 @@
+/*****************************************************************************
+ *                              SCM PRIMITIVES LAYER                         *
+ *****************************************************************************/ 
+
+/**
+
+@section spa_overview Overview
+
+The SCM Primitives (SCMP) layer provides persistence and storage allocation 
+primitives for use by applications.
+
+
+POOL
+----
+An SCM partition we can allocate storage from.
+
+There are two implementations
+-user: based on a persistent heap
+-kernel: just a shim; wraps the kernel API
+
+*/

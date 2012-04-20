@@ -12,13 +12,13 @@ myTestEnv = testEnv.Clone()
 Import('cfscLibrary')
 Import('cfssLibrary')
 Import('commonLibrary')
-Import('spaLibrary')
+Import('scmLibrary')
 Import('bcsClientLibrary')
 Import('bcsServerLibrary')
 Import('osdClientLibrary')
 Import('osdServerLibrary')
-clientDepLibs = [cfscLibrary, bcsClientLibrary, osdClientLibrary, spaLibrary, commonLibrary]
-serverDepLibs = [cfssLibrary, bcsServerLibrary, osdServerLibrary, spaLibrary, commonLibrary]
+clientDepLibs = [cfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+serverDepLibs = [cfssLibrary, bcsServerLibrary, osdServerLibrary, scmLibrary, commonLibrary]
 objects = myTestEnv['OBJECTS']
 
 serverProgram = myTestEnv.Program('smain', \

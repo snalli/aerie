@@ -1,6 +1,6 @@
 #include "osd/main/client/stsystem.h"
 #include "common/errno.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "osd/main/client/salloc.h"
 #include "osd/main/client/omgr.h"
 #include "osd/main/client/lckmgr.h"

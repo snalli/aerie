@@ -83,7 +83,7 @@ public:
 		return (Entry*) b;
 	}
 	// Splits the entry into two entries: [base, base+offset) and [base+offset,base+sizeof(entry))
-	static inline Entry* Split(Entry* entry, int offset) {
+	static inline Entry* Split(Session* session, Entry* entry, int offset) {
 		Entry*          new_entry;
 		volatile char*  b;
 		int             new_payload_size;
@@ -96,7 +96,7 @@ public:
 		b = entry->tag_;
 		new_entry = (Entry*) &b[offset];
 		new_payload_size = entry->get_payload_size() - (offset - TAG_SIZE) - TAG_SIZE;
-		new_entry->set_free(new_payload_size);
+		new_entry->set_free(session, new_payload_size);
 		return new_entry;
 	}
 	int Init(bool free, int payload_size) {
@@ -108,11 +108,12 @@ public:
 	bool IsFree() {
 		return (tag_[0] & 0x80 ? false : true);
 	}
-	void set_free() {
+	void set_free(Session* session) {
 		tag_[0] &= 0x7F;
 	}
-	void set_free(int payload_size) {
+	void set_free(Session* session, int payload_size) {
 		assert(payload_size < (TAG_SIZE << 7)); 
+		session->journal()->Store(&tag_[0], (char) payload_size);
 		tag_[0] = payload_size;
 	}
 	int get_size() { 
@@ -121,15 +122,15 @@ public:
 	int get_payload_size() { 
 		return tag_[0] & 0x7F; 
 	}
-	void set_size(int size) { 
+	void set_size(Session* session, int size) { 
 		assert(size-TAG_SIZE < (TAG_SIZE << 7)); 
 		tag_[0] = (tag_[0] & 0x80) | (size-TAG_SIZE); 
 	}
-	void set_payload_size(int size) { 
+	void set_payload_size(Session* session, int size) { 
 		assert(size < (TAG_SIZE << 7)); 
 		tag_[0] = (tag_[0] & 0x80) | size; 
 	}
-	int set_kv(const char* key, int key_size, const char* val, int val_size) {
+	int set_kv(Session* session, const char* key, int key_size, const char* val, int val_size) {
 		int payload_size = key_size + val_size;
 		int max_payload_size = get_payload_size();
 		
@@ -278,11 +279,11 @@ Page<Session>::Insert(Session* session, const char* key, int key_size,
 		// free entry
 		int max_payload_size = free_entry->get_payload_size();
 		if (max_payload_size - payload_size - TAG_SIZE >= 0) {
-			Entry<Session>::Split(free_entry, TAG_SIZE+payload_size);
+			Entry<Session>::Split(session, free_entry, TAG_SIZE+payload_size);
 		}
 
 		uval = *((uint64_t*) val);
-		free_entry->set_kv(key, key_size, val, val_size);
+		free_entry->set_kv(session, key, key_size, val, val_size);
 		return 0;
 	}
 
@@ -352,7 +353,7 @@ Page<Session>::Delete(Session* session, Entry<Session>* entry, Entry<Session>* p
 {
 	int size;
 
-	entry->set_free();
+	entry->set_free(session);
 	size = entry->get_size();
 	size += (next_entry && next_entry->IsFree() == true 
 			 ? next_entry->get_size(): 0);
@@ -360,9 +361,9 @@ Page<Session>::Delete(Session* session, Entry<Session>* entry, Entry<Session>* p
 	// Coalesce contiguous empty slots
 	if (prev_entry && prev_entry->IsFree() == true) {
 		size += prev_entry->get_size(); 
-		prev_entry->set_size(size); 
+		prev_entry->set_size(session, size); 
 	} else {
-		entry->set_size(size);
+		entry->set_size(session, size);
 	}
 	return 0;
 }

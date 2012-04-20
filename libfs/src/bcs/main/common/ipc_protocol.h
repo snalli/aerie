@@ -18,6 +18,7 @@ public:
 	};
 };
 
+namespace rpcfast {
 
 inline marshall& operator<<(marshall &m, IpcProtocol::SubscribeReply& val) {
 	return m;
@@ -28,5 +29,19 @@ inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& val) {
 	return u;
 }
 
+} // namespace rpcfast
+
+namespace rpcnet {
+
+inline marshall& operator<<(marshall &m, IpcProtocol::SubscribeReply& val) {
+	return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& val) {
+	return u;
+}
+
+} // namespace rpcnet
 
 #endif // __STAMNOS_IPC_PROTOCOL_H

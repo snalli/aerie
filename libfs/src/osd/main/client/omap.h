@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
+#include <google/sparse_hash_map>
 #include "common/errno.h"
 #include "osd/main/common/obj.h"
 #include "osd/main/client/proxy.h"
@@ -42,6 +43,7 @@ inline
 ObjectMap::ObjectMap()
 {
 	oid2obj_map_.set_empty_key(ObjectId(0));
+	oid2obj_map_.set_deleted_key(ObjectId(1));
 }
 
 

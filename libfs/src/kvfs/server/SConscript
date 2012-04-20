@@ -1,7 +1,7 @@
 Import('buildEnv')
 Import('bcsServerLibrary')
 Import('osdServerLibrary')
-Import('spaLibrary')
+Import('scmLibrary')
 Import('commonLibrary')
 
 localBuildEnv = buildEnv.Clone()
@@ -21,7 +21,7 @@ kvfssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_
 localBuildEnv.Append(LIBS = kvfssLibrary)
 localBuildEnv.Append(LIBS = bcsServerLibrary)
 localBuildEnv.Append(LIBS = osdServerLibrary)
-localBuildEnv.Append(LIBS = spaLibrary)
+localBuildEnv.Append(LIBS = scmLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])
 localBuildEnv.Program('fsserver', ['main.cc']) 

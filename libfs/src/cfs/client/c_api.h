@@ -24,6 +24,8 @@ int FRONTAPI(dup) (int oldfd);
 int FRONTAPI(dup2) (int oldfd, int newfd);
 int FRONTAPI(mount) (const char* source, const char* target, const char* fstype, uint32_t flags);
 int FRONTAPI(umount) (const char* target);
+int FRONTAPI(link) (const char* oldpath, const char* newpath);
+int FRONTAPI(unlink) (const char* pathname);
 int FRONTAPI(mkdir) (const char* path, int mode);
 int FRONTAPI(rmdir) (const char* path);
 int FRONTAPI(chdir) (const char* path);

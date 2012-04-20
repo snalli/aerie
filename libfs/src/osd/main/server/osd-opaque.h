@@ -14,6 +14,7 @@ class Registry;
 class ObjectManager;
 class StorageAllocator;
 class OsdSession;
+class Journal;
 } // namespace server
 } // namespace osd
 

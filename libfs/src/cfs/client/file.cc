@@ -1,7 +1,6 @@
 #include "cfs/client/file.h"
 #include <iostream>
 #include "cfs/client/client_i.h"
-#include "cfs/client/session.h"
 #include "cfs/common/publisher.h"
 #include "cfs/common/types.h"
 #include "cfs/common/fs_protocol.h"
@@ -36,7 +35,7 @@ File::Init(InodeNumber ino, int flags)
 
 // not thread safe
 int 
-File::WriteInternal(client::Session* session, const char* src, uint64_t n, uint64_t offset)
+File::WriteInternal(const char* src, uint64_t n, uint64_t offset)
 {
 	int ret;
 	int reply;
@@ -59,7 +58,7 @@ File::WriteInternal(client::Session* session, const char* src, uint64_t n, uint6
 
 
 int 
-File::ReadInternal(client::Session* session, char* dst, uint64_t n, uint64_t offset)
+File::ReadInternal(char* dst, uint64_t n, uint64_t offset)
 {
 	int ret;
 	int reply;
@@ -82,12 +81,12 @@ File::ReadInternal(client::Session* session, char* dst, uint64_t n, uint64_t off
 
 
 int 
-File::Write(client::Session* session, const char* src, uint64_t n)
+File::Write(const char* src, uint64_t n)
 {
 	int ret;
 
 	pthread_mutex_lock(&mutex_);
-	if ((ret = WriteInternal(session, src, n, off_) > 0)) {
+	if ((ret = WriteInternal(src, n, off_) > 0)) {
 		off_ += ret;
 	}
 	pthread_mutex_unlock(&mutex_);
@@ -97,12 +96,12 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 
 
 int
-File::Read(client::Session* session, char* dst, uint64_t n)
+File::Read(char* dst, uint64_t n)
 {
 	int ret;
 
 	pthread_mutex_lock(&mutex_);
-	if ((ret = ReadInternal(session, dst, n, off_) > 0)) {
+	if ((ret = ReadInternal(dst, n, off_) > 0)) {
 		off_ += ret;
 	}
 	pthread_mutex_unlock(&mutex_);
@@ -112,24 +111,24 @@ File::Read(client::Session* session, char* dst, uint64_t n)
 
 
 int 
-File::Write(client::Session* session, const char* src, uint64_t n, uint64_t offset)
+File::Write(const char* src, uint64_t n, uint64_t offset)
 {
 	int ret;
 	
 	pthread_mutex_lock(&mutex_);
-	ret = WriteInternal(session, src, n, offset);
+	ret = WriteInternal(src, n, offset);
 	pthread_mutex_unlock(&mutex_);
 	return ret;
 }
 
 
 int
-File::Read(client::Session* session, char* dst, uint64_t n, uint64_t offset)
+File::Read(char* dst, uint64_t n, uint64_t offset)
 {
 	int ret;
 
 	pthread_mutex_lock(&mutex_);
-	ret = ReadInternal(session, dst, n, offset);
+	ret = ReadInternal(dst, n, offset);
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;
@@ -137,7 +136,7 @@ File::Read(client::Session* session, char* dst, uint64_t n, uint64_t offset)
 
 
 uint64_t
-File::Seek(client::Session* session, uint64_t offset, int whence)
+File::Seek(uint64_t offset, int whence)
 {
 	uint64_t size;
 	switch(whence) {

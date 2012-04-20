@@ -35,7 +35,9 @@ ObjectManager::ObjectManager(osd::client::StorageSystem* stsystem)
 	: stsystem_(stsystem)
 {
 	pthread_mutex_init(&mutex_, NULL);
-	objtype2mgr_map_.set_empty_key(0);
+	for (int i=0; i < osd::containers::T_CONTAINER_TYPE_COUNT; i++) {
+		objtype2mgr_tbl_[i] = NULL;
+	}
 	stsystem_->hlckmgr()->RegisterLockCallback(this);
 	stsystem_->lckmgr()->RegisterLockCallback(::osd::cc::client::Lock::TypeId, this);
 	id_ = stsystem_->ipc()->id();
@@ -102,13 +104,16 @@ ObjectManager::RegisterType(ObjectType type_id, ObjectManagerOfType* mgr)
 	int                          ret = E_SUCCESS;
 	ObjectType2Manager::iterator itr; 
 
+	if (type_id >= osd::containers::T_CONTAINER_TYPE_COUNT) {
+		return -E_INVAL;
+	}
+
 	pthread_mutex_lock(&mutex_);
-    if ((itr = objtype2mgr_map_.find(type_id)) != objtype2mgr_map_.end()) {
+	if (objtype2mgr_tbl_[type_id]) {
 		ret = -E_EXIST;
-		printf("EXISTS\n");
 		goto done;
 	}
-	objtype2mgr_map_[type_id] = mgr;
+	objtype2mgr_tbl_[type_id] = mgr;
 
 done:
 	pthread_mutex_unlock(&mutex_);
@@ -141,29 +146,21 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 	PROFILER_SAMPLE
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();
-	ObjectType2Manager::iterator itr;
-	if ((itr = objtype2mgr_map_.find(type)) == objtype2mgr_map_.end()) {
+	if (type >= osd::containers::T_CONTAINER_TYPE_COUNT || !(mgr = objtype2mgr_tbl_[type])) { 
 		ret = -E_INVAL; // unknown type id 
 		goto done;
 	}
-	PROFILER_SAMPLE
-	mgr = itr->second;
 	if ((ret = mgr->oid2obj_map_.Lookup(oid, &objproxy)) != E_SUCCESS) {
 		// create the object proxy
-		DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), "TESTDEBUG");
-		PROFILER_SAMPLE
 		if ((objproxy = mgr->Load(cb_session_, oid)) == NULL) {
 			ret = -E_NOMEM;
 			goto done;
 		}
-		PROFILER_SAMPLE
 		assert(mgr->oid2obj_map_.Insert(objproxy) == E_SUCCESS);
 		// no need to grab the lock on obj after creation as it's not reachable 
 		// before we release the lock manager's mutex lock
-		PROFILER_SAMPLE
 		obj_ref = new osd::common::ObjectProxyReference();
 		obj_ref->Set(objproxy, false);
-		PROFILER_SAMPLE
 	} else {
 		// object proxy exists
 		if (use_exist_obj_ref) {
@@ -246,11 +243,9 @@ ObjectManager::CloseObject(OsdSession* session, ObjectId oid, bool update)
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();
 	ObjectType2Manager::iterator itr;
-	if ((itr = objtype2mgr_map_.find(type)) == objtype2mgr_map_.end()) {
+	if (type >= osd::containers::T_CONTAINER_TYPE_COUNT || !(mgr = objtype2mgr_tbl_[type])) {
 		goto done;
 	}
-	mgr = itr->second;
-	
 	mgr->Close(session, oid, update);
 
 done:
@@ -330,9 +325,10 @@ ObjectManager::CloseAllObjects(OsdSession* session, bool update)
 	}
 
 	// now close all the objects 
-	for (itr = objtype2mgr_map_.begin(); itr != objtype2mgr_map_.end(); itr++) {
-		mgr = itr->second;
-		mgr->CloseAll(session, false);
+	for (int i=0; i < osd::containers::T_CONTAINER_TYPE_COUNT; i++) {
+		if (mgr = objtype2mgr_tbl_[i]) {
+			mgr->CloseAll(session, false);
+		}
 	}
 
 	pthread_mutex_unlock(&mutex_);

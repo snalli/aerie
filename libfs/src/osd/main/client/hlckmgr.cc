@@ -109,7 +109,6 @@ HLock::HLock(LockId lid)
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_cond_init(&status_cv_, NULL);
 	pthread_cond_init(&used_cv_, NULL);
-	children_.set_empty_key(NULL);
 }
 
 
@@ -276,10 +275,12 @@ HLockManager::FindLockInternal(LockId lid)
 HLock*
 HLockManager::FindOrCreateLockInternal(LockId lid)
 {
-	HLock* lp;
+	HLock*            lp;
+	LockMap::iterator itr = locks_.find(lid);
 	
-	lp = locks_[lid];
-	if (lp == NULL) {
+	if (itr != locks_.end()) {
+		lp = itr->second;
+	} else {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 		        "[%d] Creating hierarchical lock %s\n", id(), lid.c_str());
 		lp = new HLock(lid);
@@ -589,9 +590,9 @@ HLockManager::AttachPublicLockToChild(HLock* phlock, HLock* chlock, lock_protoco
 lock_protocol::status 
 HLockManager::AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode)
 {
-	HLockPtrSet::iterator itr;
-	HLock*                hl;
-	HLockPtrSet&          hlock_set = hlock->children_; 
+	HLockPtrList::iterator itr;
+	HLock*                 hl;
+	HLockPtrList&          hlock_list = hlock->children_; 
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d] Attaching public locks (%s) to children of hierarchical lock %s.\n", 
@@ -599,7 +600,7 @@ HLockManager::AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode)
 
 	assert(hlock->status() == HLock::LOCKED_CONVERTING || hlock->status() == HLock::CONVERTING);
 
-	if (hlock_set.size() == 0) {
+	if (hlock_list.size() == 0) {
 		// no members exist so there is nothing to do
 		return lock_protocol::OK;
 	}
@@ -607,7 +608,7 @@ HLockManager::AttachPublicLockToChildren(HLock* hlock, lock_protocol::Mode mode)
 		return lock_protocol::HRERR;
 	}
 
-	for (itr = hlock_set.begin(); itr != hlock_set.end(); itr++) {
+	for (itr = hlock_list.begin(); itr != hlock_list.end(); itr++) {
 		hl = *itr;
 		assert(hl->BeginConverting(true) == 0);
 		assert(AttachPublicLockToChild(hlock, hl, mode)==0);
@@ -624,7 +625,7 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 	lock_protocol::status r = lock_protocol::NOENT;
 	lock_protocol::Mode   mode_granted;
 	LockId                lid = hlock->lid_;
-
+	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d:%lu] Acquiring hierarchical lock %s (%s)\n", id(), 
 			tid, lid.c_str(), mode.String().c_str());
@@ -797,7 +798,6 @@ lock_protocol::status
 HLockManager::Acquire(HLock* hlock, HLock* phlock, lock_protocol::Mode mode, int flags)
 {
 	lock_protocol::status r;
-
 	r = AcquireInternal(pthread_self(), hlock, phlock, mode, flags);
 	return r;
 }
@@ -810,7 +810,7 @@ HLockManager::Acquire(LockId lid, LockId plid,
 	lock_protocol::status r;
 	HLock*                hlock;
 	HLock*                phlock;
-
+	
 	pthread_mutex_lock(&mutex_);
 	hlock = FindOrCreateLockInternal(lid);
 	phlock = FindLockInternal(plid);
@@ -821,6 +821,25 @@ HLockManager::Acquire(LockId lid, LockId plid,
 	r = AcquireInternal(pthread_self(), hlock, phlock, mode, flags);
 	return r;
 }
+
+
+lock_protocol::status
+HLockManager::Acquire(LockId lid, HLock* phlock, 
+                      lock_protocol::Mode mode, int flags)
+{
+	lock_protocol::status r;
+	HLock*                hlock;
+
+	pthread_mutex_lock(&mutex_);
+	hlock = FindOrCreateLockInternal(lid);
+	pthread_mutex_unlock(&mutex_);
+	if (phlock == NULL) {
+		return lock_protocol::NOENT;
+	}
+	r = AcquireInternal(pthread_self(), hlock, phlock, mode, flags);
+	return r;
+}
+
 
 
 lock_protocol::status
@@ -912,8 +931,8 @@ HLockManager::DowngradePublicLockRecursive(HLock* hlock,
                                            lock_protocol::Mode new_public_mode, 
                                            HLockPtrLockModePairSet* release_set)
 {
-	HLockPtrSet::iterator itr;
-	lock_protocol::Mode   old_public_mode;
+	HLockPtrList::iterator itr;
+	lock_protocol::Mode    old_public_mode;
 	
 	hlock->BeginConverting(true);
 	if (!hlock->lock_) {

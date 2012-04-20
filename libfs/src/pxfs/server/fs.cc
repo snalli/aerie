@@ -3,7 +3,7 @@
 #include "bcs/bcs.h"
 #include "osd/main/server/osd.h"
 #include "osd/main/server/sessionmgr.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "pxfs/common/fs_protocol.h"
 #include "pxfs/server/fs.h"
 #include "pxfs/server/session.h"

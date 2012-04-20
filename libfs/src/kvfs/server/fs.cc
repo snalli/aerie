@@ -3,7 +3,7 @@
 #include "bcs/bcs.h"
 #include "osd/main/server/osd.h"
 #include "osd/main/server/sessionmgr.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 #include "kvfs/common/fs_protocol.h"
 #include "kvfs/server/fs.h"
 #include "kvfs/server/session.h"

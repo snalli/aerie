@@ -5,11 +5,11 @@
  *
  */
 
-#ifndef _HRTIME_H_121AJ1
-#define _HRTIME_H_121AJ1
+#ifndef __STAMNOS_COMMON_HRTIME_H
+#define __STAMNOS_COMMON_HRTIME_H
 
 #ifndef _HRTIME_CPUFREQ
-# define _HRTIME_CPUFREQ 2270 /* MHz */
+# define _HRTIME_CPUFREQ 2500 /* MHz */
 #endif
 
 #define HRTIME_NS2CYCLE(__ns) ((__ns) * _HRTIME_CPUFREQ / 1000)
@@ -65,4 +65,4 @@ static inline unsigned long long hrtime_cycles(void)
 
 #define HRTIME_SAMPLE
 
-#endif /* _HRTIME_H_121AJ1 */
+#endif // __STAMNOS_COMMON_HRTIME_H

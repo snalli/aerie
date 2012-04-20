@@ -22,8 +22,13 @@ public:
 	~Ipc();
 
 	int Init();
-	rpcs* rpc() { return rpcs_; }
-	
+#ifdef _CLT2SVR_RPCNET
+	rpcnet::rpcs* rpc() { return rpcs_; }
+#endif
+#ifdef _CLT2SVR_RPCFAST
+	rpcfast::rpcs* rpc() { return rpcs_; }
+#endif
+
 	ClientDescriptor* Client(int clt);
 
 	int Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep);
@@ -40,7 +45,12 @@ public:
 private:
 	pthread_mutex_t                  mutex_;
 	std::map<int, ClientDescriptor*> clients_;
-	rpcs*                            rpcs_;
+#ifdef _CLT2SVR_RPCNET
+	rpcnet::rpcs*                    rpcs_;
+#endif
+#ifdef _CLT2SVR_RPCFAST
+	rpcfast::rpcs*                   rpcs_;
+#endif
 	int                              port_;
 	BaseSessionManager*              sessionmgr_;
 	SharedBufferManager*             shbufmgr_;

@@ -22,6 +22,8 @@ public:
 };
 
 
+namespace rpcfast {
+
 inline marshall& operator<<(marshall &m, FileSystemProtocol::MountReply& val) {
 	m << val.desc_;
     return m;
@@ -33,5 +35,22 @@ inline unmarshall& operator>>(unmarshall &u, FileSystemProtocol::MountReply& val
 	return u;
 }
 
+} // namespace rpcfast
+
+
+namespace rpcnet {
+
+inline marshall& operator<<(marshall &m, FileSystemProtocol::MountReply& val) {
+	m << val.desc_;
+    return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, FileSystemProtocol::MountReply& val) {
+	u >> val.desc_;
+	return u;
+}
+
+} // namespace rpcnet
 
 #endif // __STAMNOS_PXFS_FILESYSTEM_PROTOCOL_H

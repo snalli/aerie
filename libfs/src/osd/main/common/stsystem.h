@@ -21,22 +21,6 @@ public:
 };
 
 
-inline marshall& operator<<(marshall &m, StorageSystemDescriptor& val) {
-	m << val.oid_;
-    m << val.shbuf_dsc_;
-	return m;
-}
-
-
-inline unmarshall& operator>>(unmarshall &u, StorageSystemDescriptor& val) {
-	u >> val.oid_;
-    u >> val.shbuf_dsc_;
-	return u;
-}
-
-
-
-
 class StorageSystemProtocol {
 public:
 	
@@ -54,6 +38,22 @@ public:
 };
 
 
+namespace rpcnet {
+
+inline marshall& operator<<(marshall &m, StorageSystemDescriptor& val) {
+	m << val.oid_;
+    m << val.shbuf_dsc_;
+	return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, StorageSystemDescriptor& val) {
+	u >> val.oid_;
+    u >> val.shbuf_dsc_;
+	return u;
+}
+
+
 inline marshall& operator<<(marshall &m, StorageSystemProtocol::MountReply& val) {
 	m << val.desc_;
     return m;
@@ -64,6 +64,38 @@ inline unmarshall& operator>>(unmarshall &u, StorageSystemProtocol::MountReply& 
 	u >> val.desc_;
 	return u;
 }
+
+} // namespace rpcnet
+
+
+namespace rpcfast {
+
+inline marshall& operator<<(marshall &m, StorageSystemDescriptor& val) {
+	m << val.oid_;
+    m << val.shbuf_dsc_;
+	return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, StorageSystemDescriptor& val) {
+	u >> val.oid_;
+    u >> val.shbuf_dsc_;
+	return u;
+}
+
+
+inline marshall& operator<<(marshall &m, StorageSystemProtocol::MountReply& val) {
+	m << val.desc_;
+    return m;
+}
+
+
+inline unmarshall& operator>>(unmarshall &u, StorageSystemProtocol::MountReply& val) {
+	u >> val.desc_;
+	return u;
+}
+
+} // namespace rpcfast
 
 
 #endif // __STAMNOS_OSD_STORAGE_SYSTEM_PROTOCOL_H

@@ -27,6 +27,7 @@ struct HLockPtrLockModePair {
 };
 
 typedef std::list<HLockPtrLockModePair> HLockPtrLockModePairSet;
+typedef std::list<HLock*> HLockPtrList;
 typedef google::dense_hash_set<HLock*> HLockPtrSet;
 
 /**
@@ -107,7 +108,7 @@ public:
 	lock_protocol::Mode   mode_;                    
 	lock_protocol::Mode   ancestor_recursive_mode_; ///< recursive mode of ancestors
 	LockId                lid_;
-	HLockPtrSet           children_;
+	HLockPtrList          children_;
 	void*                 payload_;     ///< lock users may use it for anything they like
 private:	
 	LockStatus            status_;
@@ -141,6 +142,7 @@ public:
 	HLock* FindOrCreateLock(LockId lid);
 
 	lock_protocol::status Acquire(HLock* hlock, HLock* phlock, lock_protocol::Mode mode, int flags);
+	lock_protocol::status Acquire(LockId lid, HLock* phlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(LockId lid, LockId, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(LockId lid, lock_protocol::Mode mode, int flags);
@@ -178,7 +180,7 @@ private:
 inline int 
 HLock::AddChild(HLock* hlock)
 {
-	children_.insert(hlock);
+	children_.push_back(hlock);
 	return E_SUCCESS;
 }
 

@@ -29,8 +29,8 @@ template<class Subject, class VersionManager>
 class ObjectManager: public osd::client::ObjectManagerOfType {
 public:
 	osd::client::ObjectProxy* Load(OsdSession* session, ObjectId oid) {
-		osd::client::ObjectProxy* obj = new ObjectProxy<Subject, VersionManager>(session, oid);
-		return obj;
+		osd::client::ObjectProxy* proxy = new ObjectProxy<Subject, VersionManager>(session, oid);
+		return proxy;
 	}
 	
 	void Close(OsdSession* session, ObjectId oid, bool update) {

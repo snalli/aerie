@@ -13,6 +13,9 @@
 
 #define rpcfast_max(a,b) ((a>b)?a:b)
 
+namespace rpcfast {
+
+
 struct req_header {
   req_header(unsigned int cid=0, int p=0): proc(p),client_id(cid){}
   int proc;
@@ -224,5 +227,8 @@ operator>>(unmarshall &u, std::map<A,B> &d) {
 	}
 	return u;
 }
+
+} // namespace rpcfast
+
 
 #endif

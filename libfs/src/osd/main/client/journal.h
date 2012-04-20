@@ -62,6 +62,12 @@ public:
 		return buffer_.Write(buf, size);
 	}
 
+	template<typename T>
+	void Store(volatile T* addr, T val)
+	{
+		*addr = val;
+	}
+
 	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::ContainerOperationHeader& header) {
 		journal->Write(&header, sizeof(header) + header.payload_size_);
 		return journal;

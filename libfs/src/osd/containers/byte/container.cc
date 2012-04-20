@@ -8,7 +8,7 @@
 #include "osd/main/common/const.h"
 #include "osd/main/common/publisher.h"
 #include "common/interval_tree.h"
-#include "spa/const.h"
+#include "scm/const.h"
 
 namespace osd {
 namespace containers {

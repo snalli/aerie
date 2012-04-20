@@ -9,7 +9,7 @@
 #include "osd/main/server/osd-opaque.h"
 #include "osd/main/common/storage_protocol.h"
 #include "osd/containers/set/container.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 
 namespace server {
 class Session;  // forward declaration

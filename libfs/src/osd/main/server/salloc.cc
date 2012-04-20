@@ -1,7 +1,7 @@
 #include "osd/main/server/salloc.h"
 #include <stdio.h>
 #include <stddef.h>
-#include "spa/const.h"
+#include "scm/const.h"
 #include "common/errno.h"
 #include "common/util.h"
 #include "bcs/bcs.h"
@@ -71,7 +71,7 @@ DescriptorPool::AllocateContainer(OsdSession* session, StorageAllocator* salloc,
 	int ret;
 
 	if (container_list_[type].empty()) {
-		if ((ret = salloc->AllocateContainerAndFillSet(session, set_obj_, type, 256)) < 0) {
+		if ((ret = salloc->AllocateContainerAndFillSet(session, set_obj_, type, 1024)) < 0) {
 			return ret;
 		}
 		if ((ret = Load(session)) < 0) {
@@ -98,7 +98,7 @@ DescriptorPool::AllocateExtent(OsdSession* session, StorageAllocator* salloc,
 	int r;
 
 	if (extent_list_.empty()) {
-		if ((ret = salloc->AllocateExtentAndFillSet(session, set_obj_, nbytes, 256)) < 0) {
+		if ((ret = salloc->AllocateExtentAndFillSet(session, set_obj_, nbytes, 1024)) < 0) {
 			return ret;
 		}
 		if ((ret = Load(session)) < 0) {
@@ -349,17 +349,17 @@ StorageAllocator::AllocateExtentAndFillSet(OsdSession* session, ObjectIdSet* set
 // not thread safe
 int
 StorageAllocator::CreateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, 
-                                    ObjectIdSet::Object** obj_set)
+                                    ObjectIdSet** obj_set)
 {
 	char*   buffer;
 	size_t  extent_size;
 	int     ret;
 
-	extent_size = sizeof(ObjectIdSet::Object);
+	extent_size = sizeof(ObjectIdSet);
 	if ((ret = pool_->AllocateExtent(extent_size, (void**) &buffer)) < 0) {
 		return ret;
 	}
-	if ((*obj_set = ObjectIdSet::Object::Make(session, buffer)) == NULL) {
+	if ((*obj_set = ObjectIdSet::Make(session, buffer)) == NULL) {
 		return -E_NOMEM;
 	}
 

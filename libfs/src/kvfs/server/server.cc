@@ -36,18 +36,9 @@ Server::Init(const char* pathname, int flags, int port)
 void 
 Server::Start()
 {
-#ifdef _RPCFAST
-	//ipc_layer_->rpc()->main_service_loop();
 	while (1) {
 		sleep(1);
 	}
-#endif
-
-#ifdef _RPCSOCKET
-	while (1) {
-		sleep(1);
-	}
-#endif
 }
 
 } // namespace server
