@@ -51,9 +51,9 @@ SUITE(ContainersHashTableEntry)
 		CHECK(entry->get_size() == (buffer_size));
 		CHECK(entry->get_payload_size() == (buffer_size-TAG_SIZE));
 
-		entry2 = Entry<Session>::Split(entry, buffer_size-TAG_SIZE+1);
+		entry2 = Entry<Session>::Split(session, entry, buffer_size-TAG_SIZE+1);
 		CHECK(entry2==NULL);
-		entry2 = Entry<Session>::Split(entry, 18);
+		entry2 = Entry<Session>::Split(session, entry, 18);
 		CHECK(entry2!=NULL);
 		CHECK(entry2->IsFree() == true);
 		CHECK(entry2->get_size() == (entry->get_size() - 18));

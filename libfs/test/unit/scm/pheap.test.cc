@@ -1,10 +1,10 @@
 #include "tool/testfw/unittest.h"
 #include "common/errno.h"
-#include "spa/pheap/pheap.h"
+#include "scm/pheap/pheap.h"
 
 #include <stdio.h>
 
-SUITE(SPA)
+SUITE(SCM)
 {
 	TEST(TestPersistentHeap1)
 	{

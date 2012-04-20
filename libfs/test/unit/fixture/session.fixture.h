@@ -31,10 +31,24 @@ public:
 	}
 };
 
+class PseudoJournal {
+public:
+	int TransactionBegin(int id = 0) { return E_SUCCESS; }
+	int TransactionCommit() { return E_SUCCESS; }
+
+	template<typename T>
+	void Store(volatile T* addr, T val)
+	{
+		*addr = val;
+	}
+};
+
 class Session {
 public:
 	StorageAllocator* salloc() { return salloc_; };
 	StorageAllocator* salloc_;
+	PseudoJournal* journal() { return journal_; };
+	PseudoJournal* journal_;
 };
 
 struct SessionFixture 

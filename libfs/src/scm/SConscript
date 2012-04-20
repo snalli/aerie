@@ -1,9 +1,10 @@
 Import('buildEnv')
 localBuildEnv = buildEnv.Clone()
 
-lib_target = 'spa'
+lib_target = 'scm'
 lib_sources = [
-               'pregion/pregion.cc',
+               'scm/memcpy.cc',
+	       'pregion/pregion.cc',
                'pheap/pheap.cc',
                'pheap/vistaheap.c'	       
               ]

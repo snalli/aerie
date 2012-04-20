@@ -1,10 +1,10 @@
 #include "tool/testfw/unittest.h"
 #include "common/errno.h"
-#include "spa/pool/pool.h"
+#include "scm/pool/pool.h"
 
 #include <stdio.h>
 
-SUITE(SPA)
+SUITE(SCM)
 {
 	TEST(TestPool)
 	{

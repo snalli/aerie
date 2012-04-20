@@ -4,7 +4,6 @@
 #include "common/errno.h"
 #include "test/unit/fixture/session.fixture.h"
 #include "osd/containers/byte/container.h"
-#include "spa/const.h"
 
 using namespace osd::containers::common;
 
