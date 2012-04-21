@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "common/hrtime.h"
+#include "common/util.h"
 
 typedef uint64_t scm_word_t;
 
@@ -11,19 +12,6 @@ typedef uint64_t scm_word_t;
 
 
 #define STAMNOS_SCM_LATENCY_WRITE 150
-
-/* Memory Pages */
-
-#define PAGE_SIZE 4096
-
-/* Returns the number of pages */
-#define NUM_PAGES(size) ((((size) % PAGE_SIZE) == 0? 0 : 1) + (size)/PAGE_SIZE)
-
-/* Returns the size at page granularity */
-#define SIZEOF_PAGES(size) (NUM_PAGES((size)) * PAGE_SIZE)
-
-/* Returns the size at page granularity */
-#define PAGE_ALIGN(addr) (NUM_PAGES((addr)) * PAGE_SIZE)
 
 
 /* Hardware Cache */

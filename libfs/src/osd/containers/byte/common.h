@@ -771,7 +771,7 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 	}
 	bp = (char*) (*slot);
 	//memmove(&bp[off], src, n); 
-	scm_mempcy(&bp[off], src, n);
+	scm_memcpy(&bp[off], src, n);
 
 	return n;
 }

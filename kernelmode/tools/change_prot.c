@@ -1,5 +1,5 @@
+#include <sys/types.h>
 #include "cheader.h"
-
 int main(int argc, char** argv)
 {
 	void *caster, *rights; 

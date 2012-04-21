@@ -11,8 +11,8 @@ SUITE(SCM)
 		StoragePool* pool1;
 		void*        ptr;
 
-		CHECK(StoragePool::Create("/tmp/persistent_pool1", 1024*4096) == E_SUCCESS);
-		CHECK(StoragePool::Open("/tmp/persistent_pool1", &pool1) == E_SUCCESS);
+		CHECK(StoragePool::Create("/tmp/stamnos_pool", 1024*4096, 0) == E_SUCCESS);
+		CHECK(StoragePool::Open("/tmp/stamnos_pool", &pool1) == E_SUCCESS);
 
 		CHECK(pool1->AllocateExtent(4096*2, &ptr) == E_SUCCESS);
 		CHECK(pool1->AllocateExtent(4096*5, &ptr) == E_SUCCESS);

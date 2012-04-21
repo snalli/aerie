@@ -51,7 +51,7 @@ main_mkpool(int argc, char* argv[])
 	std::cerr << "\tpathname = " << pathname << std::endl;
 	std::cerr << "\tsize     = " << size_str << " (" << usize << " bytes)\n" << std::endl;
 
-	if ((ret = StoragePool::Create(pathname, usize)) < 0) {
+	if ((ret = StoragePool::Create(pathname, usize, 0)) < 0) {
 		if (ret != -E_ERRNO) {
 			std::cerr << ErrorToString(-ret) << std::endl; 
 		} else {

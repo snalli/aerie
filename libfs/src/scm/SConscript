@@ -14,10 +14,12 @@ pool_user_sources = [
                     ]
 
 pool_kernel_sources = [
-                       'pool/kernel/pool.cc'
+                       'pool/kernel/pool.cc',
+                       'pool/kernel/buddy.cc'
                       ]
 
-lib_sources += pool_user_sources
+#lib_sources += pool_user_sources
+lib_sources += pool_kernel_sources
 
 scmLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 

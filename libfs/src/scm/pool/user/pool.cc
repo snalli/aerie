@@ -29,7 +29,7 @@ StoragePool::StoragePool(PersistentRegion* pregion, Header* header)
 // RAW SPACE: size
 // METADATA : sizeof(bitset to track each page of RAW space)
 int
-StoragePool::Create(const char* path, size_t size)
+StoragePool::Create(const char* path, size_t size, int flags)
 {
 	int               ret;
 	int               region_flags;
