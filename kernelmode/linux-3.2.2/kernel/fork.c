@@ -1506,7 +1506,7 @@ long do_fork(unsigned long clone_flags,
 	p = copy_process(clone_flags, stack_start, regs, stack_size,
 			 child_tidptr, NULL, trace);
 
-	if(!IS_ERR(p) && !(clone_flags & CLONE_VM))
+	if(!IS_ERR(p))// && !(clone_flags & CLONE_VM))
                 p->persistent_region_defined = false;
 
 	/*

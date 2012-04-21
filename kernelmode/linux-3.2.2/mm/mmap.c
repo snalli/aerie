@@ -945,6 +945,30 @@ unsigned long do_mmap_pgoff_wrapper(struct file *file, unsigned long addr,
 
         ret = do_mmap_pgoff(file, addr, len, prot, flags, pgoff);
 
+#if 0
+		if(current->cred->uid == 0)
+		{
+			current->persistent_region_defined = true;
+			return ret;
+		}
+#endif
+
+		if(current->comm[0] == 'l' && current->comm[1] == 'v' && current->comm[2] == 'm')
+		{
+			current->persistent_region_defined = true;
+			return ret;
+		}
+		if(current->comm[0] == 'd' && current->comm[1] == 'b' && current->comm[2] == 'u' && current->comm[3] == 's')
+		{
+			current->persistent_region_defined = true;
+			return ret;
+		}
+
+	if(current->comm[0] == 'z' && current->comm[1] == 'z')
+	{
+		printk(KERN_ERR"zz has persistent region %ld", current->persistent_region_defined);
+	} 
+
         if(current->persistent_region_defined == false)
         {
 		int i;

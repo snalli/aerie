@@ -26,6 +26,10 @@ public:
 	virtual bool operator() (const char* key, int key_size) const = 0;
 };
 
+
+//FIXME: Currently we can't support PAGE_SIZE larger than 128B because of the 
+//payload field size (7bits). This increases internal fragmentation because
+//the smaller extent size the extent allocator can give us is 4KB (protection granularity)
 const int PAGE_SIZE = 128;
 const int TAG_SIZE = 1;
 const int FACTOR = 1;
@@ -192,7 +196,7 @@ public:
 	static Page* Make(Session* session)
 	{
 		void* ptr;
-		
+		printf("PAGE: %d\n", sizeof(Page));
 		if (session->salloc()->AllocateExtent(session, sizeof(Page), 0, &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}

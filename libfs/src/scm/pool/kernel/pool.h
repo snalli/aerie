@@ -30,10 +30,8 @@ public:
 	
 	StoragePool(Header* header);
 
-	PersistentRegion* pregion_;
-	Header*           header_;
-	uint64_t          extents_base_;
-	uint64_t          identity_;
+	Header*    header_;
+	uint64_t   identity_;
 };
 
 #endif // __STAMNOS_SPA_POOL_KERNEL_H

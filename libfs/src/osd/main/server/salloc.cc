@@ -307,14 +307,19 @@ StorageAllocator::Alloc(OsdSession* session, size_t nbytes, std::type_info const
 }
 
 
+// this interface is for use by the server 
 int 
 StorageAllocator::AllocateExtent(OsdSession* session, size_t size, int flags, void** ptr)
 {
 	int ret;
 
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
+	        "Allocating Extent: size=%lu (0x%lx)...\n", size, size);
 	if ((ret = pool_->AllocateExtent(size, ptr)) < 0) {
 		return ret;
 	}
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc),
+	        "Allocating Extent: base=%p, size=%lu (0x%lx): SUCCESS \n", *ptr, size, size);
 	return E_SUCCESS;
 }
 

@@ -2295,7 +2295,7 @@ relock:
 		 * Anything else is fatal, maybe with a core dump.
 		 */
 		current->flags |= PF_SIGNALED;
-
+		#if 0
 		if (sig_kernel_coredump(signr)) {
 			if (print_fatal_signals)
 				print_fatal_signal(regs, info->si_signo);
@@ -2309,7 +2309,7 @@ relock:
 			 */
 			do_coredump(info->si_signo, info->si_signo, regs);
 		}
-
+		#endif
 		/*
 		 * Death signals, no core dump.
 		 */

@@ -211,6 +211,8 @@ StorageSystemT<Session>::Make(const char* target, unsigned int flags)
 	master_extent_size += sizeof(osd::containers::server::NameContainer::Object);
 	master_extent_size += sizeof(osd::containers::server::SuperContainer::Object);
 	master_extent_size += sizeof(osd::containers::server::SetContainer<osd::common::ObjectId>::Object);
+	master_extent_size = NumOfBlocks(master_extent_size, kBlockSize) * kBlockSize;
+
 	if ((ret = pool->AllocateExtent(master_extent_size, (void**) &buffer)) < 0) {
 		return ret;
 	}

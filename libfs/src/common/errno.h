@@ -21,6 +21,7 @@
     ACTION(E_UNKNOWNFS, "Unknown file system type")                          \
     ACTION(E_ERRNO, "Standard C library error; check errno for details")     \
     ACTION(E_VRFY, "Verification error")                                     \
+    ACTION(E_PROT, "Protection error")                                       \
 
 
 #ifdef __ENUM_MEMBER

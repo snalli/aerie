@@ -14,6 +14,7 @@
 #include <syscall.h>
 #include <errno.h>
 #include <pthread.h>
+#include "bcs/main/common/debug.h"
 #include "scm/pregion/pregion.h"
 #include "scm/const.h"
 #include "common/util.h"
@@ -46,73 +47,38 @@ StoragePool::Allocate(const char* path, size_t size)
 	v_addr = 0x8000000000;
 	size_mb = 1024;
 
-	return syscall(312, v_addr, size_mb);
-}
-
-static int 
-Allocate(const char* path, size_t size)
-{
-	unsigned long v_addr;
-	unsigned long size_mb;
-
-	v_addr = 0x8000000000;
-	size_mb = 1024;
-
-	return syscall(312, v_addr, size_mb);
-}
-
-
-int
-Protect(unsigned long extent_base, size_t extent_size, uid_t uid, int rw)
-{
-	int              ret;
-	KernelExtent     e;
-	user_file_rights r;
-
-	e.base = extent_base;
-	e.size = extent_size;
-	r.uid = uid;
-	r.rw = rw;
-
-	printf("%p %lu\n", (void*) extent_base, extent_size);
-	ret = syscall(313, (void*) &e, (void*) &r, 1);
-	printf("%d\n", ret);
+	// convention: syscall 313 returns 1 on success
+	if (syscall(312, v_addr, size_mb) != 1) {
+		return -E_PROT;
+	}
 	return E_SUCCESS;
 }
 
 
-
-
-
-// persistent region must accomodate the pool's raw space and the pool's
-// metadata:
-// RAW SPACE: size
-// METADATA : sizeof(bitset to track each page of RAW space)
-//int
-//StoragePool::Create(const char* path, size_t size, int flags)
-static void* CreatePool(void* arg)
+int
+StoragePool::Create(const char* path, size_t size, int flags)
 {
-	int    fd;
+	int           ret;
+	int           fd;
 	size_t        bitmap_size;
 	size_t        header_size;
 	size_t        metadata_size;
 	size_t        freelist_size;
+	size_t        num_blocks;
 	unsigned long base;
 	unsigned long bitmap_addr;
 	unsigned long freelist_addr;
 	unsigned long header_addr;
-	size_t size;
 
-	size = 1024*1024*1024;
+	size = 1024*1024*1024; // hardcode 1G
 	// we create a file to ensure we don't do multiple allocations
-	//if ((fd = open(path, O_CREAT|O_TRUNC|O_EXCL, S_IRUSR|S_IWUSR)) > 0) {
-	//if ((fd = open(path, O_CREAT|O_TRUNC|O_EXCL, S_IRUSR|S_IWUSR)) > 0) {
-	//	Allocate(path, size);
-	//	close(fd);
-	//}
+	if ((fd = open(path, O_CREAT|O_TRUNC|O_EXCL, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP)) > 0) {
+		Allocate(path, size);
+		close(fd);
+	}
 
 	header_size = sizeof(StoragePool::Header);
-	bitmap_size = poolBitMapSize(size, 12);
+	bitmap_size = poolBitMapSize(size, 12); // 12 bits for 4K page size
 	freelist_size = sizeof(size_t) * 32;
 
 	base = 0x8000000000;
@@ -121,27 +87,24 @@ static void* CreatePool(void* arg)
 	bitmap_addr = freelist_addr + freelist_size;
 	metadata_size = header_size + freelist_size + bitmap_size;
 	metadata_size = NumOfBlocks(metadata_size, kBlockSize) * kBlockSize;
-	printf("%lu\n", metadata_size);
-	printf("%x\n", getuid());
-	printf("%x\n", geteuid());
-	Protect(base, metadata_size, getuid(), 0x0);
-	((char*) header_addr)[0] = 1;
+	if ((ret = Protect(base, size, getuid(), 0x3)) < 0) {
+		return ret;
+	}
+	if (size < metadata_size) {
+		return -E_INVAL;
+	}
+	num_blocks = (size - metadata_size) >> 12;
 	StoragePool::Header* header = StoragePool::Header::Make((void*) header_addr);
-	poolInit((void*) (base + metadata_size), size - metadata_size, 12, 32, 
-	         (size_t*) freelist_addr, (char*) bitmap_addr, &header->buddy_);
-	//return E_SUCCESS;
-
-}
-
-int
-StoragePool::Create(const char* path, size_t size, int flags)
-{
-	pthread_t thread;
-	//pthread_create(&thread, NULL, CreatePool, 0);
-	//pthread_join(thread, NULL);
-	CreatePool(NULL);
+	if ((poolInit((void*) (base + metadata_size), size - metadata_size, 12, 32, 
+	         (size_t*) freelist_addr, (char*) bitmap_addr, &header->buddy_)) != NULL) {
+		return -E_NOMEM;
+	}
+	if (poolRelease(&header->buddy_, 0, num_blocks) != NULL) {
+		return -E_NOMEM;
+	}
 	return E_SUCCESS;
 }
+
 
 int
 StoragePool::Protect(unsigned long extent_base, size_t extent_size, uid_t uid, int rw)
@@ -155,22 +118,24 @@ StoragePool::Protect(unsigned long extent_base, size_t extent_size, uid_t uid, i
 	r.uid = uid;
 	r.rw = rw;
 
-	printf("%p %lu\n", (void*) extent_base, extent_size);
-	ret = syscall(313, (void*) &e, (void*) &r, 1);
-	printf("%d\n", ret);
+	// convention: syscall 313 returns 1 on success
+	if (syscall(313, (void*) &e, (void*) &r, 1) != 1) {
+		return -E_PROT;
+	}
 	return E_SUCCESS;
 }
-
-
 
 
 int
 StoragePool::Open(const char* path, StoragePool** pool)
 {
-	PersistentRegion* pregion;
-	uint64_t          bitset_npages;
-	int               ret;
+	unsigned long  header_addr;
+	unsigned long  base;
 
+	base = 0x8000000000;
+	header_addr = base;
+	StoragePool::Header* header = StoragePool::Header::Load((void*)header_addr);
+	*pool = new StoragePool(header);
 	return StoragePool::Identity(path, &((*pool)->identity_));
 }
 
@@ -179,6 +144,20 @@ StoragePool::Open(const char* path, StoragePool** pool)
 int 
 StoragePool::AllocateExtent(uint64_t size, void** ptr)
 {
+	int           ret;
+	unsigned long extent_base;
+	
+	// roundup because protect expects multiple page size
+	size = NumOfBlocks(size, kBlockSize) * kBlockSize; 
+
+	if (poolMalloc(&header_->buddy_, size, ptr) != NULL) {
+		return -E_NOMEM;
+	}
+	extent_base = (unsigned long) *ptr;
+	if ((ret = Protect(extent_base, size, getuid(), 0x3)) < 0) {
+		printf("failed protection: %p\n", *ptr);
+		return ret;
+	}
 	return E_SUCCESS;
 }
 
@@ -197,7 +176,14 @@ StoragePool::Close(StoragePool* pool)
 int
 StoragePool::Identity(const char* path, uint64_t* identity) 
 {
-	*identity = 0x8;
+	int         ret;
+	struct stat buf;
+	
+	if ((ret = stat(path, &buf)) < 0) {
+		printf("%s\n", strerror(errno));
+		return -E_ERRNO;
+	}
+	*identity = buf.st_ino;
 	return E_SUCCESS;
 }
 
