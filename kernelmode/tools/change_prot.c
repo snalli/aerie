@@ -40,7 +40,8 @@ int main(int argc, char** argv)
 	etrial.base = 0x8000000000;
 	etrial.size = size_b;
 
-	rtrial.uid = 0;//getuid();
+	printf("getuid=%d\n", getuid());
+	rtrial.uid = getuid();
 	rtrial.rw = rw;
 
 	printf("size in bytes : %lx\n", size_b);
