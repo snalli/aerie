@@ -25,7 +25,7 @@ public:
 	void set_root(void* root);
 	void* root();
 
-private:
+//private:
 	struct Header;
 	
 	StoragePool(Header* header);

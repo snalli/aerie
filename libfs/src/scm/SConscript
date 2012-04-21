@@ -23,7 +23,7 @@ lib_sources += pool_kernel_sources
 
 scmLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
-
+localBuildEnv.Append(LIBS = ['pthread'])
 localBuildEnv.Program(target = 'tool/pool/pool', source = lib_sources + ['tool/pool/main.cc', 'tool/pool/mkpool.cc'])
 
 Return('scmLibrary')

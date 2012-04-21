@@ -21,7 +21,7 @@ public:
 	void* root() { return root_; }
 	void set_root(void* root) { root_ = root; }
 
-private:
+//private:
 	void*       root_;
 	PoolInfo    buddy_;
 };
