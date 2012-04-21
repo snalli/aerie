@@ -1090,7 +1090,7 @@ int flush_old_exec(struct linux_binprm * bprm)
 		goto out;
 
 	bprm->mm = NULL;		/* We're using it now */
-
+	current->persistent_region_defined = false;
 	set_fs(USER_DS);
 	current->flags &= ~(PF_RANDOMIZE | PF_KTHREAD);
 	flush_thread();
@@ -1456,6 +1456,7 @@ static int do_execve_common(const char *filename,
 	bool clear_in_exec;
 	int retval;
 	const struct cred *cred = current_cred();
+
 
 	/*
 	 * We move the actual failure in case of RLIMIT_NPROC excess from
