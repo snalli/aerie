@@ -7,7 +7,7 @@
 #ifndef __STAMNOS_BCS_SERVER_SESSION_MANAGER_H
 #define __STAMNOS_BCS_SERVER_SESSION_MANAGER_H
 
-#include <google/sparsehash/sparseconfig.h>
+//#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "common/errno.h"
 

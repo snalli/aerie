@@ -8,7 +8,6 @@
 #ifndef __STAMNOS_OSD_CLIENT_OBJECT_MANAGER_H
 #define __STAMNOS_OSD_CLIENT_OBJECT_MANAGER_H
 
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "osd/main/common/obj.h"
 #include "osd/main/client/proxy.h"

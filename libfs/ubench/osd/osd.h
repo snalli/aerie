@@ -30,5 +30,4 @@ extern int ubench_hlock_create(int argc, char* argv[]);
 extern int ubench_rpc(int argc, char* argv[]);
 
 
-
 #endif // __STAMNOS_UBENCH_MAIN_H

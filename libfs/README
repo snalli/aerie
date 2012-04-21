@@ -1,11 +1,22 @@
 DEPENDENCIES
 * google-sparsehash
   http://code.google.com/p/google-sparsehash/
-* Boost C++ Libraries
+  Build google-sparsehash with the same compiler used to build Stamnos
+* Boost C++ Libraries (and dev kit)
+  yum install boost-devel.x86_64
 * UnitTest++
 * libconfig++
 * sysv_ipc python package
   http://pypi.python.org/pypi/sysv_ipc
+  requires installing python dev kit: yum install python-devel.x86_64
+
+COMPILER: gcc/g++ 4.4
+
+PYTHON 2.6
+
+Invoking Scons using non default python installation:
+  python26 `which scons` [scons-args]
+
 
 STYLE GUIDE
 * We follow Google C++ Style Guide. Yes, we do. Live with it!

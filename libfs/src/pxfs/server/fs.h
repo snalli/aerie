@@ -10,7 +10,6 @@
 
 #include <pthread.h>
 #include <string>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "osd/osd-opaque.h"
 #include "osd/main/common/obj.h"

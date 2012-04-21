@@ -10,7 +10,6 @@
 #define __STAMNOS_OSD_CLIENT_OBJECT_MAP_H
 
 #include <stdint.h>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include <google/sparse_hash_map>
 #include "common/errno.h"

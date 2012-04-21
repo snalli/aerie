@@ -1,5 +1,8 @@
 #include "ubench/osd/osd.h"
 
+
+
+
 using namespace client;
 
 const char*                 poolpath = "/tmp/stamnos_pool";

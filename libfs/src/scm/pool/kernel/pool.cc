@@ -72,6 +72,7 @@ StoragePool::Create(const char* path, size_t size, int flags)
 	metadata_size = header_size + freelist_size + bitmap_size;
 	metadata_size = NumOfBlocks(metadata_size, kBlockSize) * kBlockSize;
 	Protect(base, metadata_size, getuid(), 0x11);
+	printf("CREAET\n");
 	StoragePool::Header* header = StoragePool::Header::Make((void*) header_addr);
 	poolInit((void*) (base + metadata_size), size - metadata_size, 12, 32, 
 	         (size_t*) freelist_addr, (char*) bitmap_addr, &header->buddy_);

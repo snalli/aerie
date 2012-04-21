@@ -2,7 +2,7 @@
 #define __STAMNOS_OSD_CLIENT_TRANSACTION_H
 
 #include <setjmp.h>
-#include <google/sparsehash/sparseconfig.h>
+//#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "osd/main/common/obj.h"
 #include "common/types.h"

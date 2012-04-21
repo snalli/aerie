@@ -15,7 +15,6 @@ struct Command {
 	int (*command)(int, char* []);
 };
 
-
 static Command command_table[] = {
 	{ "create", "Create storage pool", main_mkpool},
 	{ NULL, NULL, NULL} // indicates end of table
@@ -25,7 +24,7 @@ static Command command_table[] = {
 static int 
 usage(const char *prog_name)
 {
-    fprintf(stderr, "usage: %s   %s\n", prog_name                    , "");
+	fprintf(stderr, "usage: %s   %s\n", prog_name                    , "");
 	for (int i=0; command_table[i].name != NULL; i++) {
 		const char* name = command_table[i].name;
 		const char* description = command_table[i].description;

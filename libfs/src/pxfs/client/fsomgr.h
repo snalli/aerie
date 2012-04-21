@@ -27,7 +27,6 @@
 #define __STAMNOS_PXFS_CLIENT_FILE_SYSTEM_OBJECT_MANAGER_H
 
 #include <string>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "rpc/rpc.h"
 #include "pxfs/client/inode.h"

@@ -2,7 +2,6 @@
 #define __STAMNOS_MFS_CLIENT_DIRECTORY_INODE_H
 
 #include <stdint.h>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "pxfs/common/types.h"
 #include "pxfs/common/const.h"

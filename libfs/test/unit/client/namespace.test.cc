@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "tool/testfw/unittest.h"
 #include "common/errno.h"

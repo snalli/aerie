@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <typeinfo>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_set>
 #include "bcs/bcs-opaque.h"
 #include "osd/main/common/obj.h"

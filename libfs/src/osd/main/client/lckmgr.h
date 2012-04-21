@@ -6,7 +6,6 @@
 #define __STAMNOS_OSD_CLIENT_LOCK_MANAGER_H
 
 #include <string>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
 #include <set>

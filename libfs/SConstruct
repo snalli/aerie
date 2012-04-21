@@ -104,6 +104,10 @@ else:
 	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCNET'])
 	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
 
+
+mainEnv.Replace(CC = "gcc44")
+mainEnv.Replace(CXX = "g++44")
+
 #mainEnv.Append(CCFLAGS=' -g -O0')
 #mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
 mainEnv.Append(CCFLAGS='-g -O3')

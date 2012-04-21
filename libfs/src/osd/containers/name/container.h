@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <typeinfo>
-#include <google/sparsehash/sparseconfig.h>
 #include <google/dense_hash_map>
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
