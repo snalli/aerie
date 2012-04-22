@@ -110,7 +110,7 @@ DescriptorPool::AllocateContainer(::client::Ipc* ipc, OsdSession* session, int t
 	}
 	ContainerDescriptor& front = container_list_[type].front();
 	*oid = front.oid_;
-	session->journal() << Publisher::Message::LogicalOperation::AllocContainer(capability_, front.index_, front.oid_);
+	session->journal() << Publisher::Message::LogicalOperation::AllocContainer(capability_, front.oid_, front.index_);
 	container_list_[type].pop_front();
 	return E_SUCCESS;
 }
@@ -138,7 +138,7 @@ DescriptorPool::AllocateExtent(::client::Ipc* ipc, OsdSession* session,
 	}
 	ExtentDescriptor& front = extent_list_.front();
 	*eid = front.eid_;
-	session->journal() << osd::Publisher::Message::ContainerOperation::AllocateExtent();
+	session->journal() << osd::Publisher::Message::ContainerOperation::AllocateExtent(capability_, front.eid_, front.index_);
 	extent_list_.pop_front();
 	return E_SUCCESS;
 }

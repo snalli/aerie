@@ -512,6 +512,30 @@ StorageAllocator::AllocateContainerFromSet(OsdSession* session, osd::common::Obj
 }
 
 
+// Allocate Extent: called by the publisher/validator to allocate extent from a set
+int 
+StorageAllocator::AllocateExtentFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ExtentId eid, int index_hint)
+{
+	int                     ret;
+	char*                   buffer;
+	size_t                  static_size;
+	size_t                  extent_size;
+	::osd::common::Object*  obj;
+	ObjectIdSet*            obj_set;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
+	        "[%d] Allocate extent %p from set %p (hint=%d)\n", session->clt(), 
+	        (void*) eid.u64(), (void*) set_oid.u64(), index_hint);
+
+	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(set_oid)) == NULL) {
+		return -1;
+	}
+
+	obj_set->Write(session, index_hint, 0);
+	return E_SUCCESS;
+}
+
+
 
 
 int

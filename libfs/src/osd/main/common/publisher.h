@@ -133,11 +133,11 @@ struct Publisher::Message::LogicalOperation {
 
 
 struct Publisher::Message::LogicalOperation::AllocContainer: public osd::Publisher::Message::LogicalOperationHeaderT<AllocContainer> {
-	AllocContainer(int capability, int index_hint, osd::common::ObjectId oid)
+	AllocContainer(int capability, osd::common::ObjectId oid, int index_hint)
 		: osd::Publisher::Message::LogicalOperationHeaderT<AllocContainer>(kAllocContainer, sizeof(AllocContainer)),
 		  capability_(capability),
-		  index_hint_(index_hint),
-		  oid_(oid)
+		  oid_(oid),
+		  index_hint_(index_hint)
 	{ }
 
 	int                   capability_;
@@ -159,13 +159,20 @@ struct Publisher::Message::ContainerOperation {
 
 
 struct Publisher::Message::ContainerOperation::AllocateExtent: public ContainerOperationHeader {
-	AllocateExtent()
-		: ContainerOperationHeader(kAllocateExtent, sizeof(AllocateExtent))
+	AllocateExtent(int capability, osd::common::ExtentId eid, int index_hint)
+		: ContainerOperationHeader(kAllocateExtent, sizeof(AllocateExtent)),
+		  capability_(capability),
+		  eid_(eid),
+		  index_hint_(index_hint)
 	{ }
 
 	static AllocateExtent* Load(void* src) {
 		return reinterpret_cast<AllocateExtent*>(src);
 	}
+
+	int                   capability_;
+	int                   index_hint_;
+	osd::common::ExtentId eid_;
 };
 
 

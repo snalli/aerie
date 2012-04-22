@@ -19,7 +19,7 @@ usage()
 
 
 static int 
-__ubench_fs_create(const char* root, int numops)
+__ubench_fs_create(const char* root, int numops, size_t size)
 {
 	MEASURE_TIME_PREAMBLE
 	int                    ret = 0;
@@ -29,6 +29,7 @@ __ubench_fs_create(const char* root, int numops)
 	hrtime_t               sync_runtime_cycles;
 	int                    fd;
 	std::string**          path = new std::string*[numops];
+	void*                  buf = new char[size];
 
 	for (int i=0; i<numops; i++) {
 		std::stringstream  ss;
@@ -42,6 +43,7 @@ __ubench_fs_create(const char* root, int numops)
 	for (int i=0; i<numops; i++) {
 		fd = fs_open2(path[i]->c_str(), O_CREAT|O_TRUNC|O_RDWR, S_IRWXU);
 		assert(fd>0);
+		fs_write(fd, buf, size);
 		fs_fsync(fd);
 		fs_close(fd);
 	}
@@ -74,16 +76,20 @@ ubench_fs_create(int argc, char* argv[])
 	int         numops = 0;
 	char*       objtype;
 	const char* root_path = NULL;
+	size_t      size = 0;
 	
 	opterr=0;
 	optind=0;
-	while ((ch = getopt(argc, argv, "p:n:"))!=-1) {
+	while ((ch = getopt(argc, argv, "p:n:s:"))!=-1) {
 		switch (ch) {
 			case 'p': // root path
 				root_path = optarg;
 				break;
 			case 'n':
 				numops = atoi(optarg);
+				break;
+			case 's':
+				size = atoi(optarg);
 				break;
 			case '?':
 				usage();
@@ -96,5 +102,5 @@ ubench_fs_create(int argc, char* argv[])
 		return -1;
 	}
 
-	return __ubench_fs_create(root_path, numops);
+	return __ubench_fs_create(root_path, numops, size);
 }

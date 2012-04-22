@@ -48,6 +48,11 @@ int (*fs_unlink)(const char*) = vfs_unlink;
 int (*fs_close)(int fd) = vfs_close;
 int (*fs_fsync)(int fd) = fsync;
 int (*fs_sync)() = vfs_sync;
+ssize_t (*fs_write)(int fd, const void* buf, size_t count) = write;
+ssize_t (*fs_read)(int fd, void* buf, size_t count) = read;
+ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset) = pwrite;
+ssize_t (*fs_pread)(int fd, void* buf, size_t count, off_t offset) = pread;
+
 
 int 
 Init(int debug_level, const char* xdst)

@@ -18,6 +18,10 @@ int (*fs_unlink)(const char*) = libfs_unlink;
 int (*fs_close)(int fd) = libfs_close;
 int (*fs_fsync)(int fd) = libfs_fsync;
 int (*fs_sync)() = libfs_sync;
+ssize_t (*fs_write)(int fd, const void* buf, size_t count) = libfs_write;
+ssize_t (*fs_read)(int fd, void* buf, size_t count) = libfs_read;
+ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset) = libfs_pwrite;
+ssize_t (*fs_pread)(int fd, void* buf, size_t count, off_t offset) = libfs_pread;
 
 int 
 Init(int debug_level, const char* xdst)

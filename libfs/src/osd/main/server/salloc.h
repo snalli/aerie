@@ -100,11 +100,12 @@ public:
 
 	int Alloc(size_t nbytes, std::type_info const& typid, void** ptr);
 	int Alloc(OsdSession* session, size_t nbytes, std::type_info const& typid, void** ptr);
-	int AllocateExtent(OsdSession* session, size_t size, int flags, void** ptr);
-	int AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set, int size, int count);
 	int CreateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, ObjectIdSet** obj_set);
 	int AllocateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, osd::common::ObjectId* set_oid);
 	int AllocateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, ::osd::StorageProtocol::ContainerReply& reply);
+	int AllocateExtent(OsdSession* session, size_t size, int flags, void** ptr);
+	int AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set, int size, int count);
+	int AllocateExtentFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ExtentId eid, int index_hint);
 	int AllocateContainer(OsdSession* session, osd::common::AclIdentifier acl_id, int type, osd::common::ObjectId* oidp);
 	int AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set, int type, int count);
 	int AllocateContainerFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ObjectId oid, int index_hint);

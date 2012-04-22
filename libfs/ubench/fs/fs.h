@@ -11,6 +11,11 @@ extern int (*fs_unlink)(const char*);
 extern int (*fs_close)(int);
 extern int (*fs_fsync)(int);
 extern int (*fs_sync)();
+extern ssize_t (*fs_write)(int fd, const void* buf, size_t count);
+extern ssize_t (*fs_read)(int fd, void* buf, size_t count);
+extern ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset);
+extern ssize_t (*fs_pread)(int fd, void* buf, size_t count, off_t offset);
+
 
 extern int ubench_fs_open(int argc, char* argv[]);
 extern int ubench_fs_create(int argc, char* argv[]);

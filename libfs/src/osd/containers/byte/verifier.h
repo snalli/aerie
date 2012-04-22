@@ -11,6 +11,9 @@ public:
 
 	struct AllocateExtent {
 		static int Action(osd::server::OsdSession* session, osd::Publisher::Message::ContainerOperation::AllocateExtent* msg) {
+			osd::common::ObjectId set_oid;
+			set_oid = session->sets_[msg->capability_];
+			session->salloc()->AllocateExtentFromSet(session, set_oid, msg->eid_, msg->index_hint_);
 			return E_SUCCESS;
 		}
 	};
