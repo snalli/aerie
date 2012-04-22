@@ -39,6 +39,7 @@ public:
 	struct TransactionCommit;
 	struct LogicalOperationHeader;
 	template<typename T> struct LogicalOperationHeaderT;
+	struct LogicalOperation;
 	struct ContainerOperationHeader;
 	struct ContainerOperation;
 };
@@ -122,6 +123,27 @@ struct Publisher::Message::ContainerOperationHeader: public BaseMessageT<Contain
 	short payload_size_;
 };
 
+
+struct Publisher::Message::LogicalOperation {
+	enum OperationCode {
+		kAllocContainer = 1, 
+	};
+	struct AllocContainer;
+};
+
+
+struct Publisher::Message::LogicalOperation::AllocContainer: public osd::Publisher::Message::LogicalOperationHeaderT<AllocContainer> {
+	AllocContainer(int capability, int index_hint, osd::common::ObjectId oid)
+		: osd::Publisher::Message::LogicalOperationHeaderT<AllocContainer>(kAllocContainer, sizeof(AllocContainer)),
+		  capability_(capability),
+		  index_hint_(index_hint),
+		  oid_(oid)
+	{ }
+
+	int                   capability_;
+	int                   index_hint_;
+	osd::common::ObjectId oid_;
+};
 
 
 struct Publisher::Message::ContainerOperation {

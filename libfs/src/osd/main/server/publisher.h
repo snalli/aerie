@@ -22,6 +22,7 @@ public:
 	int Init();
 	int Publish(OsdSession* session);
 	int RegisterOperation(int lgc_op_id, LogicalOperation lgc_op);
+	static int AllocContainer(::osd::server::OsdSession* session, char* buf, ::osd::Publisher::Message::BaseMessage* next);
 
 	class IpcHandlers {
 	public:

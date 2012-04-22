@@ -26,6 +26,8 @@ __ubench_fs_unlink(const char* root, int numops)
 	int                    fd = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles;
+	unsigned long long     sync_runtime;
+	hrtime_t               sync_runtime_cycles;
 	std::string**          path = new std::string*[numops];
 
 	for (int i=0; i<numops; i++) {
@@ -48,7 +50,15 @@ __ubench_fs_unlink(const char* root, int numops)
     MEASURE_TIME_DIFF_USEC(runtime)
     MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 	
-	std::cout << measure_time_summary(numops, runtime, runtime_cycles) << std::endl;
+	MEASURE_TIME_START
+	fs_sync();
+	MEASURE_TIME_STOP
+
+    MEASURE_TIME_DIFF_USEC(sync_runtime)
+    MEASURE_TIME_DIFF_CYCLES(sync_runtime_cycles)
+
+	std::cout << "UNLINK:\n" << measure_time_summary(numops, runtime, runtime_cycles) << std::endl;
+	std::cout << "SYNC:\n" << measure_time_summary(1, sync_runtime, sync_runtime_cycles) << std::endl;
 	return ret;
 }
 

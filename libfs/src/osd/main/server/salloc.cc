@@ -71,7 +71,7 @@ DescriptorPool::AllocateContainer(OsdSession* session, StorageAllocator* salloc,
 	int ret;
 
 	if (container_list_[type].empty()) {
-		if ((ret = salloc->AllocateContainerAndFillSet(session, set_obj_, type, 1024)) < 0) {
+		if ((ret = salloc->AllocateContainerIntoSet(session, set_obj_, type, 1024)) < 0) {
 			return ret;
 		}
 		if ((ret = Load(session)) < 0) {
@@ -98,7 +98,7 @@ DescriptorPool::AllocateExtent(OsdSession* session, StorageAllocator* salloc,
 	int r;
 
 	if (extent_list_.empty()) {
-		if ((ret = salloc->AllocateExtentAndFillSet(session, set_obj_, nbytes, 1024)) < 0) {
+		if ((ret = salloc->AllocateExtentIntoSet(session, set_obj_, nbytes, 1024)) < 0) {
 			return ret;
 		}
 		if ((ret = Load(session)) < 0) {
@@ -325,7 +325,7 @@ StorageAllocator::AllocateExtent(OsdSession* session, size_t size, int flags, vo
 
 
 int 
-StorageAllocator::AllocateExtentAndFillSet(OsdSession* session, ObjectIdSet* set, 
+StorageAllocator::AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set, 
                                            int size, int count)
 {
 	int                     ret;
@@ -451,10 +451,10 @@ StorageAllocator::AllocateContainer(OsdSession* session,
 }
 	
 
-// Allocate containers and put then in the set
+// Allocate containers into the set:
 int 
-StorageAllocator::AllocateContainerAndFillSet(OsdSession* session, ObjectIdSet* set, 
-                                              int type, int count)
+StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set, 
+                                           int type, int count)
 {
 	int                     ret;
 	char*                   buffer;
@@ -488,16 +488,42 @@ StorageAllocator::AllocateContainerAndFillSet(OsdSession* session, ObjectIdSet* 
 }
 
 
+// Allocate Container: called by the publisher/validator to allocate container from a set
+int 
+StorageAllocator::AllocateContainerFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ObjectId oid, int index_hint)
+{
+	int                     ret;
+	char*                   buffer;
+	size_t                  static_size;
+	size_t                  extent_size;
+	::osd::common::Object*  obj;
+	ObjectIdSet*            obj_set;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
+	        "[%d] Allocate container %p from set %p (hint=%d)\n", session->clt(), 
+	        (void*) oid.u64(), (void*) set_oid.u64(), index_hint);
+
+	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(set_oid)) == NULL) {
+		return -1;
+	}
+
+	obj_set->Write(session, index_hint, 0);
+	return E_SUCCESS;
+}
+
+
+
+
 int
 StorageAllocator::IpcHandlers::Register(StorageAllocator* salloc)
 {
 	salloc_ = salloc;
     salloc_->ipc_->reg(::osd::StorageProtocol::kAllocateObjectIdSet, this, 
 	                   &::osd::server::StorageAllocator::IpcHandlers::AllocateObjectIdSet);
-    salloc_->ipc_->reg(::osd::StorageProtocol::kAllocateExtent, this, 
-	                   &::osd::server::StorageAllocator::IpcHandlers::AllocateExtent);
-    salloc_->ipc_->reg(::osd::StorageProtocol::kAllocateContainer, this, 
-	                   &::osd::server::StorageAllocator::IpcHandlers::AllocateContainer);
+    salloc_->ipc_->reg(::osd::StorageProtocol::kAllocateExtentIntoSet, this, 
+	                   &::osd::server::StorageAllocator::IpcHandlers::AllocateExtentIntoSet);
+    salloc_->ipc_->reg(::osd::StorageProtocol::kAllocateContainerIntoSet, this, 
+	                   &::osd::server::StorageAllocator::IpcHandlers::AllocateContainerIntoSet);
     salloc_->ipc_->reg(::osd::StorageProtocol::kAllocateContainerVector, this, 
 	                   &::osd::server::StorageAllocator::IpcHandlers::AllocateContainerVector);
 
@@ -526,8 +552,8 @@ StorageAllocator::IpcHandlers::AllocateObjectIdSet(int clt, osd::common::AclIden
 // set_capability is an index into the table of container sets allocates to the client
 // new containers will be allocated into the set pointed by the set_capability
 int 
-StorageAllocator::IpcHandlers::AllocateContainer(int clt, int set_capability, int type, int num, 
-                                                 int& reply)
+StorageAllocator::IpcHandlers::AllocateContainerIntoSet(int clt, int set_capability, int type, int num, 
+                                                        int& reply)
 {
 	int                    ret;
 	::server::BaseSession* session;
@@ -545,7 +571,7 @@ StorageAllocator::IpcHandlers::AllocateContainer(int clt, int set_capability, in
 	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(oid)) == NULL) {
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(server_salloc), "[%d] Cannot load persistent object\n", clt);
 	}
-	if ((ret = salloc_->AllocateContainerAndFillSet(osdsession, obj_set, type, num)) < 0) {
+	if ((ret = salloc_->AllocateContainerIntoSet(osdsession, obj_set, type, num)) < 0) {
 		return -ret;
 	}
 	return E_SUCCESS;
@@ -555,8 +581,8 @@ StorageAllocator::IpcHandlers::AllocateContainer(int clt, int set_capability, in
 // set_capability is an index into the table of container sets allocates to the client
 // new containers will be allocated into the set pointed by the set_capability
 int 
-StorageAllocator::IpcHandlers::AllocateExtent(int clt, int set_capability, int size, int num, 
-                                              int& reply)
+StorageAllocator::IpcHandlers::AllocateExtentIntoSet(int clt, int set_capability, int size, int num, 
+                                                     int& reply)
 {
 	int                    ret;
 	::server::BaseSession* session;
@@ -574,7 +600,7 @@ StorageAllocator::IpcHandlers::AllocateExtent(int clt, int set_capability, int s
 	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(oid)) == NULL) {
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(server_salloc), "[%d] Cannot load persistent object\n", clt);
 	}
-	if ((ret = salloc_->AllocateExtentAndFillSet(osdsession, obj_set, size, num)) < 0) {
+	if ((ret = salloc_->AllocateExtentIntoSet(osdsession, obj_set, size, num)) < 0) {
 		return -ret;
 	}
 	return E_SUCCESS;

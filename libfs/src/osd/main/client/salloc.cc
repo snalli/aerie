@@ -98,7 +98,7 @@ DescriptorPool::AllocateContainer(::client::Ipc* ipc, OsdSession* session, int t
 	int ret;
 
 	if (container_list_[type].empty()) {
-		if ((ret = ipc->call(osd::StorageProtocol::kAllocateContainer, 
+		if ((ret = ipc->call(osd::StorageProtocol::kAllocateContainerIntoSet, 
 							 ipc->id(), capability_, type, 1024, r)) < 0) {
 			return ret;
 		} else if (ret > 0) {
@@ -110,7 +110,7 @@ DescriptorPool::AllocateContainer(::client::Ipc* ipc, OsdSession* session, int t
 	}
 	ContainerDescriptor& front = container_list_[type].front();
 	*oid = front.oid_;
-	//TODO: mark the allocation down in the journal.
+	session->journal() << Publisher::Message::LogicalOperation::AllocContainer(capability_, front.index_, front.oid_);
 	container_list_[type].pop_front();
 	return E_SUCCESS;
 }
@@ -126,7 +126,7 @@ DescriptorPool::AllocateExtent(::client::Ipc* ipc, OsdSession* session,
 	int r;
 
 	if (extent_list_.empty()) {
-		if ((ret = ipc->call(osd::StorageProtocol::kAllocateExtent, 
+		if ((ret = ipc->call(osd::StorageProtocol::kAllocateExtentIntoSet, 
 							 ipc->id(), capability_, 4096, 1024, r)) < 0) {
 			return ret;
 		} else if (ret > 0) {

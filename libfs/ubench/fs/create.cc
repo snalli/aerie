@@ -59,8 +59,8 @@ __ubench_fs_create(const char* root, int numops)
     MEASURE_TIME_DIFF_USEC(sync_runtime)
     MEASURE_TIME_DIFF_CYCLES(sync_runtime_cycles)
 
-	std::cout << measure_time_summary(numops, runtime, runtime_cycles) << std::endl;
-	std::cout << measure_time_summary(1, sync_runtime, sync_runtime_cycles) << std::endl;
+	std::cout << "CREATE:\n" << measure_time_summary(numops, runtime, runtime_cycles) << std::endl;
+	std::cout << "SYNC:\n" << measure_time_summary(1, sync_runtime, sync_runtime_cycles) << std::endl;
 	return ret;
 }
 

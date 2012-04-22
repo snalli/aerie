@@ -20,6 +20,13 @@ extern int Init(int debug_level, const char* xdst);
 extern int ShutDown();
 
 
+struct ubench_desc {
+	const char*   name;
+	int         (*function)(int, char* []);
+	int           argc;
+	char**        argv;
+};
+
 /*
 static 
 int pin_to_core(int core) {
@@ -40,7 +47,7 @@ int pin_to_core(int core) {
 static void 
 usage(const char* name)
 {
-	printf("usage: %s   %s\n", name                    , "[OPTION] +UBENCH [UBENCH_OPTION]");
+	printf("usage: %s   %s\n", name                    , "[OPTION] [+UBENCH [UBENCH_OPTION]]");
 	//printf("  or:  %s   %s\n", WHITESPACE(strlen(name)), "");
 
 	//printf(
@@ -51,18 +58,19 @@ usage(const char* name)
 int
 main(int argc, char *argv[])
 {
-	pthread_attr_t    attr;
-	int               ret = -1;
-	int               debug_level = -1;
-	uid_t             principal_id;
-	char              ch = 0;
-	const char*       xdst="10000";
-	char*             ubench_name = NULL;
-	extern int        opterr;
-	extern char*      optarg;
-	std::string       unused;
-	int               generic_argc;
-	int               (*ubench_function)(int, char* []);
+	int                generic_argc = 0;
+	int                ubench_cnt = 0;
+	int                last_ubench_loc = 0;
+	pthread_attr_t     attr;
+	int                ret = -1;
+	int                debug_level = -1;
+	uid_t              principal_id;
+	char               ch = 0;
+	const char*        xdst="10000";
+	extern int         opterr;
+	extern char*       optarg;
+	std::string        unused;
+	struct ubench_desc ubench[16];
 
 
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -70,19 +78,31 @@ main(int argc, char *argv[])
 
 	principal_id = getuid();
 
-	// any arguments that appear before the name of the microbenchmark are 
-	// interpreted here. 
-
-	generic_argc = argc;
+	RegisterUbench();
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '+') {
-			generic_argc = i;
-			break;
+			if (ubench_cnt>0) {
+				ubench[ubench_cnt-1].argc = i - last_ubench_loc;
+			} else {
+				generic_argc = i;
+			}
+			last_ubench_loc = i;
+			ubench[ubench_cnt].argv = &argv[i];
+			ubench[ubench_cnt].name = &argv[i][1];
+			for (int j=0; j < ubench_table.size(); j++) {
+				if (strcmp(ubench_table[j].ubench_name.c_str(), ubench[ubench_cnt].name) == 0) {
+					ubench[ubench_cnt].function = ubench_table[j].ubench_function;
+					break;
+				}
+			}
+			ubench_cnt++;
 		}
 	}
-	if (generic_argc != argc) {
-		ubench_name = &argv[generic_argc][1];
+	if (ubench_cnt > 0) {
+		ubench[ubench_cnt - 1].argc = argc - last_ubench_loc;
 	}
+	// any arguments that appear before the name of the microbenchmark are 
+	// interpreted here. 
 	opterr=0;
 	while ((ch = getopt(generic_argc, argv, "d:h:t:"))!=-1) {
 		switch (ch) {
@@ -99,31 +119,26 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (!ubench_name) {
+	if (!ubench_cnt) {
 		usage(progname);
+		return -1;
 	}
 
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	RegisterUbench();
-	for (int i=0; i < ubench_table.size(); i++) {
-		if (strcmp(ubench_table[i].ubench_name.c_str(), ubench_name) == 0) {
-			ubench_function = ubench_table[i].ubench_function;
-			break;
-		}
-	}
-	if (!ubench_name) {
-		return -1;
-	}
-
+	printf("INIT\n");
 	if ((ret = Init(debug_level, xdst)) < 0) {
 		return ret;
 	}
 
-	printf("Invoking %s...\n", ubench_name);
-	ret = ubench_function(argc - generic_argc, &argv[generic_argc]);
+	for (int i=0; i < ubench_cnt; i++) {
+		printf("Invoking %s...\n", ubench[i].name);
+		if ((ret = ubench[i].function(ubench[i].argc, ubench[i].argv)) < 0) {
+			break;
+		}
+	}
 
 	ShutDown();
 

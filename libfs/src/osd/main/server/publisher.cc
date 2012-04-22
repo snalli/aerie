@@ -1,6 +1,7 @@
 #include "osd/main/server/publisher.h"
 #include "osd/main/server/session.h"
 #include "osd/main/server/shbuf.h"
+#include "osd/main/server/salloc.h"
 #include "osd/main/common/publisher.h"
 #include "common/errno.h"
 #include "common/util.h"
@@ -9,6 +10,24 @@
 
 namespace osd {
 namespace server {
+
+template<typename T>
+T* LoadLogicalOperation(::osd::server::OsdSession* session, char* buf)
+{
+	int                                               n;
+	T*                                                lgc_op;
+	::osd::server::OsdSharedBuffer*                   shbuf = session->shbuf_;
+	osd::Publisher::Message::LogicalOperationHeader* header = osd::Publisher::Message::LogicalOperationHeader::Load(buf);
+	n = sizeof(*lgc_op) - sizeof(*header);
+	if (shbuf->Read(&buf[sizeof(*header)], n) < n) {
+		return NULL;
+	}
+	lgc_op = T::Load(buf);
+	return lgc_op;
+}
+
+
+
 
 Publisher::Publisher(::server::Ipc* ipc)
 	: ipc_(ipc)
@@ -22,6 +41,7 @@ Publisher::Publisher(::server::Ipc* ipc)
 int
 Publisher::Init()
 {
+	RegisterOperation(osd::Publisher::Message::LogicalOperation::kAllocContainer, Publisher::AllocContainer);
 	if (ipc_) {
 		return ipc_handlers_.Register(this);
 	}
@@ -98,6 +118,26 @@ done:
 	shbuf->Release();
 	return ret;
 }
+
+
+int
+Publisher::AllocContainer(::osd::server::OsdSession* session, char* buf, 
+                          ::osd::Publisher::Message::BaseMessage* next)
+{
+	int                   ret = E_SUCCESS;
+	osd::common::ObjectId set_oid;
+
+	::osd::Publisher::Message::LogicalOperation::AllocContainer* lgc_op = LoadLogicalOperation< ::osd::Publisher::Message::LogicalOperation::AllocContainer>(session, buf);
+	
+	dbg_log(DBG_INFO, "VALIDATE CONTAINER ALLOCATION: capability=%d, index_hint=%d, oid=%lx\n", 
+	        lgc_op->capability_, lgc_op->index_hint_, lgc_op->oid_.u64());
+	
+	set_oid = session->sets_[lgc_op->capability_];
+	
+	return session->salloc()->AllocateContainerFromSet(session, set_oid, lgc_op->oid_, lgc_op->index_hint_);
+}
+
+
 
 
 int

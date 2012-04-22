@@ -140,6 +140,8 @@ NameContainer::Object<Session>::Erase(Session* session, const char* name)
 		return -1;
 	}	
 	
+	dbg_log(DBG_DEBUG, "NameContainer %p, erase %s\n", this, name);
+
 	// handle special cases '.' and '..'
 	switch (str_is_dot(name)) {
 		case 1: // '.'

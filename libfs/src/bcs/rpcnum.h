@@ -32,9 +32,9 @@
 	ACTION(osd, rlock_protocol, retry)
 
 #define OSD_STORAGE_PROTOCOL(ACTION)                                           \
-	ACTION(osd, StorageProtocol, kAllocateExtent)                              \
+	ACTION(osd, StorageProtocol, kAllocateExtentIntoSet)                       \
 	ACTION(osd, StorageProtocol, kAllocateContainerVector)                     \
-	ACTION(osd, StorageProtocol, kAllocateContainer)                           \
+	ACTION(osd, StorageProtocol, kAllocateContainerIntoSet)                    \
 	ACTION(osd, StorageProtocol, kAllocateObjectIdSet)
 
 #define OSD_REGISTRY_PROTOCOL(ACTION)                                          \

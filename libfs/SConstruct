@@ -12,8 +12,8 @@ AddOption("--rpc",
 	type='string',
 	nargs = 1,
 	action="store", 
-	default = 'socket',
-	help="Set RPC library: socket, fast")
+	default = 'net',
+	help="Set RPC library: net, fast")
 
 AddOption("--test",
 	action="store_true", dest="run_tests",
@@ -94,16 +94,6 @@ mainEnv['TEST_STDOUT'] = GetOption('test_stdout')
 mainEnv['TEST_STDERR'] = GetOption('test_stderr')
 mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')
 
-if mainEnv['RPC'] == 'fast':
-	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCFAST'])
-	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
-elif mainEnv['RPC'] == 'fast-two':
-	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCFAST'])
-	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCFAST'])
-else:
-	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCNET'])
-	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
-
 
 #mainEnv.Replace(CC = "gcc44")
 #mainEnv.Replace(CXX = "g++44")
@@ -134,15 +124,33 @@ if ARGUMENTS.get('VERBOSE') != "1":
 
 if mainEnv['GOOGLE_SPARSEHASH']:
 	mainEnv.Append(CPPPATH = [mainEnv['GOOGLE_SPARSEHASH']])
+
 if mainEnv['LIBCONFIG']:
 	mainEnv.Append(CPPPATH = [mainEnv['LIBCONFIG']])
 	mainEnv.Append(LIBPATH = [os.path.join(mainEnv['LIBCONFIG'], '.libs')])
 	mainEnv.Append(RPATH = [os.path.join(mainEnv['LIBCONFIG'], '.libs/')])
+
 if mainEnv['LIBHOARD']:
 	mainEnv.Append(CPPPATH = [mainEnv['LIBHOARD']])
 	mainEnv.Append(LIBPATH = [mainEnv['LIBHOARD']])
 	mainEnv.Append(RPATH = [mainEnv['LIBHOARD']])
 	mainEnv.Append(LIBFS = ['hoard'])
+
+if mainEnv['SCMPOOL'] == 'kernel':
+	mainEnv.Append(CPPDEFINES = ['-D_SCM_POOL_KERNELMODE'])
+else:	
+	mainEnv.Append(CPPDEFINES = ['-D_SCM_POOL_USERMODE'])
+
+if mainEnv['RPC'] == 'fast':
+	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCFAST'])
+	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
+elif mainEnv['RPC'] == 'fast-two':
+	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCFAST'])
+	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCFAST'])
+else:
+	mainEnv.Append(CPPDEFINES = ['-D_CLT2SVR_RPCNET'])
+	mainEnv.Append(CPPDEFINES = ['-D_SVR2CLT_RPCNET'])
+
 
 
 Export('mainEnv')

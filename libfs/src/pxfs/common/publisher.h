@@ -19,7 +19,7 @@ public:
 
 struct Publisher::Message::LogicalOperation {
 	enum OperationCode {
-		kMakeFile = 1,
+		kMakeFile = 10, // make sure we don't conflict with any OSD layer logical operations
 		kMakeDir,
 		kLink,
 		kUnlink,
