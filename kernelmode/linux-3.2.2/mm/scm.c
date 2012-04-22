@@ -252,7 +252,24 @@ SYSCALL_DEFINE2(alloc_persistent, unsigned long, v_addr, unsigned long, size_mb)
 	if(size_mb & (block_sz_mb-1) != 0)
 		return SZALIGNERROR;
 
+	tobeactivemap = active_mapping;
 	/* check fo virtual address overlap */
+	for(i = tobeactivemap->max_virtindex; i >= 0; i--)
+	{
+		unsigned long block_start, block_end, size, v_endaddr;
+
+		block_start = tobeactivemap->vpblock[i].v_startaddr;
+		size = tobeactivemap->vpblock[i].size;
+		size *= (1024*1024);
+		block_end = block_start + size - 1;
+		v_endaddr = v_addr + size_mb;
+	
+		if(block_start <= v_addr && block_end >= v_addr)
+			return VIRTADDROLAP;
+
+		if(block_start <= v_endaddr && block_end >= v_endaddr)
+			return VIRTADDROLAP;
+	}
 
 	// Locking to avoid races and corrupting the data structures
 	mutex_lock(&scm_lock);
@@ -380,14 +397,16 @@ SYSCALL_DEFINE3(mpprotect, void *, extseg, void *, rights, int, count)
 		d_mm = &(p->d_mm);
 		pgprotmap = p->page_prot_map;
 
-		//printk(KERN_ERR"Changing protection Extent base : %lx Size : %lx", ext.base, ext.size);
-
 		// apply protection bits to the user based bitmap
+		read = write = false;
 		rw = uf_rights[j].rw & 0x3;
 		if(rw & 0x2)
 			read = true;
 		if(rw & 0x1)
+		{
+			read = true;
 			write = true;
+		}
 
 		for(i = 0; i < nr_extents; i++)
 		{
@@ -419,8 +438,6 @@ SYSCALL_DEFINE3(mpprotect, void *, extseg, void *, rights, int, count)
 			//	continue;
 			//if((!!oldr == !!(rw&0x2)) && (!!oldw == !!(rw&0x1)))
 			//	continue;
-
-			//printk(KERN_ERR"Address %lx %d %d %d", address, oldr, oldw, rw);
 
 			/* Update the pte entires if it exist and flush  TLB 
 			   entry */
@@ -475,6 +492,7 @@ SYSCALL_DEFINE1(flush_pg, int, flush_all)
 	spinlock_t *ptl;
 	struct mm_struct *d_mm; 
 
+	mutex_lock(&ppgtbl_lock);
 	for(i = 0;i < ppgtbl_index; i++)
 	{ 
 		pud = ppgtbl[i].ppud;
@@ -502,7 +520,9 @@ SYSCALL_DEFINE1(flush_pg, int, flush_all)
 			//__flush_tlb_one(address);
 			flush_tlb_others(cpu_online_mask, NULL, address);
 		}
+		bitmap_zero(ppgtbl[i].page_prot_map, pg_prot_mapsize);
 	}	
+	mutex_unlock(&ppgtbl_lock);
 	return SUCCESS;
 }
 
