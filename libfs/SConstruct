@@ -7,6 +7,14 @@ configure(mainEnv)
 sys.path.append(os.path.join(Dir('#').abspath, 'tool'))
 
 
+AddOption("--gcc",
+	dest="gcc_path",
+	type='string',
+	nargs = 1,
+	action="store", 
+	default = 'gcc',
+	help="Set GCC")
+
 AddOption("--rpc",
 	dest="rpc_type",
 	type='string',
@@ -94,9 +102,9 @@ mainEnv['TEST_STDOUT'] = GetOption('test_stdout')
 mainEnv['TEST_STDERR'] = GetOption('test_stderr')
 mainEnv['TEST_EXTRA_ARGS'] = GetOption('test_extra_args')
 
-
-#mainEnv.Replace(CC = "gcc44")
-#mainEnv.Replace(CXX = "g++44")
+if GetOption('gcc_path') == 'gcc44':
+	mainEnv.Replace(CC = "gcc44")
+	mainEnv.Replace(CXX = "g++44")
 
 mainEnv.Append(CCFLAGS=' -g -O0')
 #mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
