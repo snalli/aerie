@@ -196,7 +196,6 @@ public:
 	static Page* Make(Session* session)
 	{
 		void* ptr;
-		printf("PAGE: %d\n", sizeof(Page));
 		if (session->salloc()->AllocateExtent(session, sizeof(Page), 0, &ptr) < 0) {
 			dbg_log(DBG_ERROR, "No storage available");
 		}

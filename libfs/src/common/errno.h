@@ -10,6 +10,7 @@
  */
 #define __DEFINE_ERRNO(ACTION)                                               \
 	ACTION(E_SUCCESS, "Success")                                             \
+	ACTION(E_ERROR, "Generic error")                                         \
 	ACTION(E_NOMEM, "No memory")                                             \
     ACTION(E_EXIST, "Name already exists")                                   \
     ACTION(E_NOENT, "Name does not exist")                                   \

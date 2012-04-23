@@ -324,6 +324,22 @@ StorageAllocator::AllocateExtent(OsdSession* session, size_t size, int flags, vo
 }
 
 
+int
+StorageAllocator::FreeExtent(OsdSession* session, osd::common::ExtentId eid)
+{
+	int ret;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
+	        "Freeing Extent: %p ...\n", eid.u64());
+	
+	if ((ret = pool_->FreeExtent(eid.addr())) < 0) {
+		return ret;
+	}
+
+	return E_SUCCESS;
+}
+
+
 int 
 StorageAllocator::AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set, 
                                            int size, int count)
@@ -450,6 +466,15 @@ StorageAllocator::AllocateContainer(OsdSession* session,
 	return E_SUCCESS;
 }
 	
+
+int
+StorageAllocator::FreeContainer(OsdSession* session, osd::common::ObjectId oid)
+{
+
+	return E_SUCCESS;
+}
+
+
 
 // Allocate containers into the set:
 int 

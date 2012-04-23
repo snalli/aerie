@@ -21,6 +21,7 @@ public:
 	uint64_t Identity() { return identity_; }
 
 	int AllocateExtent(uint64_t size, void** ptr);
+	int FreeExtent(void* ptr);
 
 	void set_root(void* root);
 	void* root();

@@ -517,11 +517,10 @@ ByteContainer::Object<Session>::Free(Session* session, osd::common::ObjectId oid
 	
 	for (iter = start, n = 0; !iter.terminate() && n < obj->size_; iter++, n+=kBlockSize) 
 	{
-		void* ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
-		printf("%d->%p\n", (*iter).get_base_bn(), ptr);
-
+		uint64_t extent_u64 = (uint64_t) (*iter).slot_base_[(*iter).slot_offset_];
+		session->salloc()->FreeExtent(session, osd::common::ExtentId(extent_u64));
 	}
-
+	session->salloc()->FreeContainer(session, oid);
 }
 
 

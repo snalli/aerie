@@ -110,7 +110,8 @@ public:
 	int AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set, int type, int count);
 	int AllocateContainerFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ObjectId oid, int index_hint);
 	int GetDescriptorPool(OsdSession* session, osd::common::AclIdentifier acl_id, DescriptorPool** poolp);
-
+	int FreeContainer(OsdSession* session, osd::common::ObjectId oid);
+	int FreeExtent(OsdSession* session, osd::common::ExtentId eid);
 	int RegisterBaseTypes();
 	int RegisterType(::osd::common::ObjectType type_id, ::osd::server::ContainerAbstractFactory* objfactory);
 	class IpcHandlers {

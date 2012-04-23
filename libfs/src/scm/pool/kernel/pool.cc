@@ -140,7 +140,6 @@ StoragePool::Open(const char* path, StoragePool** pool)
 }
 
 
-// does a first-fit allocation (quick and dirty...)
 int 
 StoragePool::AllocateExtent(uint64_t size, void** ptr)
 {
@@ -157,6 +156,19 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 	if ((ret = Protect(extent_base, size, getuid(), 0x3)) < 0) {
 		printf("failed protection: %p\n", *ptr);
 		return ret;
+	}
+	return E_SUCCESS;
+}
+
+
+int 
+StoragePool::FreeExtent(void* ptr)
+{
+	int           ret;
+	unsigned long extent_base;
+	
+	if (poolFree(&header_->buddy_, ptr) != NULL) {
+		return -E_ERROR;
 	}
 	return E_SUCCESS;
 }
