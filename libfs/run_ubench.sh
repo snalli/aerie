@@ -4,14 +4,14 @@
 
 DEBUG_LEVEL=5
 UBENCH_NAME='ubench_pxfs'
-UBENCH_CMD='+fs_create -p /pxfs -n 16 -s 1024'
-#UBENCH_CMD='+fs_create -p /pxfs -n 16 +fs_unlink -p /pxfs/ -n 16'
+UBENCH_CMD='+fs_create -p /pxfs -n 1 -s 163840 +fs_unlink -p /pxfs -n 1'
+#UBENCH_CMD='+fs_create -p /pxfs -n 16'
 #UBENCH_NAME='ubench_osd'
 #UBENCH_CMD='+hlock -o -c -n 16384'
 #UBENCH_CMD=$*
 
 # Create the storage pool
-./build/src/spa/tool/pool/pool create -p /tmp/stamnos_pool -s 512M
+./build/src/scm/tool/pool/pool create -p /tmp/stamnos_pool -s 512M
 ./build/src/pxfs/tool/pxfs create -p /tmp/stamnos_pool -s 256M -t mfs
 
 if [ "$1" = "-d" ]

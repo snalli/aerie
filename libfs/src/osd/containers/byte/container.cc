@@ -74,7 +74,6 @@ protected:
 };
 
 
-// TODO: need to journal each new allocated block and link
 int
 ByteInterval::WriteBlockNoRegion(OsdSession* session, char* src, uint64_t bn, int off, int n)
 {
@@ -496,9 +495,10 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 	int       ret2 = 0;
 	int       w;
 	
-	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 " \n", off, off+n-1, n);
-
 	immmaxsize = (!mutable_) ? object()->get_maxsize() : 0;
+
+	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 ", immmaxsize=%" PRIu64 "\n", off, off+n-1, n, immmaxsize);
+
 
 	if (off + n < immmaxsize) 
 	{

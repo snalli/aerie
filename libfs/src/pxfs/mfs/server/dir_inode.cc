@@ -79,9 +79,10 @@ DirInode::Unlink(Session* session, const char* name)
 			fp->obj()->set_parent(osd::common::ObjectId(0));
 			nlink = fp->obj()->nlink(); 
 			fp->obj()->set_nlink(nlink - 1);
-			// deallocate inode if unreachable and no client has the file open
+			// if inode unreachable and no client has the file open, then deallocate the container
+			// deallocating the container also deallocates any extents reachable from it
 			if (nlink - 1 == 0) {
-				//TODO
+				FileInode::Free(session, fp);
 			}
 			ret = E_SUCCESS;
 			break;

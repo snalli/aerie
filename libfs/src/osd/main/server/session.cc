@@ -1,6 +1,7 @@
 #include "osd/main/server/session.h"
 #include "osd/main/server/osd.h"
 #include "osd/main/server/shbuf.h"
+#include "osd/main/server/journal.h"
 #include "bcs/bcs.h"
 #include "common/errno.h"
 
@@ -27,7 +28,8 @@ OsdSession::Init(int clt)
 	if ((ret = shbuf_->Init(buf)) < 0) {
 		return ret;
 	}
-
+	
+	journal_ = new Journal();
 	return E_SUCCESS;
 }
 

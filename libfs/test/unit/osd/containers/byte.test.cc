@@ -157,6 +157,31 @@ SUITE(ContainersByteContainer)
 		delete byte_container;
 	}
 
+	TEST_FIXTURE(SessionFixture, TestWriteRead5)
+	{
+		int                              ret;
+		char*                            src = (char*) malloc(kBlockSize*1024);
+		char*                            dst = (char*) malloc(kBlockSize*1024);
+		volatile char*                   buffer = (volatile char*) malloc(sizeof(ByteContainer::Object<Session>));
+		ByteContainer::Object<Session>*  byte_container = ByteContainer::Object<Session>::Make(session, buffer);
+
+		fillbuf(src, kBlockSize, 8);
+		byte_container->Write(session, src, 0, kBlockSize*4);
+		byte_container->Read(session, dst, 0, kBlockSize*4);
+		CHECK(memcmp(src, dst, kBlockSize*4) == 0);
+	
+		byte_container->Write(session, src, 0, kBlockSize*16);
+		byte_container->Read(session, dst, 0, kBlockSize*16);
+		CHECK(memcmp(src, dst, kBlockSize*16) == 0);
+	
+		byte_container->Write(session, src, 0, kBlockSize*128);
+		byte_container->Read(session, dst, 0, kBlockSize*128);
+		CHECK(memcmp(src, dst, kBlockSize*128) == 0);
+	
+		free(src);
+		free(dst);
+		delete byte_container;
+	}
 
 	TEST_FIXTURE(SessionFixture, TestRegionWriteRead1)
 	{

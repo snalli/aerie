@@ -17,6 +17,13 @@
  */
 
 
+/**
+ * TODO: The idea of relying on C++ templates to generate container code 
+ * for client and server side turned out to be bad as it requires several
+ * components (journal, allocator) at the server and client to support 
+ * a common API. Looks like using MACRO expansions might be a better approach.
+ */
+
 namespace osd {
 namespace containers {
 

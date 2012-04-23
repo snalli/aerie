@@ -26,6 +26,10 @@ public:
 		return new(ip) FileInode(ino);
 	}
 
+	static void Free(Session* session, FileInode* ip) {
+		osd::containers::server::ByteContainer::Object::Free(session, ip->obj_->oid());
+	}
+
 	osd::containers::server::ByteContainer::Object* obj() { return obj_; }
 	
 	osd::containers::server::ByteContainer::Object* obj_;

@@ -138,8 +138,6 @@ Publisher::AllocContainer(::osd::server::OsdSession* session, char* buf,
 }
 
 
-
-
 int
 Publisher::IpcHandlers::Register(Publisher* publisher)
 {

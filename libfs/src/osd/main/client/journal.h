@@ -6,6 +6,7 @@
 #include "osd/main/client/osd-opaque.h"
 #include "osd/main/client/shbuf.h"
 #include "osd/main/common/publisher.h"
+#include "osd/main/common/journal.h"
 
 
 namespace osd {
@@ -14,7 +15,7 @@ namespace client {
 class Buffer {
 public:
 	Buffer() 
-		: size_(1024),
+		: size_(128*1024),
 		  count_(0)
 	{ }
 
@@ -22,7 +23,7 @@ public:
 	inline int Flush(OsdSharedBuffer* dst);
 
 private:
-	char   buf_[1024];
+	char   buf_[128*1024];
 	size_t size_;
 	size_t count_;
 };
@@ -53,7 +54,8 @@ Buffer::Flush(OsdSharedBuffer* dst)
 class Journal {
 public:
 	Journal(OsdSession* session)
-		: session_(session)
+		: session_(session),
+		  mode_(osd::common::Journal::Client)
 	{ }
 
 	int TransactionBegin(int id = 0);
@@ -78,9 +80,11 @@ public:
 		return journal;
     }
 
+	int mode() { return mode_; }
 private:
 	OsdSession* session_;
 	Buffer      buffer_;
+	int         mode_; // indicates whether client or server mode
 };
 
 

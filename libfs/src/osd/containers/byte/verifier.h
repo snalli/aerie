@@ -22,6 +22,7 @@ public:
 		static int Action(osd::server::OsdSession* session, osd::Publisher::Message::ContainerOperation::LinkBlock* msg) {
 			osd::common::ObjectId& oid = msg->oid_;
 			osd::containers::server::ByteContainer::Object* object = osd::containers::server::ByteContainer::Object::Load(oid);
+			printf("LINK: %lu -> %p\n", msg->bn_, msg->ptr_);
 			object->LinkBlock(session, msg->bn_, msg->ptr_);
 			return E_SUCCESS;
 		}

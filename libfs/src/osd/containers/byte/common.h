@@ -2,7 +2,8 @@
 //! Definition of the name collection persistent object stored in SCM
 //!
 
-// TODO: any allocations and assignments done by Mapslot must be journalled
+//TODO: iterator interface should follow STL
+//TODO: iterator interface should provide a more convenient way for initialization
 
 #ifndef __STAMNOS_OSD_COMMON_BYTE_CONTAINER_OBJECT_H
 #define __STAMNOS_OSD_COMMON_BYTE_CONTAINER_OBJECT_H
@@ -60,6 +61,8 @@ public:
 		return reinterpret_cast<Object*>(oid.addr());
 	}
 	
+	static void Free(Session* session, osd::common::ObjectId oid);
+
 	Object();
 
 	int InsertRegion(Session* session, Region<Session>* region);
@@ -81,7 +84,7 @@ public:
 	inline uint64_t get_maxbcount() {
 		uint64_t nblocks;
 
-		nblocks = (1 << ((radixtree_.height_)*RADIX_TREE_MAP_SHIFT));
+		nblocks = radixtree_.height_ == 0 ? 0 : (1 << ((radixtree_.height_)*RADIX_TREE_MAP_SHIFT));
 		nblocks += N_DIRECT;
 
 		return nblocks;
@@ -502,6 +505,27 @@ ByteContainer::Object<Session>::Object()
 
 
 template<typename Session>
+void 
+ByteContainer::Object<Session>::Free(Session* session, osd::common::ObjectId oid)
+{
+	Iterator<Session> start;
+	Iterator<Session> iter;
+	Object*           obj = Load(oid);
+	int               n;
+	
+	start.Init(session, obj, 0);
+	
+	for (iter = start, n = 0; !iter.terminate() && n < obj->size_; iter++, n+=kBlockSize) 
+	{
+		void* ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
+		printf("%d->%p\n", (*iter).get_base_bn(), ptr);
+
+	}
+
+}
+
+
+template<typename Session>
 int 
 ByteContainer::Object<Session>::InsertRegion(Session* session, 
                                              ByteContainer::Region<Session>* region)
@@ -760,7 +784,11 @@ ByteContainer::Region<Session>::WriteBlock(Session* session,
 		                                             kData, &ptr)) < 0) { 
 			return ret;
 		}
-		*slot = ptr; // FIXME: journal this 
+		if (session->journal()->mode() == osd::common::Journal::Client) {
+			session->journal() << osd::Publisher::Message::ContainerOperation::LinkBlock(slot_.bcobj_->oid(), bn, ptr);
+		}
+		*slot = ptr; // FIXME: journal this at server side
+		
 		bp = (char*) (*slot);
 		// Zero the part of the newly allocated block that is not written to
 		// ensure we later read zeros and not garbage.

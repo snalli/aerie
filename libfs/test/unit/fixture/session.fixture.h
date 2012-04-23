@@ -2,6 +2,7 @@
 #define __STAMNOS_TEST_SESSION_FIXTURE_H
 
 #include "osd/main/common/obj.h"
+#include "osd/main/common/publisher.h"
 
 class Session;
 
@@ -33,6 +34,10 @@ public:
 
 class PseudoJournal {
 public:
+	PseudoJournal()
+		: mode_(0)
+	{ }
+
 	int TransactionBegin(int id = 0) { return E_SUCCESS; }
 	int TransactionCommit() { return E_SUCCESS; }
 
@@ -41,6 +46,19 @@ public:
 	{
 		*addr = val;
 	}
+
+	inline friend PseudoJournal* operator<< (PseudoJournal* journal, const osd::Publisher::Message::ContainerOperationHeader& header) {
+    	return journal;
+	}
+	
+	inline friend PseudoJournal* operator<< (PseudoJournal* journal, const osd::Publisher::Message::LogicalOperationHeader& header) {
+		return journal;
+    }
+
+	int mode() { return mode_; }
+private:
+	int mode_;
+
 };
 
 class Session {
@@ -58,10 +76,12 @@ struct SessionFixture
 	{ 
 		session = new Session();
 		session->salloc_ = new StorageAllocator();
+		session->journal_ = new PseudoJournal();
 	}
 
 	~SessionFixture() 
 	{
+		delete session->journal_;
 		delete session->salloc_;
 		delete session;
 	}
