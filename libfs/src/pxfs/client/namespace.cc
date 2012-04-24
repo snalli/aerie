@@ -401,7 +401,7 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 	Inode*        ip;
 	int           ret;
 
-	dbg_log (DBG_INFO, "Link: %s -> %s\n", oldpath, newpath);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_name), "Link: %s -> %s\n", oldpath, newpath);
 
 	if ((ret = global_namespace->Namei(session, oldpath, lock_protocol::Mode::XL, 
 	                                   &ip)) < 0) 

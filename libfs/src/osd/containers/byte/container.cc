@@ -166,6 +166,8 @@ ByteInterval::ReadNoRegion(OsdSession* session, char* dst, uint64_t off, uint64_
 	uint64_t f;
 	int      ret;
 
+	printf("ByteInterval::ReadNoRegion\n");
+
 	for(tot=0; tot<n; tot+=m, off+=m) {
 		bn = off / kBlockSize;
 		f = off % kBlockSize;
@@ -177,6 +179,7 @@ ByteInterval::ReadNoRegion(OsdSession* session, char* dst, uint64_t off, uint64_
 		}
 	}
 
+	printf("ByteInterval::ReadNoRegion: DONE\n");
 	return tot;
 }
 
@@ -185,6 +188,7 @@ int
 ByteInterval::Read(OsdSession* session, char* dst, uint64_t off, uint64_t n)
 {
 	if (region_) {
+		printf("ByteInterval::Read: region\n");
 		return region_->Read(session, dst, off, n);
 	} else {
 		return ReadNoRegion(session, dst, off, n);
