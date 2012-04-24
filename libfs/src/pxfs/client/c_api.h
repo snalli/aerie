@@ -18,6 +18,7 @@ extern "C" {
 
 int FRONTAPI(init) (int argc, char* argv[]);
 int FRONTAPI(init2) (const char* xdst);
+int FRONTAPI(init3) (const char* xdst, int debug_level);
 int FRONTAPI(shutdown) ();
 int FRONTAPI(open) (const char* path, int flags);
 int FRONTAPI(open2) (const char* path, int flags, mode_t mode);

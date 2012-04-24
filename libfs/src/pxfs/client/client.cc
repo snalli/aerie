@@ -35,13 +35,18 @@ osd::client::StorageSystem* global_storage_system;
 
 
 int 
-Client::Init(const char* xdst) 
+Client::Init(const char* xdst, int debug_level) 
 {
 	int            ret;
 	struct rlimit  rlim_nofile;
 
-	Config::Init();
-	
+	if ((ret = Config::Init()) < 0) {
+		return ret;
+	}
+	if ((ret = Debug::Init(debug_level, NULL)) < 0) {
+		return ret;
+	}
+
 	global_ipc_layer = new Ipc(xdst);
 	global_ipc_layer->Init();
 
@@ -87,13 +92,7 @@ Client::Init(int argc, char* argv[])
 		}
 	}
 
-	if ((ret = Config::Init()) < 0) {
-		return ret;
-	}
-	if ((ret = Debug::Init(debug_level, NULL)) < 0) {
-		return ret;
-	}
-	return Init(xdst);
+	return Init(xdst, debug_level);
 }
 
 

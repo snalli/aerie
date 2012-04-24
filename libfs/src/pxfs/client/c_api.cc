@@ -23,6 +23,12 @@ FRONTAPI(init2) (const char* xdst)
 	return Client::Init(xdst);
 }
 
+int
+FRONTAPI(init3) (const char* xdst, int debug_level)
+{
+	return Client::Init(xdst, debug_level);
+}
+
 
 int
 FRONTAPI(shutdown) ()
