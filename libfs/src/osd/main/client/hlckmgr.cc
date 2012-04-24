@@ -640,10 +640,10 @@ check_state:
 			// great! no one is using the lock
 			if (hlock->lock_) {
 				DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr),
-			            "[%d:%lu] hierarchical lock %s free locally (base lock mode %s): "
+			            "[%d:%lu] trying to acquire locally free hierarchical lock %s at mode %s (base lock mode %s, hlock mode %s): "
 					    "grant to thread %lu\n",
-			            id(), tid, lid.c_str(), 
-			            hlock->lock_->public_mode_.String().c_str(), tid);
+			            id(), tid, lid.c_str(), mode.String().c_str(),
+			            hlock->lock_->public_mode_.String().c_str(), hlock->mode_.String().c_str(), tid);
 				if (mode < hlock->mode_) {
 					// silent acquisition covered by private mode
 					hlock->owner_ = tid;
