@@ -148,9 +148,6 @@ ByteInterval::ReadBlockNoRegion(OsdSession* session, char* dst, uint64_t bn, int
 
 	assert(low_ <= bn && bn <= high_);
 
-	printf("ByteInterval::ReadBlockNoRegion: bn=%lu, off=%d, n=%d, low_=%d\n", bn, off, n, low_);
-	printf("ByteInterval::ReadBlockNoRegion: block_array_=%p\n", block_array_);
-	printf("ByteInterval::ReadBlockNoRegion: block_array_[]=%p\n", block_array_[bn-low_]);
 	if (!(bp = block_array_[bn - low_])) {
 		memset(dst, 0, n);
 		return n;
@@ -170,8 +167,6 @@ ByteInterval::ReadNoRegion(OsdSession* session, char* dst, uint64_t off, uint64_
 	uint64_t f;
 	int      ret;
 
-	printf("ByteInterval::ReadNoRegion\n");
-
 	for(tot=0; tot<n; tot+=m, off+=m) {
 		bn = off / kBlockSize;
 		f = off % kBlockSize;
@@ -183,7 +178,6 @@ ByteInterval::ReadNoRegion(OsdSession* session, char* dst, uint64_t off, uint64_
 		}
 	}
 
-	printf("ByteInterval::ReadNoRegion: DONE\n");
 	return tot;
 }
 
@@ -192,7 +186,6 @@ int
 ByteInterval::Read(OsdSession* session, char* dst, uint64_t off, uint64_t n)
 {
 	if (region_) {
-		printf("ByteInterval::Read: region\n");
 		return region_->Read(session, dst, off, n);
 	} else {
 		return ReadNoRegion(session, dst, off, n);
@@ -264,7 +257,7 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 	char*                   ptr;
 	ByteInterval*           interval;
 
-	printf ("ReadImmutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
+	//printf ("ReadImmutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
 	//dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
 
@@ -287,8 +280,8 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 
 		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
 
-		printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
-		       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
+		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
+		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
 
 		if (!ptr) {
 			// Downcasting via a static cast is generally dangerous, but we know 
@@ -297,18 +290,15 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 			//TODO: Optimization: we should check whether the block falls in the last 
 			//interval to save a lookup.
 			interval = static_cast<ByteInterval*>(intervaltree_->LeftmostOverlap(bn, bn));
-			printf("INTERVAL: %p\n", interval);
 			if (!interval) {
 				// return zeros
 				memset(&dst[tot], 0, m);
 			} else {
-				printf("READ_INTERVAL: %p\n", interval);
 				if ((ret = interval->Read(session, &dst[tot], off, m)) < m) {
 					return ((ret < 0) ? ( (tot>0)? tot: ret)  
 					                  : tot + ret);
 				}
 			}
-			printf("DONE INTERVAL:\n");
 		} else {
 			// pinode already points to a block, therefore we do an in-place write
 			assert(bcount == 1);
@@ -329,7 +319,7 @@ ByteContainer::VersionManager::ReadMutable(OsdSession* session, char* dst,
 {
 	int vn;
 
-	printf ("ReadMutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
+	//printf ("ReadMutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
 	dbg_log (DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
@@ -361,7 +351,7 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 
 	immmaxsize = (!mutable_) ? object()->get_maxsize(): 0;
 
-	printf ("Read: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
+	//printf ("Read: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 	
 	if (off + n < immmaxsize) 
 	{
