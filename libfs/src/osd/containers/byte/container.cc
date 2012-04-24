@@ -289,15 +289,18 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 			//TODO: Optimization: we should check whether the block falls in the last 
 			//interval to save a lookup.
 			interval = static_cast<ByteInterval*>(intervaltree_->LeftmostOverlap(bn, bn));
+			printf("INTERVAL: %p\n", interval);
 			if (!interval) {
 				// return zeros
 				memset(&dst[tot], 0, m);
 			} else {
+				printf("READ_INTERVAL: %p\n", interval);
 				if ((ret = interval->Read(session, &dst[tot], off, m)) < m) {
 					return ((ret < 0) ? ( (tot>0)? tot: ret)  
 					                  : tot + ret);
 				}
 			}
+			printf("DONE INTERVAL:\n");
 		} else {
 			// pinode already points to a block, therefore we do an in-place write
 			assert(bcount == 1);
