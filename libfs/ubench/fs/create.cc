@@ -43,9 +43,9 @@ __ubench_fs_create(const char* root, int numops, size_t size)
 	for (int i=0; i<numops; i++) {
 		fd = fs_open2(path[i]->c_str(), O_CREAT|O_TRUNC|O_RDWR, S_IRWXU);
 		assert(fd>0);
-		fs_write(fd, buf, size);
-		fs_fsync(fd);
-		fs_close(fd);
+		//fs_write(fd, buf, size);
+		//fs_fsync(fd);
+		//fs_close(fd);
 	}
 
 	MEASURE_TIME_STOP
