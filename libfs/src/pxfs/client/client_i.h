@@ -22,7 +22,7 @@ extern FileSystemObjectManager*    global_fsomgr;
 
 class Client {
 public:
-	static int Init(const char* xdst, int degug_level = 0);
+	static int Init(const char* xdst, int degug_level = -1);
 	static int Init(int argc, char* argv[]);
 	static int Shutdown(); 
 	static Session* CurrentSession();
