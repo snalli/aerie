@@ -651,7 +651,7 @@ check_state:
 					r = lock_protocol::OK;
 					break;
 				} else {
-					if (mode < hlock->lock_->public_mode_) {
+					if (mode < hlock->lock_->public_mode_ || mode == hlock->lock_->public_mode_) {
 						// silent acquisition covered by public mode
 						hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
 						assert((hlock->mode_ == hlock->lock_->public_mode_) ||
