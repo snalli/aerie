@@ -58,13 +58,14 @@ rpcc::bind()
     return -1;
   }
 
-  char c_shf[MAX_BIND_FILENAME_LEN];
+  char c_shf[MAX_BIND_FILENAME_LEN+5];
   int ret = rpc_bind(binder_shf, c_shf); //FAST_RPC CLIENT BIND
 	
   //set the shared channel, shared file, etc etc, returned by the fast rpc register
-  sh_chan = (rpc_sync_t*) map_shared_file(c_shf, NULL, OTHER);
   client_id = (unsigned) atoi(c_shf);
   sh_chan_shf = string(c_shf);
+  sprintf(&c_shf[0], "/tmp/%d", client_id);
+  sh_chan = (rpc_sync_t*) map_shared_file(c_shf, NULL, OTHER);
 
   if (ret == 0) {
     bind_done_ = true;
@@ -774,8 +775,9 @@ void rpcs::check_registry_incoming() {
     char filename[24];
     new_server_qe = (server_lock_t*) malloc(sizeof(server_lock_t));
     new_server_qe->client_id = random(); 
-    sprintf(filename, "%d", new_server_qe->client_id);
-    strcpy(rpc_reg.rpc_reg_reply->data, filename);
+    sprintf(filename, "/tmp/%d", new_server_qe->client_id);
+    sprintf(rpc_reg.rpc_reg_reply->data, "%d", new_server_qe->client_id);
+    //strcpy(rpc_reg.rpc_reg_reply->data, filename);
     init_rpc(filename, new_server_qe);
     rpc_reg.rpc_queue.push_back(new_server_qe);
     rpc_reg.rpc_reg_reply->signal = 1; // replied

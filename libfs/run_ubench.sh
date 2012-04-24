@@ -3,8 +3,8 @@
 # do cleanup
 
 DEBUG_LEVEL=5
-#UBENCH_NAME='ubench_pxfs'
-UBENCH_NAME='ubench_vfs'
+UBENCH_NAME='ubench_pxfs'
+#UBENCH_NAME='ubench_vfs'
 #UBENCH_CMD='+fs_create -p /pxfs -n 1024 -s 3840 +fs_unlink -p /pxfs -n 1024'
 #UBENCH_CMD='+fs_create -p /pxfs -n 16 -s 1024'
 UBENCH_CMD='+fs_create -p /mnt/scmfs -n 16 -s 1024'

@@ -94,7 +94,7 @@ class fast_rpc {
     DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Map shared file %s\n", filename.c_str());
 
     if(fd < 0) {
-      DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "%d: error opening file\n", fd);
+      DBG_LOG(DBG_ERROR, DBG_MODULE(rpc), "%d: error opening file %s\n", fd, filename.c_str());
       return NULL;
     }
 
