@@ -259,7 +259,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 		return -E_INVAL;
 	}
 
-	dbg_log (DBG_INFO, "Namex: %s\n", path);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_name), "Namex: %s\n", path);
 	
 	HRTIME_SAMPLE
 	// boundary condition: get the lock on the first inode
@@ -383,7 +383,7 @@ NameSpace::SetCurWrkDir(Session* session, const char* path)
 	Inode* inode;
 	int    ret;
 
-	dbg_log (DBG_INFO, "Chdir: %s\n", path);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_name), "Chdir: %s\n", path);
 
 	if ((ret = Namei(session, path, lock_protocol::Mode::IXSL, &inode)) < 0) {
 		return ret;

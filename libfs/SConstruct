@@ -106,16 +106,15 @@ if GetOption('gcc_path') == 'gcc44':
 	mainEnv.Replace(CC = "gcc44")
 	mainEnv.Replace(CXX = "g++44")
 
-mainEnv.Append(CCFLAGS=' -g -O0')
-#mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
-#mainEnv.Append(CCFLAGS='-g -O3')
-#mainEnv.Append(CCFLAGS='-g')
-#mainEnv.Append(CCFLAGS=' -g -O2 -Wall -Wno-unused-function -Wno-unused-parameter -Wno-unused-label')
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
 
 if GetOption('build_debug'):
 	mainEnv.Append(CPPDEFINES = ['-D__STAMNOS_EXPAND_DEBUG'])
-	mainEnv.Append(CCFLAGS='-g')
+	mainEnv.Append(CCFLAGS=' -g -O0')
+else:
+	mainEnv.Append(CCFLAGS='-g -O3')
+	#mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
+	#mainEnv.Append(CCFLAGS=' -g -O2 -Wall -Wno-unused-function -Wno-unused-parameter -Wno-unused-label')
 
 
 if ARGUMENTS.get('VERBOSE') != "1":
