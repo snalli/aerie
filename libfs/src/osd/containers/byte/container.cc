@@ -256,6 +256,8 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 	char*                   ptr;
 	ByteInterval*           interval;
 
+	printf ("ReadImmutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
+
 	//dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
 
 	fbn = off/kBlockSize;
@@ -316,6 +318,8 @@ ByteContainer::VersionManager::ReadMutable(OsdSession* session, char* dst,
 {
 	int vn;
 
+	printf ("ReadMutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
+
 	dbg_log (DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
 	if (off > size_) {
@@ -346,6 +350,8 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 
 	immmaxsize = (!mutable_) ? object()->get_maxsize(): 0;
 
+	printf ("Read: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
+	
 	if (off + n < immmaxsize) 
 	{
 		ret1 = ReadImmutable(session, dst, off, n);
