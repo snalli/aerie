@@ -153,6 +153,7 @@ ByteInterval::ReadBlockNoRegion(OsdSession* session, char* dst, uint64_t bn, int
 	printf("ByteInterval::ReadBlockNoRegion: block_array_[]=%p\n", block_array_[bn-low_]);
 	if (!(bp = block_array_[bn - low_])) {
 		memset(dst, 0, n);
+		return n;
 	}
 
 	memmove(dst, &bp[off], n);
