@@ -45,7 +45,7 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 	pthread_mutex_lock(&mutex_);
 	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Message::LogicalOperation::Write(ip_->ino());
-	if ((ret = ip_->Write(session, const_cast<char*>(src), off_, n) > 0)) {
+	if ((ret = ip_->Write(session, const_cast<char*>(src), off_, n)) > 0) {
 		off_ += ret;
 	}
 	session->journal()->TransactionCommit();
@@ -66,7 +66,7 @@ File::Read(client::Session* session, char* dst, uint64_t n)
 
 	pthread_mutex_lock(&mutex_);
 
-	if ((ret=ip_->Read(session, dst, off_, n)>0)) {
+	if ((ret=ip_->Read(session, dst, off_, n)) > 0) {
 		off_+=ret;
 	}
 

@@ -28,13 +28,7 @@ Init(int debug_level, const char* xdst)
 {
 	int ret;
 
-	if ((ret = Config::Init()) < 0) {
-		return ret;
-	}
-	if ((ret = Debug::Init(debug_level, NULL)) < 0) {
-		return ret;
-	}
-	libfs_init2(xdst);
+	libfs_init3(xdst, debug_level);
 	libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
 	libfs_chdir("/pxfs");
 	return 0;
