@@ -86,7 +86,7 @@ File::Write(const char* src, uint64_t n)
 	int ret;
 
 	pthread_mutex_lock(&mutex_);
-	if ((ret = WriteInternal(src, n, off_) > 0)) {
+	if ((ret = WriteInternal(src, n, off_)) > 0) {
 		off_ += ret;
 	}
 	pthread_mutex_unlock(&mutex_);
@@ -101,7 +101,7 @@ File::Read(char* dst, uint64_t n)
 	int ret;
 
 	pthread_mutex_lock(&mutex_);
-	if ((ret = ReadInternal(dst, n, off_) > 0)) {
+	if ((ret = ReadInternal(dst, n, off_)) > 0) {
 		off_ += ret;
 	}
 	pthread_mutex_unlock(&mutex_);

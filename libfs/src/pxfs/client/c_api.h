@@ -39,6 +39,7 @@ ssize_t FRONTAPI(write) (int fd, const void *buf, size_t count);
 ssize_t FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset);
 ssize_t FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset);
 off_t FRONTAPI(lseek) (int fd, off_t offset, int whence);
+int FRONTAPI(stat) (const char *path, struct stat *buf);
 int FRONTAPI(sync) ();
 int FRONTAPI(fsync) (int fd);
 

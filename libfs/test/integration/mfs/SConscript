@@ -44,8 +44,10 @@ import test.integration.mfs.namespace
 import test.integration.mfs.file_inode
 import test.integration.mfs.dir_inode
 import test.integration.mfs.file
+import test.integration.mfs.stat
 
 test.integration.mfs.namespace.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
 test.integration.mfs.file_inode.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
 test.integration.mfs.dir_inode.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
 test.integration.mfs.file.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)
+test.integration.mfs.stat.addIntegrationTests(myTestEnv, Dir('#').abspath, testProgram, serverProgram)

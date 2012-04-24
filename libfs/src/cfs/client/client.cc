@@ -387,6 +387,29 @@ Client::Unlink(const char* path)
 }
 
 
+int 
+Client::Stat(const char *path, struct stat *buf)
+{
+	int                             ret;
+	FileSystemProtocol::InodeNumber protocol_ino;
+	InodeNumber                     ino;
+
+	if ((ret = global_ipc_layer->call(FileSystemProtocol::kNamei, 
+									  global_ipc_layer->id(), std::string(path), protocol_ino)) < 0) 
+	{
+		return -E_IPC;
+	}
+	if (ret > 0) {
+		return -ret;
+	}
+	ino = protocol_ino;
+
+	return ret;
+}
+
+
+
+
 // current cfs synchronously writes data and metadata when doing 
 // the call to the server
 int 

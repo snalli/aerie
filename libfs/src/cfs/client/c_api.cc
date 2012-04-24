@@ -192,6 +192,17 @@ FRONTAPI(lseek) (int fd, off_t offset, int whence)
 }
 
 
+int 
+FRONTAPI(stat) (const char *path, struct stat *buf)
+{
+	int ret;
+	if ((ret = Client::Stat(path, buf)) == -E_KVFS) {
+		return stat(path, buf);
+	}
+	return ret;
+}
+
+
 int
 FRONTAPI(sync) ()
 {

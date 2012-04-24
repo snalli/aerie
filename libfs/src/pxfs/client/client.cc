@@ -430,6 +430,25 @@ Client::Unlink(const char* pathname)
 }
 
 
+
+int 
+Client::Stat(const char *path, struct stat *buf)
+{
+	int                 ret;
+	lock_protocol::Mode lock_mode = lock_protocol::Mode::XL; 
+	Session*            session = CurrentSession();
+	Inode*              ip;
+
+	if ((ret = global_namespace->Namei(session, path, lock_mode, &ip)) < 0) {
+		return ret;
+	}
+	ip->Put();
+	ip->Unlock(session);
+
+	return ret;
+}
+
+
 int 
 Client::Sync()
 {

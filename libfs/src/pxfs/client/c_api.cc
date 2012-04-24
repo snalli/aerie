@@ -249,7 +249,6 @@ FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
 }
 
 
-
 off_t 
 FRONTAPI(lseek) (int fd, off_t offset, int whence)
 {
@@ -257,6 +256,17 @@ FRONTAPI(lseek) (int fd, off_t offset, int whence)
 
 	if ((ret = Client::Seek(fd, offset, whence)) == -E_KVFS) {
 		return lseek(fd, offset, whence);
+	}
+	return ret;
+}
+
+
+int 
+FRONTAPI(stat) (const char *path, struct stat *buf)
+{
+	int ret;
+	if ((ret = Client::Stat(path, buf)) == -E_KVFS) {
+		return stat(path, buf);
 	}
 	return ret;
 }

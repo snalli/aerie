@@ -44,6 +44,7 @@ public:
 	static int SetCurWrkDir(const char* path);
 	static int GetCurWrkDir(const char* path, size_t size);
 	static uint64_t Seek(int fd, uint64_t offset, int whence);
+	static int Stat(const char *path, struct stat *buf);
 	static int Sync();
 	static int Sync(int fd);
 	static int TestServerIsAlive();
