@@ -19,6 +19,9 @@ namespace client {
 int 
 File::Init(Inode* ip, int flags)
 {
+	if (flags & O_APPEND) {
+		append_ = true;
+	}
 	if (flags & O_RDWR) {
 		readable_ = true;
 		writable_ = true;
@@ -36,7 +39,8 @@ File::Init(Inode* ip, int flags)
 int 
 File::Write(client::Session* session, const char* src, uint64_t n)
 {
-	int ret;
+	int      ret;
+	uint64_t size;
 
 	if (writable_ == false) {
 		return -1;
@@ -45,6 +49,10 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 	pthread_mutex_lock(&mutex_);
 	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Message::LogicalOperation::Write(ip_->ino());
+	if (append_) {
+		ip_->ioctl(session, Inode::kSize, (void*) &size);
+		off_ = size;
+	}
 	if ((ret = ip_->Write(session, const_cast<char*>(src), off_, n)) > 0) {
 		off_ += ret;
 	}

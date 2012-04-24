@@ -443,7 +443,7 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	Inode*        ip;
 	int           ret;
 
-	dbg_log (DBG_INFO, "Unlink: %s\n", pathname);	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_name), "Unlink: %s\n", pathname);
 
 	// we do spider locking; when Nameiparent returns successfully, dp is 
 	// locked for writing. we release the lock on dp after we get the lock

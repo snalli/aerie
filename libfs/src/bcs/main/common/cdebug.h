@@ -63,7 +63,7 @@ extern const char* dbg_identifier;
 #define DBG_MODULE(name) dbg_module_##name
 
 
-#ifdef __STAMNOS_EXPAND_DEBUG
+#ifdef _STAMNOS_EXPAND_DEBUG
 
 #define dbg_log(level, format, ...)                                            \
   do {                                                                         \

@@ -17,7 +17,7 @@
 #include "pxfs/common/publisher.h"
 #include "common/prof.h"
 
-//#define PROFILER_SAMPLE __PROFILER_SAMPLE
+#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 // FIXME: Client should be a singleton. otherwise we lose control 
 // over instantiation and destruction of the global variables below, which
@@ -240,6 +240,7 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 int 
 Client::Open(const char* path, int flags, int mode)
 {
+	PROFILER_PREAMBLE
 	Inode*   ip;
 	int      ret;
 	int      fd;

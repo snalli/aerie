@@ -20,7 +20,8 @@ public:
 		  off_(0),
 		  ip_(0),
 		  readable_(false),
-		  writable_(false)
+		  writable_(false),
+		  append_(false)
 	{ 
 		pthread_mutex_init(&mutex_, NULL);
 	}
@@ -41,6 +42,7 @@ private:
 	Inode*          ip_;        // file inode
 	bool            readable_;
 	bool            writable_;
+	bool            append_;
 };
 
 
