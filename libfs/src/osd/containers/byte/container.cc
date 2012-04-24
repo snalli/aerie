@@ -279,8 +279,8 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 
 		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
 
-		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
-		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
+		printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
+		       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
 
 		if (!ptr) {
 			// Downcasting via a static cast is generally dangerous, but we know 
