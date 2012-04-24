@@ -88,7 +88,8 @@ extern const char* dbg_identifier;
   do {                                                                         \
     FILE* ferr = stdout;                                                       \
     if (level &&                                                               \
-	    (dbg_modules[module] || dbg_modules[dbg_module_all]) &&                \
+	    (dbg_modules[module] || dbg_modules[dbg_module_all] ||                 \
+		 level <= dbg_terminate_level) &&                                      \
 	    (level <= dbg_level || level <= dbg_terminate_level))                  \
     {                                                                          \
       if (level <= dbg_stderr_level) {                                         \
