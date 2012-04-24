@@ -122,8 +122,7 @@ LockManager::Init()
 {
 	int r;
 
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
-	        "[%d] Initialize LockManager\n", id());
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), "[%d] Initialize LockManager\n", id());
 
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_mutex_init(&revoke_mutex_, NULL);
