@@ -16,7 +16,7 @@
 #include "pxfs/common/publisher.h"   // we use the pxfs server
 #include "common/prof.h"
 
-//#define PROFILER_SAMPLE __PROFILER_SAMPLE
+#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 // FIXME: Client should be a singleton. otherwise we lose control 
 // over instantiation and destruction of the global variables below, which
@@ -152,12 +152,14 @@ Client::Mount(const char* source,
 int 
 Client::Open(const char* path, int flags, int mode)
 {
+	PROFILER_PREAMBLE
 	Inode*      ip;
 	int         ret;
 	int         fd;
 	File*       fp;
 	Session*    session = CurrentSession();
 	InodeNumber ino;
+	PROFILER_SAMPLE
 	
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
@@ -167,6 +169,7 @@ Client::Open(const char* path, int flags, int mode)
 		return fd;
 	}
 	
+	PROFILER_SAMPLE
 	if (flags & O_CREAT) {
 		dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	} else {
@@ -175,7 +178,9 @@ Client::Open(const char* path, int flags, int mode)
 			return ret;
 		}	
 	}
+	PROFILER_SAMPLE
 	fp->Init(ino, flags);
+	PROFILER_SAMPLE
 
 	return fd;
 }
