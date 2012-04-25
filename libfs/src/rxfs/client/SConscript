@@ -1,0 +1,30 @@
+Import('buildEnv')
+Import('bcsClientLibrary')
+Import('osdClientLibrary')
+Import('scmLibrary')
+Import('commonLibrary')
+
+libLocalBuildEnv = buildEnv.Clone()
+localBuildEnv = buildEnv.Clone()
+
+lib_target = 'fsc'
+lib_sources = [
+               'c_api.cc', 
+               'client.cc', 
+               'dir_inode.cc',
+               'file.cc',
+               'namespace.cc', 
+	      ]
+
+fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+# Be careful with linkage order for static libraries
+localBuildEnv.Append(LIBS = fscLibrary)
+localBuildEnv.Append(LIBS = bcsClientLibrary)
+localBuildEnv.Append(LIBS = osdClientLibrary)
+localBuildEnv.Append(LIBS = scmLibrary)
+localBuildEnv.Append(LIBS = commonLibrary)
+localBuildEnv.Append(LIBS = ['pthread', 'rt'])
+localBuildEnv.Program('fsclient', ['main.cc']) 
+
+Return('fscLibrary')

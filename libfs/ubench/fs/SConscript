@@ -9,10 +9,12 @@ commonSource = ['open.cc', 'create.cc', 'unlink.cc', 'read.cc', 'fs.cc']
 vfsSource = ['vfs.cc']
 pxfsSource = ['pxfs.cc']
 cfsSource = ['cfs.cc']
+rxfsSource = ['rxfs.cc']
 
 commonObject = buildEnv.Object(commonSource)
 vfsObject = buildEnv.Object(vfsSource) + commonObject
 pxfsObject = buildEnv.Object(pxfsSource) + commonObject
 cfsObject = buildEnv.Object(cfsSource) + commonObject
+rxfsObject = buildEnv.Object(rxfsSource) + commonObject
 
-Return('vfsObject', 'pxfsObject', 'cfsObject') 
+Return('vfsObject', 'pxfsObject', 'cfsObject', 'rxfsObject') 

@@ -8,6 +8,7 @@ buildEnv.Append(CPPPATH = ['#src', '#'])
 buildEnv.Append(LIBS = ['config'])
 
 Import('cfscLibrary')
+Import('rxfscLibrary')
 Import('fscLibrary')
 Import('mfsClientLibrary')
 Import('commonLibrary')
@@ -19,9 +20,10 @@ osdClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLib
 vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 cfsClientDepLibs = [cfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+rxfsClientDepLibs = [rxfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 
 osdObject = SConscript('osd/SConscript')
-vfsObject, pxfsObject, cfsObject = SConscript('fs/SConscript')
+vfsObject, pxfsObject, cfsObject, rxfsObject = SConscript('fs/SConscript')
 
 commonObject = buildEnv.Object(['main.cc'])
 
@@ -29,3 +31,4 @@ osdUbenchProgram = buildEnv.Program('ubench_osd', commonObject + osdObject, LIBS
 vfsUbenchProgram = buildEnv.Program('ubench_vfs', commonObject + vfsObject, LIBS=['pthread', 'rt'] + vfsClientDepLibs)
 pxfsUenchProgram = buildEnv.Program('ubench_pxfs', commonObject + pxfsObject, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
 cfsUbenchProgram = buildEnv.Program('ubench_cfs', commonObject + cfsObject, LIBS=['pthread', 'rt'] + cfsClientDepLibs)
+rxfsUbenchProgram = buildEnv.Program('ubench_rxfs', commonObject + rxfsObject, LIBS=['pthread', 'rt'] + rxfsClientDepLibs)

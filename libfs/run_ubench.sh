@@ -3,15 +3,15 @@
 # do cleanup
 
 #TOOL='strace '
-DEBUG_LEVEL=5
+DEBUG_LEVEL=0
 #UBENCH_NAME='ubench_cfs'; UBENCH_WD='/pxfs'
-#UBENCH_NAME='ubench_pxfs'; UBENCH_WD='/pxfs'
+UBENCH_NAME='ubench_pxfs'; UBENCH_WD='/pxfs'
 #UBENCH_NAME='ubench_vfs'; UBENCH_WD='/mnt/scmfs'
-UBENCH_NAME='ubench_vfs'; UBENCH_WD='/tmp/test'
+#UBENCH_NAME='ubench_vfs'; UBENCH_WD='/tmp/test'
 #UBENCH_CMD='+fs_create -p /pxfs -n 1024 -s 200000 +fs_read -p /pxfs -n 1024 -s 200000'
 #UBENCH_CMD="+fs_create -p $UBENCH_WD -n 1024 -s 512 +fs_read -p $UBENCH_WD -n 1024 -s 512"
-UBENCH_CMD="+fs_read -p $UBENCH_WD -n 1024 -s 512"
-#UBENCH_CMD="+fs_create -p $UBENCH_WD -n 16 -s 1024"
+#UBENCH_CMD="+fs_read -p $UBENCH_WD -n 1024 -s 512"
+UBENCH_CMD="+fs_create -p $UBENCH_WD -n 1024 -s 512"
 #UBENCH_NAME='ubench_osd'
 #UBENCH_CMD='+hlock -o -c -n 16384'
 #UBENCH_CMD=$*
@@ -51,5 +51,9 @@ usleep 300
 gnome-terminal --geometry=140x25+0-100 -x bash -c "$TOOL./build/ubench/$UBENCH_NAME -h 10000 -d $DEBUG_LEVEL $UBENCH_CMD; $WAITKEY"
 #pkill -9 fsclient
 #pkill -9 fsserver
+
+$WAITKEY
+
+gnome-terminal --geometry=140x25+0-100 -x bash -c "./build/ubench/ubench_rxfs -h 10000 -d 5 +fs_read -p / -n 16 -s 512; $WAITKEY"
 
 exit 0 # ignore any failed commands 

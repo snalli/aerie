@@ -1,0 +1,2 @@
+rxfscLibrary = SConscript('client/SConscript')
+Export('rxfscLibrary')
