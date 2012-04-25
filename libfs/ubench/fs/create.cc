@@ -34,14 +34,14 @@ __ubench_fs_create(const char* root, int numops, size_t size)
 	char*                  token;
 	char                   buf2[1024];
 
-	memcpy(buf2, root, strlen(root));
+	strcpy(buf2, root);
 	token = strtok(buf2, "/");
 	ss_root << "/";
 	ss_root << std::string(token);
 	while ((token=strtok(NULL, "/")) != NULL) {
 		ss_root << "/";
 		ss_root << std::string(token);
-		mkdir(ss_root.str().c_str(), S_IRUSR|S_IWUSR|S_IXUSR);
+		fs_mkdir(ss_root.str().c_str(), S_IRUSR|S_IWUSR|S_IXUSR);
 	}
 	
 	for (int i=0; i<numops; i++) {

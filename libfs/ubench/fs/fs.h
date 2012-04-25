@@ -11,6 +11,7 @@ extern int (*fs_unlink)(const char*);
 extern int (*fs_close)(int);
 extern int (*fs_fsync)(int);
 extern int (*fs_sync)();
+extern int (*fs_mkdir)(const char*, int mode);
 extern ssize_t (*fs_write)(int fd, const void* buf, size_t count);
 extern ssize_t (*fs_read)(int fd, void* buf, size_t count);
 extern ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset);

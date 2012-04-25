@@ -8,6 +8,7 @@ int (*fs_unlink)(const char*) = cfs_unlink;
 int (*fs_close)(int fd) = cfs_close;
 int (*fs_fsync)(int fd) = cfs_fsync;
 int (*fs_sync)() = cfs_sync;
+int (*fs_mkdir)(const char*, int mode) = cfs_mkdir;
 ssize_t (*fs_write)(int fd, const void* buf, size_t count) = cfs_write;
 ssize_t (*fs_read)(int fd, void* buf, size_t count) = cfs_read;
 ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset) = cfs_pwrite;

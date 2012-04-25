@@ -31,6 +31,10 @@ int vfs_sync()
 	return 0;
 }
 
+int vfs_mkdir(const char* pathname, int mode)
+{
+	return mkdir(pathname, mode);
+}
 
 int (*fs_open)(const char*, int flags) = vfs_open;
 int (*fs_open2)(const char*, int flags, mode_t mode) = vfs_open2;
@@ -38,6 +42,7 @@ int (*fs_unlink)(const char*) = vfs_unlink;
 int (*fs_close)(int fd) = vfs_close;
 int (*fs_fsync)(int fd) = fsync;
 int (*fs_sync)() = vfs_sync;
+int (*fs_mkdir)(const char*, int mode) = vfs_mkdir;
 ssize_t (*fs_write)(int fd, const void* buf, size_t count) = write;
 ssize_t (*fs_read)(int fd, void* buf, size_t count) = read;
 ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset) = pwrite;

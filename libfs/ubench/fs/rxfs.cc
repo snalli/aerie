@@ -9,6 +9,7 @@ int (*fs_unlink)(const char*) = rxfs_unlink;
 int (*fs_close)(int fd) = rxfs_close;
 int (*fs_fsync)(int fd) = rxfs_fsync;
 int (*fs_sync)() = rxfs_sync;
+int (*fs_mkdir)(const char*, int mode) = rxfs_mkdir;
 ssize_t (*fs_write)(int fd, const void* buf, size_t count) = rxfs_write;
 ssize_t (*fs_read)(int fd, void* buf, size_t count) = rxfs_read;
 ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset) = rxfs_pwrite;
