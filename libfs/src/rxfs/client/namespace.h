@@ -13,9 +13,10 @@ class Session;
 
 class NameSpace {
 public:
-	NameSpace(InodeNumber root_ino)
+	NameSpace(const char* target, InodeNumber root_ino)
 		: root_ino_(root_ino),
-		  cwd_(root_ino)
+		  cwd_(root_ino),
+		  target_(target)
 	{ }
 
 	int Nameiparent(Session* session, const char* path, char* name, lock_protocol::Mode mode, InodeNumber* ino);
@@ -29,6 +30,7 @@ private:
 
 	InodeNumber root_ino_;
 	InodeNumber cwd_;
+	const char* target_;
 };
 
 } // namespace client

@@ -20,7 +20,7 @@ Init(int debug_level, const char* xdst)
 	int ret;
 
 	rxfs_init3(xdst, debug_level);
-	rxfs_mount("/tmp/stamnos_pool", "/", "rxfs", 0);
+	rxfs_mount("/tmp/stamnos_pool", "/rxfs", "rxfs", 0);
 	return 0;
 }
 

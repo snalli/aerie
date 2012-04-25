@@ -144,7 +144,7 @@ Client::Mount(const char* source,
 		return ret;
 	}
 	SuperBlock::Load(session, mntrep.desc_.oid_, &sb);
-	global_namespace = new NameSpace(sb.root_ino());
+	global_namespace = new NameSpace(target, sb.root_ino());
 	return E_SUCCESS;
 }
 

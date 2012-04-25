@@ -86,6 +86,9 @@ NameSpace::Namex(Session* session, const char *cpath,
 	char*       old_name;
 
 	if (*path == '/') {
+		for (int i=0; *path == target_[i]; i++) {
+			path++;
+		}
 		ip = DirInode::Load(session, root_ino_, &dinode);
 	} else {
 		//inode = cwd_;
