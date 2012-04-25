@@ -261,10 +261,10 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 
 	// find out how much is really there to read
 	if ((off + n) > object()->Size()) {
-		n = object()->Size() - off;
+		n = min(object()->Size() - off, n);
 	}
 
-	//dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
+	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
 
 	fbn = off/kBlockSize;
 	start.Init(session, object(), fbn);

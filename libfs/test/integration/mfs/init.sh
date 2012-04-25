@@ -4,7 +4,7 @@
 
 # Create the storage pool
 
-./build/src/spa/tool/pool/pool create -p /tmp/stamnos_pool -s 64M
-./build/src/pxfs/tool/pxfs create -p /tmp/stamnos_pool -s 32M -t mfs
+./build/src/scm/tool/pool/pool create -p /tmp/stamnos_pool -s 1024M
+./build/src/pxfs/tool/pxfs create -p /tmp/stamnos_pool -s 512M -t mfs
 
 exit 0 # ignore any failed commands 
