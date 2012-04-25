@@ -1,6 +1,7 @@
 # build modules
 obj-m = scmdisk.o
 scmdisk-objs = brd.o scm.o
+#scmdisk-objs = brd26.o scm.o   # linux 2.6.33
 
 # use the kernel build system
 KERNEL_VERSION := `uname -r`
@@ -18,6 +19,7 @@ create_build_dir:
 		mkdir $(OBJDIR);                                     \
 		cp Makefile $(OBJDIR)/Makefile;                      \
 		ln -s $(SRCDIR)/brd.c $(OBJDIR)/brd.c;               \
+		ln -s $(SRCDIR)/brd26.c $(OBJDIR)/brd26.c;           \
 		ln -s $(SRCDIR)/scm.c $(OBJDIR)/scm.c;               \
 		ln -s $(SRCDIR)/scm.h $(OBJDIR)/scm.h;               \
 		ln -s $(SRCDIR)/../scmmodel $(OBJDIR)/scmmodel;      \

@@ -25,7 +25,7 @@ __ubench_fs_open(const char* root, int numops)
 	int                    ret = 0;
 	int                    fd = 0;
 	unsigned long long     runtime;
-	hrtime_t               runtime_cycles;
+	hrtime_t               runtime_cycles = 0;
 	std::string**          path = new std::string*[numops];
 
 	for (int i=0; i<numops; i++) {
@@ -39,15 +39,17 @@ __ubench_fs_open(const char* root, int numops)
 	MEASURE_TIME_START
 
 	for (int i=0; i<numops; i++) {
+    	MEASURE_CYCLES_START
 		fd = fs_open(path[i]->c_str(), O_RDWR);
+    	MEASURE_CYCLES_STOP
 		assert(fd>0);
+		ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 		fs_close(fd);
 	}
 
 	MEASURE_TIME_STOP
 
     MEASURE_TIME_DIFF_USEC(runtime)
-    MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 	
 	std::cout << measure_time_summary(numops, runtime, runtime_cycles) << std::endl;
 	return ret;

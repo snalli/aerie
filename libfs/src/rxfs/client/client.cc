@@ -16,7 +16,7 @@
 #include "pxfs/common/publisher.h"   // we use the pxfs server
 #include "common/prof.h"
 
-#define PROFILER_SAMPLE __PROFILER_SAMPLE
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 // FIXME: Client should be a singleton. otherwise we lose control 
 // over instantiation and destruction of the global variables below, which

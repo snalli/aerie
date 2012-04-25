@@ -6,7 +6,7 @@
 DEBUG_LEVEL=0
 #UBENCH_NAME='ubench_cfs'; UBENCH_WD='/pxfs'
 #UBENCH_NAME='ubench_pxfs'; UBENCH_WD='/pxfs'
-UBENCH_NAME='ubench_vfs'; UBENCH_WD='/mnt/scmfs'
+UBENCH_NAME='ubench_vfs'; UBENCH_WD='/mnt/scmfs/test1/test2'
 #UBENCH_NAME='ubench_vfs'; UBENCH_WD='/tmp/test'
 #UBENCH_CMD='+fs_create -p /pxfs -n 1024 -s 200000 +fs_read -p /pxfs -n 1024 -s 200000'
 #UBENCH_CMD="+fs_create -p $UBENCH_WD -n 1024 -s 16384 +fs_open -p $UBENCH_WD -n 1024"
@@ -19,8 +19,8 @@ UBENCH_CMD="+fs_open -p $UBENCH_WD -n 1024"
 #UBENCH_CMD=$*
 
 # Create the storage pool
-./build/src/scm/tool/pool/pool create -p /tmp/stamnos_pool -s 512M
-./build/src/pxfs/tool/pxfs create -p /tmp/stamnos_pool -s 256M -t mfs
+#./build/src/scm/tool/pool/pool create -p /tmp/stamnos_pool -s 512M
+#./build/src/pxfs/tool/pxfs create -p /tmp/stamnos_pool -s 256M -t mfs
 
 if [ "$1" = "-d" ]
 then
