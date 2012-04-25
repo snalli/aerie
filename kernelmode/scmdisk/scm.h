@@ -3,7 +3,8 @@
 
 #include "scmmodel/scm.h"
 
-#undef SCM_EMULATE_LATENCY
+#define SCM_EMULATE_LATENCY
+//#undef SCM_EMULATE_LATENCY
 
 #define MAX_NCPUS 32
 

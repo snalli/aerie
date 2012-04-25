@@ -113,7 +113,7 @@ ScmFlush(volatile void *addr)
 
 static
 void *
-scm_limit_bw(size_t n)
+ScmLimitBandwidth(size_t n)
 {
 /*
  	scm_word_t*       val;

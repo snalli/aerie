@@ -9,6 +9,9 @@
 /* SCM write bandwidth */
 int SCM_BANDWIDTH_MB = 1200;
 
+/* SCM write latency */
+int SCM_LATENCY_NS = 150;
+
 /* DRAM system peak bandwidth */
 int DRAM_BANDWIDTH_MB = 7000;
 
@@ -221,11 +224,14 @@ scm_memcpy_internal(scm_t *scm, void *dst, const void *src, size_t n)
 	/* Now make sure data is flushed out */
 	asm_mfence();
 #ifdef SCM_EMULATE_LATENCY
+#if 0
 	extra_latency = (int) size * (1-(float) (((float) SCM_BANDWIDTH_MB)/1000)/(((float) DRAM_BANDWIDTH_MB)/1000))/(((float)SCM_BANDWIDTH_MB)/1000);
 	spin_lock(&(scm->bwlock));
 	emulate_latency_ns(extra_latency);
 	spin_unlock(&(scm->bwlock));
 	//asm_cpuid();
+#endif
+	emulate_latency_ns(SCM_LATENCY_NS);
 #endif
 	stop = gethrtime();
 	duration = stop - start;
