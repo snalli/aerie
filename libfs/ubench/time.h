@@ -22,6 +22,26 @@ do {                                  \
 } while(0);           
 
 
+#define MEASURE_CYCLES_START          \
+do {                                  \
+  hrtime_start = hrtime_cycles();     \
+} while(0);           
+
+
+#define MEASURE_CYCLES_STOP           \
+do {                                  \
+  hrtime_stop = hrtime_cycles();      \
+} while(0);           
+
+
+#define ADD_MEASURE_TIME_DIFF_CYCLES(runtime)                        \
+do {                                                                 \
+  runtime += hrtime_stop - hrtime_start;                             \
+} while (0);	
+
+
+
+
 #define MEASURE_TIME_DIFF_USEC(runtime)                              \
 do {                                                                 \
   runtime = 1000000 * (time_stop.tv_sec - time_start.tv_sec) +       \

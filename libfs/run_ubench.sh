@@ -2,13 +2,16 @@
 #
 # do cleanup
 
+#TOOL='strace '
 DEBUG_LEVEL=5
-UBENCH_NAME='ubench_pxfs'
-#UBENCH_NAME='ubench_vfs'
-#UBENCH_CMD='+fs_create -p /pxfs -n 1024 -s 3840 +fs_unlink -p /pxfs -n 1024'
-#UBENCH_CMD='+fs_create -p /pxfs -n 16 -s 1024'
-UBENCH_CMD='+fs_create -p /mnt/scmfs -n 16 -s 1024'
-#UBENCH_CMD='+fs_create -p /pxfs -n 16'
+#UBENCH_NAME='ubench_cfs'; UBENCH_WD='/pxfs'
+#UBENCH_NAME='ubench_pxfs'; UBENCH_WD='/pxfs'
+#UBENCH_NAME='ubench_vfs'; UBENCH_WD='/mnt/scmfs'
+UBENCH_NAME='ubench_vfs'; UBENCH_WD='/tmp/test'
+#UBENCH_CMD='+fs_create -p /pxfs -n 1024 -s 200000 +fs_read -p /pxfs -n 1024 -s 200000'
+#UBENCH_CMD="+fs_create -p $UBENCH_WD -n 1024 -s 512 +fs_read -p $UBENCH_WD -n 1024 -s 512"
+UBENCH_CMD="+fs_read -p $UBENCH_WD -n 1024 -s 512"
+#UBENCH_CMD="+fs_create -p $UBENCH_WD -n 16 -s 1024"
 #UBENCH_NAME='ubench_osd'
 #UBENCH_CMD='+hlock -o -c -n 16384'
 #UBENCH_CMD=$*

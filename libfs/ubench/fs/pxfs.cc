@@ -2,15 +2,6 @@
 #include "pxfs/client/libfs.h"
 #include "ubench/fs/pxfs.h"
 
-int 
-RegisterUbench()
-{
-	ubench_table.push_back(UbenchDescriptor("fs_create", ubench_fs_create));
-	ubench_table.push_back(UbenchDescriptor("fs_open", ubench_fs_open));
-	ubench_table.push_back(UbenchDescriptor("fs_unlink", ubench_fs_unlink));
-	return 0;
-}
-
 
 int (*fs_open)(const char*, int flags) = libfs_open;
 int (*fs_open2)(const char*, int flags, mode_t mode) = libfs_open2;

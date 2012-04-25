@@ -20,6 +20,7 @@ extern ssize_t (*fs_pread)(int fd, void* buf, size_t count, off_t offset);
 extern int ubench_fs_open(int argc, char* argv[]);
 extern int ubench_fs_create(int argc, char* argv[]);
 extern int ubench_fs_unlink(int argc, char* argv[]);
+extern int ubench_fs_read(int argc, char* argv[]);
 
 
 #endif // __STAMNOS_UBENCH_FS_H

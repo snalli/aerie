@@ -15,16 +15,6 @@ ssize_t (*fs_pread)(int fd, void* buf, size_t count, off_t offset) = cfs_pread;
 
 
 int 
-RegisterUbench()
-{
-	ubench_table.push_back(UbenchDescriptor("fs_create", ubench_fs_create));
-	ubench_table.push_back(UbenchDescriptor("fs_open", ubench_fs_open));
-	ubench_table.push_back(UbenchDescriptor("fs_unlink", ubench_fs_unlink));
-	return 0;
-}
-
-
-int 
 Init(int debug_level, const char* xdst)
 {
 	cfs_init2(xdst);

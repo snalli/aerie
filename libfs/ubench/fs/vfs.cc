@@ -5,16 +5,6 @@
 #include <unistd.h>
 #include "ubench/fs/vfs.h"
 
-int 
-RegisterUbench()
-{
-	ubench_table.push_back(UbenchDescriptor("fs_create", ubench_fs_create));
-	ubench_table.push_back(UbenchDescriptor("fs_open", ubench_fs_open));
-	ubench_table.push_back(UbenchDescriptor("fs_unlink", ubench_fs_unlink));
-	return 0;
-}
-
-
 int vfs_open(const char* path, int flags)
 {
 	return open(path, flags);
