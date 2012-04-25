@@ -21,13 +21,14 @@
 // FIXME: Client should be a singleton. otherwise we lose control 
 // over instantiation and destruction of the global variables below, which
 // should really be members of client
+namespace rxfs {
 namespace client {
 
 __thread Session* thread_session;
 
 FileManager*                global_fmgr;
 NameSpace*                  global_namespace;
-Ipc*                        global_ipc_layer;
+::client::Ipc*              global_ipc_layer;
 osd::client::StorageSystem* global_storage_system;
 
 
@@ -45,7 +46,7 @@ Client::Init(const char* xdst, int debug_level)
 		return ret;
 	}
 
-	global_ipc_layer = new Ipc(xdst);
+	global_ipc_layer = new ::client::Ipc(xdst);
 	global_ipc_layer->Init();
 
 
@@ -55,7 +56,7 @@ Client::Init(const char* xdst, int debug_level)
 	// to avoid collisions
 	getrlimit(RLIMIT_NOFILE, &rlim_nofile);
 	global_fmgr = new FileManager(rlim_nofile.rlim_max, 
-	                              rlim_nofile.rlim_max+client::limits::kFileN);
+	                              rlim_nofile.rlim_max+ ::rxfs::client::limits::kFileN);
 	if ((ret = global_fmgr->Init()) < 0) {
 		return ret;	
 	}
@@ -369,3 +370,4 @@ Client::TestServerIsAlive()
 
 
 } // namespace client
+} // namespace rxfs 

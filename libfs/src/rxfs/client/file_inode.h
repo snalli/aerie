@@ -4,6 +4,7 @@
 #include "osd/containers/byte/container.h"
 #include "rxfs/client/inode.h"
 
+namespace rxfs {
 namespace client {
 
 class Session; // forward declaration
@@ -45,5 +46,6 @@ public:
 };
 
 } // namespace client
+} // namespace rxfs
 
 #endif // __STAMNOS_RXFS_CLIENT_FILE_INODE_H

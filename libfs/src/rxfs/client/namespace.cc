@@ -17,6 +17,7 @@
 #include "rxfs/client/file_inode.h"
 #include "bcs/bcs.h"
 
+namespace rxfs {
 namespace client {
 
 const int NAMESIZ = 128;
@@ -141,3 +142,4 @@ NameSpace::Namei(Session* session, const char* path, lock_protocol::Mode mode, I
 }
 
 } // namespace client
+} // namespace rxfs

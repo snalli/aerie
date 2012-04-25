@@ -6,7 +6,7 @@
 #include "rxfs/client/client.h"
 #include "bcs/main/common/cdebug.h"
 
-using namespace client;
+using namespace rxfs::client;
 
 
 int

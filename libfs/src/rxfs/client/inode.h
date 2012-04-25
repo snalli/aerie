@@ -8,6 +8,7 @@
 #include "rxfs/client/session.h"
 #include "rxfs/common/types.h"
 
+namespace rxfs {
 namespace client {
 
 class Inode {
@@ -24,11 +25,11 @@ public:
 		  type_(type)
 	{ }
 	
-	int Lock(::client::Session* session) {
+	int Lock(::rxfs::client::Session* session) {
 		return E_SUCCESS;
 	}
 
-	int Unlock(::client::Session* session) {
+	int Unlock(::rxfs::client::Session* session) {
 		return E_SUCCESS;
 	}
 
@@ -82,5 +83,6 @@ public:
 
 
 } // namespace client
+} // namespace rxfs
 
 #endif // __STAMNOS_RXFS_CLIENT_INODE_H

@@ -12,6 +12,7 @@
 //       with a file close.
 
 
+namespace rxfs {
 namespace client {
 
 // File implementation
@@ -290,3 +291,4 @@ FileManager::Put(int fd)
 
 
 } // namespace client
+} // namespace rxfs

@@ -4,6 +4,7 @@
 #include "osd/main/client/osd-opaque.h"
 #include "osd/main/client/session.h"
 
+namespace rxfs {
 namespace client {
 
 class Session: public osd::client::OsdSession {
@@ -15,5 +16,6 @@ public:
 
 
 } // namespace client
+} // namespace rxfs
 
 #endif // __STAMNOS_FS_CLIENT_SESSION_H

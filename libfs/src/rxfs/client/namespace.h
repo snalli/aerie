@@ -6,6 +6,7 @@
 #include "osd/main/client/osd.h"
 #include "osd/main/client/hlckmgr.h"
 
+namespace rxfs {
 namespace client {
 
 class Session;
@@ -31,5 +32,6 @@ private:
 };
 
 } // namespace client
+} // namespace rxfs
 
 #endif // __STAMNOS_RXFS_CLIENT_NAMESPACE_H

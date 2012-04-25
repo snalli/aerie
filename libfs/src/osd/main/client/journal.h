@@ -34,6 +34,9 @@ Buffer::Write(const void* src, size_t n)
 {
 	memcpy(&buf_[count_], src, n);
 	count_ += n;
+	if (count_ > size_) {
+		dbg_log(DBG_CRITICAL, "Run out of journal space\n");
+	}
 	return E_SUCCESS;
 }
 

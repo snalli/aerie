@@ -6,6 +6,7 @@
 #include "common/errno.h"
 
 // namespace scoped constants 
+namespace rxfs {
 namespace client {
 
 
@@ -32,5 +33,6 @@ const int kFileN = 1024;
 
 
 } // namespace client
+} // namespace rxfs
 
 #endif // __STAMNOS_RXFS_CLIENT_CONST_H

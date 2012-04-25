@@ -7,6 +7,7 @@
 #include <boost/dynamic_bitset.hpp>
 #include "rxfs/client/file_inode.h"
 
+namespace rxfs {
 namespace client {
 
 class Session;
@@ -74,5 +75,6 @@ private:
 
 
 } // namespace client
+} // namespace rxfs
 
 #endif // __STAMNOS_RXFS_CLIENT_FILE_H

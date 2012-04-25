@@ -7,6 +7,7 @@
 #include "common/util.h"
 #include <stdio.h>
 
+namespace rxfs {
 namespace client {
 
 
@@ -136,3 +137,4 @@ DirInode::Lookup(Session* session, const char* name, InodeNumber* ino)
 
 
 } // namespace client
+} // namespace rxfs

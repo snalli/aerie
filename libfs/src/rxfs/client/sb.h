@@ -7,6 +7,7 @@
 #include "osd/main/common/obj.h"
 #include "rxfs/client/dir_inode.h"
 
+namespace rxfs {
 namespace client {
 
 class SuperBlock {
@@ -33,5 +34,6 @@ private:
 };
 
 } // namespace client
+} // namespace rxfs
 
 #endif // __STAMNOS_RXFS_CLIENT_SUPERBLOCK_H

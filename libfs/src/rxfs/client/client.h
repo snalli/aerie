@@ -7,6 +7,7 @@
 #include "rxfs/client/const.h"
 #include "rxfs/client/namespace.h"
 
+namespace rxfs {
 namespace client {
 
 class FileManager;              // forward declaration
@@ -14,7 +15,7 @@ class FileManager;              // forward declaration
 extern NameSpace*                  global_namespace;
 extern FileManager*                global_fmgr;
 extern Session*                    global_session;
-extern Ipc*                        global_ipc_layer;        
+extern ::client::Ipc*              global_ipc_layer;        
 extern osd::client::StorageSystem* global_storage_system;
 
 
@@ -50,5 +51,6 @@ public:
 
 
 } // namespace client
+} // namespace rxfs
 
 #endif /* __STAMNOS_RXFS_CLIENT_INTERNAL_H */
