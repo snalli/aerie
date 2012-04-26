@@ -8,5 +8,7 @@ RegisterUbench()
 	ubench_table.push_back(UbenchDescriptor("fs_open", ubench_fs_open));
 	ubench_table.push_back(UbenchDescriptor("fs_unlink", ubench_fs_unlink));
 	ubench_table.push_back(UbenchDescriptor("fs_read", ubench_fs_read));
+	ubench_table.push_back(UbenchDescriptor("fs_fread", ubench_fs_fread));
+
 	return 0;
 }

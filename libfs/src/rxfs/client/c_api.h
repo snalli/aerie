@@ -15,6 +15,7 @@
 extern "C" { 
 #endif
 
+struct RFile;
 
 int FRONTAPI(init) (int argc, char* argv[]);
 int FRONTAPI(init2) (const char* xdst);
@@ -42,6 +43,12 @@ off_t FRONTAPI(lseek) (int fd, off_t offset, int whence);
 int FRONTAPI(stat) (const char *path, struct stat *buf);
 int FRONTAPI(sync) ();
 int FRONTAPI(fsync) (int fd);
+
+struct RFile* FRONTAPI(fopen) (const char* pathname, int flags);
+int FRONTAPI(fclose) (RFile* rfile);
+ssize_t FRONTAPI(fread) (RFile* rfile, void *buf, size_t count);
+ssize_t FRONTAPI(fpread) (RFile* rfile, void *buf, size_t count, off_t offset);
+
 
 #ifdef __cplusplus 
 } 

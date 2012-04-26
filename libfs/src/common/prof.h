@@ -9,6 +9,7 @@
 	int           startln = __LINE__; 
 
 #define __PROFILER_SAMPLE        \
+	hrtime_barrier();             \
 	stop = hrtime_cycles();    \
 	printf("%s:%s:%d-%d: %llu\n", __FILE__, __FUNCTION__, startln, __LINE__, stop-start); \
 	start = hrtime_cycles();   \

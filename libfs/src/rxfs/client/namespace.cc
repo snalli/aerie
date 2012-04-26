@@ -16,6 +16,9 @@
 #include "rxfs/client/dir_inode.h"
 #include "rxfs/client/file_inode.h"
 #include "bcs/bcs.h"
+#include "common/prof.h"
+
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 namespace rxfs {
 namespace client {
@@ -73,6 +76,7 @@ int
 NameSpace::Namex(Session* session, const char *cpath,  
                  bool nameiparent, char* name, InodeNumber* inop)
 {
+	PROFILER_PREAMBLE
 	char*       path = const_cast<char*>(cpath);
 	DirInode    dinode;
 	FileInode   finode;
@@ -84,6 +88,7 @@ NameSpace::Namex(Session* session, const char *cpath,
 	InodeNumber next_ino;
 	int         ret;
 	char*       old_name;
+	PROFILER_SAMPLE
 
 	if (*path == '/') {
 		for (int i=0; *path == target_[i]; i++) {
@@ -106,10 +111,12 @@ NameSpace::Namex(Session* session, const char *cpath,
 		}
 		dp = static_cast<DirInode*>(ip); // I know it's a directory inode as we did 
 		                                 // the test when entering the block
+	PROFILER_SAMPLE
 		if ((ret = dp->Lookup(session, name, &next_ino)) < 0) {
 			*inop = 0;
 			return ret;
 		}
+	PROFILER_SAMPLE
 		if (Inode::type(next_ino) == kDirInode) {
 			ip = DirInode::Load(session, next_ino, &dinode);
 		} else {

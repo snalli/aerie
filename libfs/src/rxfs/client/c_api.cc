@@ -4,10 +4,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "rxfs/client/client.h"
+#include "rxfs/client/file.h"
 #include "bcs/main/common/cdebug.h"
 
 using namespace rxfs::client;
 
+struct RFile;
 
 int
 FRONTAPI(init) (int argc, char* argv[])
@@ -199,4 +201,45 @@ int
 FRONTAPI(fsync) (int fd)
 {
 	return Client::Sync(fd);
+}
+
+
+RFile*  
+FRONTAPI(fopen) (const char* pathname, int flags)
+{
+	int   ret;
+	File* file;
+	if ((ret = Client::Open(pathname, flags, 0, &file)) != E_SUCCESS) {
+		return NULL;
+	}
+	return reinterpret_cast<RFile*>(file);
+}
+
+
+ssize_t 
+FRONTAPI(fread) (RFile* rfile, void *buf, size_t count)
+{
+	int   ret;
+	char* dst = reinterpret_cast<char*>(buf);
+	File* file = reinterpret_cast<File*>(rfile);
+
+	return ret = Client::Read(file, dst, count);
+}
+
+
+ssize_t 
+FRONTAPI(fpread) (RFile* rfile, void *buf, size_t count, off_t offset)
+{
+	char* dst = reinterpret_cast<char*>(buf);
+	File* file = reinterpret_cast<File*>(rfile);
+
+	return Client::ReadOffset(file, dst, count, offset);
+}
+
+
+int
+FRONTAPI(fclose) (RFile* rfile)
+{
+	File* file = reinterpret_cast<File*>(rfile);
+	return Client::Close(file);
 }

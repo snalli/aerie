@@ -6,6 +6,7 @@
 #include <vector>
 #include <boost/dynamic_bitset.hpp>
 #include "rxfs/client/file_inode.h"
+#include "rxfs/client/slab.h"
 
 namespace rxfs {
 namespace client {
@@ -51,15 +52,16 @@ class FileManager {
 public:
 	FileManager(int fdmin, int fdmax)
 		: fdmin_(fdmin),
-		  fdmax_(fdmax-1)
+		  fdmax_(fdmax-1),
+		  slab_(sizeof(File))
 	{}
 
 	int Init();
 	int AllocFd(File* fp);
-	int AllocFile(File** fpp);
-	int ReleaseFile(File* fp);
+	int AllocFile(Session* session, File** fpp);
+	int ReleaseFile(Session* session, File* fp);
 	int Get(int fd, File** fpp);
-	int Put(int fd);
+	int Put(Session* session, int fd);
 	int	Lookup(int fd, File** fpp);
 
 private:
@@ -70,7 +72,7 @@ private:
 	std::vector<File*>      ftable_;
 	int                     fdmin_; // smaller file descriptor manageable by *this
 	int                     fdmax_; // larger file descriptor manageable by *this
-
+	slab<1024>              slab_;
 };
 
 

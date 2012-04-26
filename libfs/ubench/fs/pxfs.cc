@@ -15,6 +15,12 @@ ssize_t (*fs_read)(int fd, void* buf, size_t count) = libfs_read;
 ssize_t (*fs_pwrite)(int fd, const void* buf, size_t count, off_t offset) = libfs_pwrite;
 ssize_t (*fs_pread)(int fd, void* buf, size_t count, off_t offset) = libfs_pread;
 
+RFile* (*fs_fopen)(const char*, int flags) = NULL;
+ssize_t (*fs_fread)(RFile* fp, void* buf, size_t count) = NULL;
+ssize_t (*fs_fpread)(RFile* fp, void* buf, size_t count, off_t offset) = NULL;
+int (*fs_fclose)(RFile* fp) = NULL;
+
+
 int 
 Init(int debug_level, const char* xdst)
 {

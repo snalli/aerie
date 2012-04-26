@@ -32,11 +32,11 @@ public:
 		return new(ip) FileInode(oid.u64());
 	}
 
-	int Write(Session* session, void* src, int count, int offset) {
+	int Write(Session* session, void* src, int offset, int count) {
 		return obj_->Write(session, (char*) src, offset, count);
 	}
 
-	int Read(Session* session, void* dst, int count, int offset) {
+	int Read(Session* session, void* dst, int offset, int count) {
 		return obj_->Read(session, (char*) dst, offset, count);
 	}
 

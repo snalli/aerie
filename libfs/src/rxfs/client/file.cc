@@ -36,7 +36,6 @@ File::Init(InodeNumber ino, int flags)
 }
 
 
-
 int 
 File::Write(client::Session* session, const char* src, uint64_t n)
 {
@@ -63,11 +62,9 @@ File::Read(client::Session* session, char* dst, uint64_t n)
 	}
 
 	pthread_mutex_lock(&mutex_);
-
 	if ((ret=ip_.Read(session, dst, off_, n)) > 0) {
 		off_+=ret;
 	}
-
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;
@@ -197,19 +194,20 @@ FileManager::AllocFd(File* fp)
 
 
 int 
-FileManager::AllocFile(File** fpp)
+FileManager::AllocFile(Session* session, File** fpp)
 {
-	*fpp = new File();
+	void* ptr = slab_.alloc();
+	*fpp = new(ptr) File();
 	(*fpp)->ref_ = 1;
 	return 0;
 }
 
 
 int 
-FileManager::ReleaseFile(File* fp)
+FileManager::ReleaseFile(Session* session, File* fp)
 {
 	fp->Release();
-	delete fp;
+	slab_.release((void*)fp);
 	return 0;
 }
 
@@ -261,7 +259,7 @@ FileManager::Get(int fd, File** fpp)
 
 
 int
-FileManager::Put(int fd)
+FileManager::Put(Session* session, int fd)
 {
 	File* fp;
 
@@ -286,7 +284,7 @@ FileManager::Put(int fd)
 	// ref is 0, release the File object
 	// we no longer need to hold the manager mutex as the file object
 	// is unreachable.
-	return ReleaseFile(fp);
+	return ReleaseFile(session, fp);
 }
 
 

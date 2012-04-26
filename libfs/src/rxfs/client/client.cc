@@ -150,7 +150,7 @@ Client::Mount(const char* source,
 
 
 int 
-Client::Open(const char* path, int flags, int mode)
+Client::Open(const char* path, int flags, int mode, File** file)
 {
 	PROFILER_PREAMBLE
 	Inode*      ip;
@@ -161,13 +161,10 @@ Client::Open(const char* path, int flags, int mode)
 	InodeNumber ino;
 	PROFILER_SAMPLE
 	
-	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
+	if ((ret = global_fmgr->AllocFile(session, &fp)) < 0) {
 		return ret;
 	}
-	if ((fd = global_fmgr->AllocFd(fp)) < 0) {
-		global_fmgr->ReleaseFile(fp);
-		return fd;
-	}
+
 	
 	PROFILER_SAMPLE
 	if (flags & O_CREAT) {
@@ -182,6 +179,29 @@ Client::Open(const char* path, int flags, int mode)
 	fp->Init(ino, flags);
 	PROFILER_SAMPLE
 
+	*file = fp;
+	return E_SUCCESS;
+}
+
+
+int 
+Client::Open(const char* path, int flags, int mode)
+{
+	PROFILER_PREAMBLE
+	Inode*      ip;
+	int         ret;
+	int         fd;
+	File*       fp;
+	Session*    session = CurrentSession();
+	PROFILER_SAMPLE
+	
+	if ((ret = Open(path, flags, mode, &fp)) < 0) {
+		return ret;
+	}
+	if ((fd = global_fmgr->AllocFd(fp)) < 0) {
+		global_fmgr->ReleaseFile(session, fp);
+		return fd;
+	}
 	return fd;
 }
 
@@ -189,8 +209,18 @@ Client::Open(const char* path, int flags, int mode)
 int
 Client::Close(int fd)
 {
-	return global_fmgr->Put(fd);
+	Session* session = CurrentSession();
+	return global_fmgr->Put(session, fd);
 }
+
+
+int
+Client::Close(File* file)
+{
+	Session* session = CurrentSession();
+	return global_fmgr->ReleaseFile(session, file);
+}
+
 
 
 int
@@ -210,6 +240,13 @@ Client::Duplicate(int oldfd, int newfd)
 
 
 int 
+Client::WriteOffset(File* fp, const char* src, uint64_t n, uint64_t offset)
+{
+	return fp->Write(CurrentSession(), src, n, offset);
+}
+
+
+int 
 Client::WriteOffset(int fd, const char* src, uint64_t n, uint64_t offset)
 {
 	File* fp;
@@ -219,6 +256,13 @@ Client::WriteOffset(int fd, const char* src, uint64_t n, uint64_t offset)
 		return ret;
 	}
 	return fp->Write(CurrentSession(), src, n, offset);
+}
+
+
+int 
+Client::ReadOffset(File* fp, char* dst, uint64_t n, uint64_t offset)
+{
+	return fp->Read(CurrentSession(), dst, n, offset);
 }
 
 
@@ -236,6 +280,13 @@ Client::ReadOffset(int fd, char* dst, uint64_t n, uint64_t offset)
 
 
 int 
+Client::Write(File* fp, const char* src, uint64_t n)
+{
+	return fp->Write(CurrentSession(), src, n);
+}
+
+
+int 
 Client::Write(int fd, const char* src, uint64_t n)
 {
 	File* fp;
@@ -245,6 +296,13 @@ Client::Write(int fd, const char* src, uint64_t n)
 		return ret;
 	}
 	return fp->Write(CurrentSession(), src, n);
+}
+
+
+int 
+Client::Read(File* fp, char* dst, uint64_t n)
+{
+	return fp->Read(CurrentSession(), dst, n);
 }
 
 
@@ -259,7 +317,6 @@ Client::Read(int fd, char* dst, uint64_t n)
 	}
 	return fp->Read(CurrentSession(), dst, n);
 }
-
 
 
 uint64_t 
