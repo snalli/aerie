@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <typeinfo>
 #include "scm/scm/scm.h"
 #include "osd/containers/byte/radixtree.h"
@@ -21,6 +22,10 @@
 #include "scm/const.h"
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
+#include "common/prof.h"
+
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
+
 
 namespace osd {
 namespace containers {
@@ -70,6 +75,7 @@ public:
 
 	int Write(Session* session, char* src, uint64_t off, uint64_t n);
 	int Read(Session* session, char* dst, uint64_t off, uint64_t n);
+	int ReadImmutable(Session* session, char* dst, uint64_t off, uint64_t n);
 
 	int ReadBlock(Session* session, char* dst, uint64_t bn, int off, int n);
 	int WriteBlock(Session* session, char* src, uint64_t bn, int off, int n);
@@ -668,9 +674,79 @@ ByteContainer::Object<Session>::Write(Session* session, char* src, uint64_t off,
 
 template<typename Session>
 int 
+ByteContainer::Object<Session>::ReadImmutable(Session* session, 
+                             char* dst, 
+                             uint64_t off, 
+                             uint64_t n)
+{
+	uint64_t                tot;
+	uint64_t                m;
+	uint64_t                fbn; // first block number
+	uint64_t                bn;
+	uint64_t                base_bn;
+	ByteContainer::Iterator<Session> start;
+	ByteContainer::Iterator<Session> iter;
+	int                     ret;
+	int                     f;
+	uint64_t                bcount;
+	uint64_t                size;
+	char*                   ptr;
+
+	//printf ("ReadImmutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
+
+	// find out how much is really there to read
+	if ((off + n) > Size()) {
+		n = min(Size() - off, n);
+	}
+
+	//dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
+	//printf ("Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
+
+	fbn = off/kBlockSize;
+	start.Init(session, this, fbn);
+	iter = start;
+	bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
+	size = bcount * kBlockSize;
+	f = off % size;
+
+
+	for (tot=0, bn=fbn; 
+	     !iter.terminate() && tot < n; 
+	     iter++, tot+=m, off+=m, bn++) 
+	{
+		base_bn = (*iter).get_base_bn();
+		bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
+		size = bcount * kBlockSize;
+		m = min(n - tot, size - f);
+
+		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
+
+		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
+		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
+
+		if (!ptr) {
+			memset(&dst[tot], 0, m);
+		} else {
+			// pinode already points to a block, therefore we do an in-place read
+			assert(bcount == 1);
+			memmove(&dst[tot], &ptr[f], m);
+		}
+
+		f = 0; // after the first block is read, each other block is read 
+		       // starting at its first byte
+	}
+
+	return tot;
+}
+
+
+
+template<typename Session>
+int 
 ByteContainer::Object<Session>::Read(Session* session, char* dst, uint64_t off, uint64_t n)
 {
-	return __Read<Session, ByteContainer::Object<Session> > (session, this, dst, off, n);
+	//return __Read<Session, ByteContainer::Object<Session> > (session, this, dst, off, n);
+	return ReadImmutable (session, dst, off, n);
 }
 
 
@@ -850,7 +926,8 @@ ByteContainer::Region<Session>::ReadBlock(Session* session,
 	}
 	if (slot && *slot) {
 		bp = (char*) (*slot);
-		memmove(dst, &bp[off], n);
+		//memmove(dst, &bp[off], n);
+		memcpy(dst, &bp[off], n);
 	} else {
 		memset(dst, 0, n); 
 	}

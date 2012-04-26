@@ -52,7 +52,7 @@ __ubench_fs_fread(const char* root, int numops, size_t size)
 		fp = fs_fopen(path[i]->c_str(), O_RDWR);
 		assert(fp != NULL);
     	MEASURE_CYCLES_START
-		fs_fread(fp, buf, size);
+		ret = fs_fread(fp, buf, size);
     	MEASURE_CYCLES_STOP
 		ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 		fs_fclose(fp);

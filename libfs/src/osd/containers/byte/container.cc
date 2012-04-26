@@ -305,7 +305,7 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 				}
 			}
 		} else {
-			// pinode already points to a block, therefore we do an in-place write
+			// pinode already points to a block, therefore we do an in-place read
 			assert(bcount == 1);
 			memmove(&dst[tot], &ptr[f], m);
 		}

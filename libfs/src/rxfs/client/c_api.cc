@@ -222,7 +222,6 @@ FRONTAPI(fread) (RFile* rfile, void *buf, size_t count)
 	int   ret;
 	char* dst = reinterpret_cast<char*>(buf);
 	File* file = reinterpret_cast<File*>(rfile);
-
 	return ret = Client::Read(file, dst, count);
 }
 
