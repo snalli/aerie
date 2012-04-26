@@ -196,8 +196,9 @@ FileManager::AllocFd(File* fp)
 int 
 FileManager::AllocFile(Session* session, File** fpp)
 {
-	void* ptr = slab_.alloc();
-	*fpp = new(ptr) File();
+	//void* ptr = slab_.alloc();
+	//*fpp = new(ptr) File();
+	*fpp = new File();
 	(*fpp)->ref_ = 1;
 	return 0;
 }
@@ -207,7 +208,8 @@ int
 FileManager::ReleaseFile(Session* session, File* fp)
 {
 	fp->Release();
-	slab_.release((void*)fp);
+	//slab_.release((void*)fp);
+	delete fp;
 	return 0;
 }
 

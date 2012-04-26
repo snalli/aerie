@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <sstream>
 #include <errno.h>
+#include <pthread.h>
 #include "ubench/fs/fs.h"
 #include "ubench/time.h"
 
@@ -18,10 +19,20 @@ usage()
 }
 
 
-static int 
-__ubench_fs_fread(const char* root, int numops, size_t size)
+struct Args {
+	const char* root;
+	int numops;
+	size_t size;
+};
+
+static void*
+//__ubench_fs_fread(const char* root, int numops, size_t size)
+__ubench_fs_fread(void* arg)
 {
 	MEASURE_TIME_PREAMBLE
+	const char*            root = ((Args*) arg)->root;
+	int                    numops = ((Args*) arg)->numops;
+	size_t                 size = ((Args*) arg)->size;
 	int                    ret = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles = 0;
@@ -64,7 +75,7 @@ __ubench_fs_fread(const char* root, int numops, size_t size)
     //MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 	
 	std::cout << "READ\n" << measure_time_summary(numops-8, runtime, runtime_cycles) << std::endl;
-	return ret;
+	return NULL;
 }
 
 
@@ -103,5 +114,19 @@ ubench_fs_fread(int argc, char* argv[])
 		return -1;
 	}
 
-	return __ubench_fs_fread(root_path, numops, size);
+	struct Args args;
+	args.root = root_path;
+	args.numops = numops;
+	args.size = size;
+
+	pthread_t threads[8];
+	int nthreads = 4;
+	for (int i=0; i<nthreads; i++) {
+		pthread_create(&threads[i], NULL, __ubench_fs_fread, (void*) &args);
+	}
+	for (int i=0; i<nthreads; i++) {
+		pthread_join(threads[i], NULL);
+	}
+	return 0;
+	//__ubench_fs_fread(&args);
 }
