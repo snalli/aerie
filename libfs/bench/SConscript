@@ -1,2 +1,2 @@
 SConscript('ubench/SConscript') #, variant_dir = s.path.join('bench', 'ubench'))
-#SConscript('postmark/SConscript') #, variant_dir = s.path.join('bench', 'postmark'))
+SConscript('postmark/SConscript') #, variant_dir = s.path.join('bench', 'postmark'))

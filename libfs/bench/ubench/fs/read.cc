@@ -19,7 +19,7 @@ usage()
 
 
 static int 
-__ubench_fs_read(const char* root, int numops, size_t size)
+__ubench_fs_read(const char* root, int numops, int warmup_ops, size_t size)
 {
 	MEASURE_TIME_PREAMBLE
 	int                    ret = 0;
@@ -28,27 +28,26 @@ __ubench_fs_read(const char* root, int numops, size_t size)
 	unsigned long long     sync_runtime;
 	hrtime_t               sync_runtime_cycles;
 	int                    fd;
-	std::string**          path = new std::string*[numops];
+	std::string**          path = new std::string*[numops+warmup_ops];
 	void*                  buf = new char[size];
 
-	for (int i=0; i<numops; i++) {
+	for (int i=0; i<warmup_ops + numops; i++) {
 		std::stringstream  ss;
 		ss << std::string(root);
 		ss << "/test-" << i << ".dat";
 		path[i] = new std::string(ss.str());
 	}
 	
-	for (int i=0; i<32; i++) {
+	for (int i=0; i<warmup_ops; i++) {
 		fd = fs_open(path[i]->c_str(), O_RDWR);
 		assert(fd>0);
 		fs_read(fd, buf, size);
 		fs_close(fd);
 	}
 
-
 	MEASURE_TIME_START
 
-	for (int i=32; i<numops; i++) {
+	for (int i=warmup_ops; i<warmup_ops+numops; i++) {
 		fd = fs_open(path[i]->c_str(), O_RDWR);
 		assert(fd>0);
     	MEASURE_CYCLES_START
@@ -78,16 +77,20 @@ ubench_fs_read(int argc, char* argv[])
 	char*       objtype;
 	const char* root_path = NULL;
 	size_t      size = 0;
+	int         warmup_ops = 0;
 	
 	opterr=0;
 	optind=0;
-	while ((ch = getopt(argc, argv, "p:n:s:"))!=-1) {
+	while ((ch = getopt(argc, argv, "p:n:s:w:"))!=-1) {
 		switch (ch) {
 			case 'p': // root path
 				root_path = optarg;
 				break;
 			case 'n':
 				numops = atoi(optarg);
+				break;
+			case 'w':
+				warmup_ops = atoi(optarg);
 				break;
 			case 's':
 				size = atoi(optarg);
@@ -103,5 +106,5 @@ ubench_fs_read(int argc, char* argv[])
 		return -1;
 	}
 
-	return __ubench_fs_read(root_path, numops, size);
+	return __ubench_fs_read(root_path, numops, warmup_ops, size);
 }
