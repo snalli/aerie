@@ -51,6 +51,8 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 	
 	::Publisher::Message::LogicalOperation::MakeFile* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeFile>(session, buf);
 	
+	dbg_log (DBG_INFO, "Validate MakeFile: ino=%p\n", lgc_op->childino_);
+
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
@@ -195,6 +197,8 @@ Publisher::Write(::osd::server::OsdSession* session, char* buf,
 
 	::Publisher::Message::LogicalOperation::Write* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Write>(session, buf);
 	
+	dbg_log (DBG_INFO, "Validate Write\n");
+
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->ino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {

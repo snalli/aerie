@@ -117,7 +117,7 @@ FileInode::ioctl(::client::Session* session, int request, void* info)
 		} break;
 		case kSize: {
 			uint64_t size = rw_ref()->proxy()->interface()->Size(session);
-			*((bool *) info) = size;
+			*((uint64_t *) info) = size;
 		} break;
 	}
 	return ret;

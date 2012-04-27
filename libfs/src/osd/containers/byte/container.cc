@@ -260,8 +260,8 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 	//printf ("ReadImmutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 
 	// find out how much is really there to read
-	if ((off + n) > object()->Size()) {
-		n = min(object()->Size() - off, n);
+	if ((off + n) > Size() && off > Size() ) {
+		n = min(Size() - off, n);
 	}
 
 	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
@@ -354,7 +354,10 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 	int       ret2 = 0;
 	int       r;
 
+	
 	immmaxsize = (!mutable_) ? object()->get_maxsize(): 0;
+
+	dbg_log (DBG_DEBUG, "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "(size=%" PRIu64 ", immmaxsize=%" PRIu64 ")\n", off, off+n-1, n, Size(), immmaxsize);
 
 	//printf ("Read: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 	//printf("Read: immmaxsize=%lu\n", immmaxsize);
@@ -554,6 +557,14 @@ ByteContainer::VersionManager::Size(OsdSession* session)
 {
 	return size_;
 }
+
+
+int
+ByteContainer::VersionManager::Size()
+{
+	return size_;
+}
+
 
 } // namespace osd
 } // namespace containers

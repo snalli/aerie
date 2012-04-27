@@ -247,6 +247,11 @@ Client::Open(const char* path, int flags, int mode)
 	File*    fp;
 	Session* session = CurrentSession();
 	
+	dbg_log (DBG_INFO, "Open file: path = %s ..., flags = 0x%x (%s%s%s)\n", path, flags,
+	         flags & O_APPEND ? "A": "",
+	         flags & O_CREAT  ? "C": "",
+	         flags & O_RDONLY  ? "R": "");
+
 	if ((ret = global_fmgr->AllocFile(&fp)) < 0) {
 		return ret;
 	}
@@ -273,6 +278,8 @@ Client::Open(const char* path, int flags, int mode)
 	fp->Init(ip, flags);
 	ip->Unlock(session);
 
+	dbg_log (DBG_INFO, "Open file: path = %s, fd=%d, ino=%p\n", path, fd, (void*) ip->ino());
+
 	return fd;
 }
 
@@ -280,6 +287,8 @@ Client::Open(const char* path, int flags, int mode)
 int
 Client::Close(int fd)
 {
+	dbg_log (DBG_INFO, "Close file: fd=%d\n", fd);
+
 	return global_fmgr->Put(fd);
 }
 
@@ -306,6 +315,8 @@ Client::WriteOffset(int fd, const char* src, uint64_t n, uint64_t offset)
 	File* fp;
 	int   ret;
 
+	dbg_log (DBG_INFO, "Write file: fd=%d\n", fd);
+
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
 	}
@@ -331,6 +342,8 @@ Client::Write(int fd, const char* src, uint64_t n)
 {
 	File* fp;
 	int   ret;
+	
+	dbg_log (DBG_INFO, "Write file: fd=%d, n=%lu\n", fd, n);
 
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;
@@ -344,6 +357,8 @@ Client::Read(int fd, char* dst, uint64_t n)
 {
 	int   ret;
 	File* fp;
+
+	dbg_log (DBG_INFO, "Read file: fd=%d, n=%lu\n", fd, n);
 
 	if ((ret = global_fmgr->Lookup(fd, &fp)) < 0) {
 		return ret;

@@ -903,6 +903,9 @@ HashTable<Session>::Insert(Session* session, const char* key, int key_size,
 		if (split_idx_ == (1U << size_log2_)) {
 			split_idx_ = 0;
 			size_log2_++;
+			if ((1U << size_log2_) > NUM_BUCKETS) {
+				assert(0); // tried to rehash and resize but not enough buckets
+			}
 		}
 	}
 	return 0;

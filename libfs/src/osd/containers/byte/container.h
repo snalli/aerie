@@ -50,6 +50,7 @@ public:
 	int Write(OsdSession* session, char*, uint64_t, uint64_t);
 	
 	int Size(OsdSession* session);
+	int Size();
 
 private:
 	int ReadImmutable(OsdSession* session, char*, uint64_t, uint64_t);

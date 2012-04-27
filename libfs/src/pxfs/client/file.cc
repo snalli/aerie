@@ -22,12 +22,12 @@ File::Init(Inode* ip, int flags)
 	if (flags & O_APPEND) {
 		append_ = true;
 	}
+	readable_ = true; // O_RDONLY == 0, so file is readonly unless someone passes O_WRONLY
 	if (flags & O_RDWR) {
 		readable_ = true;
 		writable_ = true;
-	} else if (flags & O_RDONLY) {
-		readable_ = true;
 	} else if (flags & O_WRONLY) {
+		readable_ = false;
 		writable_ = true;
 	}
 	ip_ = ip;
