@@ -11,7 +11,7 @@
 #include "common/hash.h"
 #include "common/prof.h"
 
-#define PROFILER_SAMPLE __PROFILER_SAMPLE
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 
 enum {
@@ -792,6 +792,14 @@ public:
 			dbg_log(DBG_ERROR, "No storage available");
 		}
 		return new(ptr) HashTable();
+	}
+	
+	static HashTable* Make(Session* session, void* buf)
+	{
+		HashTable* ht;
+		void*      ptr;
+
+		return new(buf) HashTable();
 	}
 
 	int Init();

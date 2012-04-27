@@ -164,7 +164,7 @@ Export('mainEnv')
 
 # Build stuff 
 SConscript('src/SConscript', variant_dir = 'build/src')
-SConscript('ubench/SConscript', variant_dir = 'build/ubench')
+SConscript('bench/SConscript', variant_dir = 'build/bench')
 
 # Run tests
 SConscript('test/SConscript', variant_dir = os.path.join('build/test'))

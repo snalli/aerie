@@ -4,7 +4,7 @@ Import('mainEnv')
 
 buildEnv = mainEnv.Clone()
 buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
-buildEnv.Append(CPPPATH = ['#src', '#'])
+buildEnv.Append(CPPPATH = ['#bench', '#src', '#'])
 buildEnv.Append(LIBS = ['config'])
 
 Import('cfscLibrary')

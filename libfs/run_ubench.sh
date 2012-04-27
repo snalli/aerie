@@ -3,7 +3,7 @@
 # do cleanup
 
 #TOOL='strace '
-DEBUG_LEVEL=5
+DEBUG_LEVEL=0
 #UBENCH_NAME='ubench_cfs'; UBENCH_WD='/pxfs'
 UBENCH_NAME='ubench_pxfs'; UBENCH_WD='/pxfs/test'
 #UBENCH_NAME='ubench_vfs'; UBENCH_WD='/mnt/scmfs/test1/test2'
@@ -55,10 +55,14 @@ sleep 2
 #pkill -9 fsserver
 
 #./build/ubench/$UBENCH_NAME -h 10000 -d $DEBUG_LEVEL $UBENCH_CMD
-./build/ubench/ubench_pxfs -h 10000 -d 5 +fs_create -p /pxfs/x/xxxxx/xxxxxxxxxxxxxxxxxxxxxxx -n 1024 -s 512
-./build/ubench/ubench_rxfs -h 10000 -d 5 +fs_fread -p /rxfs/x/xxxxx/xxxxxxxxxxxxxxxxxxxxxxx -n 1024 -s 512
+# PXFS/RXFS
+#./build/ubench/ubench_pxfs -h 10000 -d 0 +fs_create -p /pxfs/x/xxxxx/xxxxxxxxxxxxxxxxxxxxxxx -n 10000 -s 16384
+#./build/ubench/ubench_rxfs -h 10000 -d 0 +fs_fread -p /rxfs/x/xxxxx/xxxxxxxxxxxxxxxxxxxxxxx -n 10000 -s 16384
 #./build/ubench/ubench_pxfs -h 10000 -d 5 +fs_read -p /pxfs/x/xxxxx/xxxxxxxxxxxxxxxxxxxxxxx -n 1024 -s 512
 #./build/ubench/ubench_pxfs -h 10000 -d 5 +fs_create -p /pxfs/ -n 1024 -s 512
 #./build/ubench/ubench_rxfs -h 10000 -d 5 +fs_fread -p /rxfs/ -n 1024 -s 512
 
+# VFS
+#./build/ubench/ubench_vfs -h 10000 -d 5 +fs_create -p /mnt/scmfs/x/xxxxx/xxxxxxxxxxxxxxxxxxxxxxx -n 1024 -s 16384
+#./build/ubench/ubench_vfs -h 10000 -d 5 +fs_read -p /mnt/scmfs/x/xxxxx/xxxxxxxxxxxxxxxxxxxxxxx -n 1024 -s 16384
 exit 0 # ignore any failed commands 

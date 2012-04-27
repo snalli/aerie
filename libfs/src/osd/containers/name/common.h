@@ -99,7 +99,7 @@ NameContainer::Object<Session>::Find(Session* session, const char* name, osd::co
 			return E_SUCCESS;
 	}
 
-	if ((ret = ht()->Search(session, name, &u64)) < 0) {
+	if ((ret = ht()->Search(session, name, strlen(name)+1, &u64)) < 0) {
 		return ret;
 	}
 	*oid = osd::common::ObjectId(u64);
@@ -129,7 +129,7 @@ NameContainer::Object<Session>::Insert(Session* session, const char* name, osd::
 			return E_SUCCESS;
 	}
 	
-	if (ht()->Search(session, name, &u64)==0) {
+	if (ht()->Search(session, name, strlen(name)+1, &u64)==0) {
 		return -E_EXIST;
 	}
 	return ht()->Insert(session, name, strlen(name)+1, oid.u64());
