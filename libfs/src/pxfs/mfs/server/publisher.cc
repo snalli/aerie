@@ -51,7 +51,7 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 	
 	::Publisher::Message::LogicalOperation::MakeFile* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeFile>(session, buf);
 	
-	dbg_log (DBG_INFO, "Validate MakeFile: ino=%p\n", lgc_op->childino_);
+	dbg_log (DBG_INFO, "Validate MakeFile: %p %s -> %p\n", lgc_op->parino_, lgc_op->name_, lgc_op->childino_);
 
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);
@@ -90,6 +90,8 @@ Publisher::MakeDir(::osd::server::OsdSession* osdsession, char* buf,
 
 	::Publisher::Message::LogicalOperation::MakeDir* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeDir>(session, buf);
 	
+	dbg_log (DBG_INFO, "Validate MakeDir: %p %s -> %p\n", lgc_op->parino_, lgc_op->name_, lgc_op->childino_);
+
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
@@ -129,6 +131,8 @@ Publisher::Link(::osd::server::OsdSession* osdsession, char* buf,
 
 	::Publisher::Message::LogicalOperation::Link* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Link>(session, buf);
 	
+	dbg_log (DBG_INFO, "Validate Link: %p %s -> %p\n", lgc_op->parino_, lgc_op->name_, lgc_op->childino_);
+
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
@@ -164,6 +168,8 @@ Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf,
 	
 	::Publisher::Message::LogicalOperation::Unlink* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Unlink>(session, buf);
 	
+	dbg_log (DBG_INFO, "Validate Unlink: %p %s\n", lgc_op->parino_, lgc_op->name_);
+
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
