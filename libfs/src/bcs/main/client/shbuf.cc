@@ -46,7 +46,6 @@ SharedBuffer::SignalReader()
 		return -ret;
 	}
 
-
 	return E_SUCCESS;
 }
 
@@ -57,12 +56,12 @@ SharedBuffer::SignalReader()
 int 
 SharedBuffer::Write(const char* src, size_t n)
 {
-	if (n > size() - Count()) {
+	if (n >= size() - Count()) {
 		// no space 
 		SignalReader();
 	}
 	void* bptr = (void*) (base() + end());
-	if (end() > start()) {
+	if (end() >= start()) {
 		uint64_t empty_slots = size() - end();
 		if (n > empty_slots) {
 			memcpy(bptr, src, empty_slots);

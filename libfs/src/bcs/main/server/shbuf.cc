@@ -44,6 +44,8 @@ SharedBuffer::Init(const char* suffix)
 int 
 SharedBuffer::Read(char* dst, size_t n)
 {
+	//printf("start-end: [%lu - %lu], size=%lu, count=%lu, n=%d\n", start_, end_, size_, Count(), n);
+	//fflush(stdout);
 	if (n > Count()) {
 		// not enough data 
 		return 0;
@@ -51,12 +53,16 @@ SharedBuffer::Read(char* dst, size_t n)
 	void* bptr = (void*) (base_ + start_);
 	if (start_ > end_) {
 		uint64_t first_part_size = size_ - start_;
-		memcpy(dst, bptr, first_part_size);
-		memcpy(&dst[first_part_size], (void*) base_, n-first_part_size);
+		if (n > first_part_size) {
+			memcpy(dst, bptr, first_part_size);
+			memcpy(&dst[first_part_size], (void*) base_, n-first_part_size);
+		} else {
+			memcpy(dst, bptr, n);
+		}
 	} else {
 		memcpy(dst, bptr, n);
 	}
-	start_ += n;
+	start_ = (start_ + n) % size_;
 	return n;
 }
 
