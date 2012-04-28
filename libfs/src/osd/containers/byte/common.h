@@ -696,8 +696,13 @@ ByteContainer::Object<Session>::ReadImmutable(Session* session,
 
 	// find out how much is really there to read
 	if ((off + n) > Size()) {
-		n = min(Size() - off, n);
-	}
+		if (off > Size() ) {
+			return 0;
+		} else {
+			n = min(Size() - off, n);
+		}
+	} 
+
 
 	//dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
 	//printf ("Immutable range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 "\n", off, off+n-1, n);
