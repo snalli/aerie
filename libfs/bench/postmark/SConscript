@@ -1,0 +1,30 @@
+
+import os, sys
+Import('mainEnv')
+
+buildEnv = mainEnv.Clone()
+buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
+buildEnv.Append(CPPPATH = ['#bench', '#src', '#'])
+buildEnv.Append(LIBS = ['config'])
+
+pxfsBuildEnv = buildEnv.Clone()
+pxfsBuildEnv.Append(CPPDEFINES = ['-D_USE_LIBFS'])
+vfsBuildEnv = buildEnv.Clone()
+
+Import('cfscLibrary')
+Import('rxfscLibrary')
+Import('fscLibrary')
+Import('mfsClientLibrary')
+Import('commonLibrary')
+Import('scmLibrary')
+Import('bcsClientLibrary')
+Import('osdClientLibrary')
+
+#vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+
+pxfs_obj = pxfsBuildEnv.Object('postmark-pxfs.o', 'postmark-1_5.c')
+vfs_obj = vfsBuildEnv.Object('postmark-vfs.o', 'postmark-1_5.c')
+
+pxfsPostmarkProgram = pxfsBuildEnv.Program('postmark_pxfs', pxfs_obj, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
+vfsPostmarkProgram = vfsBuildEnv.Program('postmark_vfs', vfs_obj, LIBS=['pthread', 'rt'])

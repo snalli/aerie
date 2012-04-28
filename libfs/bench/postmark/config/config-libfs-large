@@ -1,0 +1,8 @@
+set transactions 60000
+set buffering false
+set subdirectories false
+set number 3000
+set size 4096 4194304
+set location /pxfs
+run
+quit
