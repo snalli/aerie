@@ -1,6 +1,10 @@
 #include "common/hrtime.h"
 #include <sstream>
 
+#define CALLGRIND_TOGGLE_COLLECT  do { } while (0);
+
+
+
 #define MEASURE_TIME_PREAMBLE    \
   struct timeval   time_stop;    \
   struct timeval   time_start;   \
