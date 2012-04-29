@@ -20,6 +20,7 @@ int FRONTAPI(mount) (const char* source, uint32_t flags);
 int FRONTAPI(umount) ();
 ssize_t FRONTAPI(get) (const char* key, void *buf);
 ssize_t FRONTAPI(put) (const char* key, const void *buf, size_t count);
+int FRONTAPI(del) (const char* key);
 int FRONTAPI(sync) ();
 
 #ifdef __cplusplus 
