@@ -1,0 +1,132 @@
+This is KVZone, originally developed at NEC Laboratories America.  You can 
+find the latest release at 
+http://www.nec-labs.com/research/robust/robust_grid-website/software.php.  
+KVZone was created to fill a gap in benchmarking utilities, namely the lack of 
+a standardized, extensible framework for testing and comparing Key-Value stores.  
+You can read about this process in our HotStorage '10 
+(http://www.usenix.org/events/hotstorage10/tech/) paper entitled 'KVZone and 
+the Search for a Write-Optimized Key-Value Store.'
+
+=====License==================================================================
+Copyright (c) 2010, NEC Laboratories America
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of NEC Laboratories America nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+=====Dependencies=============================================================
+KVZone development has mainly been done on CentOS 5.x, with some additional 
+testing performed on Ubuntu 10.04 and Fedora 13.  Currently, the software has 
+the following dependencies:
+
+	TokyoCabinet - http://1978th.net/tokyocabinet/
+	Berkeley DB (CXX) - http://www.oracle.com/technology/software/products/berkeley-db/index.html
+	SQLite - http://www.sqlite.org/
+	Boost (threads, date_time, filesystem) - http://www.boost.org/
+	G++ - http://gcc.gnu.org/
+
+If you are on a CentOS or Red Hat system, you can install the dependencies
+using these commands:
+	rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-3.noarch.rpm
+	yum -y install gcc-c++ tokyocabinet-devel db4-devel sqlite-devel \
+		boost-devel autoconf automake libtool
+
+
+If you are on a Fedora system, you can install the dependencies using this
+command:
+	yum -y install gcc-c++ tokyocabinet-devel db4-devel sqlite-devel \
+		boost-devel autoconf automake libtool
+
+If you are on an Ubuntu system, you can install the dependencies using this command:
+	apt-get update && apt-get install g++ libtokyocabinet-dev libdb4.8-dev \
+		libdb4.8++-dev libsqlite3-dev libboost-all-dev autotools-dev \
+		libtool
+
+If you are on another system, you may wish to use the same versions of these 
+software packages as we have used during our development, though newer versions
+should work without a problem:
+
+	TokyoCabinet 1.4.9
+	Berkeley DB (CXX) 4.3.29
+	SQLite 3.3.6
+	Boost 1.33
+	G++ 4.1.2
+
+=====Installation=============================================================
+KVZone has been packaged with GNU autotools.  Assuming you have met the
+dependency requirements listed above, installation should be as simple as
+	./configure
+	make
+	make install
+If you experience errors when running the configure script, please run the 
+autogen.sh script and try again.  If you continue to experience errors after 
+this, please contact NECLA with the details.
+
+=====A Note on Latency Mode==================================================
+Latency mode is an experimental mode of operation.  It has been released for
+the sake of completeness, but the results cannot be guaranteed.  Better results
+are often obtained when an SSD with consistent latency is used as a backing
+store and the KVStore performs at least 1 million operations.
+
+=====Usage====================================================================
+Usage: kvzone [options]:
+ -p path                    filesystem path to kvstore
+ -z storeSize               expected key-value store size
+ -P prewrite factor         prewrite data (percent of store size)
+ -s numRequests             total IO requests
+ -m minBlockSize            minimum block size
+ -x maxBlockSize            maximum block size
+ -o targetIops              target iops for data generator (note: must use either -o or -a)
+ -a targetLatency           target latency in microseconds (note: must use either -o or -a)
+ -L read percent            percentage of read requests to generate
+ -t keyValueStoreType       type of key-value store (bdb, tc, mem, sqlite or noop)
+ -r threads                 number of threads for key value store
+ -h                         show help info
+
+Generate 8000 IOPS (30% insert, 30% delete, 40% read) until we have completed 
+100000 operations on a TokyoCabinet key-value store located at 
+/ssd/key-value-store.  Value size is a regular distribution between 4KB and 
+64KB.
+	kvzone -p /ssd/key-value-store -m 4K -x 64K -o 8000 -t tc -s 100000 \
+		-L 40
+
+
+Insert 25000 key-value pairs (250000 * 10 / 100) into an in-memory key-value 
+store. Then generate 20000 IOPS (20% insert, 20% delete, 60% read) until we 
+have completed 250000 operations on the same key-value store.  Value size is a 
+regular distribution between 512B and 1KB.
+	kvzone -m 512B -x 1K -o 20000 -t mem -s 250000 -L 60 -P 10
+
+
+Attempt to achieve a stable number of IOPS such that the average latency of 
+operations approaches 2 milliseconds.  Stop after 250000 operations have been 
+completed.
+	kvzone -p /ssd/key-value-store -m 4K -x 4K -a 2000 -t bdb -s 250000 \
+		-L 60
+
+
+=====Adding your own Key-Value Store==========================================
+Currently, we have not defined a plugin architecture for KVZone, but we have 
+provided a standardized 'adapter' interface for inserting an additional 
+key-value store.  Several examples have been provided, including a no-op 
+adapter which simply demonstrates the minimal adapter implementation.  You can 
+find these examples in the src/main/keyValueStore/adapters subdirectory.
