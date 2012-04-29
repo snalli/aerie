@@ -56,6 +56,9 @@ SharedBuffer::SignalReader()
 int 
 SharedBuffer::Write(const char* src, size_t n)
 {
+	//printf("<< start-end: [%lu - %lu], size=%lu, count=%lu, n=%d\n", start(), end(), size(), Count(), n);
+	//fflush(stdout);
+	
 	if (n >= size() - Count()) {
 		// no space 
 		SignalReader();

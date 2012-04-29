@@ -19,8 +19,8 @@ public:
 
 struct Publisher::Message::LogicalOperation {
 	enum OperationCode {
-		kMakeFile = 1,
-		kUnlink = 2
+		kMakeFile = 10,
+		kUnlink
 	};
 	struct MakeFile;
 	struct Unlink;
