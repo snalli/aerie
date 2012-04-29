@@ -2,7 +2,6 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <valgrind/callgrind.h>
 #include "ubench/time.h"
 #include "ubench/osd/osd.h"
 
