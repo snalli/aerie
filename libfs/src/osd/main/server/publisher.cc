@@ -70,6 +70,8 @@ Publisher::Publish(OsdSession* session)
 	osd::Publisher::Message::BaseMessage  next;
 	LogicalOperation                       lgc_op;
 	
+	dbg_log(DBG_INFO, "PUBLISH\n");
+
 	OsdSharedBuffer* shbuf = session->shbuf_;
 	shbuf->Acquire();
 	while (shbuf->Read(buf, sizeof(*msg))) {
@@ -81,7 +83,6 @@ Publisher::Publish(OsdSession* session)
 					ret = -1;
 					goto done;
 				}
-				//osd::Publisher::Message::TransactionBegin* txbegin = osd::Publisher::Message::TransactionBegin::Load(buf);
 				break;
 			} 
 			if (msg->type_ == osd::Publisher::Message::kTransactionCommit) {

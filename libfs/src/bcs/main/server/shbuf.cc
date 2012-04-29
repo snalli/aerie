@@ -44,7 +44,7 @@ SharedBuffer::Init(const char* suffix)
 int 
 SharedBuffer::Read(char* dst, size_t n)
 {
-	//printf("start-end: [%lu - %lu], size=%lu, count=%lu, n=%d\n", start_, end_, size_, Count(), n);
+	//printf(">>start-end: [%lu - %lu], size=%lu, count=%lu, n=%d\n", start_, end_, size_, Count(), n);
 	//fflush(stdout);
 	if (n > Count()) {
 		// not enough data 

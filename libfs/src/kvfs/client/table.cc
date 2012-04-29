@@ -75,6 +75,7 @@ Table::Put(::client::Session* session, const char* key, const char* src, uint64_
 	// directly via the object
 	Lock(session, lock_protocol::Mode::XL);
 	if ((ret = rw_ref()->proxy()->interface()->Find(session, key, &oid)) != E_SUCCESS) {
+		session->journal()->TransactionBegin();
 		if ((obj = osd::containers::client::NeedleContainer::Object::Make(session)) == NULL) {
 			ret = -E_NOMEM;
 			goto done;
@@ -82,7 +83,6 @@ Table::Put(::client::Session* session, const char* key, const char* src, uint64_
 		if ((ret = rw_ref()->proxy()->interface()->Insert(session, key, obj->oid())) < 0) {
 			goto done;
 		}
-		session->journal()->TransactionBegin();
 		session->journal() << Publisher::Message::LogicalOperation::MakeFile(rw_ref()->proxy()->oid().u64(), key, obj->oid().u64());
 		session->journal()->TransactionCommit();
 	} else {

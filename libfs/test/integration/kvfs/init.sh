@@ -4,7 +4,7 @@
 
 # Create the storage pool
 
-./build/src/spa/tool/pool/pool create -p /tmp/stamnos_pool -s 64M
+./build/src/scm/tool/pool/pool create -p /tmp/stamnos_pool -s 64M
 ./build/src/kvfs/tool/kvfs create -p /tmp/stamnos_pool -s 32M
 
 exit 0 # ignore any failed commands 
