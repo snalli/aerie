@@ -549,9 +549,11 @@ void rpcs::handle_comm_q(server_lock_t* rpc_serv) {
 }
 
 void rpcs::mt_log_service(unsigned id, timespec start) {
+#if 0
   timespec endtime, tdiff;
   char tmp[128];
   unsigned len = rpc_log.len[id] + MAX_LOG_FILE_SIZE_PT*id;
+
   assert(clock_gettime(CLOCK_REALTIME, &endtime) == 0);
   //clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &endtime);
   rpc_reg.tot_served[id]++;
@@ -569,7 +571,7 @@ void rpcs::mt_log_service(unsigned id, timespec start) {
     printf("%d: LOG FILE FULL!!! exiting..\n", id);
     exit(0);
   }
-
+#endif
 }
 
 

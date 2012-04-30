@@ -20,7 +20,7 @@
 
 //| O_TRUNC
 #define MAX_SH_FILE_SIZE (sizeof(rpc_signal_wait_t) + sizeof(rpc_msg_t))
-#define MAX_LOG_FILE_SIZE 256*1024
+#define MAX_LOG_FILE_SIZE 8*256*1024
 
 #define UNREACHED 0
 
