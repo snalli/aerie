@@ -12,34 +12,34 @@ using namespace rxfs::client;
 struct RFile;
 
 int
-FRONTAPI(init) (int argc, char* argv[])
+RXFS_FRONTAPI(init) (int argc, char* argv[])
 {
 	return Client::Init(argc, argv);
 }
 
 
 int
-FRONTAPI(init2) (const char* xdst)
+RXFS_FRONTAPI(init2) (const char* xdst)
 {
 	return Client::Init(xdst);
 }
 
 int
-FRONTAPI(init3) (const char* xdst, int debug_level)
+RXFS_FRONTAPI(init3) (const char* xdst, int debug_level)
 {
 	return Client::Init(xdst, debug_level);
 }
 
 
 int
-FRONTAPI(shutdown) ()
+RXFS_FRONTAPI(shutdown) ()
 {
 	return Client::Shutdown();
 }
 
 
 int 
-FRONTAPI(mount) (const char* source, const char* target, 
+RXFS_FRONTAPI(mount) (const char* source, const char* target, 
                  const char* fstype, uint32_t flags)
 {
 	return Client::Mount(source, target, fstype, flags);
@@ -47,49 +47,49 @@ FRONTAPI(mount) (const char* source, const char* target,
 
 
 int 
-FRONTAPI(umount) (const char* target)
+RXFS_FRONTAPI(umount) (const char* target)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
 }
  
 
 int 
-FRONTAPI(mkdir) (const char* path, int mode)
+RXFS_FRONTAPI(mkdir) (const char* path, int mode)
 {
 	return Client::CreateDir(path, mode);
 }
 
 
 int 
-FRONTAPI(rmdir) (const char* path)
+RXFS_FRONTAPI(rmdir) (const char* path)
 {
 	return Client::DeleteDir(path);
 }
 
 
 int 
-FRONTAPI(rename) (const char* oldpath, const char* newpath)
+RXFS_FRONTAPI(rename) (const char* oldpath, const char* newpath)
 {
 	return Client::Rename(oldpath, newpath);
 }
 
 
 int 
-FRONTAPI(link) (const char* oldpath, const char* newpath)
+RXFS_FRONTAPI(link) (const char* oldpath, const char* newpath)
 {
 	return Client::Link(oldpath, newpath);
 }
 
 
 int 
-FRONTAPI(unlink) (const char* pathname)
+RXFS_FRONTAPI(unlink) (const char* pathname)
 {
 	return Client::Unlink(pathname);
 }
 
 
 int 
-FRONTAPI(chdir) (const char* path)
+RXFS_FRONTAPI(chdir) (const char* path)
 {
 	int ret;
 
@@ -101,7 +101,7 @@ FRONTAPI(chdir) (const char* path)
 
 
 char* 
-FRONTAPI(getcwd) (char* path, size_t size)
+RXFS_FRONTAPI(getcwd) (char* path, size_t size)
 {
 	int ret = Client::GetCurWrkDir(path, size);
 	return (ret == E_SUCCESS) ? path: NULL;
@@ -109,39 +109,39 @@ FRONTAPI(getcwd) (char* path, size_t size)
 
 
 int 
-FRONTAPI(open) (const char* pathname, int flags)
+RXFS_FRONTAPI(open) (const char* pathname, int flags)
 {
 	return  Client::Open(pathname, flags, 0);
 }
 
 
 int 
-FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
+RXFS_FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
 {
 	return Client::Open(pathname, flags, 0);
 }
 
 
-int FRONTAPI(close) (int fd)
+int RXFS_FRONTAPI(close) (int fd)
 {
 	return Client::Close(fd);
 }
 
 
-int FRONTAPI(dup) (int oldfd)
+int RXFS_FRONTAPI(dup) (int oldfd)
 {
 	return Client::Duplicate(oldfd);
 }
 
 
-int FRONTAPI(dup2) (int oldfd, int newfd)
+int RXFS_FRONTAPI(dup2) (int oldfd, int newfd)
 {
 	return Client::Duplicate(oldfd, newfd);
 }
 
 
 ssize_t 
-FRONTAPI(write) (int fd, const void *buf, size_t count)
+RXFS_FRONTAPI(write) (int fd, const void *buf, size_t count)
 {
 	const char* src = reinterpret_cast<const char*>(buf);
 
@@ -150,7 +150,7 @@ FRONTAPI(write) (int fd, const void *buf, size_t count)
 
 
 ssize_t 
-FRONTAPI(read) (int fd, void *buf, size_t count)
+RXFS_FRONTAPI(read) (int fd, void *buf, size_t count)
 {
 	char* dst = reinterpret_cast<char*>(buf);
 
@@ -159,7 +159,7 @@ FRONTAPI(read) (int fd, void *buf, size_t count)
 
 
 ssize_t 
-FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
+RXFS_FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
 {
 	const char* src = reinterpret_cast<const char*>(buf);
 
@@ -168,7 +168,7 @@ FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
 
 
 ssize_t 
-FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
+RXFS_FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
 {
 	char* dst = reinterpret_cast<char*>(buf);
 
@@ -177,35 +177,35 @@ FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
 
 
 off_t 
-FRONTAPI(lseek) (int fd, off_t offset, int whence)
+RXFS_FRONTAPI(lseek) (int fd, off_t offset, int whence)
 {
 	return Client::Seek(fd, offset, whence);
 }
 
 
 int 
-FRONTAPI(stat) (const char *path, struct stat *buf)
+RXFS_FRONTAPI(stat) (const char *path, struct stat *buf)
 {
 	return Client::Stat(path, buf);
 }
 
 
 int
-FRONTAPI(sync) ()
+RXFS_FRONTAPI(sync) ()
 {
 	return Client::Sync();
 }
 
 
 int
-FRONTAPI(fsync) (int fd)
+RXFS_FRONTAPI(fsync) (int fd)
 {
 	return Client::Sync(fd);
 }
 
 
 RFile*  
-FRONTAPI(fopen) (const char* pathname, int flags)
+RXFS_FRONTAPI(fopen) (const char* pathname, int flags)
 {
 	int   ret;
 	File* file;
@@ -217,7 +217,7 @@ FRONTAPI(fopen) (const char* pathname, int flags)
 
 
 ssize_t 
-FRONTAPI(fread) (RFile* rfile, void *buf, size_t count)
+RXFS_FRONTAPI(fread) (RFile* rfile, void *buf, size_t count)
 {
 	int   ret;
 	char* dst = reinterpret_cast<char*>(buf);
@@ -227,7 +227,7 @@ FRONTAPI(fread) (RFile* rfile, void *buf, size_t count)
 
 
 ssize_t 
-FRONTAPI(fpread) (RFile* rfile, void *buf, size_t count, off_t offset)
+RXFS_FRONTAPI(fpread) (RFile* rfile, void *buf, size_t count, off_t offset)
 {
 	char* dst = reinterpret_cast<char*>(buf);
 	File* file = reinterpret_cast<File*>(rfile);
@@ -237,7 +237,7 @@ FRONTAPI(fpread) (RFile* rfile, void *buf, size_t count, off_t offset)
 
 
 int
-FRONTAPI(fclose) (RFile* rfile)
+RXFS_FRONTAPI(fclose) (RFile* rfile)
 {
 	File* file = reinterpret_cast<File*>(rfile);
 	return Client::Close(file);

@@ -11,34 +11,34 @@ using namespace client;
 
 
 int
-FRONTAPI(init) (int argc, char* argv[])
+PXFS_FRONTAPI(init) (int argc, char* argv[])
 {
 	return Client::Init(argc, argv);
 }
 
 
 int
-FRONTAPI(init2) (const char* xdst)
+PXFS_FRONTAPI(init2) (const char* xdst)
 {
 	return Client::Init(xdst);
 }
 
 int
-FRONTAPI(init3) (const char* xdst, int debug_level)
+PXFS_FRONTAPI(init3) (const char* xdst, int debug_level)
 {
 	return Client::Init(xdst, debug_level);
 }
 
 
 int
-FRONTAPI(shutdown) ()
+PXFS_FRONTAPI(shutdown) ()
 {
 	return Client::Shutdown();
 }
 
 
 int 
-FRONTAPI(mount) (const char* source, 
+PXFS_FRONTAPI(mount) (const char* source, 
                  const char* target, 
                  const char* fstype, 
                  uint32_t flags)
@@ -48,14 +48,14 @@ FRONTAPI(mount) (const char* source,
 
 
 int 
-FRONTAPI(umount) (const char* target)
+PXFS_FRONTAPI(umount) (const char* target)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
 }
  
 
 int 
-FRONTAPI(mkdir) (const char* path, int mode)
+PXFS_FRONTAPI(mkdir) (const char* path, int mode)
 {
 	int ret;
 
@@ -67,7 +67,7 @@ FRONTAPI(mkdir) (const char* path, int mode)
 
 
 int 
-FRONTAPI(rmdir) (const char* path)
+PXFS_FRONTAPI(rmdir) (const char* path)
 {
 	int ret;
 
@@ -79,7 +79,7 @@ FRONTAPI(rmdir) (const char* path)
 
 
 int 
-FRONTAPI(rename) (const char* oldpath, const char* newpath)
+PXFS_FRONTAPI(rename) (const char* oldpath, const char* newpath)
 {
 	int ret;
 
@@ -91,7 +91,7 @@ FRONTAPI(rename) (const char* oldpath, const char* newpath)
 
 
 int 
-FRONTAPI(link) (const char* oldpath, const char* newpath)
+PXFS_FRONTAPI(link) (const char* oldpath, const char* newpath)
 {
 	int ret;
 
@@ -103,7 +103,7 @@ FRONTAPI(link) (const char* oldpath, const char* newpath)
 
 
 int 
-FRONTAPI(unlink) (const char* pathname)
+PXFS_FRONTAPI(unlink) (const char* pathname)
 {
 	int ret;
 
@@ -115,7 +115,7 @@ FRONTAPI(unlink) (const char* pathname)
 
 
 int 
-FRONTAPI(chdir) (const char* path)
+PXFS_FRONTAPI(chdir) (const char* path)
 {
 	int ret;
 
@@ -127,7 +127,7 @@ FRONTAPI(chdir) (const char* path)
 
 
 char* 
-FRONTAPI(getcwd) (char* path, size_t size)
+PXFS_FRONTAPI(getcwd) (char* path, size_t size)
 {
 	int ret;
 
@@ -139,7 +139,7 @@ FRONTAPI(getcwd) (char* path, size_t size)
 
 
 int 
-FRONTAPI(open) (const char* pathname, int flags)
+PXFS_FRONTAPI(open) (const char* pathname, int flags)
 {
 	int ret;
 
@@ -151,7 +151,7 @@ FRONTAPI(open) (const char* pathname, int flags)
 
 
 int 
-FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
+PXFS_FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
 {
 	int ret;
 
@@ -163,7 +163,7 @@ FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
 
 
 
-int FRONTAPI(close) (int fd)
+int PXFS_FRONTAPI(close) (int fd)
 {
 	int ret;
 
@@ -174,7 +174,7 @@ int FRONTAPI(close) (int fd)
 }
 
 
-int FRONTAPI(dup) (int oldfd)
+int PXFS_FRONTAPI(dup) (int oldfd)
 {
 	int ret;
 
@@ -185,7 +185,7 @@ int FRONTAPI(dup) (int oldfd)
 }
 
 
-int FRONTAPI(dup2) (int oldfd, int newfd)
+int PXFS_FRONTAPI(dup2) (int oldfd, int newfd)
 {
 	int ret;
 
@@ -198,7 +198,7 @@ int FRONTAPI(dup2) (int oldfd, int newfd)
 
 
 ssize_t 
-FRONTAPI(write) (int fd, const void *buf, size_t count)
+PXFS_FRONTAPI(write) (int fd, const void *buf, size_t count)
 {
 	int   ret;
 	const char* src = reinterpret_cast<const char*>(buf);
@@ -211,7 +211,7 @@ FRONTAPI(write) (int fd, const void *buf, size_t count)
 
 
 ssize_t 
-FRONTAPI(read) (int fd, void *buf, size_t count)
+PXFS_FRONTAPI(read) (int fd, void *buf, size_t count)
 {
 	int   ret;
 	char* dst = reinterpret_cast<char*>(buf);
@@ -224,7 +224,7 @@ FRONTAPI(read) (int fd, void *buf, size_t count)
 
 
 ssize_t 
-FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
+PXFS_FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
 {
 	int   ret;
 	const char* src = reinterpret_cast<const char*>(buf);
@@ -237,7 +237,7 @@ FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
 
 
 ssize_t 
-FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
+PXFS_FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
 {
 	int   ret;
 	char* dst = reinterpret_cast<char*>(buf);
@@ -250,7 +250,7 @@ FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
 
 
 off_t 
-FRONTAPI(lseek) (int fd, off_t offset, int whence)
+PXFS_FRONTAPI(lseek) (int fd, off_t offset, int whence)
 {
 	int   ret;
 
@@ -262,7 +262,7 @@ FRONTAPI(lseek) (int fd, off_t offset, int whence)
 
 
 int 
-FRONTAPI(stat) (const char *path, struct stat *buf)
+PXFS_FRONTAPI(stat) (const char *path, struct stat *buf)
 {
 	int ret;
 	if ((ret = Client::Stat(path, buf)) == -E_KVFS) {
@@ -273,14 +273,14 @@ FRONTAPI(stat) (const char *path, struct stat *buf)
 
 
 int
-FRONTAPI(sync) ()
+PXFS_FRONTAPI(sync) ()
 {
 	return Client::Sync();
 }
 
 
 int
-FRONTAPI(fsync) (int fd)
+PXFS_FRONTAPI(fsync) (int fd)
 {
 	return Client::Sync(fd);
 }
