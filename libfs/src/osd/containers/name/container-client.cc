@@ -114,6 +114,9 @@ NameContainer::VersionManager::Insert(OsdSession* session,
 		} else {
 			// found a negative entry indicating absence due to a previous 
 			// unlink. just overwrite.
+			printf(">>>>>>>>>\n");
+			printf(">>>>>>>>> Insert: %p\n", oid.u64());
+			printf(">>>>>>>>>\n");
 			it->second.first = true;
 			it->second.second = oid;
 			return E_SUCCESS;
@@ -148,6 +151,10 @@ NameContainer::VersionManager::Erase(OsdSession* session, const char* name)
 	if ((it = entries_.find(name)) != entries_.end()) {
 		if (it->second.first == true) {
 			// name exists
+		
+			printf(">>>>>>>>>\n");
+			printf(">>>>>>>>> Erase: %p\n", it->second.second.u64());
+			printf(">>>>>>>>>\n");
 			entries_.erase(name);
 			return E_SUCCESS;
 		} else {

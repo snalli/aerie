@@ -30,6 +30,56 @@ SUITE(MFSFile)
 		EVENT("E3");
 	}
 
+	TEST_FIXTURE(MFSFixture, TestUnlink)
+	{
+		int  fd;
+		char buf[512];
+
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK(libfs_unlink("/home/hvolos/dir/file") == 0);
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+
+	TEST_FIXTURE(MFSFixture, TestCreateUnlink)
+	{
+		int  fd;
+		char buf[512];
+
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK(libfs_mkdir("/home/hvolos/dir", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_CREAT|O_RDWR)) > 0);
+		CHECK(libfs_write(fd, test_str1, strlen(test_str1)+1) > 0);
+		CHECK(libfs_close(fd) == 0);
+		CHECK(libfs_unlink("/home/hvolos/dir/file") == 0);
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestUnlinkCreate)
+	{
+		int  fd;
+		char buf[512];
+
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK(libfs_unlink("/home/hvolos/dir/file") == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_CREAT|O_RDWR)) > 0);
+		CHECK(libfs_write(fd, test_str1, strlen(test_str1)+1) > 0);
+		CHECK(libfs_close(fd) == 0);
+		CHECK(libfs_unlink("/home/hvolos/dir/file") == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_CREAT|O_RDWR)) > 0);
+		CHECK(libfs_write(fd, test_str1, strlen(test_str1)+1) > 0);
+		CHECK(libfs_close(fd) == 0);
+		CHECK(libfs_unlink("/home/hvolos/dir/file") == 0);
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+
 	TEST_FIXTURE(MFSFixture, TestOpen)
 	{
 		int  fd;

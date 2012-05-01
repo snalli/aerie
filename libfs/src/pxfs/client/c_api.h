@@ -7,6 +7,7 @@
 #define __STAMNOS_FS_CLIENT_C_FRONT_API
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <stdint.h>
 
 #define PXFS_FRONTAPI(fname) libfs_##fname

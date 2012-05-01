@@ -7,6 +7,7 @@
 #define __STAMNOS_RXFS_CLIENT_C_FRONT_API
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <stdint.h>
 
 #define RXFS_FRONTAPI(fname) rxfs_##fname

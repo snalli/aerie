@@ -1,6 +1,7 @@
 #include "osd/main/client/journal.h"
 #include "osd/main/client/session.h"
 #include "osd/main/common/publisher.h"
+#include "scm/scm/model.h"
 
 namespace osd {
 namespace client {
@@ -26,6 +27,7 @@ Journal::TransactionCommit()
 	TransactionCommitMessage tx = TransactionCommitMessage();
 	buffer_.Write(&tx, sizeof(tx));
 	buffer_.Flush(session_->stsystem()->shbuf());
+	ScmFence();
 	return E_SUCCESS;
 }
 

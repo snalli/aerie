@@ -395,7 +395,7 @@ SUITE(ContainersHashTablePage)
 
 }
 
-std::string gen_rand_str(const int minlen, const int maxlen) {
+static std::string gen_rand_str(const int minlen, const int maxlen) {
     static const char alphanum[] =
 	   "0123456789"
 	   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

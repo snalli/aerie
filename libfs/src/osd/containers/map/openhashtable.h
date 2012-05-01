@@ -1,8 +1,13 @@
+#ifndef __STAMNOS_OSD_COMMON_OPENHASHTABLE_H 
+#define __STAMNOS_OSD_COMMON_OPENHASHTABLE_H 
+
+
 #include <assert.h>
 #include <string>
 #include <string.h>
 #include <stdio.h>
-
+#include "bcs/main/common/cdebug.h"
+#include "common/errno.h"
 
 typedef unsigned int uint;
 
@@ -24,7 +29,7 @@ public:
 	uint m_limitKeys;
     Slot *m_slots;
 	float m_threshold;
-	Slot m_slots_static[32]; 
+	Slot m_slots_static[INITIAL_NUM_SLOTS]; 
 
     OpenHashTable(uint numSlots, float threshold)
     {
@@ -52,7 +57,6 @@ public:
 		//delete[] m_slots;
     }
 
-/*
 	int Lookup (Session* session, const Key &key, Value* val)
     {
 		uint hash = Traits::hash(key);
@@ -72,7 +76,7 @@ public:
 		}
 		return -E_NOENT;
 	}
-*/
+
 	inline int my_strcmp(const char *cs, const char* ct) {
 		unsigned char c1;
 		unsigned char c2;
@@ -144,7 +148,11 @@ public:
 			// Now that everything has relocated, loop, find and return the new slot
 		}
 	}
-
+	
+	int Remove (Session* session, const Key &key)
+    {
+		return E_SUCCESS;
+	}
 
 	void Resize(Session* session, uint newSize)
 	{
@@ -175,3 +183,5 @@ public:
 		assert(m_numKeys < m_limitKeys);
 	}
 };
+
+#endif // __STAMNOS_OSD_COMMON_OPENHASHTABLE_H 

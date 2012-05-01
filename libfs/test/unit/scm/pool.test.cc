@@ -19,7 +19,7 @@ SUITE(SCM)
 		
 		CHECK(StoragePool::Close(pool1) == E_SUCCESS);
 
-		CHECK(StoragePool::Open("/tmp/persistent_pool1", &pool1) == E_SUCCESS);
+		CHECK(StoragePool::Open("/tmp/stamnos_pool", &pool1) == E_SUCCESS);
 		CHECK(pool1->AllocateExtent(4096*3, &ptr) == E_SUCCESS);
 	}
 }

@@ -184,6 +184,7 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 
 	if ((ret = dp->Lookup(session, name, 0, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
+		printf("FILE EXISTS\n");
 		ip->Lock(session, dp, lock_protocol::Mode::XR); 
 		if (type == kFileInode && 
 		    ip->type() == kFileInode) 
@@ -278,7 +279,7 @@ Client::Open(const char* path, int flags, int mode)
 	fp->Init(ip, flags);
 	ip->Unlock(session);
 
-	dbg_log (DBG_INFO, "Open file: path = %s, fd=%d, ino=%p\n", path, fd, (void*) ip->ino());
+	dbg_log (DBG_INFO, "Open file: path = %s, fd=%d, ino=%p: DONE\n", path, fd, (void*) ip->ino());
 
 	return fd;
 }
