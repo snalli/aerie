@@ -484,8 +484,8 @@ ByteContainer::VersionManager::WriteImmutable(OsdSession* session,
 				interval = new ByteInterval(session, object(), (*iter), interval_low, interval_size);
 				intervaltree_->Insert(interval);
 			}
-
-			if ((ret = interval->Write(session, &src[tot], off, m)) < m) {
+			ret = interval->Write(session, &src[tot], off, m);
+			if (ret < 0 || ((uint64_t) ret) < m) {
 				return ((ret < 0) ? ( (tot>0)? tot: ret)  
 				                  : tot + ret);
 			}
