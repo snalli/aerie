@@ -49,7 +49,11 @@ SUITE(MFSFileInode)
 
 		strcpy(buf, "WRITE");
 		//finode->Write(session, buf, 0, strlen(buf)+1);
+
+		session->journal()->TransactionBegin();
+		session->journal() << Publisher::Message::LogicalOperation::Write(finode->ino());
 		finode->Write(session, buf, 4096*11, 5000);
+		session->journal()->TransactionCommit();
 
 		finode->Unlock(session);
 		EVENT("AfterUnlock");
@@ -82,6 +86,40 @@ SUITE(MFSFileInode)
 		finode->Lock(session, lock_protocol::Mode::XL);
 		EVENT("AfterLock");
 		
+		finode->Read(session, buf, 4096*11, 6);
+		CHECK(strcmp(buf, "WRITE") == 0);
+
+		finode->Unlock(session);
+		EVENT("AfterUnlock");
+		EVENT("End");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestRead2)
+	{
+		char                               buf[512];
+		::client::Inode*                   inode;
+		osd::common::ObjectProxyReference* rw_ref;
+		ByteContainer::Reference*          rw_reft;
+		::mfs::client::FileInode*          finode;
+
+		// FIXME
+		// ugly hack: to load the storage pool/allocator we mount the pool as a filesystem.
+		// instead the osd layer should allow us to mount just the storage system 
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+
+
+		EVENT("BeforeMapObjects");
+		CHECK(MapObjects<ByteContainer::Object>(session, SELF, OID, 0, 16) == 0);
+		EVENT("AfterMapObjects");
+		
+		CHECK(global_storage_system->omgr()->GetObject(session, OID[0], &rw_ref) == E_SUCCESS);
+		rw_reft = static_cast<ByteContainer::Reference*>(rw_ref);
+		finode = new ::mfs::client::FileInode(rw_ref);
+		
+		EVENT("BeforeLock");
+		finode->Lock(session, lock_protocol::Mode::XL);
+		EVENT("AfterLock");
+		
 		finode->Read(session, buf, 0, 6);
 		CHECK(strcmp(buf, "WRITE") == 0);
 
@@ -89,6 +127,7 @@ SUITE(MFSFileInode)
 		EVENT("AfterUnlock");
 		EVENT("End");
 	}
+
 
 
 	TEST_FIXTURE(MFSFixture, TestWriteMultiple)

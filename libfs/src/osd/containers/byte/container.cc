@@ -360,7 +360,7 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 	
 	immmaxsize = (!mutable_) ? object()->get_maxsize(): 0;
 
-	dbg_log (DBG_DEBUG, "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 " (size=%" PRIu64 ", immmaxsize=%" PRIu64 ")\n", off, off+n-1, n, Size(), immmaxsize);
+	dbg_log (DBG_DEBUG, "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 " (size=%" PRIu64 ", immmaxsize=%" PRIu64 ")\n", off, off+n-1, n, size_, immmaxsize);
 
 	//printf ("Read: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
 	//printf("Read: immmaxsize=%lu\n", immmaxsize);

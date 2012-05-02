@@ -48,7 +48,7 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
         testfw = testProgram, server = serverProgram,
         clients = { 
             'C1': ( testProgram, [('T1', 'MFSFileInode:TestWriteMultiple')]),
-            'C2': ( testProgram, [('T1', 'MFSFileInode:TestRead1')])
+            'C2': ( testProgram, [('T1', 'MFSFileInode:TestRead2')])
         },
         rendezvous = [
                       ('C1:T1:AfterMapObjects:block', 'C2:T1:BeforeMapObjects:block'),

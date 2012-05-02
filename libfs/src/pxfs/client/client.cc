@@ -184,7 +184,6 @@ create(::client::Session* session, const char* path, Inode** ipp, int mode, int 
 
 	if ((ret = dp->Lookup(session, name, 0, &ip)) == E_SUCCESS) {
 		// FIXME: if we create a file, do we need XR?
-		printf("FILE EXISTS\n");
 		ip->Lock(session, dp, lock_protocol::Mode::XR); 
 		if (type == kFileInode && 
 		    ip->type() == kFileInode) 

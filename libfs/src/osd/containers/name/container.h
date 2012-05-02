@@ -42,13 +42,32 @@ public:
 }; 
 
 
+
 // In the entry cache we keep negative entries to indicate absence of the entry
 // (in contrast to the DLNC in Solaris and FreeBSD where the negative entry
 //  is used as a performance optimization, the negative entry in this system 
 //  is necessary for correctness)
 // Such entries are marked using FALSE
 class NameContainer::VersionManager: public osd::vm::client::VersionManager<NameContainer::Object> {
-	typedef google::dense_hash_map<std::string, std::pair<bool, osd::common::ObjectId> > EntryCache;
+	struct Entry {
+		Entry()
+			: deleted(false),
+			  created(false)
+		{ }
+
+		Entry(bool del, bool creat, osd::common::ObjectId _oid) 
+			: deleted(del),
+			  created(creat),
+			  oid(_oid)
+		{ }
+
+		bool                  deleted;
+		bool                  created;
+		osd::common::ObjectId oid;
+	};
+
+	//typedef google::dense_hash_map<std::string, std::pair<bool, osd::common::ObjectId> > EntryCache;
+	typedef google::dense_hash_map<std::string, Entry> EntryCache;
 
 public:
 	VersionManager() 
@@ -73,6 +92,7 @@ private:
 
 	EntryCache entries_;
 	int        neg_entries_count_; // number of negative entries in the map entries_
+	int        psv_entries_count_; // number of positive entries in the map entries_
 };
 
 

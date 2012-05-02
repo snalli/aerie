@@ -23,9 +23,6 @@ NameContainer::VersionManager::vOpen()
 }
 
 
-
-// FIXME: Currently we publish by simply doing the updates in-place. 
-// Normally this must be done via the trusted server using the journal 
 int 
 NameContainer::VersionManager::vUpdate(OsdSession* session)
 {
@@ -34,31 +31,7 @@ NameContainer::VersionManager::vUpdate(OsdSession* session)
 
 	osd::vm::client::VersionManager<NameContainer::Object>::vUpdate(session);
 
-	for (it = entries_.begin(); it != entries_.end(); it++) {
-		if (it->second.first == true) {
-			// normal entry -- link
-			// FIXME: if a link followed an unlink then the entry is 
-			// marked as valid (true). Adding this entry to the persistent 
-			// directory without removing the previous one is incorrect.
-			// Currently we don't have a way to detect this case but
-			// this case won't be a problem  when doing the publish through the server
-			// because there we replay the journal which has the unlink operation.
-			// so don't worry for now.
-			// TEST TestLinkPublish3 checks this case
-			printf("Publish: %s -> %lx\n", it->first.c_str(), it->second.second.u64());
-			if ((ret = object()->Insert(session, it->first.c_str(), it->second.second)) != 0) {
-				return ret;
-			}
-		} else {
-			printf("REMOVE\n");
-			// negative entry -- remove
-			if ((ret = object()->Erase(session, it->first.c_str())) != 0) {
-				return ret;
-			}
-		}
-	}
 	return 0;
-
 }
 
 
@@ -73,8 +46,8 @@ NameContainer::VersionManager::Find(OsdSession* session,
 
 	// check the private copy first before looking up the global one
 	if ((entries_.empty() == false) && ((it = entries_.find(name)) != entries_.end())) {
-		if (it->second.first == true) {
-			tmp_oid = it->second.second;
+		if (it->second.created == true) {
+			tmp_oid = it->second.oid;
 		} else {
 			return -E_NOENT;
 		}
@@ -97,42 +70,39 @@ NameContainer::VersionManager::Insert(OsdSession* session,
                                       const char* name, 
                                       osd::common::ObjectId oid)
 {
-	PROFILER_PREAMBLE
 	EntryCache::iterator   it;
 	int                    ret;
 	osd::common::ObjectId  tmp_oid;
+	Entry                  entry;
 
 	if (name[0] == '\0') {
 		return -1;
 	}
 
-	PROFILER_SAMPLE
+	// check lookaside buffer 
 	if ((it = entries_.find(name)) != entries_.end()) {
-		if (it->second.first == true) {
-			// name exists in the volatile cache
-			return -E_EXIST;
-		} else {
-			// found a negative entry indicating absence due to a previous 
-			// unlink. just overwrite.
-			printf(">>>>>>>>>\n");
-			printf(">>>>>>>>> Insert: %p\n", oid.u64());
-			printf(">>>>>>>>>\n");
-			it->second.first = true;
-			it->second.second = oid;
-			return E_SUCCESS;
+		if (it->second.created == false) {
+			psv_entries_count_++;
 		}
+		it->second.created = true;
+		it->second.oid = oid;
+		return E_SUCCESS;
 	}
 
-	PROFILER_SAMPLE
+	// no entry in the lookaside buffer 
 	// check whether name exists in the persistent structure
 	if ((ret = object()->Find(session, name, &tmp_oid)) == E_SUCCESS) {
-		return -E_EXIST;
+		// we overwrite an existing name so we mark it both as deleted and created
+		entry = Entry(true, true, oid); 
+		psv_entries_count_++;
+		neg_entries_count_++;
+	} else {
+		entry = Entry(false, true, oid);
+		psv_entries_count_++;
 	}
-	PROFILER_SAMPLE
 
-	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, osd::common::ObjectId> >(name, std::pair<bool, osd::common::ObjectId>(true, oid)));
+	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, Entry>(name, entry));
 	assert(ret_pair.second == true);
-	PROFILER_SAMPLE
 	return E_SUCCESS;
 }
 
@@ -143,26 +113,31 @@ NameContainer::VersionManager::Erase(OsdSession* session, const char* name)
 	EntryCache::iterator   it;
 	osd::common::ObjectId  oid;
 	int                    ret;
+	Entry                  entry;
 
 	if (name[0] == '\0') {
 		return -1;
 	}
 
+	// check lookaside buffer 
 	if ((it = entries_.find(name)) != entries_.end()) {
-		if (it->second.first == true) {
-			// name exists
-		
-			printf(">>>>>>>>>\n");
-			printf(">>>>>>>>> Erase: %p\n", it->second.second.u64());
-			printf(">>>>>>>>>\n");
+		if (it->second.deleted == true) {
+			// found a negative entry indicating absence due to a previous unlink
+			if (it->second.created == true) {
+				it->second.created = false;
+				psv_entries_count_--;
+				return E_SUCCESS;
+			} else {
+				return -E_NOENT;
+			}
+		} else {
+			psv_entries_count_--;
 			entries_.erase(name);
 			return E_SUCCESS;
-		} else {
-			// found a negative entry indicating absence due to a previous unlink
-			return -E_NOENT;
 		}
 	}
 
+	// no entry in the lookaside buffer 
 	// check whether name exists in the persistent structure
 	if ((ret = object()->Find(session, name, &oid)) != E_SUCCESS) {
 		return -E_NOENT;
@@ -170,7 +145,8 @@ NameContainer::VersionManager::Erase(OsdSession* session, const char* name)
 
 	// add a negative directory entry indicating absence when removing a 
 	// directory entry from the persistent data structure
-	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, std::pair<bool, osd::common::ObjectId> >(name, std::pair<bool, osd::common::ObjectId>(false, oid)));
+	entry = Entry(true, false, oid);
+	std::pair<EntryCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, Entry>(name, entry));
 	neg_entries_count_++;
 	assert(ret_pair.second == true);
 
