@@ -49,25 +49,21 @@ public:
 //  is necessary for correctness)
 // Such entries are marked using FALSE
 class NameContainer::VersionManager: public osd::vm::client::VersionManager<NameContainer::Object> {
-	struct Entry {
-		Entry()
-			: deleted(false),
-			  created(false)
+	struct Shadow {
+		Shadow()
+			: present(false)
 		{ }
 
-		Entry(bool del, bool creat, osd::common::ObjectId _oid) 
-			: deleted(del),
-			  created(creat),
+		Shadow(bool _present, osd::common::ObjectId _oid) 
+			: present(_present),
 			  oid(_oid)
 		{ }
 
-		bool                  deleted;
-		bool                  created;
+		bool                  present;
 		osd::common::ObjectId oid;
 	};
 
-	//typedef google::dense_hash_map<std::string, std::pair<bool, osd::common::ObjectId> > EntryCache;
-	typedef google::dense_hash_map<std::string, Entry> EntryCache;
+	typedef google::dense_hash_map<std::string, Shadow> ShadowCache;
 
 public:
 	VersionManager() 
@@ -90,9 +86,9 @@ public:
 	// int Insert(::client::Session* session, const char* name, NameContainer::Reference* oref);
 private:
 
-	EntryCache entries_;
-	int        neg_entries_count_; // number of negative entries in the map entries_
-	int        psv_entries_count_; // number of positive entries in the map entries_
+	ShadowCache entries_;
+	int         ngv_entries_count_; // number of negative entries in the map entries_
+	int         psv_entries_count_; // number of positive entries in the map entries_
 };
 
 
