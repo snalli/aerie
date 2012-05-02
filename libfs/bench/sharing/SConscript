@@ -1,0 +1,23 @@
+
+import os, sys
+Import('mainEnv')
+
+buildEnv = mainEnv.Clone()
+buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
+buildEnv.Append(CPPPATH = ['#bench', '#src', '#'])
+buildEnv.Append(LIBS = ['config'])
+
+Import('cfscLibrary')
+Import('rxfscLibrary')
+Import('fscLibrary')
+Import('mfsClientLibrary')
+Import('commonLibrary')
+Import('scmLibrary')
+Import('bcsClientLibrary')
+Import('osdClientLibrary')
+
+pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+
+source = ['main.cc', 'create.cc', 'open.cc']
+
+sharingUbenchProgram = buildEnv.Program('sharing_pxfs', source, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
