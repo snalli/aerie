@@ -185,6 +185,9 @@ StorageAllocator::Init()
 	if ((ret = LoadFreeMap()) < 0) {
 		return ret;
 	}
+	for (int i=0; i<16; i++) {
+		container_list_[i].clear();
+	}
 	if (ipc_) {
 		return ipc_handlers_.Register(this);
 	}
@@ -499,7 +502,9 @@ StorageAllocator::AllocateContainer(OsdSession* session,
 int
 StorageAllocator::FreeContainer(OsdSession* session, osd::common::ObjectId oid)
 {
-
+	int type = oid.type();
+	assert(type < 16);
+	container_list_[type].push_back(oid);
 	return E_SUCCESS;
 }
 
@@ -515,9 +520,21 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 	size_t                  static_size;
 	size_t                  extent_size;
 	::osd::common::Object*  obj;
+	::osd::common::ObjectId oid;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "[%d] Allocate %d container(s) of type %d\n", session->clt(), count, type);
+
+	//FIXME: use storage from local pool. currently we keep this in a list but we
+	//should really have a local pool based on DescriptorPool
+	if (container_list_[type].size() > count) {
+		for (int i = 0; i<count; i++) {
+			oid = container_list_[type].front();
+			container_list_[type].pop_front();
+			set->Insert(session, oid);
+		}
+		return E_SUCCESS;
+	}
 
 	// Create objects and insert them into the set 
 	static_size = objtype2factory_map_[type]->StaticSize();

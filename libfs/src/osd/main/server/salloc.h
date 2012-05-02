@@ -139,6 +139,12 @@ private:
 	ObjectType2Factory               objtype2factory_map_; 
 	bool                             can_commit_suicide_;
 	AclPoolMap                       aclpoolmap_; // per ACL descriptor pools for local use only
+	
+	//FIXME: the following is used to keep a global list for lazy recycling 
+	//storage. it's flaky and should be fixed. it may also lose storage in
+	//case of crash because storage stays here after a server is done with
+	//its journal
+	std::list< ::osd::common::ObjectId>   container_list_[16]; // support 16 types: 0-15
 };
 
 

@@ -83,8 +83,6 @@ Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf,
 		return ret;
 	}
 
-	//DirInode* dp = DirInode::Load(session, lgc_op->parino_, &dinode);
-	//return dp->Unlink(session, lgc_op->name_);
 	// do the operation 
 	Table* tp  = Table::Load(session, lgc_op->parino_, &table);
 	tp->Unlink(session, lgc_op->key_);

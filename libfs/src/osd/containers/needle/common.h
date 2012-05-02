@@ -48,6 +48,10 @@ public:
 		return reinterpret_cast<Object*>(oid.addr());
 	}
 	
+	static void Free(Session* session, osd::common::ObjectId oid) {
+		session->salloc()->FreeContainer(session, oid);
+	}
+
 	Object();
 
 	int Write(Session* session, const char* src, uint64_t off, uint64_t n);
