@@ -14,7 +14,7 @@ pool_user_sources = [
                     ]
 
 pool_kernel_sources = [
-                       'pool/kernel/pool.cc',
+                       'pool/kernel/pool-buddy.cc',
                        'pool/kernel/buddy.cc'
                       ]
 

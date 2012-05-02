@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <list>
 
 class PersistentRegion; // forward declaration
 class DynamicBitSet;    // forward declaration
@@ -26,6 +27,7 @@ public:
 	void set_root(void* root);
 	void* root();
 
+	void PrintStats();
 //private:
 	struct Header;
 	
@@ -33,6 +35,9 @@ public:
 
 	Header*    header_;
 	uint64_t   identity_;
+	size_t     alloc_size_;
+	size_t     free_size_;
+	std::list<void*>  free_list_;
 };
 
 #endif // __STAMNOS_SPA_POOL_KERNEL_H

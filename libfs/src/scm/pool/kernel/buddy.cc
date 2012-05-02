@@ -67,7 +67,7 @@
 #define OFF_PREV 1
 /* offset of pointer to next free block */
 #define OFF_NEXT 2
-/* trailer.  1 << trailer value is # of blocks in this chunk */
+/* trailer.  1UL << trailer value is # of blocks in this chunk */
 #define OFF_BITS (-1)
 /* offset on block count to make zero an unlikely value */
 #define LEN_OFFSET 1234
@@ -78,13 +78,13 @@ const char *poolInit(void *startAddress, size_t bytes, int minBits,
 {
     int i;
     size_t setBits;
-	if ((1 << minBits) < (sizeof(size_t) * FREEBLOCK))
+	if ((1UL << minBits) < (sizeof(size_t) * FREEBLOCK))
 	return "minBits too small";
     if (numSizes <= 0)
 	return "numSizes <= 0";
-    if ((1 << (minBits + numSizes - 1)) == 0)
+    if ((1UL << (minBits + numSizes - 1)) == 0)
 	return "numSizes + minBits too large";
-    if (((uintptr_t)startAddress) & ((1 << minBits) - 1))
+    if (((uintptr_t)startAddress) & ((1UL << minBits) - 1))
 	return "startAddress not on block boundary";
     pi->poolStart = (char *)startAddress;
     setBits = bytes >> minBits;
@@ -243,7 +243,7 @@ static int testAny(struct PoolInfo *pi, size_t firstBit, size_t pastBit)
 }
 
 
-/* Unchecked add to free list of a 1 << bitsFree blocks starting
+/* Unchecked add to free list of a 1UL << bitsFree blocks starting
  * at block firstFree in the pool */
 static void makeFree(struct PoolInfo *pi, size_t firstFree,
     int bitsFree, int zap)
@@ -253,8 +253,8 @@ static void makeFree(struct PoolInfo *pi, size_t firstFree,
     size_t *nextPtr;
     size_t nextOff;
     int byteBits = bitsFree + pi->minBits;
-    size_t bytesToFree = 1 << byteBits;
-    size_t blocksToFree = 1 << bitsFree;
+    size_t bytesToFree = 1UL << byteBits;
+    size_t blocksToFree = 1UL << bitsFree;
     ptr = (size_t *) (pi->poolStart + (firstFree << pi->minBits));
     if (zap)
     {
@@ -282,7 +282,7 @@ static void makeFree(struct PoolInfo *pi, size_t firstFree,
     ptr[OFF_PREV] = OURNULL;
     nextOff = pi->freeList[bitsFree];
     ptr[OFF_NEXT] = nextOff;
-    pastPtr = (size_t *) (((char *)ptr) + (1 << byteBits));
+    pastPtr = (size_t *) (((char *)ptr) + (1UL << byteBits));
     pastPtr[OFF_BITS] = bitsFree + LEN_OFFSET;
     if (nextOff != OURNULL)
     {
@@ -291,7 +291,7 @@ static void makeFree(struct PoolInfo *pi, size_t firstFree,
 	nextPtr[OFF_PREV] = firstFree;
     }
     pi->freeList[bitsFree] = firstFree;
-    pi->freeBytes += (1 << byteBits);
+    pi->freeBytes += (1UL << byteBits);
 }
 
 /* Add a chunk to the free list */
@@ -385,7 +385,7 @@ const char *poolRelease(struct PoolInfo *pi, size_t startBlock,
     return NULL;
 }
 
-/* find store for 1 << bits blocks */
+/* find store for 1UL << bits blocks */
 static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
     void **newStore)
 {
@@ -403,7 +403,7 @@ static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
 	return "null pointer to new store";
     if (pi == NULL)
 	return "null pool";
-    if (pi->freeBytes < (1 << (bits + pi->minBits)))
+    if (pi->freeBytes < (1UL << (bits + pi->minBits)))
     {
 	return NO_STORE;
     }
@@ -426,7 +426,7 @@ static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
     if (ptr[OFF_PREV] != OURNULL)
         return "corrupted free area";
     pastPtr = (size_t *)(((char *)ptr) +
-        (1 << (retBits + pi->minBits)));
+        (1UL << (retBits + pi->minBits)));
     if (pastPtr[OFF_BITS] != retBits + LEN_OFFSET)
         return "corrupted free area";
 
@@ -437,9 +437,9 @@ static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
      * no result except a check for errors which should never occur
      * so it's check code only, which you could delete to save time
      */
-    if (testAny(pi, offset, offset + (1 << bits)))
+    if (testAny(pi, offset, offset + (1UL << bits)))
 	return "free area does not match bitmap";
-    if (memAny(ptr + HEADER_LEN, (1 << (bits + pi->minBits)) -
+    if (memAny(ptr + HEADER_LEN, (1UL << (bits + pi->minBits)) -
 	FREEBLOCK * sizeof(void *)))
 	return "corrupted free area";
 #endif
@@ -459,12 +459,12 @@ static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
     }
     pi->freeList[retBits] = nextOffset;
     /* Mark end of allocated area */
-    past = offset + (1 << bits);
+    past = offset + (1UL << bits);
     BITSET(pi, past - 1);
     /* If we used a larger free block than we needed, free the rest */
-    pi->freeBytes -= (1 << (retBits + pi->minBits));
+    pi->freeBytes -= (1UL << (retBits + pi->minBits));
 	/* accounts for chunks about to be freed again by toFree */
-    toFree(pi, past, offset + (1 << retBits), 0);
+    toFree(pi, past, offset + (1UL << retBits), 0);
     *newStore = ptr;
     return NULL;
 }
@@ -477,7 +477,7 @@ const char *poolMalloc(struct PoolInfo *pi, size_t bytes, void **newStore)
 	return "null pointer to new store";
     if (pi == NULL)
 	return "null pool";
-    size = 1 << pi->minBits;
+    size = 1UL << pi->minBits;
     for (bits = 0; size < bytes; bits++)
     {
 	if (bits >= pi->numSizes)
@@ -549,23 +549,23 @@ const char *poolRealloc(struct PoolInfo *pi, void *ptrv, size_t size,
     if (error != NULL)
 	return error;
     lg2Bytes = bits + pi->minBits;
-    if ((1 << lg2Bytes) < size)
+    if ((1UL << lg2Bytes) < size)
     {
 	void *store;
 	error = poolMalloc(pi, size, newPtr);
 	if (error != NULL)
 	    return error;
-	memcpy(*newPtr, ptr, 1 << lg2Bytes);
+	memcpy(*newPtr, ptr, 1UL << lg2Bytes);
 	return poolFree(pi, ptr);
     }
     *newPtr = ptr;
-    for (canBits = pi->minBits; (1 << canBits) < size; canBits++);
+    for (canBits = pi->minBits; (1UL << canBits) < size; canBits++);
     if (canBits >= lg2Bytes)
     {
 	return NULL;
     }
-    oldBlocks = 1 << bits;
-    newBlocks = 1 << (canBits - pi->minBits);
+    oldBlocks = 1UL << bits;
+    newBlocks = 1UL << (canBits - pi->minBits);
     blockNo = (ptr - pi->poolStart) >> pi->minBits;
     /* set end bits to mark new size */
     BITSET(pi, blockNo + newBlocks - 1);
@@ -597,7 +597,7 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
     ret = poolBuddyAllocSize(pi, storage, &bits);
     if (ret != NULL)
 	return ret;
-    blocksHere = 1 << bits;
+    blocksHere = 1UL << bits;
     blockOff = (storage - pi->poolStart) >> pi->minBits;
     /* mark as free in bitmap */
     BITCLEAR(pi, blockOff + blocksHere - 1);
@@ -606,7 +606,7 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
      * merge
      */
 #ifndef FRAGILE
-    memset(storage, 0, 1 << (bits + pi->minBits));
+    memset(storage, 0, 1UL << (bits + pi->minBits));
 #endif
     /* merge with any buddies */
     oldBits = bits;
@@ -617,16 +617,16 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
 	size_t *prevPtr;
 	size_t prevOffset;
 	int trueBits;
-	size_t buddy = blockOff ^ (1 << bits);
+	size_t buddy = blockOff ^ (1UL << bits);
 	/* Could buddy be out of range? */
 	if (buddy < 0)
 	    break;
-	if (buddy + (1 << bits) > pi->poolBlocks)
+	if (buddy + (1UL << bits) > pi->poolBlocks)
 	    break;
-	if (BITTEST(pi, buddy + (1 << bits) - 1))
+	if (BITTEST(pi, buddy + (1UL << bits) - 1))
 	    break; /* buddy is allocated */
 	pastPtr = (size_t *)(pi->poolStart + (buddy << pi->minBits) +
-	                     (1 << (bits + pi->minBits)));
+	                     (1UL << (bits + pi->minBits)));
 	trueBits = pastPtr[OFF_BITS] - LEN_OFFSET;
 	if (trueBits < 0 || trueBits >= pi->numSizes)
 	    return "corruption 1.1 in free store";
@@ -714,10 +714,10 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
 	nextPtr[OFF_PREV] = blockOff;
     }
     sptr[OFF_NEXT] = nextOffset;
-    pastPtr = (size_t *)(storage + (1 << (pi->minBits + bits)));
+    pastPtr = (size_t *)(storage + (1UL << (pi->minBits + bits)));
     pastPtr[OFF_BITS] = bits + LEN_OFFSET;
     pi->freeList[bits] = blockOff;
-    pi->freeBytes += (1 << (oldBits + pi->minBits));
+    pi->freeBytes += (1UL << (oldBits + pi->minBits));
     return NULL;
 }
 
@@ -753,7 +753,7 @@ const char *poolCheck(struct PoolInfo *pi, size_t *counts)
 	    if (offset < 0 || offset >= pi->poolBlocks)
 		return "bad pointer";
 	    if (testAny(pi, offset,
-		offset + (1 << size)))
+		offset + (1UL << size)))
 		return "free area not free in bitmap";
 	    ptr = (size_t *)(pi->poolStart + (offset << pi->minBits));
 	    if (ptr[OFF_MAGIC] != MAGIC)
@@ -761,14 +761,14 @@ const char *poolCheck(struct PoolInfo *pi, size_t *counts)
 	    if (ptr[OFF_PREV] != prevOffset)
 		return "crossed pointers";
 	    pastPtr = (size_t *)(((char *)ptr) +
-		(1 << (pi->minBits + size)));
+		(1UL << (pi->minBits + size)));
 	    if (pastPtr[OFF_BITS] != size + LEN_OFFSET)
 	    {
 	        return "size mismatch";
 	    }
 #ifndef FRAGILE
 	    if (memAny(ptr + HEADER_LEN,
-		       (1 << (size + pi->minBits))
+		       (1UL << (size + pi->minBits))
 		       - FREEBLOCK * sizeof(size_t)))
 	    {
 		return "free area corrupt";
@@ -776,7 +776,7 @@ const char *poolCheck(struct PoolInfo *pi, size_t *counts)
 #endif
 	    prevOffset = offset;
 	    offset = ptr[OFF_NEXT];
-	    seenStore += (1 << size);
+	    seenStore += (1UL << size);
 	}
 	if (offset != OURNULL)
 	   return "free list impossibly long - must be cycle";
