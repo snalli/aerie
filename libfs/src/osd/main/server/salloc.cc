@@ -13,6 +13,10 @@
 #include "osd/containers/needle/container.h"
 #include "osd/main/server/container.h"
 #include "osd/main/server/session.h"
+#include "common/prof.h"
+
+//#define PROFILER_SAMPLE __PROFILER_SAMPLE
+
 
 
 namespace osd {
@@ -344,24 +348,49 @@ int
 StorageAllocator::AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set, 
                                            int size, int count)
 {
+	PROFILER_PREAMBLE
 	int                     ret;
 	size_t                  extent_size;
 	char*                   buffer;
 	::osd::common::ExtentId eid;
+	PROFILER_SAMPLE
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "[%d] Allocate %d extents(s) of size %d\n", session->clt(), count, size);
 
+	PROFILER_SAMPLE
+#ifdef USE_VISTAHEAP
+	for (int i = 0; i<count; i++) {
+		if ((ret = pool_->AllocateExtent(size, (void**) &buffer)) < 0) {
+			pool_->PrintStats();
+			assert(0 && "EXTENT: OUT OF STORAGE: PANIC!");
+		}
+		eid = ::osd::common::ExtentId(buffer, size);
+		set->Insert(session, eid);
+	}	
+	return E_SUCCESS;
+#else
 	extent_size = count * size;
 	if ((ret = pool_->AllocateExtent(extent_size, (void**) &buffer)) < 0) {
-		return ret;
+		//perhaps the allocator is too fragmented. try size instead
+		for (int i = 0; i<count; i++) {
+			if ((ret = pool_->AllocateExtent(size, (void**) &buffer)) < 0) {
+				pool_->PrintStats();
+				assert(0 && "EXTENT: OUT OF STORAGE: PANIC!");
+			}
+			eid = ::osd::common::ExtentId(buffer, size);
+			set->Insert(session, eid);
+		}	
+		return E_SUCCESS;
 	}
-
+#endif
+	PROFILER_SAMPLE
 	for (size_t s=0; s<extent_size; s+=size) {
 		char* b = (char*) buffer + s;
 		eid = ::osd::common::ExtentId(b, size);
 		set->Insert(session, eid);
 	}
+	PROFILER_SAMPLE
 	
 	return E_SUCCESS;
 }
@@ -499,7 +528,21 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 	}
 	extent_size = count * static_size;
 	if ((ret = pool_->AllocateExtent(extent_size, (void**) &buffer)) < 0) {
-		return ret;
+		// perhaps the allocator is too fragmented. try size instead
+		for (int i = 0; i<count; i++) {
+			if ((ret = pool_->AllocateExtent(4096, (void**) &buffer)) < 0) {
+				pool_->PrintStats();
+				assert(0 && "CONTAINER: OUT OF STORAGE: PANIC!");
+			}
+			for (size_t s=0; s<4096; s+=static_size) {
+				char* b = (char*) buffer + s;
+				if ((obj = objtype2factory_map_[type]->Make(session, b)) == NULL) {
+					return -E_NOMEM;
+				}
+				set->Insert(session, obj->oid());
+			}
+		}	
+		return E_SUCCESS;
 	}
 	for (size_t s=0; s<extent_size; s+=static_size) {
 		char* b = (char*) buffer + s;
