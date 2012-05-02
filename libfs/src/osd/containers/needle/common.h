@@ -27,6 +27,9 @@ public:
 
 template<typename Session>
 class Object: public osd::cc::common::Object {
+	enum  { 
+		kNeedleSize = 32*1024 // be careful to not overflow (sizeof(enum) = sizeof(int))
+	};
 public:
 	static Object* Make(Session* session, osd::common::AclIdentifier acl_id = 0) {
 		osd::common::ObjectId oid;
@@ -53,7 +56,7 @@ public:
 	uint64_t Size() { return size_; }
 
 	uint64_t size_;
-	char     byte_[kBlockSize - sizeof(uint64_t)];
+	char     byte_[kNeedleSize - sizeof(uint64_t)];
 
 }; // Object
 

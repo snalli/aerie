@@ -29,6 +29,7 @@ public:
 	}
 
 	int Insert(Session* session, const char* key, File* fp);
+	int Unlink(Session* session, const char* key);
 
 	osd::common::ObjectId oid() { return oid_; }
 

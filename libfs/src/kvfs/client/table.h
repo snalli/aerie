@@ -22,6 +22,7 @@ public:
 
 	int Put(::client::Session* session, const char* key, const char* src, uint64_t n);
 	int Get(::client::Session* session, const char* key, char* dst);
+	int Erase(::client::Session* session, const char* key);
 
 	int Lock(::client::Session* session, lock_protocol::Mode mode);
 	int Unlock(::client::Session* session);

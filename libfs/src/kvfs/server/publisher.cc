@@ -48,6 +48,7 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 	
 	::Publisher::Message::LogicalOperation::MakeFile* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeFile>(session, buf);
 	
+	dbg_log (DBG_INFO, "Validate MakeFile: %p %s -> %p\n", lgc_op->parino_, lgc_op->key_, lgc_op->childino_);
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
@@ -69,21 +70,25 @@ Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf,
 {
 	int                   ret;
 	osd::common::ObjectId oid;
-	//DirInode              dinode;
-	//InodeNumber           child_ino;
+	Table                 table;
 	Session*              session = static_cast<Session*>(osdsession);
 	
 	::Publisher::Message::LogicalOperation::Unlink* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Unlink>(session, buf);
 	
+	dbg_log (DBG_INFO, "Validate Unlink: %p %s\n", lgc_op->parino_, lgc_op->key_);
+
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);
 	if ((ret = lock_verifier_->VerifyLock(session, oid)) < 0) {
 		return ret;
 	}
 
-	// do the operation 
 	//DirInode* dp = DirInode::Load(session, lgc_op->parino_, &dinode);
 	//return dp->Unlink(session, lgc_op->name_);
+	// do the operation 
+	Table* tp  = Table::Load(session, lgc_op->parino_, &table);
+	tp->Unlink(session, lgc_op->key_);
+
 	return E_SUCCESS;
 }
 

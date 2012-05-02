@@ -132,4 +132,35 @@ done:
 }
 
 
+int 
+Table::Erase(::client::Session* session, const char* key)
+{
+	int                                               ret;
+	osd::common::ObjectId                             oid;
+	osd::containers::client::NeedleContainer::Object* obj;
+	
+	Lock(session, lock_protocol::Mode::XL);
+	if ((ret = rw_ref()->proxy()->interface()->Find(session, key, &oid)) != E_SUCCESS) {
+		ret = -E_NOENT;
+		goto done;
+	} else {
+		if ((obj = osd::containers::client::NeedleContainer::Object::Load(oid)) == NULL) {
+			ret = -E_NOMEM;
+			goto done;
+		}
+	}
+	session->journal()->TransactionBegin();
+	session->journal() << Publisher::Message::LogicalOperation::Unlink(rw_ref()->proxy()->oid().u64(), key);
+	if ((ret = rw_ref()->proxy()->interface()->Erase(session, key)) < 0) {
+		goto done;
+	}
+	session->journal()->TransactionCommit();
+
+done:
+	Unlock(session);
+	return ret;
+}
+
+
+
 } // namespace client

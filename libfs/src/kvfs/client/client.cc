@@ -154,7 +154,7 @@ Client::Get(const char* key, char* dst)
 int 
 Client::Delete(const char* key)
 {
-	//return global_namespace->Unlink(CurrentSession(), pathname);
+	return tp_->Erase(CurrentSession(), key);
 }
 
 

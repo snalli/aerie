@@ -38,7 +38,7 @@ int
 NeedleContainer::VersionManager::Read(OsdSession* session, char* dst, 
                                     uint64_t off, uint64_t n)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	dbg_log (DBG_CRITICAL, "Don't use this. Remember it's a needle. You should go directly through the persistent interface.\n");
 	return 0;
 }
 
@@ -49,7 +49,7 @@ NeedleContainer::VersionManager::Write(OsdSession* session,
                                      uint64_t off, 
                                      uint64_t n)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	dbg_log (DBG_CRITICAL, "Don't use this. Remember it's a needle. You should go directly through the persistent interface.\n");
 	return 0;
 }
 
