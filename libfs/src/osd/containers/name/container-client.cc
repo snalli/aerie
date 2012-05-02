@@ -18,6 +18,7 @@ NameContainer::VersionManager::vOpen()
 	osd::vm::client::VersionManager<NameContainer::Object>::vOpen();
 	entries_.clear();
 	neg_entries_count_ = 0;
+	psv_entries_count_ = 0;
 
 	return 0;
 }
@@ -81,12 +82,19 @@ NameContainer::VersionManager::Insert(OsdSession* session,
 
 	// check lookaside buffer 
 	if ((it = entries_.find(name)) != entries_.end()) {
-		if (it->second.created == false) {
-			psv_entries_count_++;
+		if (it->second.deleted == true) {
+			if (it->second.created == false) {
+				psv_entries_count_++;
+				it->second.created = true;
+				it->second.oid = oid;
+				return E_SUCCESS;
+			} else {
+				return -E_EXIST;
+			}
+		} else {
+			assert(it->second.created == true);
+			return -E_EXIST;
 		}
-		it->second.created = true;
-		it->second.oid = oid;
-		return E_SUCCESS;
 	}
 
 	// no entry in the lookaside buffer 
@@ -131,6 +139,8 @@ NameContainer::VersionManager::Erase(OsdSession* session, const char* name)
 				return -E_NOENT;
 			}
 		} else {
+			assert (it->second.created == true);
+			it->second.created = false;
 			psv_entries_count_--;
 			entries_.erase(name);
 			return E_SUCCESS;
