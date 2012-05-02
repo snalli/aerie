@@ -1,3 +1,0 @@
-src/main/keyValueStore/blockingMultiQueue.lo \
-  src/main/keyValueStore/blockingMultiQueue.o:  \
- src/main/keyValueStore/blockingMultiQueue.cpp
