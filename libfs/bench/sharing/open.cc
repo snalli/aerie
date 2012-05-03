@@ -5,7 +5,6 @@
 #include "ubench/time.h"
 #include "bench/sharing/barrier.h"
 
-static lock_protocol::LockId global_lock = 1;
 
 int 
 Writer(int debug_level, const char* xdst, int numops, int size)
@@ -28,9 +27,7 @@ Writer(int debug_level, const char* xdst, int numops, int size)
 	MEASURE_TIME_START
 	MEASURE_CYCLES_START
 	for (int i=0; i<numops; i++) {
-		client::global_storage_system->lckmgr()->Acquire(global_lock, lock_protocol::Mode::XL, 0, unused);
 		libfs_pwrite(fd, buf, 4096, 0);
-		client::global_storage_system->lckmgr()->Release(global_lock);
 	}
 	MEASURE_CYCLES_STOP
 	ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
@@ -66,9 +63,7 @@ Reader(int debug_level, const char* xdst, int numops, int size)
 	MEASURE_TIME_START
 	MEASURE_CYCLES_START
 	for (int i=0; i<numops; i++) {
-		client::global_storage_system->lckmgr()->Acquire(global_lock, lock_protocol::Mode::SL, 0, unused);
 		libfs_pread(fd, buf, 4096, 0);
-		client::global_storage_system->lckmgr()->Release(global_lock);
 	}
 	MEASURE_CYCLES_STOP
 	ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
