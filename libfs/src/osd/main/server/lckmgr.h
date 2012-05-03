@@ -63,6 +63,7 @@ struct Lock {
 	void AddHolderAndUpdateStatus(const ClientRecord&);
 	void RemoveHolderAndUpdateStatus(int);
 	void ConvertHolderAndUpdateStatus(int, int);
+	void PrintQueues();
 
 	GrantQueue<ClientRecord>     gtque_;
 	int                          expected_clt_;

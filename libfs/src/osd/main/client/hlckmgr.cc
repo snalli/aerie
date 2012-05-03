@@ -116,6 +116,8 @@ HLock::HLock(LockId lid)
 void
 HLock::set_status(LockStatus sts)
 {
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	        "set_status lock %s: %d --> %d\n", lid_.c_str(), status_, sts);
 	if (status_ != sts) {
 		if (sts == LOCKED) {
 			used_ = true;
@@ -137,6 +139,9 @@ HLock::BeginConverting(bool lock)
 {
 	if (lock) {
 		pthread_mutex_lock(&mutex_);
+	}
+	if (status_ == HLock::CONVERTING) { // how is this possible???
+		return 0;
 	}
 	while (!(status_ == HLock::FREE || 
 	         status_ == HLock::LOCKED)) 
@@ -1006,7 +1011,9 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 			// if lock is LOCKED then wait to be released. 
 			// may need to abort any other dependent lock requests to avoid deadlock?
 			pthread_mutex_lock(&hl->mutex_);
-			hl->WaitStatus(HLock::CONVERTING);
+			////FIXME: should we wait on CONVERTING or LOCKED_CONVERTING or BOTH. Waiting on CONVERTING ONLY DEADLOCKS
+			//hl->WaitStatus(HLock::CONVERTING); 
+			hl->WaitStatus2(HLock::CONVERTING, HLock::LOCKED_CONVERTING);
 			pthread_mutex_unlock(&hl->mutex_);
 		}
 	}

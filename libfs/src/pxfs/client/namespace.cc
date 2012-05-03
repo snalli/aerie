@@ -341,15 +341,20 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 					LockInodeReverse(session, inode_next, lock_protocol::Mode::IXSL);
 				}
 			} else {
-				assert(inode_next->Lock(session, inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
-				inode->Unlock(session);
+				if (0 && path == 0) {
+					// last path componenent
+					assert(inode_next->Lock(session, inode, lock_mode) == E_SUCCESS);
+					inode->Unlock(session);
+				} else {
+					assert(inode_next->Lock(session, inode, lock_protocol::Mode::IXSL) == E_SUCCESS);
+					inode->Unlock(session);
+				}
 			}
 			inode->Put();
 			inode = inode_next;
 		}
 	}
 	HRTIME_SAMPLE
-
 done:
 	*inodep = inode;
 	return 0;

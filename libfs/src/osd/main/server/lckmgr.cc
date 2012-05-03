@@ -81,6 +81,17 @@ Lock::~Lock()
 }
 
 
+void Lock::PrintQueues()
+{
+	std::deque<ClientRecord>::iterator itr;
+
+	printf("WAITING LIST: \n");
+	for (itr = waiting_list_.begin(); itr != waiting_list_.end(); itr++) {
+		ClientRecord cr = *itr;
+		printf("Client: %lu\n", cr.id());
+	}
+}
+
 static void *
 revokethread(void *x)
 {
@@ -531,30 +542,30 @@ LockManager::retryer()
 		available_locks_.pop_front();
 		Lock* l = locks_[lid];
 		std::deque<ClientRecord>& wq = l->waiting_list_;
-		ClientRecord* cr = NULL;
+		bool found_cr = false;
+		ClientRecord cr;
 		if (!wq.empty()) {
 			// Verify the next waiting client can indeed grab the lock,
 			// that is we don't have any false alarm arising from a race.
-			cr = &wq.front();
-			if (l->gtque_.CanGrant(cr->mode())) {
-				l->expected_clt_ = cr->id();
+			cr = wq.front();
+			if (l->gtque_.CanGrant(cr.mode())) {
+				l->expected_clt_ = cr.id();
 				wq.pop_front();
-			} else {
-				cr = NULL;
+				found_cr = true;
 			}
 		}
 		pthread_mutex_unlock(mutex_);
 
-		if (cr) {
+		if (found_cr) {
 			int accepted;
 			// TODO place a time limit on the retry for this client
-			::server::ClientDescriptor* cl_dsc = ipc_->Client(cr->id());
-			if (cl_dsc->call(rlock_protocol::retry, lid, cr->seq_, accepted) 
+			::server::ClientDescriptor* cl_dsc = ipc_->Client(cr.id());
+			if (cl_dsc->call(rlock_protocol::retry, lid, cr.seq_, accepted) 
 			    == rlock_protocol::OK) 
 			{
 				dbg_log(DBG_INFO,
 				        "successfully sent a retry to clt %d seq %d for lck %s\n",
-				        cr->id(), cr->seq_, LockId(lid).c_str()); 
+				        cr.id(), cr.seq_, LockId(lid).c_str()); 
 				// client ignored retry. make the lock available for the next waiting
 				// client
 				if (!accepted) {
@@ -568,7 +579,7 @@ LockManager::retryer()
 			} else {
 				dbg_log(DBG_ERROR,
 				        "failed to tell client %d to retry lock %s\n", 
-				        cr->id(), LockId(lid).c_str());
+				        cr.id(), LockId(lid).c_str());
 				//FIXME: if cannot reach client then we need to send a retry to the
 				//next waiting client. But here you don't actually know whether client
 				//got the call but just didn't reply. so you need to do some heart beat

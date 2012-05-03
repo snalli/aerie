@@ -269,7 +269,13 @@ Client::Open(const char* path, int flags, int mode)
 		//as we might need to acquire the lock again after someone deleted or moved
 		//the file
 	} else {
-		lock_protocol::Mode lock_mode = lock_protocol::Mode::XL; // FIXME: do we need XL, or SL is good enough?
+		lock_protocol::Mode lock_mode;
+		if (flags & O_RDWR || flags & O_WRONLY) {
+			lock_mode = lock_protocol::Mode::XL; // FIXME: do we need XL, or SL is good enough?
+		} else {
+			lock_mode = lock_protocol::Mode::SL; // FIXME: do we need XL, or SL is good enough?
+		}
+		lock_mode = lock_protocol::Mode::XL; // FIXME: do we need XL, or SL is good enough?
 		if ((ret = global_namespace->Namei(session, path, lock_mode, &ip)) < 0) {
 			return ret;
 		}	

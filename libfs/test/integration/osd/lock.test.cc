@@ -90,7 +90,7 @@ SUITE(OSD_Lock)
 		lock_protocol::Mode unused;
 		CHECK(Client::TestServerIsAlive() == 0);
 		EVENT("E1");
-		for (int i=0; i<10; i++) {
+		for (int i=0; i<100; i++) {
 			EVENT("E2");
 			global_storage_system->lckmgr()->Acquire(a, lock_protocol::Mode::XL, 0, unused);
 			CHECK(check_grant_x(region_, a) == 0);

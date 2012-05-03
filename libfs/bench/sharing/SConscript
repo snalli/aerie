@@ -18,6 +18,6 @@ Import('osdClientLibrary')
 
 pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 
-source = ['main.cc', 'create.cc', 'open.cc']
+source = ['main.cc', 'create.cc', 'open.cc', 'barrier.cc']
 
 sharingUbenchProgram = buildEnv.Program('sharing_pxfs', source, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
