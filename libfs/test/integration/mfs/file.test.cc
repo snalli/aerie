@@ -112,7 +112,43 @@ SUITE(MFSFile)
 		EVENT("E2");
 		EVENT("E3");
 	}
-	
+
+
+	TEST_FIXTURE(MFSFixture, TestOpenCloseLoop1)
+	{
+		int  fd;
+		char buf[512];
+
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK(libfs_mkdir("/home/hvolos/dir", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_CREAT|O_RDWR)) > 0);
+		CHECK(libfs_close(fd) == 0);
+		CHECK(libfs_sync() == 0);
+		EVENT("E1");
+		for (int i=0; i<1024; i++) {
+			CHECK((fd = libfs_open("/home/hvolos/dir/file", O_RDWR)) > 0);
+			CHECK(libfs_close(fd) == 0);
+		}
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestOpenCloseLoop2)
+	{
+		int  fd;
+		char buf[512];
+
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		EVENT("E1");
+		for (int i=0; i<1024; i++) {
+			CHECK((fd = libfs_open("/home/hvolos/dir/file", O_RDWR)) > 0);
+			CHECK(libfs_close(fd) == 0);
+		}
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+
 	TEST_FIXTURE(MFSFixture, TestCreate2)
 	{
 		int   fd;
