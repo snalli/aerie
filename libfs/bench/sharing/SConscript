@@ -20,4 +20,8 @@ pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLi
 
 source = ['main.cc', 'create.cc', 'open.cc', 'barrier.cc']
 
-sharingUbenchProgram = buildEnv.Program('sharing_pxfs', source, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
+#sharingUbenchProgram = buildEnv.Program('sharing_pxfs', source, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
+
+vfsSource = ['main.cc', 'create-vfs.cc', 'open-vfs.cc', 'barrier.cc']
+
+sharingUbenchProgram = buildEnv.Program('sharing_vfs', vfsSource, LIBS=['pthread', 'rt'])
