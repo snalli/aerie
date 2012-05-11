@@ -140,9 +140,6 @@ HLock::BeginConverting(bool lock)
 	if (lock) {
 		pthread_mutex_lock(&mutex_);
 	}
-	if (status_ == HLock::CONVERTING) { // how is this possible???
-		return 0;
-	}
 	while (!(status_ == HLock::FREE || 
 	         status_ == HLock::LOCKED)) 
 	{
@@ -153,6 +150,7 @@ HLock::BeginConverting(bool lock)
 	} else {
 		set_status(HLock::CONVERTING);
 	}
+done:
 	if (lock) {
 		pthread_mutex_unlock(&mutex_);
 	}
@@ -632,10 +630,9 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 	LockId                lid = hlock->lid_;
 	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d:%lu] Acquiring hierarchical lock %s (%s)\n", id(), 
-			tid, lid.c_str(), mode.String().c_str());
-	
-	if (!hlock) { return r;	}
+	        "[%d:%lu] Acquiring hierarchical lock %s (%s) under %s\n", id(), 
+	        tid, lid.string().c_str(), mode.String().c_str(), 
+	        phlock ? phlock->lid_.string().c_str(): "NULL");
 	
 	pthread_mutex_lock(&hlock->mutex_);
 
@@ -714,9 +711,18 @@ check_state:
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 			        "[%d:%lu] hierarchical lock manager is converting lock %s\n",
 			        id(), tid, lid.c_str());
+			if (flags & Lock::FLG_NOBLK) {
+				r = lock_protocol::RETRY;
+				break;
+			}
 			while (hlock->status() == HLock::CONVERTING || 
 			       hlock->status() == HLock::LOCKED_CONVERTING) 
 			{
+				// block-waiting could deadlock if we already hold a lock 
+				// that must be revoked as part of the conversion process
+				// FIXME: check whether there is a circular dependency
+				r = lock_protocol::DEADLK;
+				goto done;
 				pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
 			}
 			goto check_state;	// Status changed. Re-check.
@@ -758,6 +764,9 @@ check_state:
 						hlock->set_status(HLock::NONE);
 					}
 				} else {	
+
+					dbg_log(DBG_INFO, "[%d:%lu] Acquire Hierarchical lock %s under hierarchical lock %s\n",
+			        	id(), tid, lid.c_str(), phlock->lid_.c_str());
 					phlock->AddChild(hlock);
 					hlock->ancestor_recursive_mode_ = phlock->ancestor_recursive_mode_;
 					hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
@@ -939,9 +948,12 @@ HLockManager::DowngradePublicLockRecursive(HLock* hlock,
 	HLockPtrList::iterator itr;
 	lock_protocol::Mode    old_public_mode;
 	
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+                "hlock = %s\n", hlock->lid_.c_str());
+
 	hlock->BeginConverting(true);
 	if (!hlock->lock_) {
-		for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+		for (itr = hlock->children_.begin(); itr != hlock->children_.end(); hlock->children_.erase(itr++)) {
 			HLock* hl = *itr;
 			assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
 		}
@@ -970,7 +982,7 @@ HLockManager::DowngradePublicLockRecursive(HLock* hlock,
 				} else {
 					// cannot propagate recursive lock down the tree as we would 
 					// violate the hierarchy rule: drop children subtrees
-					for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+					for (itr = hlock->children_.begin(); itr != hlock->children_.end(); hlock->children_.erase(itr++)) {
 						HLock* hl = *itr;
 						assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
 					}
@@ -981,7 +993,7 @@ HLockManager::DowngradePublicLockRecursive(HLock* hlock,
 			// new mode no longer covers lock's private mode. 
 			// we release the lock and every descendant of the lock 
 			release_set->push_back(HLockPtrLockModePair(hlock, lock_protocol::Mode::NL));
-			for (itr = hlock->children_.begin(); itr != hlock->children_.end(); itr++) {
+			for (itr = hlock->children_.begin(); itr != hlock->children_.end(); hlock->children_.erase(itr++)) {
 				HLock* hl = *itr;
 				assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
 			}
@@ -995,8 +1007,28 @@ lock_protocol::status
 HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 {
 	HLockPtrLockModePairSet::iterator itr;
+	HLockPtrList::iterator            list_itr;
 	HLockPtrLockModePairSet           release_set;
+	HLock*                            phlock;
 
+	if (hlock && (phlock=hlock->parent_)) {
+		// caller does not have any mutex/lock held so we don't face
+		// any deadlock case
+		pthread_mutex_lock(&phlock->mutex_);
+		while (phlock->status() == HLock::CONVERTING || 
+		       phlock->status() == HLock::LOCKED_CONVERTING) 
+		{
+			pthread_cond_wait(&phlock->status_cv_, &phlock->mutex_);
+		}
+		for (list_itr = phlock->children_.begin(); list_itr != phlock->children_.end(); list_itr++) {
+			HLock* hl = *list_itr;
+			if (hl == hlock) {
+				phlock->children_.erase(list_itr);
+				break;
+			}
+		}
+		pthread_mutex_unlock(&phlock->mutex_);
+	}
 	release_set.clear();
 	assert(DowngradePublicLockRecursive(hlock, new_mode, &release_set) == 0);
 	
@@ -1009,11 +1041,9 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 				    "[%d] Preparing hierarchical lock %s for revocation\n", id(), hl->lid_.c_str()); 
 			// if lock is LOCKED then wait to be released. 
-			// may need to abort any other dependent lock requests to avoid deadlock?
+			// any other dependent lock request must be preempted to avoid deadlock
 			pthread_mutex_lock(&hl->mutex_);
-			////FIXME: should we wait on CONVERTING or LOCKED_CONVERTING or BOTH. Waiting on CONVERTING ONLY DEADLOCKS
-			//hl->WaitStatus(HLock::CONVERTING); 
-			hl->WaitStatus2(HLock::CONVERTING, HLock::LOCKED_CONVERTING);
+			hl->WaitStatus(HLock::CONVERTING); 
 			pthread_mutex_unlock(&hl->mutex_);
 		}
 	}
@@ -1104,7 +1134,15 @@ HLockManager::Revoke(Lock* lp, lock_protocol::Mode new_mode)
 	status_ = REVOKING;
 	pthread_mutex_unlock(&mutex_);
 
-	hlock = static_cast<HLock*>(lp->payload_);
+	// we may race with a payload assignment (by AttachPublicLock); 
+	// this could happen because payload assignment is done after we 
+	// acquire the base lock. So in a highly contented environment it is 
+	// possible to revoke the base lock before we assign the payload.
+	// The right solution would be to assign payload before we grab 
+	// the lock but a simple hack is to wait for the assignment
+	do {
+		hlock = static_cast<HLock*>(lp->payload_);
+	} while (!hlock);
 	ret = DowngradePublicLock(hlock, new_mode);
 
 	pthread_mutex_lock(&mutex_);
