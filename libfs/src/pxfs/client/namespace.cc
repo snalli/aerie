@@ -336,7 +336,6 @@ retry_namex:
 				//if (0 && path == 0) {
 				if (path == 0) {
 					// last path componenent
-					printf("NAMESPACE: inode=%lx inode_next=%lx\n", inode->ino(), inode_next->ino());
 					if (inode_next->Lock(session, inode, lock_mode) != E_SUCCESS) {
 						DBG_LOG(DBG_INFO, DBG_MODULE(client_name), "ABORT\n");
 						inode->Unlock(session);
@@ -344,7 +343,6 @@ retry_namex:
 						goto retry_namex;
 					}
 				} else {
-					printf("NAMESPACE: inode=%lx inode_next=%lx\n", inode->ino(), inode_next->ino());
 					if (inode_next->Lock(session, inode, lock_protocol::Mode::IXSL) != E_SUCCESS) {
 						DBG_LOG(DBG_INFO, DBG_MODULE(client_name), "ABORT\n");
 						inode->Unlock(session);

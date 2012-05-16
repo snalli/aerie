@@ -20,6 +20,7 @@
 
 
 //TODO: Fine-grain locking in GetObject/PutObject.
+//FIXME: decrement dlink when proxy is no longer referenced (i.e. no local handler)
 
 //#undef  PROFILER_SAMPLE
 //#define PROFILER_SAMPLE __PROFILER_SAMPLE
@@ -131,19 +132,17 @@ done:
 int
 ObjectManager::GetObjectInternal(OsdSession* session,
                                  ObjectId oid, 
-                                 osd::common::ObjectProxyReference** obj_refp, 
+                                 osd::common::ObjectProxyReference** objproxy_refp, 
                                  bool use_exist_obj_ref)
 {
-	PROFILER_PREAMBLE
 	int                                ret = E_SUCCESS;
 	ObjectManagerOfType*               mgr;
 	ObjectProxy*                       objproxy;
-	osd::common::ObjectProxyReference* obj_ref;
+	osd::common::ObjectProxyReference* objproxy_ref;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
 
-	PROFILER_SAMPLE
 	pthread_mutex_lock(&mutex_);
 	ObjectType type = oid.type();
 	if (type >= osd::containers::T_CONTAINER_TYPE_COUNT || !(mgr = objtype2mgr_tbl_[type])) { 
@@ -159,26 +158,25 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 		assert(mgr->oid2obj_map_.Insert(objproxy) == E_SUCCESS);
 		// no need to grab the lock on obj after creation as it's not reachable 
 		// before we release the lock manager's mutex lock
-		obj_ref = new osd::common::ObjectProxyReference();
-		obj_ref->Set(objproxy, false);
+		objproxy_ref = new osd::common::ObjectProxyReference();
+		objproxy_ref->Set(objproxy, false);
+		objproxy->object()->incr_dlink(1);
 	} else {
 		// object proxy exists
 		if (use_exist_obj_ref) {
-			if ((obj_ref = objproxy->HeadReference()) == NULL) {
-				obj_ref = new osd::common::ObjectProxyReference();
-				obj_ref->Set(objproxy, false);
+			if ((objproxy_ref = objproxy->HeadReference()) == NULL) {
+				objproxy_ref = new osd::common::ObjectProxyReference();
+				objproxy_ref->Set(objproxy, false);
 			}
 		} else {
-			obj_ref = new osd::common::ObjectProxyReference();
-			obj_ref->Set(objproxy, true);
+			objproxy_ref = new osd::common::ObjectProxyReference();
+			objproxy_ref->Set(objproxy, true);
 		}
-		PROFILER_SAMPLE
 	}
 	ret = E_SUCCESS;
-	*obj_refp = obj_ref;
+	*objproxy_refp = objproxy_ref;
 done:
 	pthread_mutex_unlock(&mutex_);
-	PROFILER_SAMPLE
 	return ret;
 }
 

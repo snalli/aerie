@@ -183,6 +183,9 @@ LockManager::FindOrCreateLockInternal(lock_protocol::LockId lid)
 {
 	Lock* lp;
 
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "Find lock %s\n", LockId(lid).c_str());
+
 	lp = locks_[lid];
 	if (lp == NULL) {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 

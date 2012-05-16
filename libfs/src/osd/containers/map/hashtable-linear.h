@@ -14,6 +14,11 @@
 //#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 
+//TODO: allow expansion. Instead of having a statically defined table size, allow
+//having a table of pointers to pages that are dynamically allocated
+
+
+
 enum {
 	HT_REHASH = 1
 };

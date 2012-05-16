@@ -109,4 +109,56 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
                       ('C1:T1:E3:block', 'C2:T1:E3:block')]
     ))
 
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSFile:TestCreateOpenWriteConcurrent',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSFile:TestCreateWriteConcurrent')]),
+            'C2': ( testProgram, [('T1', 'MFSFile:TestOpenWriteConcurrent')])
+        },
+        rendezvous = [('C1:T1:E2:block', 'C2:T1:E1:block'), 
+                      ('C1:T1:E3:block', 'C2:T1:E2:block'),
+                      ('C1:T1:E4:block', 'C2:T1:E3:block'),
+                      ('C1:T1:E5:block', 'C2:T1:E5:block')]
+    ))
+
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSFile:TestFileSystemSinglethreadedStress',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSFile:TestFileSystemCreate')]),
+            'C2': ( testProgram, [('T1', 'MFSFile:TestFileSystemStress')])
+        },
+        rendezvous = [('C1:T1:E1:block', 'C2:T1:E1:block'),
+                      ('C1:T1:EEND:block', 'C2:T1:EEND:block')]
+    ))
+
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSFile:TestFileSystemMultithreadedStress1',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSFile:TestFileSystemCreate')]),
+            'C2': ( testProgram, [('T1', 'MFSFile:TestFileSystemStress1'),
+                                  ('T2', 'MFSFile:TestFileSystemStress1')])
+        },
+        rendezvous = [('C1:T1:E1:block', 'C2:T1:E1:block', 'C2:T2:E1:block'),
+                      ('C1:T1:EEND:block', 'C2:T1:EEND:block', 'C2:T2:EEND:block')]
+    ))
+
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSFile:TestFileSystemMultithreadedStress2',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSFile:TestFileSystemCreate')]),
+            'C2': ( testProgram, [('T1', 'MFSFile:TestFileSystemStress2'),
+                                  ('T2', 'MFSFile:TestFileSystemStress2')])
+        },
+        rendezvous = [('C1:T1:E1:block', 'C2:T1:E1:block', 'C2:T2:E1:block'),
+                      ('C1:T1:EEND:block', 'C2:T1:EEND:block', 'C2:T2:EEND:block')]
+    ))
+
 

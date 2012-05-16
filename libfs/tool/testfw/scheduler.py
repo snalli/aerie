@@ -175,7 +175,6 @@ class StrandManager(threading.Thread):
         self.sem_key_next = self.sem_key_base
 
     def createRendezvousPoint(self, event_list):
-        print event_list
         strand_list = []
         event_tag_list = []
         for event in event_list:

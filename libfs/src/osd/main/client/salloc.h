@@ -88,7 +88,7 @@ public:
 
 	int AllocateExtent(OsdSession* session, size_t nbytes, int flags, void** ptr);
 	int AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, size_t nbytes, int flags, void** ptr);
-	int AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, size_t nbytes, osd::common::ExtentId* eidp);
+	int AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, size_t nbytes, osd::common::ExtentId* eidp, bool has_lock = false);
 	int AllocateContainer(OsdSession* session, osd::common::AclIdentifier acl_id, int type, osd::common::ObjectId* oid);
 	int AllocateContainerVector(OsdSession* session);
 	int GetDescriptorPool(OsdSession* session, osd::common::AclIdentifier acl_id, DescriptorPool** poolp);

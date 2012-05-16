@@ -162,7 +162,7 @@ StorageAllocator::GetDescriptorPool(OsdSession* session, osd::common::AclIdentif
 	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
 	        "[%d] Allocate container set of ACL %d\n", ipc_->id(), acl_id);
-
+	
 	if ((it = aclpoolmap_.find(acl_id)) == aclpoolmap_.end()) {
 		if ((ret = DescriptorPool::Create(ipc_, session, acl_id, &pool)) < 0) {
 			return ret;
@@ -179,7 +179,7 @@ StorageAllocator::GetDescriptorPool(OsdSession* session, osd::common::AclIdentif
 
 int
 StorageAllocator::AllocateExtent(OsdSession* session, osd::common::AclIdentifier acl_id, 
-                                 size_t nbytes, osd::common::ExtentId* eidp)
+                                 size_t nbytes, osd::common::ExtentId* eidp, bool has_lock)
 {
 	int                   ret;
 	DescriptorPool*       pool;
@@ -188,13 +188,21 @@ StorageAllocator::AllocateExtent(OsdSession* session, osd::common::AclIdentifier
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
 	        "[%d] Allocate extent of size %lu\n", ipc_->id(), nbytes);
 	
+	if (!has_lock) {
+		pthread_mutex_lock(&mutex_);
+	}
 	if ((ret = GetDescriptorPool(session, acl_id, &pool)) < 0) {
-		return ret;
+		goto done;
 	}
 	if ((ret = pool->AllocateExtent(ipc_, session, nbytes, &eid)) < 0) {
-		return ret;
+		goto done;
 	}
 	*eidp = eid;
+	ret = E_SUCCESS;
+done:	
+	if (!has_lock) {
+		pthread_mutex_unlock(&mutex_);
+	}
 	return E_SUCCESS;
 }
 
@@ -205,6 +213,7 @@ StorageAllocator::AllocateExtent(OsdSession* session, osd::common::AclIdentifier
 	int                   ret;
 	osd::common::ExtentId eid;
 	
+	pthread_mutex_lock(&mutex_);
 	if (flags & kMetadata) {
 		// The container data structures may call us to allocate storage
 		// for metadata. because we don't physically construct at the client
@@ -212,9 +221,10 @@ StorageAllocator::AllocateExtent(OsdSession* session, osd::common::AclIdentifier
 		*ptr = malloc(nbytes);
 		ret = E_SUCCESS;
 	} else {
-		ret = AllocateExtent(session, acl_id, nbytes, &eid);
+		ret = AllocateExtent(session, acl_id, nbytes, &eid, true);
 		*ptr = eid.addr();
 	}
+	pthread_mutex_unlock(&mutex_);
 	return ret;
 }
 
@@ -237,15 +247,19 @@ StorageAllocator::AllocateContainer(OsdSession* session, osd::common::AclIdentif
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_salloc), 
 	        "[%d] Allocate container of type %d\n", ipc_->id(), type);
 
+	pthread_mutex_lock(&mutex_);
+
 	if ((ret = GetDescriptorPool(session, acl_id, &pool)) < 0) {
-		return ret;
+		goto done;
 	}
 	if ((ret = pool->AllocateContainer(ipc_, session, type, &oid)) < 0) {
-		return ret;
+		goto done;
 	}
 	*oidp = oid;
-
-	return E_SUCCESS;
+	ret = E_SUCCESS;
+done:
+	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
 
 

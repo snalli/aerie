@@ -123,24 +123,19 @@ FileSystemObjectManager::CreateInode(Session* session, Inode* parent,
 	InodeFactory*             inode_factory; 
 	Inode*                    ip;
 	int                       fs_type = parent->fs_type();
-	PROFILER_PREAMBLE
 
 	dbg_log (DBG_INFO, "Create inode\n");
 
-	PROFILER_SAMPLE
 	it = inode_factory_map_.find(fs_type);
 	if (it == inode_factory_map_.end()) {
 		return -1;
 	}
-	PROFILER_SAMPLE
 	inode_factory = it->second;
 	if ((ret = inode_factory->Make(session, inode_type, &ip)) != E_SUCCESS) {
 		return ret;
 	}
-	PROFILER_SAMPLE
-    ip->Lock(session, parent, lock_protocol::Mode::XR);
-    ip->Get();
-	PROFILER_SAMPLE
+	ip->Lock(session, parent, lock_protocol::Mode::XR);
+	ip->Get();
 	
 	*ipp = ip;
 	return E_SUCCESS;

@@ -109,6 +109,10 @@ SUITE(MFSFile)
 		CHECK(libfs_read(fd, buf, strlen(test_str1)+1) > 0);
 		CHECK(strcmp(buf, test_str1) == 0);
 		CHECK(libfs_close(fd) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_RDWR)) > 0);
+		CHECK(libfs_read(fd, buf, strlen(test_str1)+1) > 0);
+		CHECK(strcmp(buf, test_str1) == 0);
+		CHECK(libfs_close(fd) == 0);
 		EVENT("E2");
 		EVENT("E3");
 	}
@@ -214,7 +218,6 @@ SUITE(MFSFile)
 		EVENT("E3");
 	}
 
-
 	TEST_FIXTURE(MFSFixture, TestRead3)
 	{
 		int   ret;
@@ -267,5 +270,95 @@ SUITE(MFSFile)
 		EVENT("E2");
 		EVENT("E3");
 	}
+
+	TEST_FIXTURE(MFSFixture, TestCreateWriteConcurrent)
+	{
+		int  fd;
+		char buf[512];
+		
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK(libfs_mkdir("/home/hvolos/dir", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_CREAT|O_RDWR)) > 0);
+		CHECK(libfs_close(fd) == 0);
+		CHECK(libfs_sync() == 0);
+		EVENT("E1");
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_RDWR)) > 0);
+		CHECK(libfs_pwrite(fd, test_str1, strlen(test_str1)+1, 0) > 0);
+		EVENT("E2");
+		EVENT("E3");
+		CHECK(libfs_pwrite(fd, test_str1, strlen(test_str1)+1, 0) > 0);
+		EVENT("E4");
+		CHECK(libfs_close(fd) == 0);
+		EVENT("E5");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestOpenWriteConcurrent)
+	{
+		int  fd;
+		char buf[512];
+		
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		EVENT("E1");
+		CHECK((fd = libfs_open("/home/hvolos/dir/file", O_RDWR)) > 0);
+		CHECK(libfs_pwrite(fd, test_str1, strlen(test_str1)+1, 0) > 0);
+		EVENT("E2");
+		EVENT("E3");
+		CHECK(libfs_pwrite(fd, test_str1, strlen(test_str1)+1, 0) > 0);
+		EVENT("E4");
+		CHECK(libfs_close(fd) == 0);
+		EVENT("E5");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestFileSystemCreate)
+	{
+		int               fd;
+		char              buf[512];
+		std::string       filename;
+
+		CHECK(libfs_mount(storage_pool_path, "/pxfs", "mfs", 0) == 0);
+		MapFileSystemImage(this, session, SELF, "/pxfs", 20, 10, 2);
+		EVENT("E1");
+		EVENT("EEND");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestFileSystemStress1)
+	{
+		int               fd;
+		char              buf[4096];
+		std::string       filename;
+
+		CHECK(libfs_mount(storage_pool_path, "/pxfs", "mfs", 0) == 0);
+		MapFileSystemImage(this, session, SELF, "/pxfs", 20, 10, 2);
+		EVENT("E1");
+		for (int i=0; i<1024; i++) {
+			fileset_exists.GetRandom(&filename); 
+			CHECK((fd = libfs_open(filename.c_str(), O_RDWR|O_APPEND)) > 0);
+			libfs_write(fd, buf, 4096);
+			libfs_close(fd);
+		}
+		EVENT("EEND");
+	}
+
+	TEST_FIXTURE(MFSFixture, TestFileSystemStress2)
+	{
+		int               fd;
+		char              buf[4096];
+		std::string       filename;
+
+		CHECK(libfs_mount(storage_pool_path, "/pxfs", "mfs", 0) == 0);
+		MapFileSystemImage(this, session, SELF, "/pxfs", 20, 10, 2);
+		EVENT("E1");
+		for (int i=0; i<1024; i++) {
+			fileset_exists.EraseRandom(&filename); 
+			libfs_unlink(filename.c_str());
+			fileset_notexists.Put(filename); 
+			fileset_notexists.EraseRandom(&filename); 
+			CHECK((fd = libfs_open(filename.c_str(), O_CREAT|O_RDWR)) > 0);
+			libfs_close(fd);
+			fileset_exists.Put(filename); 
+		}
+		EVENT("EEND");
+	}
+
 
 }

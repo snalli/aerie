@@ -47,6 +47,7 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 	}
 
 	pthread_mutex_lock(&mutex_);
+	ip_->Lock(session, lock_protocol::Mode::XL);
 	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Message::LogicalOperation::Write(ip_->ino());
 	if (append_) {
@@ -57,6 +58,7 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 		off_ += ret;
 	}
 	session->journal()->TransactionCommit();
+	ip_->Unlock(session);
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;
@@ -73,11 +75,11 @@ File::Read(client::Session* session, char* dst, uint64_t n)
 	}
 
 	pthread_mutex_lock(&mutex_);
-
+	ip_->Lock(session, lock_protocol::Mode::SL);
 	if ((ret=ip_->Read(session, dst, off_, n)) > 0) {
 		off_+=ret;
 	}
-
+	ip_->Unlock(session);
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;
@@ -94,10 +96,12 @@ File::Write(client::Session* session, const char* src, uint64_t n, uint64_t offs
 	}
 
 	pthread_mutex_lock(&mutex_);
+	ip_->Lock(session, lock_protocol::Mode::XL);
 	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Message::LogicalOperation::Write(ip_->ino());
 	ret = ip_->Write(session, const_cast<char*>(src), offset, n);
 	session->journal()->TransactionCommit();
+	ip_->Unlock(session);
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;
@@ -114,7 +118,9 @@ File::Read(client::Session* session, char* dst, uint64_t n, uint64_t offset)
 	}
 
 	pthread_mutex_lock(&mutex_);
+	ip_->Lock(session, lock_protocol::Mode::SL);
 	ret=ip_->Read(session, dst, offset, n);
+	ip_->Unlock(session);
 	pthread_mutex_unlock(&mutex_);
 
 	return ret;
@@ -146,7 +152,7 @@ File::Seek(client::Session* session, uint64_t offset, int whence)
 int 
 File::Release() 
 {
-	//FIXME: release inode (put)
+	ip_->Put();
 	return E_SUCCESS;
 } 
 
@@ -216,7 +222,7 @@ FileManager::AllocFd(File* fp)
 {
 	int fd;
 
-	pthread_mutex_unlock(&mutex_);
+	pthread_mutex_lock(&mutex_);
 	if ((fd = AllocFd(0)) < 0) {
 		pthread_mutex_unlock(&mutex_);
 		return -1;
@@ -255,7 +261,7 @@ FileManager::Lookup(int fd, File** fpp)
 		return -E_KVFS;
 	}
 
-	pthread_mutex_unlock(&mutex_);
+	pthread_mutex_lock(&mutex_);
 	fp = ftable_[fd-fdmin_];
 	pthread_mutex_unlock(&mutex_);
 
@@ -276,9 +282,9 @@ FileManager::Get(int fd, File** fpp)
 		return -E_KVFS;
 	}
 
-	pthread_mutex_unlock(&mutex_);
+	pthread_mutex_lock(&mutex_);
 	fp = ftable_[fd-fdmin_];
-	if ((newfd = AllocFd(0)) < 0) {
+	if ((newfd = AllocFd((int) 0)) < 0) {
 		pthread_mutex_unlock(&mutex_);
 		return -1;
 	}

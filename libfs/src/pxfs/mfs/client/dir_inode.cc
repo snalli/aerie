@@ -20,7 +20,6 @@ namespace client {
 int 
 DirInode::Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
 {
-	PROFILER_PREAMBLE
 	int                   ret;
 	::client::Inode*      ip;
 	osd::common::ObjectId oid;
@@ -34,20 +33,16 @@ DirInode::Lookup(::client::Session* session, const char* name, int flags, ::clie
 		ip = parent_;
 		goto done;
 	}
-	PROFILER_SAMPLE
 	if ((ret = rw_ref()->proxy()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
-		PROFILER_SAMPLE
 		return ret;
 	}
-	PROFILER_SAMPLE
 	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
 		return ret;
 	}
-	PROFILER_SAMPLE
 
 done:
 	ip->Get();
-    *ipp = ip;
+	*ipp = ip;
 	return E_SUCCESS;
 }
 
@@ -76,7 +71,7 @@ DirInode::xLookup(::client::Session* session, const char* name, int flags, ::cli
 	}
 done:
 	ip->Get();
-    *ipp = ip;
+	*ipp = ip;
 	return E_SUCCESS;
 }
 
@@ -86,7 +81,6 @@ int
 DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip, 
                bool overwrite)
 {
-	PROFILER_PREAMBLE
 	int ret; 
 
 	dbg_log (DBG_INFO, "Inode [%p, %lx]: link %s -> (%p, ino=%lx)\n", this, ino(), name, ip, ip->ino());
@@ -95,19 +89,15 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 
 	// special case: if inode oid is zero then we link to a pseudo-inode. 
 	// keep this link in the in-core state parent_
-	PROFILER_SAMPLE
 	if (ip->oid() == osd::common::ObjectId(0)) {
 		pthread_mutex_lock(&mutex_);
 		parent_ = ip;
 		pthread_mutex_unlock(&mutex_);
 		return E_SUCCESS;
 	}
-
-	PROFILER_SAMPLE
 	if ((ret = rw_ref()->proxy()->interface()->Insert(session, name, ip->oid())) != E_SUCCESS) {
 		return ret;
 	}
-	PROFILER_SAMPLE
 	return E_SUCCESS;
 }
 

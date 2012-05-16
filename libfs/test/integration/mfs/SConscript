@@ -26,7 +26,7 @@ objects = myTestEnv['OBJECTS']
 serverProgram = myTestEnv.Program('smain', \
 	source = myTestEnv['SERVER_OBJECTS'], LIBS=['pthread', 'rt']+serverDepLibs)
 testProgram = myTestEnv.Program('test', \
-	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), objects], \
+	source = [Glob('*.test.cc'), Glob('*.fixture.cc'), Glob('*.helper.cc'), "fileset.cc", objects], \
 	LIBS=['UnitTest++', 'pthread', 'rt']+clientDepLibs)
 runtests = myTestEnv.Command("test.passed", ['test', fscLibrary], runIntegrationTests)
 

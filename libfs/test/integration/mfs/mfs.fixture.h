@@ -6,12 +6,15 @@
 #include "pxfs/client/libfs.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/session.h"
+#include "fileset.h"
 
 using namespace client;
 
 struct MFSFixture {
 	static bool            initialized;
 	static pthread_mutex_t mutex;
+	static FileSet         fileset_exists;    // files that exist
+	static FileSet         fileset_notexists; // files that don't exist
 	Session*               session;
 
 	struct Finalize: testfw::AbstractFunctor {
@@ -39,5 +42,7 @@ struct MFSFixture {
 	{ }
 };
 
+
+int MapFileSystemImage(MFSFixture* fixture, Session* session, testfw::Test* test, const char* root, int nfiles, int dirwidth, int dirdepth);
 
 #endif // _MFS_FIXTURE_HXX_AGL189

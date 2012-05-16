@@ -3,10 +3,28 @@
 
 #include "osd/main/client/hlckmgr.h"
 #include "common/errno.h"
+#include "osd/containers/containers.h"
 #include "osd/main/common/proxy.h"
 #include "osd/main/client/stm.h"
 #include "osd/main/client/session.h"
 #include "osd/main/common/publisher.h"
+
+//TODO: Currently we rely on the hierarchical lock manager to transition the lock 
+//between hierarchical mode or flat mode (capability). However this complicates the
+//lock manager a lot. We could simplify the lock manager by having two separate locks:
+//a flat lock and a hierarchical lock, and extent the proxy manager with logic to 
+//choose between the two locks. The lock manager though will have to provide the 
+//ability to users to couple the locks so that a callback on one of the locks
+//triggers a callback to the other as well. For example, trying to acquire the 
+//flat lock should revoke the hierarchical lock.
+
+
+//TODO: currently we hardcode the dlink check for files (T_BYTE_CONTAINER)
+//this check ensures that we acquire the lock through a capability when 
+//multiple clients complete for the lock. 
+//We should enhance the API to allow the user (i.e. filesystem) specify
+//that the lock should be acquired through the capability instead of 
+//acquiring it hierarcically.
 
 namespace osd {
 
@@ -40,8 +58,12 @@ public:
 	}
 
 	int Lock(OsdSession* session, osd::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
-		assert(parent->hlock_);
-		return session->hlckmgr_->Acquire(hlock_, parent->hlock_, mode, 0);
+		if (object()->dlink() > 1 && object()->type() == osd::containers::T_BYTE_CONTAINER) {
+			return session->hlckmgr_->Acquire(hlock_, mode, 0);
+		} else {
+			assert(parent->hlock_);
+			return session->hlckmgr_->Acquire(hlock_, parent->hlock_, mode, 0);
+		}
 	}
 
 	int Unlock(OsdSession* session) {
@@ -49,7 +71,7 @@ public:
 	}
 
 	// deprecated: this lock certificate contains just a chain of locks. 
-	// verifying the lock chain at the server side is requires looking 
+	// verifying the lock chain at the server side requires looking 
 	// up whether a node is the child of another node, which is 
 	// computationally expensive if we don't provide a name or another hint
 	// to help the lookup. Relying on the name though is tricky. For example, 

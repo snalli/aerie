@@ -122,6 +122,7 @@ public:
 	Object()
 		: type_(0),
 		  nlink_(0),
+		  dlink_(0),
 		  parent_(ObjectId(0))
 	{ }
 
@@ -152,10 +153,23 @@ public:
 	void set_nlink(int nlink) {
 		nlink_ = nlink;
 	}
+	
+	int dlink() {
+		return dlink_;
+	}
+
+	void incr_dlink(int n) {
+		__sync_fetch_and_add(&dlink_, n);
+	}
+
+	void decr_dlink(int n) {
+		__sync_fetch_and_sub(&dlink_, n);
+	}
 
 protected:
 	ObjectType type_;   //!< Magic number identifying object type
 	int        nlink_;  //!< Number of containers linking to this container
+	int        dlink_;  //!< Number of dynamic containers linking to this container
 	ObjectId   parent_; //!< Parent container. Valid only when nlink_ == 1
 };
 
