@@ -99,7 +99,8 @@ namespace client {
 HLock::HLock(LockId lid)
 	: lock_(NULL),
 	  parent_(NULL),
-	  used_(false),
+	  sticky_(false),
+          used_(false),
 	  can_retry_(false),
 	  mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  ancestor_recursive_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
@@ -635,6 +636,8 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 	        phlock ? phlock->lid_.string().c_str(): "NULL");
 	
 	pthread_mutex_lock(&hlock->mutex_);
+	
+	hlock->sticky_ |= (flags & HLock::FLG_STICKY);
 
 check_state:
 	switch (hlock->status()) {

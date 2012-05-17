@@ -96,12 +96,12 @@ public:
 		return lock_protocol::OK;
 	}
 
-	int Lock(OsdSession* session, osd::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
+	int Lock(OsdSession* session, osd::cc::client::ObjectProxy* parent, lock_protocol::Mode mode, int flags = 0) {
 		int ret;
 		
 		// TODO: check if object is private or public. if public then lock. 
 		
-		if ((ret = osd::cc::client::ObjectProxy::Lock(session, parent, mode)) != lock_protocol::OK) {
+		if ((ret = osd::cc::client::ObjectProxy::Lock(session, parent, mode, flags)) != lock_protocol::OK) {
 			return ret;
 		}
 		assert((osd::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>::vOpen() == 0));

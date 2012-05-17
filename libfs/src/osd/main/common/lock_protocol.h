@@ -26,7 +26,7 @@ public:
 
 	enum flag {
 		FLG_NOQUE      = 0x1,  // don't queue client if can't grant request
-		FLG_CAPABILITY = 0x2
+		FLG_CAPABILITY = 0x2,   
 	};
 
 	enum revoke {

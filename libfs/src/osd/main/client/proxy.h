@@ -19,13 +19,6 @@
 //flat lock should revoke the hierarchical lock.
 
 
-//TODO: currently we hardcode the dlink check for files (T_BYTE_CONTAINER)
-//this check ensures that we acquire the lock through a capability when 
-//multiple clients complete for the lock. 
-//We should enhance the API to allow the user (i.e. filesystem) specify
-//that the lock should be acquired through the capability instead of 
-//acquiring it hierarcically.
-
 namespace osd {
 
 namespace client {
@@ -57,12 +50,12 @@ public:
 		return session->hlckmgr_->Acquire(hlock_, mode, 0);
 	}
 
-	int Lock(OsdSession* session, osd::cc::client::ObjectProxy* parent, lock_protocol::Mode mode) {
-		if (object()->dlink() > 1 && object()->type() == osd::containers::T_BYTE_CONTAINER) {
-			return session->hlckmgr_->Acquire(hlock_, mode, 0);
+	int Lock(OsdSession* session, osd::cc::client::ObjectProxy* parent, lock_protocol::Mode mode, int flags) {
+		if (object()->dlink() > 0) {
+			return session->hlckmgr_->Acquire(hlock_, mode, flags);
 		} else {
 			assert(parent->hlock_);
-			return session->hlckmgr_->Acquire(hlock_, parent->hlock_, mode, 0);
+			return session->hlckmgr_->Acquire(hlock_, parent->hlock_, mode, flags);
 		}
 	}
 

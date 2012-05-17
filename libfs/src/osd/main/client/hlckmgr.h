@@ -62,7 +62,7 @@ public:
 		FLG_NOBLK = lock_protocol::FLG_NOQUE, 
 		FLG_CAPABILITY = lock_protocol::FLG_CAPABILITY,
 		FLG_PUBLIC = 0x4, // acquire a globally visible lock 
-		FLG_
+		FLG_STICKY = 0x8
 	};
 
 
@@ -97,6 +97,7 @@ public:
 	pthread_cond_t        used_cv_;
 
 	pthread_mutex_t       mutex_;
+	bool                  sticky_;                  ///< hint: user will reacquire the lock after the lock is revoked. 
 	bool                  used_;                    ///< set to true after first use
 	bool                  can_retry_;               ///< set when a retry message from the server is received
 	/// private locking mode. indicates the mode locked by the hierarchical 

@@ -20,7 +20,6 @@
 
 
 //TODO: Fine-grain locking in GetObject/PutObject.
-//FIXME: decrement dlink when proxy is no longer referenced (i.e. no local handler)
 
 //#undef  PROFILER_SAMPLE
 //#define PROFILER_SAMPLE __PROFILER_SAMPLE
@@ -160,7 +159,6 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 		// before we release the lock manager's mutex lock
 		objproxy_ref = new osd::common::ObjectProxyReference();
 		objproxy_ref->Set(objproxy, false);
-		objproxy->object()->incr_dlink(1);
 	} else {
 		// object proxy exists
 		if (use_exist_obj_ref) {
@@ -259,6 +257,11 @@ void
 ObjectManager::OnRelease(osd::cc::client::HLock* hlock)
 {
 	ObjectId oid(reinterpret_cast<uint64_t>(hlock->payload()));
+
+	if (hlock->sticky_) {
+		osd::common::Object* obj = osd::common::Object::Load(oid);
+		obj->incr_dlink(1);
+	}
 
 	assert(CloseObject(cb_session_, oid, false) == E_SUCCESS);
 }

@@ -75,7 +75,7 @@ FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::
 			// otherwise we can't do hierarchical locking right?
 			DirInode* parent_dir_inode = dynamic_cast<DirInode*>(parent_inode);
 			cc_proxy_parent = parent_dir_inode->rw_ref()->proxy();	
-			return cc_proxy->Lock(session, cc_proxy_parent, mode);
+			return cc_proxy->Lock(session, cc_proxy_parent, mode, osd::cc::client::HLock::FLG_STICKY);
 		} else {
 			return cc_proxy->Lock(session, mode);
 		}
