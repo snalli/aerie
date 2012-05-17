@@ -13,20 +13,25 @@ namespace server {
 int 
 DirInode::Link(Session* session, const char* name, uint64_t ino)
 {
-	if (Inode::type(ino) != kFileInode) {
-		return -1;
+	DirInode  dinode;
+	FileInode finode;
+
+	if (Inode::type(ino) == kFileInode) {
+		FileInode* fp = FileInode::Load(session, ino, &finode);
+		return Link(session, name, fp);
+	} else if (Inode::type(ino) == kDirInode) {
+		DirInode* dp = DirInode::Load(session, ino, &dinode);
+		return Link(session, name, dp);
 	}
 
-	// assign parent of underlying object
-	// set link count
-
-	return E_SUCCESS;
+	return -1;
 }
 
 
 int 
 DirInode::Link(Session* session, const char* name, DirInode* child)
 {
+	printf("DLINK: %lu\n", child->oid().u64());
 	obj_->Insert(session, name, child->oid());
 	switch (str_is_dot(name)) {
 		case 1: // .
@@ -46,10 +51,12 @@ DirInode::Link(Session* session, const char* name, DirInode* child)
 int 
 DirInode::Link(Session* session, const char* name, FileInode* child)
 {
+	printf("LINK: %lu\n", child->oid().u64());
 	if (str_is_dot(name) > 0) {
 		dbg_log (DBG_INFO, "Validation failed: trying to link a file as %s\n", name);
 		return -E_VRFY;
 	}
+	printf("LINK: %lu\n", child->oid().u64());
 	obj_->Insert(session, name, child->oid());
 	child->obj()->set_parent(oid());
 	child->obj()->set_nlink(child->obj()->nlink() + 1);

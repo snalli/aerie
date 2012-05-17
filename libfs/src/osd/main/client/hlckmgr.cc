@@ -105,6 +105,7 @@ HLock::HLock(LockId lid)
 	  mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  ancestor_recursive_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  lid_(lid),
+	  owner_depth_(0),
 	  status_(NONE)
 {
 	pthread_mutex_init(&mutex_, NULL);
@@ -652,6 +653,7 @@ check_state:
 				if (mode < hlock->mode_) {
 					// silent acquisition covered by private mode
 					hlock->owner_ = tid;
+					hlock->owner_depth_ = 1;
 					hlock->set_status(HLock::LOCKED);
 					r = lock_protocol::OK;
 					break;
@@ -662,6 +664,7 @@ check_state:
 						assert((hlock->mode_ == hlock->lock_->public_mode_) ||
 						       (hlock->mode_ < hlock->lock_->public_mode_));
 						hlock->owner_ = tid;	
+						hlock->owner_depth_ = 1;
 						hlock->set_status(HLock::LOCKED);
 						r = lock_protocol::OK;
 					} else {
@@ -686,6 +689,7 @@ check_state:
 						hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
 						assert(lock_protocol::Mode::AbidesRecursiveRule(hlock->mode_, hlock->ancestor_recursive_mode_));
 						hlock->owner_ = tid;
+						hlock->owner_depth_ = 1;
 						hlock->set_status(HLock::LOCKED);
 						r = lock_protocol::OK;
 					}
@@ -735,6 +739,7 @@ check_state:
 				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 				        "[%d:%lu] current thread already got lock %s\n",
 				        id(), tid, lid.c_str());
+				hlock->owner_depth_++;
 				r = lock_protocol::OK;
 			} else {
 				if (flags & Lock::FLG_NOBLK) {
@@ -762,6 +767,7 @@ check_state:
 					if (r == lock_protocol::OK) {
 						hlock->mode_ = mode;
 						hlock->owner_ = tid;
+						hlock->owner_depth_ = 1;
 						hlock->set_status(HLock::LOCKED);
 					} else {
 						hlock->set_status(HLock::NONE);
@@ -774,6 +780,7 @@ check_state:
 					hlock->ancestor_recursive_mode_ = phlock->ancestor_recursive_mode_;
 					hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
 					hlock->owner_ = tid;
+					hlock->owner_depth_ = 1;
 					hlock->set_status(HLock::LOCKED);
 					r = lock_protocol::OK;
 					pthread_mutex_unlock(&phlock->mutex_);
@@ -783,6 +790,7 @@ check_state:
 				if (r == lock_protocol::OK) {
 					hlock->mode_ = mode;
 					hlock->owner_ = tid;
+					hlock->owner_depth_ = 1;
 					hlock->set_status(HLock::LOCKED);
 				} else {
 					hlock->set_status(HLock::NONE);
@@ -886,10 +894,12 @@ HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 	        "[%d:%lu] Releasing hierarchical lock %s\n", id(), tid, lid.c_str()); 
 	
 	if (hlock->owner_ == tid) {
-		if (hlock->status() == HLock::LOCKED_CONVERTING) {
-			hlock->set_status(HLock::CONVERTING);
-		} else {
-			hlock->set_status(HLock::FREE);
+		if (--hlock->owner_depth_ == 0) {
+			if (hlock->status() == HLock::LOCKED_CONVERTING) {
+				hlock->set_status(HLock::CONVERTING);
+			} else {
+				hlock->set_status(HLock::FREE);
+			}
 		}
 	} else {
 		DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 

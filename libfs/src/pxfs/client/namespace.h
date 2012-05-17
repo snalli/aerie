@@ -14,6 +14,7 @@ class NameSpace {
 public:
 	NameSpace(const char*);
 	int Lookup(Session* session, const char* name, void**);
+	int Rename(Session* session, const char *oldpath, const char* newpath);
 	int Link(Session* session, const char* oldpath, const char* newpath);
 	int Unlink(Session* session, const char* pathname);
 	int Namei(Session* session, const char* path, lock_protocol::Mode lock_mode, Inode**);

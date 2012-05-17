@@ -109,6 +109,7 @@ public:
 	lock_protocol::Mode   ancestor_recursive_mode_; ///< recursive mode of ancestors
 	LockId                lid_;
 	HLockPtrList          children_;
+	int                   owner_depth_; ///< how many times the lock is locked by owner   
 	void*                 payload_;     ///< lock users may use it for anything they like
 private:	
 	LockStatus            status_;

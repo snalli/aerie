@@ -30,6 +30,7 @@ int PXFS_FRONTAPI(mount) (const char* source, const char* target, const char* fs
 int PXFS_FRONTAPI(umount) (const char* target);
 int PXFS_FRONTAPI(link) (const char* oldpath, const char* newpath);
 int PXFS_FRONTAPI(unlink) (const char* pathname);
+int PXFS_FRONTAPI(rename) (const char* oldpath, const char* newpath);
 int PXFS_FRONTAPI(mkdir) (const char* path, int mode);
 int PXFS_FRONTAPI(rmdir) (const char* path);
 int PXFS_FRONTAPI(chdir) (const char* path);

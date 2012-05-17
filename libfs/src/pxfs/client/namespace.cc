@@ -400,6 +400,78 @@ NameSpace::SetCurWrkDir(Session* session, const char* path)
 
 
 int
+NameSpace::Rename(Session* session, const char *oldpath, const char* newpath)
+{
+	char          name_old[128];
+	char          name_new[128];
+	Inode*        dp_old;
+	Inode*        dp_new;
+	Inode*        ip;
+	int           ret;
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_name), "Rename: %s -> %s\n", oldpath, newpath);
+
+grab_locks:
+	// grab a recursive lock to force other clients drop any locks they acquired 
+	// under the old parent (as those locks will no longer be valid after the rename)
+	if ((ret = global_namespace->Nameiparent(session, oldpath, lock_protocol::Mode::XR, 
+	                                         name_old, &dp_old)) < 0) 
+	{
+		return ret;
+	}
+	if ((ret = global_namespace->Nameiparent(session, newpath, lock_protocol::Mode::XR, 
+	                                         name_new, &dp_new)) < 0) 
+	{
+		dp_old->Put();
+		dp_old->Unlock(session);
+		if (ret == lock_protocol::DEADLK) {
+			goto grab_locks;
+		}
+		return ret;
+	}
+	if ((ret = dp_old->Lookup(session, name_old, 0, &ip)) != E_SUCCESS) {
+		dp_old->Put();
+		dp_old->Unlock(session);
+		dp_new->Put();
+		dp_new->Unlock(session);
+		return ret;
+	}
+	if ((ret = ip->Lock(session, dp_old, lock_protocol::Mode::XR)) != E_SUCCESS) {
+		dp_old->Put();
+		dp_old->Unlock(session);
+		dp_new->Put();
+		dp_new->Unlock(session);
+		if (ret == lock_protocol::DEADLK) {
+			goto grab_locks;
+		}
+		return ret;
+	}
+	session->journal()->TransactionBegin();
+	
+	assert(dp_new->Link(session, name_new, ip, false) == 0);
+	assert(dp_old->Unlink(session, name_old) == 0);
+
+	session->journal() << Publisher::Message::LogicalOperation::Link(dp_new->ino(), name_new, ip->ino());
+	session->journal() << Publisher::Message::LogicalOperation::Unlink(dp_old->ino(), name_old);
+	session->journal()->TransactionCommit();
+	
+	dp_old->Put();
+	dp_old->Unlock(session);
+	dp_new->Put();
+	dp_new->Unlock(session);
+	ip->Put();
+	ip->Unlock(session);
+	return 0;
+
+bad:
+	//FIXME: re-lock
+	assert(ip->set_nlink(ip->nlink() - 1) == 0);
+	return ret;
+}
+
+
+
+int
 NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 {
 	char          name[128];

@@ -146,7 +146,6 @@ Publisher::Link(::osd::server::OsdSession* osdsession, char* buf,
 	session->journal()->TransactionBegin();
 	DirInode* dp = DirInode::Load(session, lgc_op->parino_, &dinode);
 	if ((ret = dp->Link(session, lgc_op->name_, lgc_op->childino_)) < 0) { goto abort; }
-
 	session->journal()->TransactionCommit();
 	return E_SUCCESS;
 

@@ -433,8 +433,7 @@ Client::GetCurWrkDir(const char* path, size_t size)
 int 
 Client::Rename(const char* oldpath, const char* newpath)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-	return E_SUCCESS;
+	return global_namespace->Rename(CurrentSession(), oldpath, newpath);
 }
 
 

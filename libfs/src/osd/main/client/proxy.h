@@ -50,6 +50,10 @@ public:
 		return session->hlckmgr_->Acquire(hlock_, mode, 0);
 	}
 
+	//FIXME: it's possible to see dlink == 0 but after grabbing the lock the dlink
+	//to be 1 if some other client was forced to revoke the lock but wanted to stick
+	//to the lock. In such a case, release the lock you just acquired and grab the 
+	//explicit lock
 	int Lock(OsdSession* session, osd::cc::client::ObjectProxy* parent, lock_protocol::Mode mode, int flags) {
 		if (object()->dlink() > 0) {
 			return session->hlckmgr_->Acquire(hlock_, mode, flags);
