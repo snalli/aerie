@@ -26,9 +26,14 @@ extern int (*fs_fclose)(RFile* fp);
 
 extern int ubench_fs_open(int argc, char* argv[]);
 extern int ubench_fs_create(int argc, char* argv[]);
+extern int ubench_fs_delete(int argc, char* argv[]);
+extern int ubench_fs_append(int argc, char* argv[]);
 extern int ubench_fs_unlink(int argc, char* argv[]);
 extern int ubench_fs_read(int argc, char* argv[]);
 extern int ubench_fs_fread(int argc, char* argv[]);
-
+extern int ubench_fs_seqread(int argc, char* argv[]);
+extern int ubench_fs_randread(int argc, char* argv[]);
+extern int ubench_fs_seqwrite(int argc, char* argv[]);
+extern int ubench_fs_randwrite(int argc, char* argv[]);
 
 #endif // __STAMNOS_UBENCH_FS_H

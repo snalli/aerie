@@ -5,7 +5,7 @@ buildEnv = mainEnv.Clone()
 buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
 buildEnv.Append(CPPPATH = ['#bench', '#src', '#'])
 
-commonSource = ['open.cc', 'create.cc', 'unlink.cc', 'read.cc', 'fs.cc', 'fread.cc']
+commonSource = ['open.cc', 'create.cc', 'unlink.cc', 'read.cc', 'fs.cc', 'fread.cc', 'seqread.cc', 'randread.cc', 'seqwrite.cc', 'randwrite.cc', 'delete.cc', 'append.cc']
 vfsSource = ['vfs.cc']
 pxfsSource = ['pxfs.cc']
 cfsSource = ['cfs.cc']
