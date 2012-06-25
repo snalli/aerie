@@ -322,8 +322,17 @@ procflow_exec(char *name, int instance)
 	rxfs_init3("10000", 0);
         rxfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
 #elif RXFS_F
+	libfs_init3("10000", 0);
+        libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
+	printf("rxfs init\n");
 	rxfs_init3("10000", 0);
+	printf("rxfs init over\n");
         rxfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
+	printf("rxfs mount over\n");
+#elif KVFS
+	printf("starting again\n");
+	kvfs_init2("10000");
+	kvfs_mount("/tmp/stamnos_pool", 0);
 #endif
 	
 	if ((ret = threadflow_init(procflow)) != FILEBENCH_OK) {
@@ -346,6 +355,8 @@ procflow_exec(char *name, int instance)
 	libfs_shutdown();
 #elif RXFS
 	rxfs_shutdown();
+#elif KVFS
+	kvfs_shutdown();
 #endif
 
 	return (ret);

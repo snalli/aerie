@@ -64,6 +64,7 @@ typedef struct threadflow {
 	int		tf_fdrotor;	/* Rotating fd within set */
 	struct flowstats	tf_stats;	/* Thread statistics */
 	hrtime_t	tf_stime;	/* Start time of current flowop: used to measure the latency of the flowop */
+	hrtime_t	lat;	
 #ifdef HAVE_PROC_PID_LWP
 	struct prusage	tf_susage;	/* Resource usage snapshot, start */
 	struct prusage	tf_eusage;	/* Resource usage snapshot, end */

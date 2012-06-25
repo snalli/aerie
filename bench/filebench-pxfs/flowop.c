@@ -139,7 +139,9 @@ flowop_printall(void)
 void
 flowop_beginop(threadflow_t *threadflow, flowop_t *flowop)
 {
+#if 0
 #ifdef HAVE_PROC_PID_LWP
+	printf("PROC_PID_LWP\n");
 	if ((filebench_shm->shm_mmode & FILEBENCH_MODE_NOUSAGE) == 0) {
 		if (threadflow->tf_lwpusagefd == 0) {
 			char procname[128];
@@ -165,6 +167,7 @@ flowop_beginop(threadflow_t *threadflow, flowop_t *flowop)
 		}
 	}
 #elif defined(HAVE_PROC_PID_STAT)
+	printf("PROC_PID_STAT\n");
 	int tid;
 	char fname[128], dummy_str[64];
 	unsigned long utime, stime;
@@ -188,7 +191,7 @@ flowop_beginop(threadflow_t *threadflow, flowop_t *flowop)
 		filebench_log(LOG_ERROR, "Unable to open proc/<pid>/stat file for given thread (errno=%d)", errno);
 	}
 #endif
-
+#endif
 	/* Start of op for this thread */
 	threadflow->tf_stime = gethrtime();
 }
@@ -227,6 +230,7 @@ flowop_endop(threadflow_t *threadflow, flowop_t *flowop, int64_t bytes)
 #endif
 
 	ll_delay = (gethrtime() - threadflow->tf_stime);
+	threadflow->lat = ll_delay;
 
 	/* setting minimum and maximum latencies for this flowop */
 	if (!flowop->fo_stats.fs_minlat || ll_delay < flowop->fo_stats.fs_minlat)
@@ -236,6 +240,7 @@ flowop_endop(threadflow_t *threadflow, flowop_t *flowop, int64_t bytes)
 		flowop->fo_stats.fs_maxlat = ll_delay;
 
 	flowop->fo_stats.fs_mstate[FLOW_MSTATE_LAT] += ll_delay;
+#if 0
 #ifdef HAVE_PROC_PID_LWP
 	if ((filebench_shm->shm_mmode & FILEBENCH_MODE_NOUSAGE) == 0) {
 		if ((pread(threadflow->tf_lwpusagefd, &threadflow->tf_eusage,
@@ -290,6 +295,7 @@ flowop_endop(threadflow_t *threadflow, flowop_t *flowop, int64_t bytes)
 		}
 
 	}
+#endif
 #endif
 	flowop->fo_stats.fs_count++;
 	flowop->fo_stats.fs_bytes += bytes;

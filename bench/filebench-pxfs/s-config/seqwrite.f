@@ -24,30 +24,35 @@
 #
 # ident	"%Z%%M%	%I%	%E% SMI"
 
-# Single threaded sequential reads (1MB I/Os) on a 1G file.
+# Single threaded asynchronous ($sync) sequential writes (1MB I/Os) to
+# a 1GB file.
+# Stops after 1 series of 1024 ($count) writes has been done.
 
 set $dir=/pxfs
 set $cached=false
-set $filesize=1g
+set $count=1024
 set $iosize=1m
 set $nthreads=1
+set $sync=false
 
-define file name=largefile,path=$dir,size=$filesize,prealloc,reuse,cached=$cached
+define file name=bigfile,path=$dir,size=0,prealloc,cached=$cached
 
-define process name=filereader,instances=1
+define process name=filewriter,instances=1
 {
-  thread name=filereaderthread,memsize=10m,instances=$nthreads
+  thread name=filewriterthread,memsize=10m,instances=$nthreads
   {
-    flowop read name=seqread-file,filename=largefile,iosize=$iosize
+    flowop appendfile name=write-file,dsync=$sync,filename=bigfile,iosize=$iosize,iters=$count
+    flowop finishoncount name=finish,value=1
   }
 }
 
-echo  "FileMicro-SeqRead Version 2.1 personality successfully loaded"
+echo  "FileMicro-SeqWrite Version 2.2 personality successfully loaded"
 usage "Usage: set \$dir=<dir>"
 usage "       set \$cached=<bool>    defaults to $cached"
-usage "       set \$filesize=<size>  defaults to $filesize"
+usage "       set \$count=<value>    defaults to $count"
 usage "       set \$iosize=<size>    defaults to $iosize"
 usage "       set \$nthreads=<value> defaults to $nthreads"
+usage "       set \$sync=<bool>      defaults to $sync"
 usage " "
 usage "       run runtime (e.g. run 60)"
 

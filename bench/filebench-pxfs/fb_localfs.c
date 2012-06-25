@@ -44,7 +44,6 @@
 
 #include "filebench.h"
 #include "fsplug.h"
-
 #include "cheader.h"
 
 #ifdef HAVE_AIO
@@ -213,14 +212,19 @@ static int
 fb_lfs_read(fb_fdesc_t *fd, caddr_t iobuf, fbint_t iosize)
 {
 	int ret;
+	char buf[4096];
+
 	#ifdef LIBFS
 	ret = libfs_read(fd->fd_num, (void *)iobuf, (size_t)iosize);
 	#elif RXFS
 	ret = rxfs_read(fd->fd_num, (void *)iobuf, (size_t)iosize);
 	#elif RXFS_F
-	//printf("read start\n");
 	ret = rxfs_fread(fd->fptr, (void *)iobuf, (size_t)iosize);
-	//printf("read end %d\n", ret);
+	#elif KVFS
+	ret = kvfs_get(fd->fname, iobuf);
+	//printf("key %s read %d\n", fd->fname, ret);
+	//printf("read ret : %d\n", ret);
+	return ret;
 	#else
 	ret = (read(fd->fd_num, iobuf, iosize));
 	#endif
@@ -520,9 +524,13 @@ fb_lfs_open(fb_fdesc_t *fd, char *path, int flags, int perms)
 	if(fd->fd_num > 0)
 		return FILEBENCH_OK;
 	#elif RXFS_F
-	//printf("open is fine\n");
 	fd->fptr = rxfs_fopen(path, flags);
 	if(fd->fptr)
+		return FILEBENCH_OK;
+	#elif KVFS
+	strcpy(fd->fname, path+PREFIXIGNORE);
+	//printf("key %s %s\n", fd->fname, path);
+	if(1)
 		return FILEBENCH_OK;
 	#else
 	fd->fd_num = (open64(path, flags, perms));
@@ -540,7 +548,17 @@ fb_lfs_open(fb_fdesc_t *fd, char *path, int flags, int perms)
 static int
 fb_lfs_unlink(char *path)
 {
+	#ifdef LIBFS
+	return (libfs_unlink(path));
+	//return (unlink(path));
+	#elif KVFS
+	// /pxfs/bigfileset/ contains 17 characters
+	//printf("key delete %s\n", path+PREFIXIGNORE);
+	return (kvfs_del(path+PREFIXIGNORE));
+	//printf("delete done\n");
+	#else
 	return (unlink(path));
+	#endif
 }
 
 /*
@@ -578,6 +596,8 @@ fb_lfs_lseek(fb_fdesc_t *fd, off64_t offset, int whence)
 	ret = libfs_lseek(fd->fd_num, offset, whence);
 	#elif RXFS
 	ret = rxfs_lseek(fd->fd_num, offset, whence);
+	#elif KVFS
+	return 0;
 	#else
 	ret = (lseek64(fd->fd_num, offset, whence));
 	#endif
@@ -604,8 +624,9 @@ fb_lfs_close(fb_fdesc_t *fd)
 	#elif RXFS
 	return rxfs_close(fd->fd_num);
 	#elif RXFS_F
-	//printf("close is fine\n");
-	return rxfs_close(fd->fptr);
+	return rxfs_fclose(fd->fptr);
+	#elif KVFS
+	return 0;
 	#else
 	return (close(fd->fd_num));
 	#endif
@@ -626,6 +647,8 @@ fb_lfs_mkdir(char *path, int perm)
 	ret = (libfs_mkdir(path, 0));
 	#elif RXFS_F
 	ret = (libfs_mkdir(path, 0));
+	#elif KVFS
+	//printf("mkdir for %s\n", path);
 	#else
 	ret =  (mkdir(path, perm));
 	#endif
@@ -740,11 +763,16 @@ static int
 fb_lfs_write(fb_fdesc_t *fd, caddr_t iobuf, fbint_t iosize)
 {
 	ssize_t ret;
-
+	char buf[4096];
 	#ifdef LIBFS
 	ret = libfs_write(fd->fd_num, (void *)iobuf, (size_t)iosize);
 	#elif RXFS
 	ret = rxfs_write(fd->fd_num, (void *)iobuf, (size_t)iosize);
+	#elif KVFS
+	ret = kvfs_put(fd->fname, iobuf, iosize);
+	//printf("write ends\n");
+	//printf("key write %s with iosize %lld ret %d\n", fd->fname, iosize, ret);
+	return iosize;
 	#else
 	ret = (write(fd->fd_num, iobuf, iosize));
 	#endif

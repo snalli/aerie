@@ -365,12 +365,22 @@ fileset_alloc_file(filesetentry_t *entry)
 	} else {
 		int ret = FILEBENCH_OK;
 		/* No file or not reusing, so create */
-		/*fdesc.fd_num = libfs_open(path, O_RDWR | O_CREAT);
+		#if defined(RXFS) || defined(RXFS_F)
+		fdesc.fd_num = libfs_open(path, O_RDWR | O_CREAT);
 		if(fdesc.fd_num < 0)
 			ret = FILEBENCH_ERROR;
-		if(ret == */ 
+		if(ret ==   
+		    FILEBENCH_ERROR) {
+		#elif LIBFS
 		if (FB_OPEN(&fdesc, path, O_RDWR | O_CREAT, 0644) ==
 		    FILEBENCH_ERROR) {
+		#elif KVFS
+		if (FB_OPEN(&fdesc, path, O_RDWR | O_CREAT, 0644) ==
+		    FILEBENCH_ERROR) {
+		#else
+		if (FB_OPEN(&fdesc, path, O_RDWR | O_CREAT, 0644) ==
+		    FILEBENCH_ERROR) {
+		#endif
 			filebench_log(LOG_ERROR,
 			    "Failed to pre-allocate file %s: %s",
 			    path, strerror(errno));
@@ -398,8 +408,16 @@ fileset_alloc_file(filesetentry_t *entry)
 		 */
 		wsize = MIN(entry->fse_size - seek, FILE_ALLOC_BLOCK);
 
+		#if defined(RXFS) || defined(RXFS_F)
+		ret = libfs_write(fdesc.fd_num, buf, wsize);
+		#elif LIBFS
 		ret = FB_WRITE(&fdesc, buf, wsize);
-		//ret = libfs_write(fdesc.fd_num, buf, wsize);
+		#elif KVFS
+		ret = FB_WRITE(&fdesc, buf, wsize);
+		#else
+		ret = FB_WRITE(&fdesc, buf, wsize);
+		#endif
+
 		if (ret != wsize) {
 			filebench_log(LOG_ERROR,
 			    "Failed to pre-allocate file %s: %s",
@@ -415,9 +433,15 @@ fileset_alloc_file(filesetentry_t *entry)
 	if (!avd_get_bool(fileset->fs_cached))
 		(void) FB_FREEMEM(&fdesc, entry->fse_size);
 
+	#if defined(RXFS) || defined(RXFS_F)
+	(void) libfs_close(fdesc.fd_num);
+	#elif LIBFS
 	(void) FB_CLOSE(&fdesc);
-	//(void) libfs_close(fdesc.fd_num);
-
+	#elif KVFS
+	
+	#else
+	(void) FB_CLOSE(&fdesc);
+	#endif
 	free(buf);
 
 	/* unbusy the allocated entry */
@@ -468,7 +492,7 @@ extern int libstat(char *, struct stat64 *);
 
 int
 fileset_openfile(fb_fdesc_t *fdesc, fileset_t *fileset,
-    filesetentry_t *entry, int flag, int filemode, int attrs)
+    filesetentry_t *entry, int flag, int filemode, int attrs, int append)
 {
 	char path[MAXPATHLEN];
 	char dir[MAXPATHLEN];
@@ -492,6 +516,9 @@ fileset_openfile(fb_fdesc_t *fdesc, fileset_t *fileset,
 			return (FILEBENCH_ERROR);
 	}
 
+	//if(flag & O_CREAT)
+	//	printf("file creation %s\n", path);
+
 	if (attrs & FLOW_ATTR_DSYNC)
 		open_attrs |= O_SYNC;
 
@@ -500,16 +527,32 @@ fileset_openfile(fb_fdesc_t *fdesc, fileset_t *fileset,
 		open_attrs |= O_DIRECT;
 #endif /* HAVE_O_DIRECT */
 
-	if (FB_OPEN(fdesc, path, flag | open_attrs, filemode)
-	    == FILEBENCH_ERROR) {
-		filebench_log(LOG_ERROR,
-		    "Failed to open file %d, %s, with status %x: %s",
-		    entry->fse_index, path, entry->fse_flags, strerror(errno));
-
-		fileset_unbusy(entry, FALSE, FALSE, 0);
-		return (FILEBENCH_ERROR);
+	fdesc->via_libfs = 0;
+	if(append == 1)
+	{
+		int fd = 0;
+		fd = libfs_open(path, flag | open_attrs);
+		fdesc->fd_num = fd;
+		fdesc->via_libfs = 1;
+		if(fd < 0)
+		{
+			printf("libfs open failed\n");
+			fileset_unbusy(entry, FALSE, FALSE, 0);
+			return FILEBENCH_ERROR;
+		}
 	}
+	else
+	{
+		if (FB_OPEN(fdesc, path, flag | open_attrs, filemode)
+				== FILEBENCH_ERROR) {
+			filebench_log(LOG_ERROR,
+					"Failed to open file %d, %s, with status %x: %s",
+					entry->fse_index, path, entry->fse_flags, strerror(errno));
 
+			fileset_unbusy(entry, FALSE, FALSE, 0);
+			return (FILEBENCH_ERROR);
+		}
+	}
 #ifdef HAVE_DIRECTIO
 	if (attrs & FLOW_ATTR_DIRECTIO)
 		(void)directio(fdesc->fd_num, DIRECTIO_ON);
@@ -1399,6 +1442,8 @@ fileset_populate_file(fileset_t *fileset, filesetentry_t *parent, int serial)
 			    fileset->fs_meansize / gamma);
 			drand_rnd = drand;
 			drand_rnd = (drand_rnd) & (~4095);
+			if(!drand_rnd)
+				drand_rnd = 4096;
 			entry->fse_size = (off64_t)drand_rnd;
 			//entry->fse_size = (off64_t)drand;
 			//printf("setting to %lld\n", drand_rnd);

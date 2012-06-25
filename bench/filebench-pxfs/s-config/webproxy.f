@@ -24,8 +24,9 @@
 #
 
 set $dir=/pxfs
-set $nfiles=10000
-set $meandirwidth=1000000
+set $nfiles=1000
+#set $meandirwidth=1000000
+set $meandirwidth=10000
 set $meanfilesize=16k
 #set $nthreads=100
 set $nthreads=1

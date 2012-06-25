@@ -5035,8 +5035,13 @@ main(int argc, char *argv[])
 	if (fscriptname)
 		(void)strcpy(filebench_shm->shm_fscriptname, fscriptname);
 
+	#if defined(LIBFS) || defined(RXFS) || defined(RXFS_F)
 	libfs_init3("10000", 0);
         libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
+	#elif KVFS
+	kvfs_init2("10000");
+	kvfs_mount("/tmp/stamnos_pool", 0);
+	#endif
 
 	flowop_init();
 	stats_init();
@@ -6335,10 +6340,17 @@ parser_run(cmd_t *cmd)
 	runtime = cmd->cmd_qty;
 
 	parser_fileset_create(cmd);
-	parser_proc_create(cmd);
 
+	#if defined(LIBFS) || defined(RXFS) || defined(RXFS_F)
 	libfs_sync();
 	libfs_shutdown();
+	#elif KVFS
+	printf("shutting down the first call\n");
+	kvfs_sync();
+	kvfs_shutdown();
+	#endif
+	parser_proc_create(cmd);
+
 
 	/* check for startup errors */
 	if (filebench_shm->shm_f_abort)

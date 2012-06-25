@@ -24,7 +24,7 @@
 #
 
 set $dir=/pxfs
-set $filesize=800m
+set $filesize=1g
 set $iosize=32k
 set $nthreads=1
 set $workingset=0

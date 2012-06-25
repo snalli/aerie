@@ -28,17 +28,23 @@
 
 set $dir=/pxfs
 set $cached=false
-set $filesize=1g
-set $iosize=1m
+set $filesize=0k
 set $nthreads=1
+set $io4k=4k
+set $io8k=8k
+set $io16k=16k
+set $io32k=32k
 
 define file name=largefile,path=$dir,size=$filesize,prealloc,reuse,cached=$cached
 
-define process name=filereader,instances=1
+define process name=fileappender,instances=1
 {
-  thread name=filereaderthread,memsize=10m,instances=$nthreads
+  thread name=fileappendthread,memsize=10m,instances=$nthreads
   {
-    flowop read name=seqread-file,filename=largefile,iosize=$iosize
+    flowop appendfile name=append-file,filename=largefile,iosize=$io4k
+    flowop appendfile name=append-file,filename=largefile,iosize=$io8k
+    flowop appendfile name=append-file,filename=largefile,iosize=$io16k
+    flowop appendfile name=append-file,filename=largefile,iosize=$io32k
   }
 }
 

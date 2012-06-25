@@ -100,7 +100,7 @@ static int flowoplib_bwlimit(threadflow_t *, flowop_t *flowop);
 static int flowoplib_iopslimit(threadflow_t *, flowop_t *flowop);
 static int flowoplib_opslimit(threadflow_t *, flowop_t *flowop);
 static int flowoplib_openfile(threadflow_t *, flowop_t *flowop);
-static int flowoplib_openfile_common(threadflow_t *, flowop_t *flowop, int fd);
+static int flowoplib_openfile_common(threadflow_t *, flowop_t *flowop, int fd, int append);
 static int flowoplib_createfile(threadflow_t *, flowop_t *flowop);
 static int flowoplib_closefile(threadflow_t *, flowop_t *flowop);
 static int flowoplib_makedir(threadflow_t *, flowop_t *flowop);
@@ -419,7 +419,7 @@ flowoplib_filesetup(threadflow_t *threadflow, flowop_t *flowop,
 		int ret;
 
 		if ((ret = flowoplib_openfile_common(
-		    threadflow, flowop, fd)) != FILEBENCH_OK)
+		    threadflow, flowop, fd, 1)) != FILEBENCH_OK)
 			return (ret);
 
 		if (threadflow->tf_fse[fd]) {
@@ -442,6 +442,7 @@ flowoplib_filesetup(threadflow_t *threadflow, flowop_t *flowop,
 			*wssp = avd_get_int(flowop->fo_fileset->fs_size);
 	}
 
+	//printf("file /pxfs/bigfileset%s\n", fileset_resolvepath(threadflow->tf_fse[fd]));
 	return (FILEBENCH_OK);
 }
 
@@ -1504,7 +1505,7 @@ flowoplib_openfile(threadflow_t *threadflow, flowop_t *flowop)
 	if (fd == -1)
 		return (FILEBENCH_ERROR);
 
-	return (flowoplib_openfile_common(threadflow, flowop, fd));
+	return (flowoplib_openfile_common(threadflow, flowop, fd, 0));
 }
 
 /*
@@ -1520,7 +1521,7 @@ flowoplib_openfile(threadflow_t *threadflow, flowop_t *flowop)
  * and FILEBENCH_OK on success.
  */
 static int
-flowoplib_openfile_common(threadflow_t *threadflow, flowop_t *flowop, int fd)
+flowoplib_openfile_common(threadflow_t *threadflow, flowop_t *flowop, int fd, int append)
 {
 	filesetentry_t *file;
 	char *fileset_name;
@@ -1583,11 +1584,12 @@ flowoplib_openfile_common(threadflow_t *threadflow, flowop_t *flowop, int fd)
 
 		filebench_log(LOG_DEBUG_SCRIPT,
 		    "open raw device %s flags %d = %d", name, open_attrs, fd);
+		
 		if (FB_OPEN(&(threadflow->tf_fd[fd]), name,
-		    openflag | open_attrs, 0666) == FILEBENCH_ERROR) {
+					openflag | open_attrs, 0666) == FILEBENCH_ERROR) {
 			filebench_log(LOG_ERROR,
-			    "Failed to open raw device %s: %s",
-			    name, strerror(errno));
+					"Failed to open raw device %s: %s",
+					name, strerror(errno));
 			return (FILEBENCH_ERROR);
 		}
 
@@ -1634,7 +1636,7 @@ flowoplib_openfile_common(threadflow_t *threadflow, flowop_t *flowop, int fd)
 
 	flowop_beginop(threadflow, flowop);
 	err = fileset_openfile(&threadflow->tf_fd[fd], flowop->fo_fileset,
-	    file, openflag, 0666, flowoplib_fileattrs(flowop));
+	    file, openflag, 0666, flowoplib_fileattrs(flowop), append);
 	flowop_endop(threadflow, flowop, 0);
 
 	if (err == FILEBENCH_ERROR) {
@@ -1669,6 +1671,8 @@ flowoplib_createfile(threadflow_t *threadflow, flowop_t *flowop)
 	int fd = flowop->fo_fdnumber;
 	int openflag = O_CREAT;
 	int err;
+
+	//printf("create ");
 
 	if (threadflow->tf_fd[fd].fd_ptr != NULL) {
 		filebench_log(LOG_ERROR,
@@ -1710,7 +1714,7 @@ flowoplib_createfile(threadflow_t *threadflow, flowop_t *flowop)
 
 	flowop_beginop(threadflow, flowop);
 	err = fileset_openfile(&threadflow->tf_fd[fd], flowop->fo_fileset,
-		file, openflag, 0666, flowoplib_fileattrs(flowop));
+		file, openflag | O_DIRECT, 0666, flowoplib_fileattrs(flowop), 0);
 	flowop_endop(threadflow, flowop, 0);
 
 	if (err == FILEBENCH_ERROR) {
@@ -2262,6 +2266,8 @@ flowoplib_readwholefile(threadflow_t *threadflow, flowop_t *flowop)
 	hrtime_t start, end;
 	off64_t size;
 
+	//printf("read whole ");
+
 	/* get the file to use */
 	if ((ret = flowoplib_filesetup(threadflow, flowop, &wss,
 	    &fdesc, &size)) != FILEBENCH_OK)
@@ -2288,21 +2294,19 @@ flowoplib_readwholefile(threadflow_t *threadflow, flowop_t *flowop)
 
 	/* Measure time to read bytes */
 	flowop_beginop(threadflow, flowop);
-	//start = gethrtime();
-	//start = rdtsc__();
 	(void) FB_LSEEK(fdesc, 0, SEEK_SET);
+	#ifdef KVFS
+	ret = FB_READ(fdesc, iobuf, iosize);
+	bytes += ret;
+	#else
 	while ((ret = FB_READ(fdesc, iobuf, iosize)) > 0)
-	{
-		//filebench_log(LOG_VERBOSE, "expected %d received %d", iosize, ret);
 		bytes += ret;
-	}
-	//end = gethrtime();	
-	//end = rdtsc__();
+	#endif
 	flowop_endop(threadflow, flowop, bytes);
 	//total_obtained += bytes;
 	//total_expected += size;
 	//if(bytes != size)
-	//printf("expected %llu obtained %llu\n", size, bytes);
+	//	printf("expected %llu obtained %llu\n", size, bytes);
 	//printf("exp %llu obt %llu\n", total_expected, total_obtained);
 
 	if (ret < 0) {
@@ -2413,6 +2417,8 @@ flowoplib_writewholefile(threadflow_t *threadflow, flowop_t *flowop)
 	int srcfd = flowop->fo_srcfdnumber;
 	int ret;
 	char zerowrtbuf;
+
+	//printf("write whole ");
 
 	/* get the file to use */
 	if ((ret = flowoplib_filesetup(threadflow, flowop, &wss,
@@ -2537,8 +2543,8 @@ flowoplib_appendfile(threadflow_t *threadflow, flowop_t *flowop)
 static int
 flowoplib_appendfilerand(threadflow_t *threadflow, flowop_t *flowop)
 {
-	caddr_t iobuf;
-	uint64_t appendsize;
+	caddr_t iobuf, readbuf;
+	uint64_t appendsize, readsize, filesize;
 	fb_fdesc_t *fdesc;
 	fbint_t wss;
 	fbint_t iosize;
@@ -2551,7 +2557,9 @@ flowoplib_appendfilerand(threadflow_t *threadflow, flowop_t *flowop)
 	}
 
 	fb_urandom64(&appendsize, iosize, 1LL, NULL);
-	//appendsize = appendsize & ~4095;
+	appendsize = appendsize & ~4095;
+	if(!appendsize)
+		appendsize = 4096;
 
 	/* skip if attempting zero length append */
 	if (appendsize == 0) {
@@ -2560,18 +2568,57 @@ flowoplib_appendfilerand(threadflow_t *threadflow, flowop_t *flowop)
 		return (FILEBENCH_OK);
 	}
 
+	//printf("append ");
+
 	if ((ret = flowoplib_iosetup(threadflow, flowop, &wss, &iobuf,
 	    &fdesc, appendsize)) != FILEBENCH_OK)
 		return (ret);
+
+	/* setup buffer to read the data */
+	if ((readsize = avd_get_int(flowop->fo_iosize)) == 0)
+		readsize = 1024*1024;
+
+	/*
+	 * The file may actually be 0 bytes long, in which case skip
+	 * the buffer set up call (which would fail) and substitute
+	 * a small buffer, which won't really be used.
+	 */
+	#ifdef KVFS
+	 {
+		if (flowoplib_iobufsetup(threadflow, flowop, &readbuf,
+		    readsize) != 0)
+		{
+			filebench_log(LOG_VERBOSE, "not able to allocate read buffer");
+			return (FILEBENCH_ERROR);
+		}
+	 }
+	#endif
 
 	/* XXX wss is not being used */
 
 	/* Measure time to write bytes */
 	flowop_beginop(threadflow, flowop);
-
+	#ifdef KVFS
+		/* 1.read */
+	ret = FB_READ(fdesc, readbuf, readsize);
+		/* 2. append */
+	filesize = ret;
+	if(ret < 0)
+		filesize = 0;
+	memcpy(readbuf+filesize, readbuf, appendsize);
+		/* 3. write */
+	ret = FB_WRITE(fdesc, readbuf, filesize+appendsize);
+	#elif RXFS_F
+	libfs_lseek(fdesc->fd_num, 0, SEEK_END);
+	ret = libfs_write(fdesc->fd_num, iobuf, appendsize);
+	printf("append executed\n");
+	#else
+	filesize = 0;
 	(void) FB_LSEEK(fdesc, 0, SEEK_END);
+	printf("append size %lld\n", appendsize);
 	ret = FB_WRITE(fdesc, iobuf, appendsize);
-	if (ret != appendsize) {
+	#endif
+	if (ret != filesize+appendsize) {
 		filebench_log(LOG_ERROR,
 		    "Failed to write %llu bytes on fd %d: %s",
 		    (u_longlong_t)appendsize, fdesc->fd_num, strerror(errno));
@@ -2580,6 +2627,10 @@ flowoplib_appendfilerand(threadflow_t *threadflow, flowop_t *flowop)
 	}
 
 	flowop_endop(threadflow, flowop, appendsize);
+
+	#ifdef RXFS_F
+	//flowoplib_closefile(threadflow_t *threadflow, flowop_t *flowop)
+	#endif
 
 	return (FILEBENCH_OK);
 }

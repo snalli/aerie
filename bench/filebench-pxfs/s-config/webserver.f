@@ -69,7 +69,7 @@ define process name=filereader,instances=1
     flowop openfile name=openfile10,filesetname=bigfileset,fd=1
     flowop readwholefile name=readfile10,fd=1,iosize=$iosize
     flowop closefile name=closefile10,fd=1
-    flowop appendfilerand name=appendlog,filesetname=logfiles,iosize=$meanappendsize,fd=2
+    #flowop appendfilerand name=appendlog,filesetname=logfiles,iosize=$meanappendsize,fd=2
   }
 }
 
@@ -82,4 +82,4 @@ usage "       set \$nthreads=<value>  defaults to $nthreads"
 usage "       set \$iosize=<size>     defaults to $iosize"
 usage "       run runtime (e.g. run 60)"
 
-run 60
+run 5

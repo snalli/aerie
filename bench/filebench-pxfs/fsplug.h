@@ -45,6 +45,8 @@ typedef union fb_fdesc {
 	int		fd_num;		/* OS file descriptor number */
 	void		*fd_ptr;	/* Pointer to nfs information block */
 	struct Rfile    *fptr;
+	char    	fname[128];
+	int		via_libfs;
 } fb_fdesc_t;
 
 typedef struct aiolist aiol_t;
