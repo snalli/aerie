@@ -24,7 +24,7 @@
 #
 
 set $dir=/mnt/scmfs
-set $nfiles=5000
+set $nfiles=10000
 set $meandirwidth=20
 set $meanfilesize=128k
 set $nthreads=1
@@ -63,4 +63,4 @@ usage "       set \$meandirwidth=<size> defaults to $meandirwidth"
 usage "       run runtime (e.g. run 60)"
 usage "flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1"
 
-run 60
+run 50

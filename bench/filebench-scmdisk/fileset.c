@@ -1387,8 +1387,8 @@ fileset_populate_file(fileset_t *fileset, filesetentry_t *parent, int serial)
 			    fileset->fs_meansize / gamma);
 			drand_rnd = drand;
 			drand_rnd = (drand_rnd) & (~4095);
-			//entry->fse_size = (off64_t)drand_rnd;
-			entry->fse_size = (off64_t)drand;
+			entry->fse_size = (off64_t)drand_rnd;
+			//entry->fse_size = (off64_t)drand;
 		} else {
 			entry->fse_size = (off64_t)fileset->fs_meansize;
 		}

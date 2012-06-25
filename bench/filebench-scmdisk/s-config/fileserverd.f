@@ -30,7 +30,7 @@ set $meanfilesize=128k
 set $nthreads=1
 set $iosize=1m
 set $meanappendsize=16k
-set $directio=1
+set $directio=0
 
 define fileset name=bigfileset,path=$dir,size=$meanfilesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=80
 

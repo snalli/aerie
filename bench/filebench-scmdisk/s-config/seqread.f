@@ -28,7 +28,7 @@
 
 set $dir=/mnt/scmfs
 set $cached=false
-set $filesize=800m
+set $filesize=1g
 set $iosize=1m
 set $nthreads=1
 

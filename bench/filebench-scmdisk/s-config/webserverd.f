@@ -31,7 +31,7 @@ set $nthreads=1
 #set $nthreads=100
 set $iosize=1m
 set $meanappendsize=16k
-set $directio=1
+set $directio=0
 
 define fileset name=bigfileset,path=$dir,size=$meanfilesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=100
 define fileset name=logfiles,path=$dir,size=$meanfilesize,entries=1,dirwidth=$meandirwidth,prealloc

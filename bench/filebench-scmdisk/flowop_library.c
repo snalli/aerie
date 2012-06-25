@@ -2545,7 +2545,7 @@ flowoplib_appendfilerand(threadflow_t *threadflow, flowop_t *flowop)
 	}
 
 	fb_urandom64(&appendsize, iosize, 1LL, NULL);
-	//appendsize = appendsize & ~4095;
+	appendsize = appendsize & ~4095;
 
 	/* skip if attempting zero length append */
 	if (appendsize == 0) {

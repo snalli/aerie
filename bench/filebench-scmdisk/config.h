@@ -299,7 +299,7 @@
 /* Define to 1 if you have the `strstr' function. */
 #define HAVE_STRSTR 1
 
-/* Define to 1 if `st_rdev' is a member of `struct stat'. */
+/* Define to 1 if `st_rdev' is member of `struct stat'. */
 #define HAVE_STRUCT_STAT_ST_RDEV 1
 
 /* Define if you have SYSV sems */
@@ -383,9 +383,6 @@
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "filebench"
 
-/* Define to the home page for this package. */
-#define PACKAGE_URL ""
-
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "1.4.9.1"
 
@@ -420,7 +417,7 @@
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
-#define YYTEXT_POINTER 1
+/* #undef YYTEXT_POINTER */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */

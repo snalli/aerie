@@ -473,8 +473,8 @@ stats_snap(void)
 		return;
 	}
 
-	filebench_log(LOG_VERBOSE, "Stats period = %ds",
-	    (globalstats->fs_etime - globalstats->fs_stime) / 1000000000);
+	//filebench_log(LOG_VERBOSE, "Stats period = %ds",
+	  //  (globalstats->fs_etime - globalstats->fs_stime) / 1000000000);
 
 	/* Freeze statistics during update */
 	filebench_shm->shm_bequiet = 1;
@@ -571,10 +571,8 @@ stats_snap(void)
 			continue;
 		}
 
-		printf("%ld\n", ((globalstats->fs_etime - globalstats->fs_stime) / FSECS));
-
 		(void) snprintf(line, sizeof (line), "%-20s %dops %8.0lfops/s "
-		    "%5.1lfmb/s %lfus/op %8.0fus/op-cpu",
+		    "%5.1lfmb/s %lld ns/op %lld ns/op-cpu",
 		    flowop->fo_name,
 		    flowop->fo_stats.fs_count,
 		    flowop->fo_stats.fs_count /
@@ -586,12 +584,12 @@ stats_snap(void)
 		    (flowop->fo_stats.fs_count) : 0,
 		    flowop->fo_stats.fs_count ?
 		    flowop->fo_stats.fs_mstate[FLOW_MSTATE_CPU] /
-		    (flowop->fo_stats.fs_count * 1000.0) : 0);
+		    (flowop->fo_stats.fs_count) : 0);
 		(void) strcat(str, line);
 
-		(void) snprintf(line, sizeof(line)," [%llums - %llums]",
-			flowop->fo_stats.fs_minlat / 1000000,
-			flowop->fo_stats.fs_maxlat / 1000000);
+		(void) snprintf(line, sizeof(line)," [%llu ns - %llu ns]",
+			flowop->fo_stats.fs_minlat,
+			flowop->fo_stats.fs_maxlat);
 		(void) strcat(str, line);
 
 		if (filebench_shm->osprof_enabled) {

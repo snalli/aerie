@@ -34,7 +34,7 @@ set $meanappendsize=16k
 set $directio=0
 
 define fileset name=bigfileset,path=$dir,size=$meanfilesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=100
-define fileset name=logfiles,path=$dir,size=$meanfilesize,entries=1,dirwidth=$meandirwidth,prealloc
+#define fileset name=logfiles,path=$dir,size=$meanfilesize,entries=1,dirwidth=$meandirwidth,prealloc
 
 define process name=filereader,instances=1
 {
@@ -70,7 +70,7 @@ define process name=filereader,instances=1
     flowop openfile name=openfile10,filesetname=bigfileset,fd=1,directio=$directio
     flowop readwholefile name=readfile10,fd=1,iosize=$iosize,directio=$directio
     flowop closefile name=closefile10,fd=1,directio=$directio
-    flowop appendfilerand name=appendlog,filesetname=logfiles,iosize=$meanappendsize,fd=2
+    #flowop appendfilerand name=appendlog,filesetname=logfiles,iosize=$meanappendsize,fd=2
   }
 }
 

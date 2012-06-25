@@ -5,22 +5,22 @@ function cleanup {
 	cd /scratch/nvm/stamnos/kernelmode/scmdisk/
 	/scratch/nvm/stamnos/kernelmode/scmdisk/fs.sh -r &> /dev/null
 	/scratch/nvm/stamnos/kernelmode/scmdisk/fs.sh -c &> /dev/null
-	cd /scratch/nvm/file*/
 	rm -rf /mnt/scmfs/logfile* &> /dev/null
 	rm -rf /mnt/scmfs/bigfile* &> /dev/null
 	rm -rf /mnt/scmfs/largefile* &> /dev/null
 	echo 3 >> /proc/sys/vm/drop_caches
+	cd /scratch/nvm/stamnos/bench/filebench-scmdisk/
 }
 
 cd /scratch/nvm/stamnos/kernelmode/scmdisk/
 /scratch/nvm/stamnos/kernelmode/scmdisk/dev.sh &> /dev/null
 /scratch/nvm/stamnos/kernelmode/scmdisk/fs.sh -c &> /dev/null
-cd /scratch/nvm/file*/
+cd /scratch/nvm/stamnos/bench/filebench-scmdisk/
 
-exec &> scmdisk-results.txt
+exec &> scmdiskd-results.txt
 
 echo ""
-echo "fileserverd"
+echo "fileserver"
 echo "**********"
 
 for (( i = 0 ; i < $iter ; i++ ))
@@ -33,7 +33,7 @@ done
 
 
 echo ""
-echo "randomread"
+echo "randomreadd"
 echo "**********"
 
 for (( i = 0 ; i < $iter ; i++ ))
@@ -45,7 +45,7 @@ do
 done
 
 echo ""
-echo "webserver"
+echo "webserverd"
 echo "*********"
 
 for (( i = 0 ; i < $iter ; i++ ))
@@ -57,7 +57,7 @@ do
 done
 
 echo ""
-echo "webproxy"
+echo "webproxyd"
 echo "********"
 
 for (( i = 0 ; i < $iter ; i++ ))
@@ -69,7 +69,7 @@ do
 done
 
 echo ""
-echo "seqread"
+echo "seqreadd"
 echo "*******"
 
 for (( i = 0 ; i < $iter ; i++ ))
