@@ -3,7 +3,7 @@
 mountpoint="/mnt/scmfs"
 scmdevice0="/dev/scm0"
 scmctldevice0="/dev/scm0-ctl"
-objdir="build"
+objdir="/scratch/nvm/stamnos/kernelmode/scmdisk/build"
 
 function mkfs {
 	if [ ! -b "$scmdevice0" ]
@@ -17,7 +17,8 @@ function mkfs {
 	fi
 	/sbin/insmod $objdir/scmdisk.ko
 	#/sbin/mke2fs -m 0 /dev/scm0
-	/sbin/mkfs.ext4 -m 0 /dev/scm0
+	/sbin/mkfs.ext3 -m 0 /dev/scm0 -j
+	rm -rf $mountpoint
 	if [ ! -d "$mountpoint" ]
 	then 
 	mkdir $mountpoint

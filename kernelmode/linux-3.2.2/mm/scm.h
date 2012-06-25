@@ -13,7 +13,7 @@
 #include <asm/bitops.h>
 
 #define PERS_START 0x8000000000
-#define PERS_SPACE (unsigned long)(1024*1024)*(unsigned long)(1024*2)
+#define PERS_SPACE (unsigned long)(1024*1024)*(unsigned long)(1024*32)
 #define PAGESIZE   4*1024
 #define EXTENTSIZE PAGESIZE 
 #define EXTENT_SHIFT 12
@@ -79,7 +79,8 @@ typedef struct {
 typedef struct {
 	uid_t uid;
 	pud_t *ppud;
-	unsigned long *page_prot_map;
+	//unsigned long *page_prot_map;
+	unsigned long page_prot_map[6*1024*1024];
 	struct mm_struct d_mm;
 }ppgtable_user;
 

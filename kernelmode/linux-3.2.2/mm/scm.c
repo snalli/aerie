@@ -21,7 +21,7 @@ unsigned long memblocksz_mb = 0;
  */
 ppgtable_user ppgtbl[MAXUSERS];
 unsigned long ppgtbl_index = 0;
-unsigned long pg_prot_mapsize = 0;
+unsigned long pg_prot_mapsize = 0; // map size in unsigned long
 DEFINE_MUTEX(ppgtbl_lock);
 
 /*
@@ -109,11 +109,19 @@ void init_scm(void)
 	unsigned long i, phys_index;
 	unsigned long onegb = 1024*1024*1024;
 
-	//printk(KERN_ERR"possible devices %d", MAX_MEMBLOCKS);
 	pg_prot_mapsize = PERS_SPACE;
-	pg_prot_mapsize /= EXTENTSIZE;
-	pg_prot_mapsize *= 2;
-	pg_prot_mapsize /= sizeof(unsigned long);
+        pg_prot_mapsize /= EXTENTSIZE;
+        pg_prot_mapsize *= 2; // this will be the total bits required
+        //unsigned long can accomodate 64 bits
+        pg_prot_mapsize /= (8 * sizeof(unsigned long));
+        
+	printk(KERN_ERR"page protection map size %lx", pg_prot_mapsize);
+
+	//printk(KERN_ERR"possible devices %d", MAX_MEMBLOCKS);
+	//pg_prot_mapsize = PERS_SPACE;
+	//pg_prot_mapsize /= EXTENTSIZE;
+	//pg_prot_mapsize *= 2;
+	//pg_prot_mapsize /= sizeof(unsigned long);
 
 	freememblocks = (unsigned long *)kmalloc
 		(sizeof(unsigned long) * MEMBLOCKS_BMAPSZ, GFP_KERNEL);
@@ -433,7 +441,9 @@ SYSCALL_DEFINE3(mpprotect, void *, extseg, void *, rights, int, count)
 			   the page fault, the handler will refer to the bitmap
 			   to find the appropriate rights. So, it's enough if 
 			   the bitmap is updated */	
-
+			if(oldr <= 0) oldr = 0;
+			if(oldw <= 0) oldw = 0;
+		
 			//if(!oldr && !oldw)
 			//	continue;
 			//if((!!oldr == !!(rw&0x2)) && (!!oldw == !!(rw&0x1)))
@@ -520,7 +530,8 @@ SYSCALL_DEFINE1(flush_pg, int, flush_all)
 			//__flush_tlb_one(address);
 			flush_tlb_others(cpu_online_mask, NULL, address);
 		}
-		bitmap_zero(ppgtbl[i].page_prot_map, pg_prot_mapsize);
+		//bitmap_zero(ppgtbl[i].page_prot_map, pg_prot_mapsize);
+		memset(ppgtbl[i].page_prot_map, 0, pg_prot_mapsize*sizeof(unsigned long));
 	}	
 	mutex_unlock(&ppgtbl_lock);
 	return SUCCESS;
@@ -678,9 +689,13 @@ ppgtable_user *find_shared_ppgtbl_entry(uid_t uid, bool create_new, bool incref)
 	ppg_tracker = true;
 	ppgtbl[ppgtbl_index].uid = uid;
 	ppud_ret = ppgtbl[ppgtbl_index].ppud = pud_alloc_one(NULL, 0x0);
-	ppgtbl[ppgtbl_index].page_prot_map = (unsigned long *)kmalloc
-		(sizeof(unsigned long) * pg_prot_mapsize, GFP_KERNEL);
-	bitmap_zero(ppgtbl[ppgtbl_index].page_prot_map, pg_prot_mapsize);
+	//ppgtbl[ppgtbl_index].page_prot_map = (unsigned long *)kmalloc
+	//	(sizeof(unsigned long) * pg_prot_mapsize, GFP_KERNEL);
+	if(ppgtbl[ppgtbl_index].page_prot_map == NULL)
+                printk(KERN_ERR"allocation failed for page protection map");
+	//bitmap_zero(ppgtbl[ppgtbl_index].page_prot_map, pg_prot_mapsize);
+	printk(KERN_ERR"trying to zero for %d", pg_prot_mapsize*(sizeof(unsigned long)));	
+	memset(ppgtbl[ppgtbl_index].page_prot_map, 0, pg_prot_mapsize*sizeof(unsigned long));
 	p = &(ppgtbl[ppgtbl_index]);
 	ppgtbl_index++;
 
