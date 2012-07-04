@@ -31,7 +31,6 @@ DirInode::Link(Session* session, const char* name, uint64_t ino)
 int 
 DirInode::Link(Session* session, const char* name, DirInode* child)
 {
-	printf("DLINK: %lu\n", child->oid().u64());
 	obj_->Insert(session, name, child->oid());
 	switch (str_is_dot(name)) {
 		case 1: // .
@@ -51,7 +50,6 @@ DirInode::Link(Session* session, const char* name, DirInode* child)
 int 
 DirInode::Link(Session* session, const char* name, FileInode* child)
 {
-	printf("LINK: %lu\n", child->oid().u64());
 	if (str_is_dot(name) > 0) {
 		dbg_log (DBG_INFO, "Validation failed: trying to link a file as %s\n", name);
 		return -E_VRFY;

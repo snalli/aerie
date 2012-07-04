@@ -50,7 +50,8 @@ StoragePool::Allocate(const char* path, size_t size)
 
 	v_addr = 0x8000000000;
 	//size_mb = 1024;
-	size_mb = 8192;
+	//size_mb = 8192;
+	size_mb = (size / 1024) / 1024;
 
 	// convention: syscall 313 returns 1 on success
 	if (syscall(312, v_addr, size_mb) != 1) {
