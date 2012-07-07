@@ -24,7 +24,8 @@ DirInode::Lookup(::client::Session* session, const char* name, int flags, ::clie
 	::client::Inode*      ip;
 	osd::common::ObjectId oid;
 	
-	dbg_log (DBG_INFO, "Inode [%p, %lx]: lookup %s\n", this, ino(), name);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "Inode [%p, %lx]: lookup %s\n", this, ino(), name);
 
 	assert(ref_ != NULL);
 
@@ -54,7 +55,8 @@ DirInode::xLookup(::client::Session* session, const char* name, int flags, ::cli
 	::client::Inode*      ip;
 	osd::common::ObjectId oid;
 	
-	dbg_log (DBG_INFO, "Inode [%p, ino=%lx]: xLookup %s \n", this, ino(), name);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "Inode [%p, ino=%lx]: xLookup %s \n", this, ino(), name);
 
 	assert(ref_ != NULL);
 	// special case: requesting parent (name=..) and parent_ points to a pseudo-inode
@@ -83,7 +85,8 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 {
 	int ret; 
 
-	dbg_log (DBG_INFO, "Inode [%p, %lx]: link %s -> (%p, ino=%lx)\n", this, ino(), name, ip, ip->ino());
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "Inode [%p, %lx]: link %s -> (%p, ino=%lx)\n", this, ino(), name, ip, ip->ino());
 
 	ip->nlink();
 
@@ -107,7 +110,8 @@ DirInode::Unlink(::client::Session* session, const char* name)
 {
 	int ret; 
 
-	dbg_log (DBG_INFO, "Inode [%p, %lx]: unlink %s\n", this, ino(), name);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "Inode [%p, %lx]: unlink %s\n", this, ino(), name);
 
 	if ((ret = rw_ref()->proxy()->interface()->Erase(session, name)) != E_SUCCESS) {
 		return ret;
@@ -138,7 +142,8 @@ DirInode::Readdir()
 
 int DirInode::nlink()
 {
-	dbg_log (DBG_INFO, "In inode %lx, nlink = %d\n", ino(), rw_ref()->proxy()->interface()->nlink());
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "In inode %lx, nlink = %d\n", ino(), rw_ref()->proxy()->interface()->nlink());
 	
 	return rw_ref()->proxy()->interface()->nlink();
 }
@@ -146,7 +151,8 @@ int DirInode::nlink()
 
 int DirInode::set_nlink(int nlink)
 {
-	dbg_log (DBG_INFO, "In inode %lx, set nlink = %d\n", ino(), nlink);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "In inode %lx, set nlink = %d\n", ino(), nlink);
 	
 	return rw_ref()->proxy()->interface()->set_nlink(nlink);
 }

@@ -27,7 +27,8 @@ HLockManager::HLockManager(::server::Ipc* ipc)
 int
 HLockManager::Init()
 {
-	dbg_log(DBG_INFO, "Initializing Hierachical Lock Manager: %p\n", this);
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_hlckmgr), 
+                "Initializing Hierachical Lock Manager: %p\n", this);
 
 	pthread_mutex_init(&mutex_, NULL);
 
@@ -62,7 +63,8 @@ HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 	lock_protocol::Mode::Set::Iterator itr;
 	ClientRecord*                      cr;
 
-	dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %s (%s)\n",
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_hlckmgr), 
+	        "clt %d seq %d acquiring hierarchical lock %s (%s)\n",
 	        clt, seq, LockId(lid).c_str(), mode_set.String().c_str());
 
 	// just pass the lock request to the base lock manager
@@ -75,9 +77,10 @@ HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 	lock = lm_->FindOrCreateLockInternal(lid);
 
 	if (flags & lock_protocol::FLG_CAPABILITY) {
-		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %s (%s)"
-					" using capability\n", clt, seq, LockId(lid).c_str(), 
-					mode_set.String().c_str());
+		DBG_LOG(DBG_INFO, DBG_MODULE(server_hlckmgr), 
+		        "clt %d seq %d acquiring hierarchical lock %s (%s)"
+		        " using capability\n", clt, seq, LockId(lid).c_str(), 
+		        mode_set.String().c_str());
 		//TODO verify capability or get capability from the table
 	} else {
 		if ((plock = lm_->FindOrCreateLockInternal(plid)) &&
@@ -88,9 +91,10 @@ HLockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 			r = lock_protocol::HRERR;
 			goto done;
 		}
-		dbg_log(DBG_INFO, "clt %d seq %d acquiring hierarchical lock %s (%s)"
-				" under hierarchical lock %s (%s)\n", clt, seq, LockId(lid).c_str(), 
-				mode_set.String().c_str(), LockId(plid).c_str(), plock_mode.String().c_str());
+		DBG_LOG(DBG_INFO, DBG_MODULE(server_hlckmgr), 
+		        "clt %d seq %d acquiring hierarchical lock %s (%s)"
+		        " under hierarchical lock %s (%s)\n", clt, seq, LockId(lid).c_str(), 
+		        mode_set.String().c_str(), LockId(plid).c_str(), plock_mode.String().c_str());
 		for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {
 			if (!lock_protocol::Mode::AbidesHierarchyRule((*itr), plock_mode)) {
 				mode_set.Remove((*itr));

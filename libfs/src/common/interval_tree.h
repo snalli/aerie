@@ -55,7 +55,9 @@ public:
 	void Print(IntervalTreeNode*, IntervalTreeNode*) const;
 	IntervalTreeNode();
 	IntervalTreeNode(Interval *);
+	Interval* GetInterval() { return storedInterval; }
 	~IntervalTreeNode();
+
 protected:
 	Interval*         storedInterval;
 	int               key;
@@ -86,6 +88,7 @@ public:
 	IntervalTreeNode * Insert(Interval *);
 	IntervalTreeNode * GetPredecessorOf(IntervalTreeNode *) const;
 	IntervalTreeNode * GetSuccessorOf(IntervalTreeNode *) const;
+	IntervalTreeNode * GetLeftmostOverlap(int low, int high);
 	void CheckAssumptions() const;
 	Interval* LeftmostOverlap(int low, int high);
 
@@ -137,6 +140,33 @@ inline Interval* IntervalTree::LeftmostOverlap(int low, int high)
 	}
 	return result_interval;
 }
+
+
+inline IntervalTreeNode* IntervalTree::GetLeftmostOverlap(int low, int high)
+{
+	IntervalTreeNode* x=root->left;
+	IntervalTreeNode* result_interval_treenode = NULL;
+  
+#ifdef DEBUG_ASSERT
+	Assert((recursionNodeStackTop == 1),
+	       "recursionStack not empty when entering IntervalTree::Enumerate");
+#endif
+	while (x != nil) {
+		if (Overlap(low,high,x->key,x->high) ) {
+			result_interval_treenode = x;
+		}
+		if(x->left->maxHigh >= low) {
+			x = x->left;
+		} else if (!result_interval_treenode) { // we are looking for the leftmost 
+		    x = x->right;                       // overlap so if we already have one 
+		                                        // we should not go right
+		} else {
+			break;
+		}
+	}
+	return result_interval_treenode;
+}
+
 
 
 #endif // __INTERVAL_TREE_H_JKA901

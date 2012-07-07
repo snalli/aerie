@@ -753,7 +753,8 @@ check_state:
 			}
 			break;
 		case HLock::NONE:
-			dbg_log(DBG_INFO, "[%d:%lu] Hierarchical lock %s not available; acquiring now\n",
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
+			        "[%d:%lu] Hierarchical lock %s not available; acquiring now\n",
 			        id(), tid, lid.c_str());
 			hlock->set_status(HLock::ACQUIRING);
 			if (phlock) {
@@ -774,8 +775,9 @@ check_state:
 					}
 				} else {	
 
-					dbg_log(DBG_INFO, "[%d:%lu] Acquire Hierarchical lock %s under hierarchical lock %s\n",
-			        	id(), tid, lid.c_str(), phlock->lid_.c_str());
+					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
+					        "[%d:%lu] Acquire Hierarchical lock %s under hierarchical lock %s\n",
+					        id(), tid, lid.c_str(), phlock->lid_.c_str());
 					phlock->AddChild(hlock);
 					hlock->ancestor_recursive_mode_ = phlock->ancestor_recursive_mode_;
 					hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
@@ -798,7 +800,8 @@ check_state:
 			}
 			break;
 		default:
-			dbg_log(DBG_CRITICAL, "[%d:%lu] Hierarchical lock %s: Invalid state\n",
+			DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr),
+			        "[%d:%lu] Hierarchical lock %s: Invalid state\n",
 			        id(), tid, lid.c_str());
 			break;
 	}

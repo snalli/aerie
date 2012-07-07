@@ -14,12 +14,15 @@ extern "C" {
 #define FOREACH_DEBUG_MODULE(ACTION)                        \
 	ACTION(all) /* special name that covers all modules */  \
 	ACTION(rpc)                                             \
+	ACTION(client_inode)                                    \
 	ACTION(client_name)                                     \
 	ACTION(client_lckmgr)                                   \
 	ACTION(client_hlckmgr)                                  \
 	ACTION(client_omgr)                                     \
 	ACTION(client_salloc)                                   \
 	ACTION(server_bcs)                                      \
+	ACTION(server_lckmgr)                                   \
+	ACTION(server_hlckmgr)                                  \
 	ACTION(server_salloc)                                   \
 	ACTION(server_storagesystem)                        
 

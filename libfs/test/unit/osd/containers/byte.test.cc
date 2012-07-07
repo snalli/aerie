@@ -68,8 +68,8 @@ SUITE(ContainersByteContainer)
 		CHECK(byte_container->WriteBlock(session, src, 512*512+90, 0, kBlockSize) > 0);
 
 		CHECK(byte_container->ReadBlock(session, dst, 12, 0, kBlockSize) > 0);
-       	CHECK(src[0] == 'a');
-       	CHECK(src[0] == dst[0]);
+		CHECK(src[0] == 'a');
+		CHECK(src[0] == dst[0]);
 
 		CHECK(byte_container->ReadBlock(session, dst, 512, 0, kBlockSize) > 0);
        	CHECK(src[0] == 'a');
@@ -101,7 +101,7 @@ SUITE(ContainersByteContainer)
 
 		fillbuf(src, kBlockSize, 8);
 		byte_container->WriteBlock(session, src, 8, 0, 512);
-       	CHECK(byte_container->Size() == (8*kBlockSize + 512));
+		CHECK(byte_container->Size() == (8*kBlockSize + 512));
 		CHECK_BLOCK_IS_ZERO(5);
 
 		ret = byte_container->ReadBlock(session, dst, 8, 0, kBlockSize);
@@ -109,7 +109,7 @@ SUITE(ContainersByteContainer)
 		CHECK(memcmp(src, dst, 512) == 0);
 
 		byte_container->WriteBlock(session, src, 98, 0, 512);
-       	CHECK(byte_container->Size() == (98*kBlockSize + 512));
+		CHECK(byte_container->Size() == (98*kBlockSize + 512));
 		byte_container->ReadBlock(session, dst, 8, 0, kBlockSize);
 		CHECK(memcmp(dst, src, 512) == 0);
 		CHECK(memcmp(&dst[512], zeros, kBlockSize-512) == 0);

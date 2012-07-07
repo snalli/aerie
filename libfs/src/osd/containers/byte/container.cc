@@ -17,71 +17,28 @@ namespace client {
 #define min(a,b) ((a) < (b)? (a) : (b))
 #define max(a,b) ((a) > (b)? (a) : (b))
 
-/////////////////////////////////////////////////////////////////////////////
-// 
-// Helper Class: ByteInterval
-//
-/////////////////////////////////////////////////////////////////////////////
+// It's possible that we create an interval that is larger than we need. 
+// In such case we only allocate storage to the blocks we actually write.
+// However we should be careful when sharing to release all the shadow
+// intervals. The problem is that someone else may allocate storage
+// to blocks covered by an existing shadow interval. In such a case
+// we won't see the new blocks because our shadow does not have them.
+// This problem is solved by invalidating the container when releasing
+// the lock.
 
 
-const int INTERVAL_MIN_SIZE = 64;
-
-class ByteInterval: public Interval {
-public:
-	ByteInterval(const int low, const int high)
-		: low_(low), 
-		  high_(high)
-	{ }
-
-	ByteInterval(OsdSession* session, ByteContainer::Object* obj, ByteContainer::Slot& slot, const int low, const int size)
-		: object_(obj),
-		  low_(low), 
-		  high_(low+size-1), 
-		  slot_(slot)
-	{ 
-		assert(slot.slot_base_);
-		if (size <= INTERVAL_MIN_SIZE) {
-			// Adjust the slot offset to be multiple of interval size
-			slot_.slot_offset_ &= ~(INTERVAL_MIN_SIZE-1);
-			block_array_ = new char *[INTERVAL_MIN_SIZE];
-			for (int i=0; i<INTERVAL_MIN_SIZE; i++) {
-				block_array_[i] = 0;
-			}
-			region_ = NULL;
-		} else {
-			block_array_ = NULL;
-			region_ = new ByteContainer::Region(session, slot); // FIXME: pass session
-		}	
-	}
-	  
-	inline int GetLowPoint() const { return low_;}
-	inline int GetHighPoint() const { return high_;}
-	int Write(OsdSession* session, char*, uint64_t, uint64_t);
-	int Read(OsdSession* session, char*, uint64_t, uint64_t);
-
-protected:
-	ByteContainer::Object*         object_;
-	uint64_t                       low_;
-	uint64_t                       high_;
-	ByteContainer::Region*         region_;     
-	ByteContainer::Slot            slot_;       // needed when region_ is NULL
-	char**                         block_array_;
-
-	int WriteBlockNoRegion(OsdSession* session, char*, uint64_t, int, int);
-	int WriteNoRegion(OsdSession* session, char*, uint64_t, uint64_t);
-	int ReadBlockNoRegion(OsdSession* session, char*, uint64_t, int, int);
-	int ReadNoRegion(OsdSession* session, char*, uint64_t, uint64_t);
-};
-
-
+// block is absolute number (relative to the container)
+// offset is relative to block bn
 int
-ByteInterval::WriteBlockNoRegion(OsdSession* session, char* src, uint64_t bn, int off, int n)
+Interval::WriteBlock(OsdSession* session, char* src, uint64_t bn, int off, int n)
 {
 	int   ret;
 	char* bp;
-	void* ptr;
+	void* ptr = NULL;
 
-	assert(low_ <= bn && bn <= high_);
+	if (low_ > bn || bn > high_) {
+		return -1;
+	}
 
 	if (!(bp = block_array_[bn - low_])) {
 		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
@@ -107,46 +64,20 @@ ByteInterval::WriteBlockNoRegion(OsdSession* session, char* src, uint64_t bn, in
 
 
 int
-ByteInterval::WriteNoRegion(OsdSession* session, char* src, uint64_t off, uint64_t n)
+Interval::Write(OsdSession* session, char* src, uint64_t off, uint64_t n)
 {
-	uint64_t tot;
-	uint64_t m;
-	uint64_t bn;
-	uint64_t f;
-	int      ret;
-
-	for(tot=0; tot<n; tot+=m, off+=m) {
-		bn = off / kBlockSize;
-		f = off % kBlockSize;
-		m = min(n - tot, kBlockSize - f);
-		ret = WriteBlockNoRegion(session, &src[tot], bn, f, m);
-		if (ret < 0) {
-			return ((ret < 0) ? ( (tot>0)? tot: ret)  
-			                  : tot + ret);
-		}
-	}
-
-	return tot;
+	return osd::containers::common::__Write<OsdSession, Interval> (session, this, src, off, n);
 }
 
 
 int
-ByteInterval::Write(OsdSession* session, char* src, uint64_t off, uint64_t n)
-{
-	if (region_) {
-		return region_->Write(session, src, off, n);
-	} else {
-		return WriteNoRegion(session, src, off, n);
-	}
-}
-
-
-int
-ByteInterval::ReadBlockNoRegion(OsdSession* session, char* dst, uint64_t bn, int off, int n)
+Interval::ReadBlock(OsdSession* session, char* dst, uint64_t bn, int off, int n)
 {
 	char* bp;
 
-	assert(low_ <= bn && bn <= high_);
+	if (low_ > bn || bn > high_) {
+		return -1;
+	}
 
 	if (!(bp = block_array_[bn - low_])) {
 		memset(dst, 0, n);
@@ -159,37 +90,9 @@ ByteInterval::ReadBlockNoRegion(OsdSession* session, char* dst, uint64_t bn, int
 
 
 int
-ByteInterval::ReadNoRegion(OsdSession* session, char* dst, uint64_t off, uint64_t n)
+Interval::Read(OsdSession* session, char* dst, uint64_t off, uint64_t n)
 {
-	uint64_t tot;
-	uint64_t m;
-	uint64_t bn;
-	uint64_t f;
-	int      ret;
-
-	for(tot=0; tot<n; tot+=m, off+=m) {
-		bn = off / kBlockSize;
-		f = off % kBlockSize;
-		m = min(n - tot, kBlockSize - f);
-		ret = ReadBlockNoRegion(session, &dst[tot], bn, f, m);
-		if (ret < 0) {
-			return ((ret < 0) ? ( (tot>0)? tot: ret)  
-			                  : tot + ret);
-		}
-	}
-
-	return tot;
-}
-
-
-int
-ByteInterval::Read(OsdSession* session, char* dst, uint64_t off, uint64_t n)
-{
-	if (region_) {
-		return region_->Read(session, dst, off, n);
-	} else {
-		return ReadNoRegion(session, dst, off, n);
-	}
+	return osd::containers::common::__Read<OsdSession, Interval> (session, this, dst, off, n);
 }
 
 
@@ -216,7 +119,6 @@ ByteContainer::VersionManager::vOpen()
 		mutable_ = false;
 		intervaltree_ = new IntervalTree();
 	}
-	region_ = NULL;
 	size_ = object()->Size();
 
 	return E_SUCCESS;
@@ -238,320 +140,146 @@ ByteContainer::VersionManager::vUpdate(OsdSession* session)
 
 
 int 
-ByteContainer::VersionManager::ReadImmutable(OsdSession* session, 
-                                             char* dst, 
-                                             uint64_t off, 
-                                             uint64_t n)
-{
-	uint64_t                tot;
-	uint64_t                m;
-	uint64_t                fbn; // first block number
-	uint64_t                bn;
-	uint64_t                base_bn;
-	ByteContainer::Iterator start;
-	ByteContainer::Iterator iter;
-	int                     ret;
-	int                     f;
-	uint64_t                bcount;
-	uint64_t                size;
-	char*                   ptr;
-	ByteInterval*           interval;
-
-	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 ") n=%" PRIu64 ", size=%" PRIu64 "\n", off, off+n, n, size_);
-
-	// find out how much is really there to read
-	if ((off + n) > size_) {
-		if (off > size_ ) {
-			return 0;
-		} else {
-			n = min(size_ - off, n);
-		}
-		dbg_log (DBG_DEBUG, "Immutable range pruned = [%" PRIu64 ", %" PRIu64 ") n=%" PRIu64 ", size=%" PRIu64 "\n", off, off+n, n, size_);
-	} 
-
-	fbn = off/kBlockSize;
-	start.Init(session, object(), fbn);
-	iter = start;
-	bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-	size = bcount * kBlockSize;
-	f = off % size;
-
-
-	for (tot=0, bn=fbn; 
-	     !iter.terminate() && tot < n; 
-	     iter++, tot+=m, off+=m, bn++) 
-	{
-		base_bn = (*iter).get_base_bn();
-		bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-		size = bcount * kBlockSize;
-		m = min(n - tot, size - f);
-
-		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
-
-		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
-		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
-
-		if (!ptr) {
-			// Downcasting via a static cast is generally dangerous, but we know 
-			// that Interval is always of type ByteInterval so it should be safe
-
-			//TODO: Optimization: we should check whether the block falls in the last 
-			//interval to save a lookup.
-			interval = static_cast<ByteInterval*>(intervaltree_->LeftmostOverlap(bn, bn));
-			if (!interval) {
-				// return zeros
-				memset(&dst[tot], 0, m);
-			} else {
-				if ((ret = interval->Read(session, &dst[tot], off, m)) < m) {
-					return ((ret < 0) ? ( (tot>0)? tot: ret)  
-					                  : tot + ret);
-				}
-			}
-		} else {
-			// pinode already points to a block, therefore we do an in-place read
-			assert(bcount == 1);
-			memmove(&dst[tot], &ptr[f], m);
-		}
-
-		f = 0; // after the first block is read, each other block is read 
-		       // starting at its first byte
-	}
-
-	return tot;
-}
-
-
-int 
-ByteContainer::VersionManager::ReadMutable(OsdSession* session, char* dst, 
-                                           uint64_t off, uint64_t n)
-{
-	int vn;
-
-	//printf ("ReadMutable: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
-
-	dbg_log (DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
-
-	if (off > size_) {
-		return 0;
-	}
-	vn = min(size_ - off, n);
-
-	if (mutable_) {
-		assert(region_ == NULL);
-		return object()->Read(session, dst, off, vn);
-	} else if (region_) {
-		return	region_->Read(session, dst, off, vn);
-	}
-
-	return 0;
-}
-
-
-int 
 ByteContainer::VersionManager::Read(OsdSession* session, char* dst, 
                                     uint64_t off, uint64_t n)
 {
-	uint64_t  immmaxsize; // immutable range max size
-	uint64_t  mn;
-	int       ret1 = 0;
-	int       ret2 = 0;
-	int       r;
-
-	
-	immmaxsize = (!mutable_) ? object()->get_maxsize(): 0;
-
-	dbg_log (DBG_DEBUG, "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 " (size=%" PRIu64 ", immmaxsize=%" PRIu64 ")\n", off, off+n-1, n, size_, immmaxsize);
-
-	//printf ("Read: range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
-	//printf("Read: immmaxsize=%lu\n", immmaxsize);
-	//printf("Read: get_maxsize=%lu\n", object()->get_maxsize());
-	//printf("Read: get_size=%lu\n", object()->Size());
-
-	if (off + n < immmaxsize) 
-	{
-		ret1 = ReadImmutable(session, dst, off, n);
-	} else if ( off > immmaxsize - 1) {
-		ret2 = ReadMutable(session, dst, off, n);
-	} else {
-		mn = off + n - immmaxsize; 
-		ret1 = ReadImmutable(session, dst, off, n - mn);
-		// If ReadImmutable read less than what we asked for 
-		// then we should short circuit and return because POSIX
-		// semantics require us to return the number of contiguous
-		// bytes read. Is this true?
-		if (ret1 < n - mn) {
-			return ret1;
-		}
-		ret2 = ReadMutable(session, &dst[n-mn], immmaxsize, mn);
-		if (ret2 < 0) {
-			ret2 = 0;
-		}
-	}
-
-	if (ret1 < 0 || ret2 < 0) {
-		return -1;
-	}
-	r = ret1 + ret2;
-
-	return r;
-}
-
-
-int 
-ByteContainer::VersionManager::WriteMutable(OsdSession* session, 
-                                            char* src, 
-                                            uint64_t off, 
-                                            uint64_t n)
-{
-	uint64_t bn;
-
-	dbg_log (DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off+n-1);
-
-	if (mutable_) {
-		assert(region_ == NULL);
-		return object()->Write(session, src, off, n);
-	} else if (!region_) {
-		bn = off/kBlockSize;
-		region_ = new ByteContainer::Region(session, object(), bn);
-	}
-	return region_->Write(session, src, off, n);
-}
-
-
-int 
-ByteContainer::VersionManager::WriteImmutable(OsdSession* session, 
-                                              char* src, 
-                                              uint64_t off, 
-                                              uint64_t n)
-{
+	int                     ret = 0;
+	int                     w;
+	Interval*               interval;
 	uint64_t                tot;
 	uint64_t                m;
-	uint64_t                fbn; // first block number
 	uint64_t                bn;
-	uint64_t                base_bn;
-	ByteContainer::Iterator start;
-	ByteContainer::Iterator iter;
-	int                     ret;
-	int                     f;
-	uint64_t                bcount;
-	uint64_t                size;
-	char*                   ptr;
-	uint64_t                interval_size;
-	uint64_t                interval_low;
-	ByteInterval*           interval;
-
-	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 " \n", off, off+n-1, n);
-
-	fbn = off/kBlockSize;
-	start.Init(session, object(), fbn);
-	iter = start;
-	bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-	size = bcount * kBlockSize;
-	f = off % size;
+	uint64_t                high_bn;
+	uint64_t                persistent_lb_bn; // lower bound of the persistent container
+	uint64_t                shadow_lb_bn;     // lower bound of the shadow container
+	uint64_t                upper_bn;
+	bool                    return_zeros;
+	IntervalTree::iterator  interval_it;
+	IntervalTree::iterator  lb_interval_it; // lower bound interval
 
 
-	for (tot=0, bn=fbn; 
-	     !iter.terminate() && tot < n; 
-	     iter++, tot+=m, off+=m, bn++) 
+	dbg_log (DBG_DEBUG, "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 " (size=%" PRIu64 "\n", off, off+n-1, n, size_);
+
+
+	high_bn = (off + n - 1) / kBlockSize;
+	for (tot=0; tot < n; tot+=m, off+=m) 
 	{
-		base_bn = (*iter).get_base_bn();
-		bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
-		size = bcount * kBlockSize;
-		m = min(n - tot, size - f);
-
-		ptr = (char*) ((*iter).slot_base_[(*iter).slot_offset_]);
-
-		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
-		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
-
-		if (!ptr) {
-			// Downcasting via a static cast is generally dangerous, but we know 
-			// that Interval is always of type ByteInterval so it should be safe
-
-			//TODO: Optimization: we should check whether the block falls in the last 
-			//interval to save a lookup.
-			interval = static_cast<ByteInterval*>(intervaltree_->LeftmostOverlap(bn, bn));
-			if (!interval) {
-				// create new interval
-				if (bn < ::osd::containers::common::ByteContainer::N_DIRECT) {
-					interval_size = 8;
-					interval_low = 0;
-				} else {
-					interval_size = max(bcount, INTERVAL_MIN_SIZE);
-					interval_low = ::osd::containers::common::ByteContainer::N_DIRECT + 
-					               ((base_bn-::osd::containers::common::ByteContainer::N_DIRECT) & ~(interval_size - 1));
-				}
-				interval = new ByteInterval(session, object(), (*iter), interval_low, interval_size);
-				intervaltree_->Insert(interval);
-			}
-			ret = interval->Write(session, &src[tot], off, m);
-			if (ret < 0 || ((uint64_t) ret) < m) {
-				return ((ret < 0) ? ( (tot>0)? tot: ret)  
-				                  : tot + ret);
-			}
+		bn = off/kBlockSize;
+		// if bn falls into an interval then lower_bound returns that interval
+		// because bn is less than the high bound of that interval
+		lb_interval_it = intervaltree_->lower_bound(IntervalKey(bn, bn));
+		if (lb_interval_it != intervaltree_->end()) {
+			shadow_lb_bn = (*lb_interval_it).first.Low();
 		} else {
-			// pinode already points to a block, therefore we do an in-place write
-			assert(bcount == 1);
-			//memmove(&ptr[f], &src[tot], m);
-			scm_memcpy(&ptr[f], &src[tot], m);
+			shadow_lb_bn = -1; /* overflow it to make comparison checks easier */
 		}
-
-		f = 0; // after the first block is written, each other block is written 
-		       // starting at its first byte
+		if (object()->LowerBound(session, bn, &persistent_lb_bn) != 0) {
+			persistent_lb_bn = -1; 
+		}
+		//printf("%llu\n", bn);
+		//printf("%llu\n", shadow_lb_bn);
+		//printf("%llu\n", persistent_lb_bn);
+		if (shadow_lb_bn == -1 && persistent_lb_bn == -1) {
+			if (off >= size_) {
+				break;
+			}
+			ret = size_ - off;
+			memset(&dst[tot], 0, ret);
+		} else if (bn >= shadow_lb_bn && bn <= (*lb_interval_it).first.High()) {
+			ret = (*lb_interval_it).second->Read(session, &dst[tot], off, n-tot);
+		} else if (bn == persistent_lb_bn) {
+			ret = object()->Read(session, &dst[tot], off, n - tot);
+		} else { 
+			if (shadow_lb_bn > persistent_lb_bn) {
+				upper_bn = persistent_lb_bn - 1;
+			} else {
+				upper_bn = shadow_lb_bn - 1;
+			}
+			ret = min((upper_bn + 1) * kBlockSize - off, n - tot);
+			memset(&dst[tot], 0, ret);
+		}
+		if (ret < 0) {
+			break;
+		}
+		m = ret;
 	}
-
 	return tot;
 }
 
 
+/**
+ * off offset is relative to 0 (beginning of container)
+ */
 int 
 ByteContainer::VersionManager::Write(OsdSession* session, 
                                      char* src, 
                                      uint64_t off, 
                                      uint64_t n)
 {
-	uint64_t  immmaxsize; // immutable range max size
-	uint64_t  mn;
-	int       ret1 = 0;
-	int       ret2 = 0;
-	int       w;
+	int                     ret = 0;
+	int                     w;
+	Interval*               interval;
+	uint64_t                tot;
+	uint64_t                m;
+	uint64_t                bn;
+	uint64_t                high_bn;
+	uint64_t                persistent_lb_bn; // lower bound of the persistent container
+	uint64_t                shadow_lb_bn;     // lower bound of the shadow container
+	uint64_t                upper_bn;
+	IntervalTree::iterator  interval_it;
+	IntervalTree::iterator  lb_interval_it; // lower bound interval
+
+	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 "\n", off, off+n-1, n);
 	
-	immmaxsize = (!mutable_) ? object()->get_maxsize() : 0;
+	high_bn = (off + n - 1) / kBlockSize;
 
-	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 ", immmaxsize=%" PRIu64 "\n", off, off+n-1, n, immmaxsize);
-
-
-	if (off + n < immmaxsize) 
+	for (tot=0; tot < n; tot+=m, off+=m) 
 	{
-		ret1 = WriteImmutable(session, src, off, n);
-	} else if ( off >= immmaxsize) {
-		ret2 = WriteMutable(session, src, off, n);
-	} else {
-		mn = off + n - immmaxsize; 
-		ret1 = WriteImmutable(session, src, off, n - mn);
-		// If WriteImmutable wrote less than what we asked for 
-		// then we should short circuit and return because POSIX
-		// semantics require us to return the number of contiguous
-		// bytes written. Is this true?
-		if (ret1 < n - mn) {
-			return ret1;
+		bn = off/kBlockSize;
+		lb_interval_it = intervaltree_->lower_bound(IntervalKey(bn, bn));
+		if (lb_interval_it != intervaltree_->end()) {
+			shadow_lb_bn = (*lb_interval_it).first.Low();
+		} else {
+			shadow_lb_bn = -1; /* overflow it to make comparison checks easier */
 		}
-		ret2 = WriteMutable(session, &src[n-mn], immmaxsize, mn);
-		if (ret2 < 0) {
-			ret2 = 0;
+		if (object()->LowerBound(session, bn, &persistent_lb_bn) != 0) {
+			persistent_lb_bn = -1; /* overflow it */
 		}
+		if (shadow_lb_bn == -1 && persistent_lb_bn == -1) {
+			upper_bn = high_bn;
+			interval = new Interval(object(), bn, upper_bn);
+			intervaltree_->insert(IntervalKeyPair(interval));
+			ret = interval->Write(session, &src[tot], off, n-tot);
+		} else if (bn >= shadow_lb_bn && bn <= (*lb_interval_it).first.High()) {
+			ret = (*lb_interval_it).second->Write(session, &src[tot], off, n-tot);
+		} else if (bn == persistent_lb_bn) {
+			ret = object()->Write(session, &src[tot], off, n - tot);
+		} else { 
+			if (shadow_lb_bn > persistent_lb_bn) {
+				upper_bn = persistent_lb_bn - 1;
+			} else {
+				upper_bn = shadow_lb_bn - 1;
+			}
+			assert (upper_bn >= bn);
+			interval = new Interval(object(), bn, upper_bn);
+			intervaltree_->insert(IntervalKeyPair(interval));
+			ret = interval->Write(session, &src[tot], off, n-tot);
+		}
+		if (ret < 0) {
+			break;
+		}
+		m = ret;
 	}
 
-	if (ret1 < 0 || ret2 < 0) {
+	if (ret < 0 && tot == 0) {
 		return -1;
 	}
-	w = ret1 + ret2;
 
-	if ( (off + w) > size_ ) {
-		size_ = off + w;
+	if ( (off + tot) > size_ ) {
+		size_ = off + tot;
 	}
 
-	return w;
+	return tot;
 }
 
 
@@ -566,6 +294,18 @@ int
 ByteContainer::VersionManager::Size()
 {
 	return size_;
+}
+
+void
+ByteContainer::VersionManager::PrintIntervals()
+{
+	IntervalTree::iterator  interval_it;
+
+	for (interval_it = intervaltree_->begin(); interval_it != intervaltree_->end(); 
+	     interval_it++) 
+	{
+		(*interval_it).second->Print();
+	}
 }
 
 

@@ -17,7 +17,7 @@ SUITE(ContainersRadixtree)
 
 		tree1 = new RadixTree<Session>;
 
-       	CHECK(tree1->Lookup(session, 0, 1) == (void*) 0);
+		CHECK(tree1->Lookup(session, 0, 1) == (void*) 0);
 
 		delete tree1;
 	}
@@ -28,7 +28,7 @@ SUITE(ContainersRadixtree)
 
 		tree1 = new RadixTree<Session>;
 		CHECK(tree1->Insert(session, 0, (void*)0xA, 1) == 0);
-       	CHECK(tree1->Lookup(session, 0, 1) == (void*) 0xA);
+		CHECK(tree1->Lookup(session, 0, 1) == (void*) 0xA);
 
 		delete tree1;
 	}
@@ -40,7 +40,7 @@ SUITE(ContainersRadixtree)
 
 		tree1 = new RadixTree<Session>;
 		CHECK(tree1->Insert(session, 90, (void*)0xA, 1) == 0);
-       	CHECK(tree1->Lookup(session, 90, 1) == (void*) 0xA);
+		CHECK(tree1->Lookup(session, 90, 1) == (void*) 0xA);
 
 		delete tree1;
 	}
@@ -54,8 +54,8 @@ SUITE(ContainersRadixtree)
 
 		CHECK(tree1->Insert(session, 90, (void*)0xA, 1) == 0);
 		CHECK(tree1->Insert(session, 512*512+90, (void*)0xB, 1) == 0);
-       	CHECK(tree1->Lookup(session, 90, 1) == (void*) 0xA);
-       	CHECK(tree1->Lookup(session, 512*512+90, 1) == (void*) 0xB);
+		CHECK(tree1->Lookup(session, 90, 1) == (void*) 0xA);
+		CHECK(tree1->Lookup(session, 512*512+90, 1) == (void*) 0xB);
 
 		delete tree1;
 	}
@@ -69,6 +69,7 @@ SUITE(ContainersRadixtree)
 		RadixTree<Session>*     tree1;
 		RadixTree<Session>*     tree2;
 		int                     ret;
+		uint64_t                lge_index;
 
 		tree1 = new RadixTree<Session>;
 		CHECK(tree1->Insert(session, 90, (void*)0xA, 1) == 0);
@@ -76,7 +77,7 @@ SUITE(ContainersRadixtree)
 		CHECK(tree1->Lookup(session, 90, 1) == (void*) 0xA);
 		CHECK(tree1->Lookup(session, 512*512+90, 1) == (void*) 0xB);
 		CHECK(tree1->Lookup(session, 2*512*512+90, 1) == (void*) NULL);
-
+		
 		tree2 = new RadixTree<Session>;
 		CHECK(tree2->Extend(session, 512*512-1) == 0);
 		CHECK(tree2->Insert(session, 90, (void*)0xC, 1) == 0);
@@ -93,5 +94,37 @@ SUITE(ContainersRadixtree)
 		delete tree1;
 		delete tree2;
 	}
+
+
+	TEST_FIXTURE(SessionFixture, TestLeftmostGreaterEqual1)
+	{
+		RadixTreeNode<Session>* node;
+		int                     offset;
+		int                     height;
+		RadixTree<Session>*     tree1;
+		int                     ret;
+		uint64_t                lge_index;
+
+		tree1 = new RadixTree<Session>;
+		CHECK(tree1->Insert(session, 90, (void*)0xA, 1) == 0);
+		CHECK(tree1->Insert(session, 91, (void*)0xA, 1) == 0);
+		CHECK(tree1->Insert(session, 512*512+90, (void*)0xB, 1) == 0);
+		CHECK(tree1->Insert(session, 512+90, (void*)0xB, 1) == 0);
+		CHECK(tree1->Lookup(session, 90, 1) == (void*) 0xA);
+		CHECK(tree1->Lookup(session, 512*512+90, 1) == (void*) 0xB);
+		CHECK(tree1->Lookup(session, 2*512*512+90, 1) == (void*) NULL);
+		
+		CHECK(tree1->LeftmostGreaterEqual(session, 90, &lge_index) == 0);
+		CHECK(lge_index == 90);
+		CHECK(tree1->LeftmostGreaterEqual(session, 91, &lge_index) == 0);
+		CHECK(lge_index == 91);
+		CHECK(tree1->LeftmostGreaterEqual(session, 92, &lge_index) == 0);
+		CHECK(lge_index == 512 + 90);
+		CHECK(tree1->LeftmostGreaterEqual(session, 603, &lge_index) == 0);
+		CHECK(lge_index == 512*512 + 90);
+
+		delete tree1;
+	}
+
 
 }

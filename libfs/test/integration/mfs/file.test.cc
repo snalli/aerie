@@ -271,6 +271,137 @@ SUITE(MFSFile)
 		EVENT("E3");
 	}
 
+
+#define WRITE(off, n)                                     \
+  CHECK(libfs_pwrite(fd, &buf[off], n, off) > 0);
+
+#define COMPARE(off, n)                                   \
+    CHECK(libfs_pread(fd, buf, n, off) > 0);              \
+    CHECK(memcmp(buf, &correct[off], n) == 0);
+
+#define ISZERO(off, n)                                    \
+    CHECK(libfs_pread(fd, buf, n, off) > 0);              \
+    do {                                                  \
+      bool iszero = true;                                 \
+      for (int i=0; i<n; i++) {                           \
+        if (buf[i] != 0) {                                \
+          iszero=false;                                   \
+          break;                                          \
+        }                                                 \
+      }                                                   \
+      CHECK(iszero == true);                              \
+    } while (0);
+
+	TEST_FIXTURE(MFSFixture, TestCreate4)
+	{
+		int   fd;
+		char* buf = (char*) malloc(1024*1024);
+		char* correct = (char*) malloc(1024*1024);;
+
+		fillbuf(buf, 1024*1024, 1);
+		fillbuf(correct, 1024*1024, 1);
+
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/file", O_CREAT|O_RDWR)) > 0);
+		WRITE(0, 512);
+		WRITE(4096, 512);
+		WRITE(22*4096 + 512, 512);
+		WRITE(24*4096, 512);
+		WRITE(4096, 12*4096);
+		WRITE(14*4096, 4096);
+		COMPARE(0, 512);
+		COMPARE(4096, 512);
+		COMPARE(22*4096 + 512, 512);
+		COMPARE(4096, 4096);
+		COMPARE(4096, 4096+1);
+		COMPARE(4096, 11*4096);
+		COMPARE(4096, 12*4096);
+		COMPARE(24*4096, 512);
+    		CHECK(libfs_pread(fd, buf, 512, 14*4096) > 0);
+		ISZERO(15*4096, 512);
+		ISZERO(16*4096, 3*4096);
+		CHECK(libfs_close(fd) == 0);
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+
+	TEST_FIXTURE(MFSFixture, TestRead4)
+	{
+		int   ret;
+		int   fd;
+		char* buf = (char*) malloc(1024*1024);;
+		char* correct = (char*) malloc(1024*1024);;
+		fillbuf(correct, 1024*1024, 1);
+
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/file", O_RDWR)) > 0);
+		// we actually wrote less but the server keeps track the size at page granularity
+		CHECK((ret=libfs_pread(fd, buf, 512, 0)) <= 4096); 
+		CHECK(memcmp(buf, correct, 512) == 0);
+		CHECK(libfs_close(fd) == 0);
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+
+	TEST_FIXTURE(MFSFixture, TestCreate5)
+	{
+		int   fd;
+		char* buf = (char*) malloc(1024*1024);
+		char* correct = (char*) malloc(1024*1024);;
+
+		fillbuf(buf, 1024*1024, 1);
+		fillbuf(correct, 1024*1024, 1);
+
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/file", O_CREAT|O_RDWR)) > 0);
+		WRITE(0, 512);
+		WRITE(4096, 512);
+		WRITE(22*4096 + 512, 512);
+		WRITE(24*4096, 512);
+		COMPARE(0, 512);
+		COMPARE(4096, 512);
+		COMPARE(22*4096 + 512, 512);
+		COMPARE(24*4096, 512);
+		ISZERO(15*4096, 512);
+		ISZERO(16*4096, 3*4096);
+		CHECK(libfs_close(fd) == 0);
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+
+	TEST_FIXTURE(MFSFixture, TestRead5)
+	{
+		int   ret;
+		int   fd;
+		char* buf = (char*) malloc(1024*1024);;
+		char* correct = (char*) malloc(1024*1024);;
+		fillbuf(correct, 1024*1024, 1);
+
+		EVENT("E1");
+		CHECK(libfs_mount(storage_pool_path, "/home/hvolos", "mfs", 0) == 0);
+		CHECK((fd = libfs_open("/home/hvolos/file", O_RDWR)) > 0);
+		// we actually wrote less but the server keeps track the size at page granularity
+		CHECK((ret=libfs_pread(fd, buf, 512, 0)) <= 4096); 
+		CHECK(memcmp(buf, correct, 512) == 0);
+		CHECK(libfs_close(fd) == 0);
+		EVENT("E2");
+		EVENT("E3");
+	}
+
+
+
+
+
+
+
+
+
 	TEST_FIXTURE(MFSFixture, TestCreateWriteConcurrent)
 	{
 		int  fd;

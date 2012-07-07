@@ -521,7 +521,8 @@ check_state:
 			}
 			break;
 		case Lock::NONE:
-			dbg_log(DBG_INFO, "[%d:%lu] lock %s not available; acquiring now\n",
+			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+			        "[%d:%lu] lock %s not available; acquiring now\n",
 			        id(), tid, lid.c_str());
 			l->set_status(Lock::ACQUIRING);
 			while ((r = do_acquire(l, mode_set, flags, argc, argv, mode_granted)) 
@@ -536,7 +537,8 @@ check_state:
 				}
 				if (l->cancel_) {
 					// someone asked us to cancel the request (as it could deadlock)
-					dbg_log(DBG_INFO, "[%d:%lu] Cancelling request for lock %s (%s) at seq %d\n",
+					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+					        "[%d:%lu] Cancelling request for lock %s (%s) at seq %d\n",
 					        id(), tid, lid.c_str(), mode_granted.String().c_str(), l->seq_);
 					l->set_status(Lock::NONE);
 					r = lock_protocol::DEADLK;
@@ -544,7 +546,8 @@ check_state:
 				}
 			}
 			if (r == lock_protocol::OK) {
-				dbg_log(DBG_INFO, "[%d:%lu] got lock %s (%s) at seq %d\n",
+				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+				        "[%d:%lu] got lock %s (%s) at seq %d\n",
 				        id(), tid, lid.c_str(), mode_granted.String().c_str(), l->seq_);
 				l->public_mode_ = mode_granted;
 				l->gtque_.Add(ThreadRecord(tid, mode_granted));
@@ -794,7 +797,8 @@ LockManager::Release(LockId lid, bool synchronous)
 lock_protocol::status 
 LockManager::CancelLockRequestInternal(Lock* l)
 {
-	dbg_log(DBG_INFO, "[%d] Cancel lock %s\n", id(), l->lid_.c_str());
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), 
+	        "[%d] Cancel lock %s\n", id(), l->lid_.c_str());
 	
 	if (l->status() == Lock::ACQUIRING) {
 		l->cancel_ = true;

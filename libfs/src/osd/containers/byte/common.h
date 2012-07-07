@@ -34,7 +34,7 @@ namespace common {
 class ByteContainer {
 public:
 enum {
-	N_DIRECT = 8
+	N_DIRECT = 0
 };
 
 template<typename Session>
@@ -80,6 +80,8 @@ public:
 	int ReadBlock(Session* session, char* dst, uint64_t bn, int off, int n);
 	int WriteBlock(Session* session, char* src, uint64_t bn, int off, int n);
 	int LinkBlock(Session* session, uint64_t bn, void* bp);
+
+	int LowerBound(Session* session, uint64_t bn, uint64_t* lge_bn);
 
 	// return maximum possible size in bytes
 	inline uint64_t get_maxsize() { 
@@ -458,7 +460,7 @@ int __Write(Session* session, T* obj, char* src, uint64_t off, uint64_t n)
 		f = off % kBlockSize;
 		m = min(n - tot, kBlockSize - f);
 		ret = obj->WriteBlock(session, &src[tot], bn, f, m);
-		if (ret < m) {
+		if (ret < 0 || ret < m) { // ret could be negative but comparing against unsigned
 			return ((ret < 0) ? ( (tot>0)? tot: ret)  
 			                  : tot + ret);
 		}
@@ -766,6 +768,19 @@ ByteContainer::Object<Session>::LookupSlot(Session* session,
 	}
 	return slot->Init(session, this, bn);
 }
+
+
+/**
+ * Find the leftmost mapped block whose block number is greater than or 
+ * equal to bn
+ */
+template<typename Session>
+int 
+ByteContainer::Object<Session>::LowerBound(Session* session, uint64_t bn, uint64_t* lge_bn)
+{
+	return radixtree_.LowerBound(session, bn, lge_bn);
+}
+
 
 
 

@@ -17,7 +17,8 @@ int
 Inode::Get() 
 { 
 	pthread_mutex_lock(&mutex_);
-	dbg_log (DBG_INFO, "Inode(%p, oid=%lx)::Get %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ + 1);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "Inode(%p, oid=%lx)::Get %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ + 1);
 	refcnt_++; 
 	pthread_mutex_unlock(&mutex_);
 	return 0; 
@@ -28,7 +29,8 @@ int
 Inode::Put() 
 { 
 	pthread_mutex_lock(&mutex_);
-	dbg_log (DBG_INFO, "Inode(%p, oid=%lx)::Put %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ - 1);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "Inode(%p, oid=%lx)::Put %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ - 1);
 	assert(refcnt_>0); 
 	refcnt_--; 
 	pthread_mutex_unlock(&mutex_);

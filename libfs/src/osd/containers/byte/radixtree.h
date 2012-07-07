@@ -129,7 +129,8 @@ public:
 	void* Lookup(Session* session, uint64_t index, int);
 	void** LookupSlot(Session* session, uint64_t index, int);
 	int MapSlot(Session* session, uint64_t, int, int, RadixTreeNode<Session>**, int*, int*);
-	int LookupLowestSlot(Session* session, uint64_t, RadixTreeNode<Session>**, int*, int*);
+	int LowerBound(Session* session, uint64_t index, uint64_t* lge_index);
+	int LowerBoundInternal(Session* session, uint64_t index, RadixTreeNode<Session>* node, uint64_t low, unsigned int h, uint64_t* lge_index);
 
 	inline RadixTreeNode<Session>* get_rnode() {	return rnode_; }
 
@@ -331,6 +332,56 @@ RadixTree<Session>::MapSlot(Session* session,
 	}
 
 	return -1;
+}
+
+
+template<typename Session>
+int 
+RadixTree<Session>::LowerBoundInternal(Session* session, 
+                                                 uint64_t index, 
+                                                 RadixTreeNode<Session>* node,
+                                                 uint64_t low,
+                                                 unsigned int h,
+                                                 uint64_t* lge_index)
+{
+	unsigned int  shift;
+
+	if (node == NULL) {
+		return -1;
+	}
+
+	shift = (h-1) * RADIX_TREE_MAP_SHIFT;
+
+	for (int i=0; i < RADIX_TREE_MAP_SIZE; i++) {
+		// prune subtree if we know index cannot be found in there
+		if (low + ((1 << shift)*(i+1) - 1) < index) {
+			continue;
+		}
+		if (node->Slot(session, i)) {
+			if (h == 1) {
+				*lge_index = low + (1 << shift) * i;
+				return 0;
+			} else {
+				if (LowerBoundInternal(session, index, node->Slot(session, i), low + (i << shift), h-1, lge_index) == 0) {
+					return 0;
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
+
+template<typename Session>
+int 
+RadixTree<Session>::LowerBound(Session* session, uint64_t index,
+                                         uint64_t* lge_index)
+{
+	RadixTreeNode<Session>* slot;
+
+	slot = reinterpret_cast<RadixTreeNode<Session> *>(radix_tree_indirect_to_ptr(reinterpret_cast<void*>(rnode_)));
+	return LowerBoundInternal(session, index, slot, 0, height_, lge_index);
 }
 
 

@@ -73,6 +73,30 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
     ))
 
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSFile:TestCreateOpenConcurrent4',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSFile:TestCreate4')]),
+            'C2': ( testProgram, [('T1', 'MFSFile:TestRead4')])
+        },
+        rendezvous = [('C1:T1:E2:block', 'C2:T1:E1:block'), 
+                      ('C1:T1:E3:block', 'C2:T1:E3:block')]
+    ))
+
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
+        name = 'MFSFile:TestCreateOpenConcurrent5',
+        init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
+        testfw = testProgram, server = serverProgram,
+        clients = { 
+            'C1': ( testProgram, [('T1', 'MFSFile:TestCreate5')]),
+            'C2': ( testProgram, [('T1', 'MFSFile:TestRead5')])
+        },
+        rendezvous = [('C1:T1:E2:block', 'C2:T1:E1:block'), 
+                      ('C1:T1:E3:block', 'C2:T1:E3:block')]
+    ))
+
+    env.addIntegrationTest(testfw.integration_test.IntegrationTest(
         name = 'MFSFile:TestOpenCloseConcurrent',
         init_script = os.path.join(parent_dir, 'test/integration/mfs/init.sh'),
         testfw = testProgram, server = serverProgram,
@@ -83,7 +107,6 @@ def addIntegrationTests(env, parent_dir, testProgram, serverProgram):
         rendezvous = [('C1:T1:E1:block', 'C2:T1:E1:block'), 
                       ('C1:T1:E3:block', 'C2:T1:E3:block')]
     ))
-
  
     env.addIntegrationTest(testfw.integration_test.IntegrationTest(
         name = 'MFSFile:TestCreateUnlinkConcurrent',

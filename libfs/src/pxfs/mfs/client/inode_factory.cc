@@ -96,12 +96,13 @@ InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 	int                                               ret = E_SUCCESS;
 	osd::containers::client::ByteContainer::Object*   obj;
 
-	dbg_log (DBG_INFO, "Create file inode\n");
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode), "Create file inode\n");
 
 	if ((obj = osd::containers::client::ByteContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
-	dbg_log (DBG_INFO, "Create file inode: %p\n", (void*) obj->oid().u64());
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode), "Create file inode: %p\n", (void*) obj->oid().u64());
+
 	if ((ret = LoadFileInode(session, obj->oid(), ipp)) < 0) {
 		// FIXME: deallocate the allocated object
 		return ret;
@@ -123,7 +124,7 @@ InodeFactory::MakeInode(::client::Session* session, int type, ::client::Inode** 
 			ret = MakeFileInode(session, ipp);
 			break;
 		default:
-			dbg_log (DBG_CRITICAL, "Unknown inode type\n");
+			DBG_LOG (DBG_CRITICAL, DBG_MODULE(client_inode), "Unknown inode type\n");
 	}
 	return ret;
 }
@@ -143,7 +144,7 @@ InodeFactory::LoadInode(::client::Session* session, osd::common::ObjectId oid,
 			ret = LoadFileInode(session, oid, ipp);
 			break;
 		default: 
-			dbg_log (DBG_CRITICAL, "Unknown container type\n");
+			DBG_LOG (DBG_CRITICAL, DBG_MODULE(client_inode), "Unknown container type\n");
 	}
 	
 	return ret;

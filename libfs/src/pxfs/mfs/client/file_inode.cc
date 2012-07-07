@@ -33,7 +33,8 @@ FileInode::Write(::client::Session* session, char* src, uint64_t off, uint64_t n
 
 int FileInode::nlink()
 {
-	dbg_log (DBG_INFO, "In inode %lx, nlink = %d\n", ino(), rw_ref()->proxy()->interface()->nlink());
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "In inode %lx, nlink = %d\n", ino(), rw_ref()->proxy()->interface()->nlink());
 	
 	return rw_ref()->proxy()->interface()->nlink();
 }
@@ -41,7 +42,8 @@ int FileInode::nlink()
 
 int FileInode::set_nlink(int nlink)
 {
-	dbg_log (DBG_INFO, "In inode %lx, set nlink = %d\n", ino(), nlink);
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
+	        "In inode %lx, set nlink = %d\n", ino(), nlink);
 	
 	return rw_ref()->proxy()->interface()->set_nlink(nlink);
 }
