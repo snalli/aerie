@@ -64,6 +64,9 @@ public:
 	int fs_type() {
 		return fs_type_;
 	}
+	int ref_count() {
+		return refcnt_;
+	}
 
 //protected:
 	osd::common::ObjectProxyReference* ref_;     // reference to the persistent object container

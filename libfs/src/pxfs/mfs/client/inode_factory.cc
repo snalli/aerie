@@ -101,12 +101,36 @@ InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 	if ((obj = osd::containers::client::ByteContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
+	if (obj == (void*) 0x80fffc0700) {
+		printf("CREATE\n");
+	}
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode), "Create file inode: %p\n", (void*) obj->oid().u64());
 
 	if ((ret = LoadFileInode(session, obj->oid(), ipp)) < 0) {
 		// FIXME: deallocate the allocated object
 		return ret;
 	}
+	return ret;
+}
+
+
+int
+InodeFactory::DestroyFileInode(::client::Session* session, ::client::Inode* ip)
+{
+	int                                ret = E_SUCCESS;
+	osd::common::ObjectProxyReference* ref;
+	FileInode*                         fip;
+
+	pthread_mutex_lock(&mutex_);
+	ref = ip->ref_;
+	ref->set_owner(NULL);
+	if (ip->oid().addr() == (void*) 0x80fffc0700) {
+		printf("CLOSE\n");
+	}
+	session->omgr_->CloseObject(session, ip->oid(), true);
+
+	pthread_mutex_unlock(&mutex_);
+
 	return ret;
 }
 
@@ -151,6 +175,27 @@ InodeFactory::LoadInode(::client::Session* session, osd::common::ObjectId oid,
 }
 
 
+int 
+InodeFactory::DestroyInode(::client::Session* session, ::client::Inode* ip)
+{
+	int ret = E_SUCCESS;
+
+	switch (ip->oid().type()) {
+		case osd::containers::T_NAME_CONTAINER: // directory
+			// TODO
+			break;
+		case osd::containers::T_BYTE_CONTAINER:
+			ret = DestroyFileInode(session, ip);
+			break;
+		default: 
+			DBG_LOG (DBG_CRITICAL, DBG_MODULE(client_inode), "Unknown container type\n");
+	}
+	
+	return ret;
+}
+
+
+
 int
 InodeFactory::Make(::client::Session* session, int type, ::client::Inode** ipp)
 {
@@ -164,6 +209,14 @@ InodeFactory::Load(::client::Session* session, osd::common::ObjectId oid,
 {
 	return LoadInode(session, oid, ipp);
 }
+
+
+int 
+InodeFactory::Destroy(::client::Session* session, ::client::Inode* ip)
+{
+	return DestroyInode(session, ip);
+}
+
 
 } // namespace client 
 } // namespace mfs

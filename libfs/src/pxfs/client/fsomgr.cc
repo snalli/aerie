@@ -142,4 +142,32 @@ FileSystemObjectManager::CreateInode(Session* session, Inode* parent,
 }
 
 
+/**
+ * \brief Creates an inode of the same file system as the parent inode.
+ * The inode is write locked and referenced (refcnt=1)
+ *
+ */
+int 
+FileSystemObjectManager::DestroyInode(Session* session, Inode* ip)
+{
+	int                       ret;
+	InodeFactoryMap::iterator it;
+	InodeFactory*             inode_factory; 
+	int                       fs_type = ip->fs_type();
+
+	dbg_log (DBG_INFO, "Destroy inode\n");
+
+	it = inode_factory_map_.find(fs_type);
+	if (it == inode_factory_map_.end()) {
+		return -1;
+	}
+	inode_factory = it->second;
+	if ((ret = inode_factory->Destroy(session, ip)) != E_SUCCESS) {
+		return ret;
+	}
+	return E_SUCCESS;
+}
+
+
+
 } // namespace client

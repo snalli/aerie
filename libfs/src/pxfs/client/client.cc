@@ -447,6 +447,8 @@ Client::Link(const char* oldpath, const char* newpath)
 int 
 Client::Unlink(const char* pathname)
 {
+	dbg_log (DBG_INFO, "Unlink: %s\n", pathname);	
+
 	return global_namespace->Unlink(CurrentSession(), pathname);
 }
 

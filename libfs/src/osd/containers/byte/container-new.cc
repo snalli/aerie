@@ -14,9 +14,6 @@ namespace osd {
 namespace containers {
 namespace client {
 
-static uint64_t __counter = 0;
-
-
 #define min(a,b) ((a) < (b)? (a) : (b))
 #define max(a,b) ((a) > (b)? (a) : (b))
 
@@ -43,15 +40,11 @@ Interval::WriteBlock(OsdSession* session, char* src, uint64_t bn, int off, int n
 		return -1;
 	}
 
-
 	if (!(bp = block_array_[bn - low_])) {
 		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
 		                                             kData, &ptr)) < 0)
 		{ 
 			return ret;
-		}
-		if (ptr == (void*) 0x80faa81000) {
-			printf("BOOM\n");
 		}
 		// The allocator journaled the allocation. We just journal the data block link.
 		session->journal() << osd::Publisher::Message::ContainerOperation::LinkBlock(object_->oid(), bn, ptr);
@@ -64,9 +57,6 @@ Interval::WriteBlock(OsdSession* session, char* src, uint64_t bn, int off, int n
 		memset(&bp[off+n], 0, kBlockSize-n); 
 	}
 
-	if (__counter == 2137113) {
-		printf("SCM_MEMCPY: bp=%p src=%p off=%d n=%d\n", bp, src, off, n);
-	}
 	//memmove(&bp[off], src, n);
 	scm_memcpy(&bp[off], src, n);
 	return n;
@@ -122,9 +112,6 @@ ByteContainer::VersionManager::vOpen()
 	
 	osd::vm::client::VersionManager<ByteContainer::Object>::vOpen();
 	
-	if (object() == (void*) 0x80fffc0700) {
-		printf("vOpen\n");
-	}
 	if (0 /* private */) {
 		mutable_ = true;
 		intervaltree_ = NULL;
@@ -133,9 +120,6 @@ ByteContainer::VersionManager::vOpen()
 		intervaltree_ = new IntervalTree();
 	}
 	size_ = object()->Size();
-	if (object() == (void*) 0x80fffc0700) {
-		printf("size_=%d\n", size_);
-	}
 
 	return E_SUCCESS;
 }
@@ -175,6 +159,7 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 
 
 	dbg_log (DBG_DEBUG, "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 " (size=%" PRIu64 "\n", off, off+n-1, n, size_);
+
 
 	high_bn = (off + n - 1) / kBlockSize;
 	for (tot=0; tot < n; tot+=m, off+=m) 
@@ -221,33 +206,7 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 	return tot;
 }
 
-static bool __debug = false;
 
-void trigger_debug(osd::containers::client::ByteContainer::Object* object)
-{
-	if (osd::containers::client::ByteContainer::Object* object = (osd::containers::client::ByteContainer::Object*) 0x80fffc0700) {
-		if (object->Size() > 4096*8) {
-			__debug = true;
-		}
-	}
-}
-
-void print_debug(OsdSession* session, osd::containers::client::ByteContainer::Object* object, bool incr_counter=true) {
-	if (incr_counter) __counter++;
-	if (__debug) {
-		printf("[%llu] Object: %p\n", __counter, object);
-		osd::containers::client::ByteContainer::Object* tmp_object = (osd::containers::client::ByteContainer::Object*) 0x80fffc0700;
-		tmp_object->PrintBlocks(session);
-	}
-}
-
-
-void print_culprit() {
-	if (__debug) {
-		osd::containers::client::ByteContainer::Object* tmp_object = (osd::containers::client::ByteContainer::Object*) 0x80fffc0700;
-		tmp_object->PrintBlocks(NULL);
-	}
-}
 /**
  * off offset is relative to 0 (beginning of container)
  */
@@ -274,9 +233,6 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 	
 	high_bn = (off + n - 1) / kBlockSize;
 
-	//print_debug(session, object());
-	//trigger_debug(object());
-
 	for (tot=0; tot < n; tot+=m, off+=m) 
 	{
 		bn = off/kBlockSize;
@@ -294,21 +250,9 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 			interval = new Interval(object(), bn, upper_bn);
 			intervaltree_->insert(IntervalKeyPair(interval));
 			ret = interval->Write(session, &src[tot], off, n-tot);
-			if (__counter == 2137113) {
-				printf("PRINT1\n");
-				print_debug(session, object(), false);
-			}
 		} else if (bn >= shadow_lb_bn && bn <= (*lb_interval_it).first.High()) {
 			ret = (*lb_interval_it).second->Write(session, &src[tot], off, n-tot);
-			if (__counter == 2137113) {
-				printf("PRINT2: bn=%llu [%llu -- %llu]\n", bn, shadow_lb_bn, (*lb_interval_it).first.High());
-				print_debug(session, object(), false);
-			}
 		} else if (bn == persistent_lb_bn) {
-			if (__counter == 2137113) {
-				printf("PRINT3\n");
-				print_debug(session, object(), false);
-			}
 			ret = object()->Write(session, &src[tot], off, n - tot);
 		} else { 
 			if (shadow_lb_bn > persistent_lb_bn) {
@@ -319,10 +263,6 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 			assert (upper_bn >= bn);
 			interval = new Interval(object(), bn, upper_bn);
 			intervaltree_->insert(IntervalKeyPair(interval));
-			if (__counter == 2137113) {
-				printf("PRINT4\n");
-				print_debug(session, object(), false);
-			}
 			ret = interval->Write(session, &src[tot], off, n-tot);
 		}
 		if (ret < 0) {
@@ -330,7 +270,6 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 		}
 		m = ret;
 	}
-	//print_debug(session, object());
 
 	if (ret < 0 && tot == 0) {
 		return -1;

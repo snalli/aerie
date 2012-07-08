@@ -339,6 +339,10 @@ StorageAllocator::FreeExtent(OsdSession* session, osd::common::ExtentId eid)
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "Freeing Extent: %p ...\n", eid.u64());
 	
+	if (eid.u64() == 0x80faa81000) {
+		printf("FREE\n");
+	}
+		
 	if ((ret = pool_->FreeExtent(eid.addr())) < 0) {
 		return ret;
 	}
@@ -532,6 +536,10 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 			oid = container_list_[type].front();
 			container_list_[type].pop_front();
 			set->Insert(session, oid);
+			// reinitialize object to make sure we start at clean state
+			if ((obj = objtype2factory_map_[type]->Make(session, (char*) oid.addr())) == NULL) {
+				return -E_NOMEM;
+			}
 		}
 		return E_SUCCESS;
 	}

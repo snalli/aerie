@@ -14,6 +14,7 @@
 #include "common/hrtime.h"
 #include "osd/main/client/stm.h"
 #include "pxfs/client/client_i.h"
+#include "pxfs/client/fsomgr.h"
 #include "pxfs/client/mpinode.h"
 #include "pxfs/client/inode.h"
 #include "pxfs/client/sb.h"
@@ -561,24 +562,32 @@ NameSpace::Unlink(Session* session, const char *pathname)
 		}
 	}
 
+	// BUG: We should defer deleting a file opened by us because as soon as
+	// we publish our operation to the server, the server we free and recycle 
+	// storage associated with the file. 
+
 	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Message::LogicalOperation::Unlink(dp->ino(), name);
 	
 	assert(dp->Unlink(session, name) == E_SUCCESS);
-	//FIXME: inode link/unlink should take care of the nlink
+	//FIXME: inode's link/unlink should take care of the nlink
 	if (ip->type() == kDirInode) {
 		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's backlink ..
 	}
-
 	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for parent's forward link
-	//FIXME: who deallocates the inode if nlink == 0 ???
 	
 	session->journal()->TransactionCommit();
 
 	dp->Put();
 	dp->Unlock(session);
 	ip->Put();
-	ip->Unlock(session);
+	if (ip->ref_count() == 0 && ip->nlink() == 0) {
+		if ((ret = global_fsomgr->DestroyInode(session, ip)) < 0) {
+			DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_name), "Cannot destroy inode: %llu", ip->ino());
+		}
+	} else {
+		ip->Unlock(session);
+	}
 
 	return E_SUCCESS;
 }

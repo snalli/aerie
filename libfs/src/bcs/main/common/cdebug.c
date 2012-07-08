@@ -29,6 +29,13 @@ strrep(char *target, char *source, char oldc, char newc)
 }
 
 
+void
+dbg_set_level(int level)
+{
+	dbg_level = level;
+}
+
+
 int 
 dbg_init(config_t* dbg_cfg, int level, const char* identifier)
 {

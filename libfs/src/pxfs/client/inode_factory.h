@@ -12,6 +12,7 @@ class InodeFactory {
 public:
 	virtual int Make(Session* session, int type, Inode** ipp) = 0;
 	virtual int Load(Session* session, osd::common::ObjectId oid, Inode** ipp) = 0;
+	virtual int Destroy(Session* session, Inode* ip) = 0;
 };
 
 } // namespace client

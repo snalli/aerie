@@ -140,6 +140,9 @@ DescriptorPool::AllocateExtent(::client::Ipc* ipc, OsdSession* session,
 	*eid = front.eid_;
 	session->journal() << osd::Publisher::Message::ContainerOperation::AllocateExtent(capability_, front.eid_, front.index_);
 	extent_list_.pop_front();
+	if (eid->u64() == 0x80faa81000) {
+		printf("ALLOCATION\n");
+	}
 	return E_SUCCESS;
 }
 

@@ -82,6 +82,7 @@ public:
 	int LinkBlock(Session* session, uint64_t bn, void* bp);
 
 	int LowerBound(Session* session, uint64_t bn, uint64_t* lge_bn);
+	void PrintBlocks(Session* session);
 
 	// return maximum possible size in bytes
 	inline uint64_t get_maxsize() { 
@@ -754,6 +755,32 @@ ByteContainer::Object<Session>::Read(Session* session, char* dst, uint64_t off, 
 {
 	//return __Read<Session, ByteContainer::Object<Session> > (session, this, dst, off, n);
 	return ReadImmutable (session, dst, off, n);
+}
+
+
+template<typename Session>
+void
+ByteContainer::Object<Session>::PrintBlocks(Session* session)
+{
+	int                     ret;
+	void**                  slot;
+	RadixTreeNode<Session>* node;
+	int                     offset;
+	int                     height;
+	uint64_t                rbn;
+	
+	for (int bn=0; bn<16; bn++) {
+		if ((ret = radixtree_.MapSlot(session, bn, 1, false, &node, &offset, &height)) == 0) {
+			slot = &node->slots[offset];
+		} else {
+			slot = NULL;
+		}
+		if (slot) {
+			printf("bn=%d, slot=%p, *slot=%p\n", bn, slot, *slot);
+		} else {
+			printf("bn=%d\n", bn);
+		}
+	}	
 }
 
 

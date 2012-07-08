@@ -137,7 +137,7 @@ inline void Assert(int assertion, char* error)
 
 int dbg_init(config_t* dbg_cfg, int level, const char* identifier);
 void dbg_backtrace (void);
-
+void dbg_set_level(int level);
 
 #ifdef __cplusplus
 }

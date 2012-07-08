@@ -54,7 +54,6 @@ DirInode::Link(Session* session, const char* name, FileInode* child)
 		dbg_log (DBG_INFO, "Validation failed: trying to link a file as %s\n", name);
 		return -E_VRFY;
 	}
-	printf("LINK: %lu\n", child->oid().u64());
 	obj_->Insert(session, name, child->oid());
 	child->obj()->set_parent(oid());
 	child->obj()->set_nlink(child->obj()->nlink() + 1);

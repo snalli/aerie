@@ -52,6 +52,7 @@ public:
 	int LoadSuperBlock(Session* session, osd::common::ObjectId oid, int fs_type, SuperBlock** sbp); 
 	int LoadSuperBlock(Session* session, osd::common::ObjectId oid, const char* fs_type, SuperBlock** sbp); 
 	int CreateInode(Session* session, Inode* parent, int inode_type, Inode** ipp);
+	int DestroyInode(Session* session, Inode* ip);
 
 private:
 	int FSTypeStrToId(const char* fs_type);
