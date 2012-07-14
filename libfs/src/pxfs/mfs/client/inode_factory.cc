@@ -101,9 +101,6 @@ InodeFactory::MakeFileInode(::client::Session* session, ::client::Inode** ipp)
 	if ((obj = osd::containers::client::ByteContainer::Object::Make(session)) == NULL) {
 		return -E_NOMEM;
 	}
-	if (obj == (void*) 0x80fffc0700) {
-		printf("CREATE\n");
-	}
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode), "Create file inode: %p\n", (void*) obj->oid().u64());
 
 	if ((ret = LoadFileInode(session, obj->oid(), ipp)) < 0) {
@@ -124,10 +121,8 @@ InodeFactory::DestroyFileInode(::client::Session* session, ::client::Inode* ip)
 	pthread_mutex_lock(&mutex_);
 	ref = ip->ref_;
 	ref->set_owner(NULL);
-	if (ip->oid().addr() == (void*) 0x80fffc0700) {
-		printf("CLOSE\n");
-	}
 	session->omgr_->CloseObject(session, ip->oid(), true);
+	ip->Unlock(session);
 
 	pthread_mutex_unlock(&mutex_);
 

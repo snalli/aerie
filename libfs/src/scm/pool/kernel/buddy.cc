@@ -466,6 +466,7 @@ static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
 	/* accounts for chunks about to be freed again by toFree */
     toFree(pi, past, offset + (1UL << retBits), 0);
     *newStore = ptr;
+    if (ptr == NULL) { printf("_OOPS1\n"); }
     return NULL;
 }
 

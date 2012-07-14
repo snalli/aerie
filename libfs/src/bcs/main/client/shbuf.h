@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <string>
+#include <pthread.h>
 #include "bcs/main/client/bcs-opaque.h"
 #include "bcs/main/common/shbuf.h"
 #include "common/mmapregion.h"
@@ -15,7 +16,9 @@ public:
 		: ipc_(ipc),
 		  path_(dsc.path_),
 		  id_(dsc.id_)
-	{ }
+	{ 
+		pthread_mutex_init(&mutex_, NULL);
+	}
 
 	uint64_t size() { return header_->payload_size(); }
 	uint64_t base() { return header_->payload_base(); }
@@ -30,12 +33,13 @@ public:
 	int Count() {
 		return (size() + end() - start()) % size();
 	}
-	int SignalReader();
+	int SignalReader(bool lock = true);
+
 protected:
-	
-	Ipc*        ipc_;
-	std::string path_;
-	int         id_; // handle given by the server
+	pthread_mutex_t mutex_;
+	Ipc*            ipc_;
+	std::string     path_;
+	int             id_; // handle given by the server
 };
 
 } // namespace client

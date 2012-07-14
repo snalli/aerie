@@ -48,10 +48,8 @@ Interval::WriteBlock(OsdSession* session, char* src, uint64_t bn, int off, int n
 		if ((ret = session->salloc()->AllocateExtent(session, kBlockSize, 
 		                                             kData, &ptr)) < 0)
 		{ 
+			printf("OUT OF SPACE\n");
 			return ret;
-		}
-		if (ptr == (void*) 0x80faa81000) {
-			printf("BOOM\n");
 		}
 		// The allocator journaled the allocation. We just journal the data block link.
 		session->journal() << osd::Publisher::Message::ContainerOperation::LinkBlock(object_->oid(), bn, ptr);
@@ -64,9 +62,6 @@ Interval::WriteBlock(OsdSession* session, char* src, uint64_t bn, int off, int n
 		memset(&bp[off+n], 0, kBlockSize-n); 
 	}
 
-	if (__counter == 2137113) {
-		printf("SCM_MEMCPY: bp=%p src=%p off=%d n=%d\n", bp, src, off, n);
-	}
 	//memmove(&bp[off], src, n);
 	scm_memcpy(&bp[off], src, n);
 	return n;
@@ -113,51 +108,34 @@ Interval::Read(OsdSession* session, char* dst, uint64_t off, uint64_t n)
 /////////////////////////////////////////////////////////////////////////////
 
 
-
 int 
 ByteContainer::VersionManager::vOpen()
 {
-	// FIXME: check if object is private or public. If private
-	// then mark it as directly mutable
-	
 	osd::vm::client::VersionManager<ByteContainer::Object>::vOpen();
 	
-	if (object() == (void*) 0x80fffc0700) {
-		printf("vOpen\n");
-	}
-	if (0 /* private */) {
-		mutable_ = true;
-		intervaltree_ = NULL;
-	} else {
-		mutable_ = false;
-		intervaltree_ = new IntervalTree();
-	}
+	intervaltree_ = new IntervalTree();
 	size_ = object()->Size();
-	if (object() == (void*) 0x80fffc0700) {
-		printf("size_=%d\n", size_);
-	}
 
 	return E_SUCCESS;
 }
 
 
-
-// FIXME: Currently we publish by simply doing the updates in-place. 
-// Normally this must be done via the trusted server using the journal 
 int 
 ByteContainer::VersionManager::vUpdate(OsdSession* session)
 {
 	osd::vm::client::VersionManager<ByteContainer::Object>::vUpdate(session);
 
-	// TODO
+	// do nothing
 	
 	return 0;
 }
 
 
+// it first tries to read from the shadow buffer before reading 
+// from the immutable image
 int 
-ByteContainer::VersionManager::Read(OsdSession* session, char* dst, 
-                                    uint64_t off, uint64_t n)
+ByteContainer::VersionManager::ReadShadow(OsdSession* session, char* dst, 
+                                          uint64_t off, uint64_t n)
 {
 	int                     ret = 0;
 	int                     w;
@@ -173,9 +151,8 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 	IntervalTree::iterator  interval_it;
 	IntervalTree::iterator  lb_interval_it; // lower bound interval
 
-
 	dbg_log (DBG_DEBUG, "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 " (size=%" PRIu64 "\n", off, off+n-1, n, size_);
-
+	
 	high_bn = (off + n - 1) / kBlockSize;
 	for (tot=0; tot < n; tot+=m, off+=m) 
 	{
@@ -191,16 +168,13 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 		if (object()->LowerBound(session, bn, &persistent_lb_bn) != 0) {
 			persistent_lb_bn = -1; 
 		}
-		//printf("%llu\n", bn);
-		//printf("%llu\n", shadow_lb_bn);
-		//printf("%llu\n", persistent_lb_bn);
 		if (shadow_lb_bn == -1 && persistent_lb_bn == -1) {
 			if (off >= size_) {
 				break;
 			}
 			ret = size_ - off;
 			memset(&dst[tot], 0, ret);
-		} else if (bn >= shadow_lb_bn && bn <= (*lb_interval_it).first.High()) {
+		} else if (bn >= shadow_lb_bn && bn <= (*lb_interval_it).first.High() && 0) {
 			ret = (*lb_interval_it).second->Read(session, &dst[tot], off, n-tot);
 		} else if (bn == persistent_lb_bn) {
 			ret = object()->Read(session, &dst[tot], off, n - tot);
@@ -213,13 +187,25 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 			ret = min((upper_bn + 1) * kBlockSize - off, n - tot);
 			memset(&dst[tot], 0, ret);
 		}
-		if (ret < 0) {
+		if (ret <= 0) {
 			break;
 		}
 		m = ret;
 	}
 	return tot;
 }
+
+
+int 
+ByteContainer::VersionManager::Read(OsdSession* session, char* dst, 
+                                    uint64_t off, uint64_t n)
+{
+	if (intervaltree_->empty()) {
+		return object()->Read(session, dst, off, n);
+	}
+	return ReadShadow(session, dst, off, n);
+}
+
 
 static bool __debug = false;
 
@@ -271,12 +257,13 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 	IntervalTree::iterator  lb_interval_it; // lower bound interval
 
 	dbg_log (DBG_DEBUG, "Write range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 "\n", off, off+n-1, n);
+	//printf ("Write object=%p, range = [%" PRIu64 " , %" PRIu64 " ] n=%" PRIu64 "\n", object(), off, off+n-1, n);
 	
 	high_bn = (off + n - 1) / kBlockSize;
 
 	//print_debug(session, object());
 	//trigger_debug(object());
-
+	
 	for (tot=0; tot < n; tot+=m, off+=m) 
 	{
 		bn = off/kBlockSize;
@@ -294,12 +281,18 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 			interval = new Interval(object(), bn, upper_bn);
 			intervaltree_->insert(IntervalKeyPair(interval));
 			ret = interval->Write(session, &src[tot], off, n-tot);
+			if (ret < 0) {
+				printf("FAILED0\n");
+			}
 			if (__counter == 2137113) {
 				printf("PRINT1\n");
 				print_debug(session, object(), false);
 			}
 		} else if (bn >= shadow_lb_bn && bn <= (*lb_interval_it).first.High()) {
 			ret = (*lb_interval_it).second->Write(session, &src[tot], off, n-tot);
+			if (ret < 0) {
+				printf("FAILED1\n");
+			}
 			if (__counter == 2137113) {
 				printf("PRINT2: bn=%llu [%llu -- %llu]\n", bn, shadow_lb_bn, (*lb_interval_it).first.High());
 				print_debug(session, object(), false);
@@ -310,6 +303,9 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 				print_debug(session, object(), false);
 			}
 			ret = object()->Write(session, &src[tot], off, n - tot);
+			if (ret < 0) {
+				printf("FAILED2\n");
+			}
 		} else { 
 			if (shadow_lb_bn > persistent_lb_bn) {
 				upper_bn = persistent_lb_bn - 1;
@@ -324,6 +320,9 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 				print_debug(session, object(), false);
 			}
 			ret = interval->Write(session, &src[tot], off, n-tot);
+			if (ret < 0) {
+				printf("FAILED3\n");
+			}
 		}
 		if (ret < 0) {
 			break;
@@ -336,8 +335,8 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 		return -1;
 	}
 
-	if ( (off + tot) > size_ ) {
-		size_ = off + tot;
+	if ( (off) > size_ ) {
+		size_ = off;
 	}
 
 	return tot;

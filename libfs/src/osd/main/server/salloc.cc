@@ -18,6 +18,7 @@
 //#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 
+#define USE_VISTAHEAP
 
 namespace osd {
 namespace server {
@@ -122,7 +123,10 @@ StorageAllocator::StorageAllocator(::server::Ipc* ipc, StoragePool* pool, FreeSe
 	  pool_(pool),
 	  freeset_(freeset)
 { 
-	pthread_mutex_init(&mutex_, NULL);
+	pthread_mutexattr_t    attr;
+
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&mutex_, &attr);
 	objtype2factory_map_.set_empty_key(0);
 	aclpoolmap_.set_empty_key(INT_MAX);
 	aclpoolmap_.set_deleted_key(INT_MAX-1);
@@ -254,7 +258,8 @@ StorageAllocator::RegisterType(::osd::common::ObjectType type_id,
 	ObjectType2Factory::iterator itr; 
 
 	pthread_mutex_lock(&mutex_);
-    if ((itr = objtype2factory_map_.find(type_id)) != objtype2factory_map_.end()) {
+
+	if ((itr = objtype2factory_map_.find(type_id)) != objtype2factory_map_.end()) {
 		ret = -E_EXIST;
 		goto done;
 	}
@@ -322,12 +327,19 @@ StorageAllocator::AllocateExtent(OsdSession* session, size_t size, int flags, vo
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "Allocating Extent: size=%lu (0x%lx)...\n", size, size);
+
+	pthread_mutex_lock(&mutex_);
+
 	if ((ret = pool_->AllocateExtent(size, ptr)) < 0) {
-		return ret;
+		goto done;
 	}
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc),
 	        "Allocating Extent: base=%p, size=%lu (0x%lx): SUCCESS \n", *ptr, size, size);
-	return E_SUCCESS;
+
+	ret = E_SUCCESS;
+done:
+	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
 
 
@@ -339,15 +351,15 @@ StorageAllocator::FreeExtent(OsdSession* session, osd::common::ExtentId eid)
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "Freeing Extent: %p ...\n", eid.u64());
 	
-	if (eid.u64() == 0x80faa81000) {
-		printf("FREE\n");
-	}
-		
-	if ((ret = pool_->FreeExtent(eid.addr())) < 0) {
-		return ret;
-	}
+	pthread_mutex_lock(&mutex_);
 
-	return E_SUCCESS;
+	if ((ret = pool_->FreeExtent(eid.addr())) < 0) {
+		goto done;
+	}
+	ret = E_SUCCESS;
+done:
+	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
 
 
@@ -365,6 +377,8 @@ StorageAllocator::AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set,
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "[%d] Allocate %d extents(s) of size %d\n", session->clt(), count, size);
 
+	pthread_mutex_lock(&mutex_);
+
 	PROFILER_SAMPLE
 #ifdef USE_VISTAHEAP
 	for (int i = 0; i<count; i++) {
@@ -375,7 +389,8 @@ StorageAllocator::AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set,
 		eid = ::osd::common::ExtentId(buffer, size);
 		set->Insert(session, eid);
 	}	
-	return E_SUCCESS;
+	ret = E_SUCCESS;
+	goto done;
 #else
 	extent_size = count * size;
 	if ((ret = pool_->AllocateExtent(extent_size, (void**) &buffer)) < 0) {
@@ -388,7 +403,8 @@ StorageAllocator::AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set,
 			eid = ::osd::common::ExtentId(buffer, size);
 			set->Insert(session, eid);
 		}	
-		return E_SUCCESS;
+		ret = E_SUCCESS;
+		goto done;
 	}
 #endif
 	PROFILER_SAMPLE
@@ -398,8 +414,11 @@ StorageAllocator::AllocateExtentIntoSet(OsdSession* session, ObjectIdSet* set,
 		set->Insert(session, eid);
 	}
 	PROFILER_SAMPLE
-	
-	return E_SUCCESS;
+	ret = E_SUCCESS;
+
+done:	
+	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
 
 
@@ -508,7 +527,7 @@ StorageAllocator::FreeContainer(OsdSession* session, osd::common::ObjectId oid)
 {
 	int type = oid.type();
 	assert(type < 16);
-	container_list_[type].push_back(oid);
+	//container_list_[type].push_back(oid);
 	return E_SUCCESS;
 }
 
@@ -529,6 +548,8 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "[%d] Allocate %d container(s) of type %d\n", session->clt(), count, type);
 
+	pthread_mutex_lock(&mutex_);
+
 	//FIXME: use storage from local pool. currently we keep this in a list but we
 	//should really have a local pool based on DescriptorPool
 	if (container_list_[type].size() > count) {
@@ -538,10 +559,12 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 			set->Insert(session, oid);
 			// reinitialize object to make sure we start at clean state
 			if ((obj = objtype2factory_map_[type]->Make(session, (char*) oid.addr())) == NULL) {
-				return -E_NOMEM;
+				ret = -E_NOMEM;
+				goto done;
 			}
 		}
-		return E_SUCCESS;
+		ret = E_SUCCESS;
+		goto done;
 	}
 
 	// Create objects and insert them into the set 
@@ -562,22 +585,29 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 			for (size_t s=0; s<4096; s+=static_size) {
 				char* b = (char*) buffer + s;
 				if ((obj = objtype2factory_map_[type]->Make(session, b)) == NULL) {
-					return -E_NOMEM;
+					ret = -E_NOMEM;
+					goto done;
 				}
 				set->Insert(session, obj->oid());
 			}
 		}	
-		return E_SUCCESS;
+		ret = E_SUCCESS;
+		goto done;
 	}
 	for (size_t s=0; s<extent_size; s+=static_size) {
 		char* b = (char*) buffer + s;
 		if ((obj = objtype2factory_map_[type]->Make(session, b)) == NULL) {
-			return -E_NOMEM;
+			ret = -E_NOMEM;
+			goto done;
 		}
 		set->Insert(session, obj->oid());
 	}
-	
-	return E_SUCCESS;
+	ret = E_SUCCESS;
+
+done:	
+	pthread_mutex_unlock(&mutex_);
+
+	return ret;
 }
 
 

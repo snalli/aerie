@@ -32,21 +32,30 @@ SharedBuffer::Map()
 
 
 int 
-SharedBuffer::SignalReader()
+SharedBuffer::SignalReader(bool lock)
 {
 	int ret;
 	int r;
 
+	if (lock) {
+		pthread_mutex_lock(&mutex_);
+	}
 	if ((ret = ipc_->call(::SharedBuffer::Protocol::kConsume, 
                           ipc_->id(), id_, r)) < 0) 
 	{
-		return -E_IPC;
+		ret = -E_IPC;
+		goto done;
 	}
 	if (ret > 0) {
-		return -ret;
+		ret = -ret;
+		goto done;
 	}
-
-	return E_SUCCESS;
+	ret = E_SUCCESS;
+done:
+	if (lock) {
+		pthread_mutex_unlock(&mutex_);
+	}
+	return ret;
 }
 
 
@@ -59,9 +68,10 @@ SharedBuffer::Write(const char* src, size_t n)
 	//printf("<< start-end: [%lu - %lu], size=%lu, count=%lu, n=%d\n", start(), end(), size(), Count(), n);
 	//fflush(stdout);
 	
+	pthread_mutex_lock(&mutex_);
 	if (n >= size() - Count()) {
 		// no space 
-		SignalReader();
+		SignalReader(false);
 	}
 	void* bptr = (void*) (base() + end());
 	if (end() >= start()) {
@@ -76,6 +86,8 @@ SharedBuffer::Write(const char* src, size_t n)
 		memcpy(bptr, src, n);
 	}
 	set_end((end() + n) % size());
+	pthread_mutex_unlock(&mutex_);
+
 	return n;
 }
 

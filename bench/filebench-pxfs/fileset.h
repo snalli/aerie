@@ -152,7 +152,7 @@ typedef struct fileset {
 int fileset_createset(fileset_t *);
 void fileset_delete_all_filesets(void);
 int fileset_openfile(fb_fdesc_t *fd, fileset_t *fileset,
-    filesetentry_t *entry, int flag, int mode, int attrs, int append);
+    filesetentry_t *entry, int flag, int mode, int attrs);
 fileset_t *fileset_define(avd_t);
 fileset_t *fileset_find(char *name);
 filesetentry_t *fileset_pick(fileset_t *fileset, int flags, int tid,

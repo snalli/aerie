@@ -126,14 +126,12 @@ public:
 	void PrintIntervals();
 
 private:
-	//int ReadImmutable(OsdSession* session, char*, uint64_t, uint64_t);
-	//int ReadMutable(OsdSession* session, char*, uint64_t, uint64_t);
+	int ReadShadow(OsdSession* session, char*, uint64_t, uint64_t);
 	//int WriteImmutable(OsdSession* session, char*, uint64_t, uint64_t);
 	//int WriteMutable(OsdSession* session, char*, uint64_t, uint64_t);
 
 	IntervalTree*      intervaltree_;
 	uint64_t           size_;
-	bool               mutable_;       // directly mutable
 };
 
 

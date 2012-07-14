@@ -100,7 +100,7 @@ static int flowoplib_bwlimit(threadflow_t *, flowop_t *flowop);
 static int flowoplib_iopslimit(threadflow_t *, flowop_t *flowop);
 static int flowoplib_opslimit(threadflow_t *, flowop_t *flowop);
 static int flowoplib_openfile(threadflow_t *, flowop_t *flowop);
-static int flowoplib_openfile_common(threadflow_t *, flowop_t *flowop, int fd, int append);
+static int flowoplib_openfile_common(threadflow_t *, flowop_t *flowop, int fd);
 static int flowoplib_createfile(threadflow_t *, flowop_t *flowop);
 static int flowoplib_closefile(threadflow_t *, flowop_t *flowop);
 static int flowoplib_makedir(threadflow_t *, flowop_t *flowop);
@@ -419,7 +419,7 @@ flowoplib_filesetup(threadflow_t *threadflow, flowop_t *flowop,
 		int ret;
 
 		if ((ret = flowoplib_openfile_common(
-		    threadflow, flowop, fd, 1)) != FILEBENCH_OK)
+		    threadflow, flowop, fd)) != FILEBENCH_OK)
 			return (ret);
 
 		if (threadflow->tf_fse[fd]) {
@@ -1505,7 +1505,7 @@ flowoplib_openfile(threadflow_t *threadflow, flowop_t *flowop)
 	if (fd == -1)
 		return (FILEBENCH_ERROR);
 
-	return (flowoplib_openfile_common(threadflow, flowop, fd, 0));
+	return (flowoplib_openfile_common(threadflow, flowop, fd));
 }
 
 /*
@@ -1521,7 +1521,7 @@ flowoplib_openfile(threadflow_t *threadflow, flowop_t *flowop)
  * and FILEBENCH_OK on success.
  */
 static int
-flowoplib_openfile_common(threadflow_t *threadflow, flowop_t *flowop, int fd, int append)
+flowoplib_openfile_common(threadflow_t *threadflow, flowop_t *flowop, int fd)
 {
 	filesetentry_t *file;
 	char *fileset_name;
@@ -1636,7 +1636,7 @@ flowoplib_openfile_common(threadflow_t *threadflow, flowop_t *flowop, int fd, in
 
 	flowop_beginop(threadflow, flowop);
 	err = fileset_openfile(&threadflow->tf_fd[fd], flowop->fo_fileset,
-	    file, openflag, 0666, flowoplib_fileattrs(flowop), append);
+	    file, openflag, 0666, flowoplib_fileattrs(flowop));
 	flowop_endop(threadflow, flowop, 0);
 
 	if (err == FILEBENCH_ERROR) {
@@ -1714,7 +1714,7 @@ flowoplib_createfile(threadflow_t *threadflow, flowop_t *flowop)
 
 	flowop_beginop(threadflow, flowop);
 	err = fileset_openfile(&threadflow->tf_fd[fd], flowop->fo_fileset,
-		file, openflag | O_DIRECT, 0666, flowoplib_fileattrs(flowop), 0);
+		file, openflag | O_DIRECT, 0666, flowoplib_fileattrs(flowop));
 	flowop_endop(threadflow, flowop, 0);
 
 	if (err == FILEBENCH_ERROR) {
@@ -2568,11 +2568,10 @@ flowoplib_appendfilerand(threadflow_t *threadflow, flowop_t *flowop)
 		return (FILEBENCH_OK);
 	}
 
-	//printf("append ");
-
 	if ((ret = flowoplib_iosetup(threadflow, flowop, &wss, &iobuf,
 	    &fdesc, appendsize)) != FILEBENCH_OK)
 		return (ret);
+
 
 	/* setup buffer to read the data */
 	if ((readsize = avd_get_int(flowop->fo_iosize)) == 0)
@@ -2611,11 +2610,11 @@ flowoplib_appendfilerand(threadflow_t *threadflow, flowop_t *flowop)
 	#elif RXFS_F
 	libfs_lseek(fdesc->fd_num, 0, SEEK_END);
 	ret = libfs_write(fdesc->fd_num, iobuf, appendsize);
-	printf("append executed\n");
+	//printf("append executed\n");
 	#else
 	filesize = 0;
 	(void) FB_LSEEK(fdesc, 0, SEEK_END);
-	printf("append size %lld\n", appendsize);
+	//printf("append size %lld\n", appendsize);
 	ret = FB_WRITE(fdesc, iobuf, appendsize);
 	#endif
 	if (ret != filesize+appendsize) {

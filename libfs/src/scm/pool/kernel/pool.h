@@ -5,7 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <list>
+#include <map>
 
 class PersistentRegion; // forward declaration
 class DynamicBitSet;    // forward declaration
@@ -33,11 +35,13 @@ public:
 	
 	StoragePool(Header* header);
 
-	Header*    header_;
-	uint64_t   identity_;
-	size_t     alloc_size_;
-	size_t     free_size_;
+	Header*           header_;
+	uint64_t          identity_;
+	size_t            alloc_size_;
+	size_t            free_size_;
+	pthread_mutex_t   mutex_;
 	std::list<void*>  free_list_;
+	std::map<void*, uint64_t> alloc_map_; // for debugging purposes
 };
 
 #endif // __STAMNOS_SPA_POOL_KERNEL_H

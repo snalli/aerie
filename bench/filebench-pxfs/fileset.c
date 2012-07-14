@@ -492,7 +492,7 @@ extern int libstat(char *, struct stat64 *);
 
 int
 fileset_openfile(fb_fdesc_t *fdesc, fileset_t *fileset,
-    filesetentry_t *entry, int flag, int filemode, int attrs, int append)
+    filesetentry_t *entry, int flag, int filemode, int attrs)
 {
 	char path[MAXPATHLEN];
 	char dir[MAXPATHLEN];
@@ -527,23 +527,7 @@ fileset_openfile(fb_fdesc_t *fdesc, fileset_t *fileset,
 		open_attrs |= O_DIRECT;
 #endif /* HAVE_O_DIRECT */
 
-	fdesc->via_libfs = 0;
-	if(append == 1)
-	{
-		int fd = 0;
-		fd = libfs_open(path, flag | open_attrs);
-		fdesc->fd_num = fd;
-		fdesc->via_libfs = 1;
-		if(fd < 0)
-		{
-			printf("libfs open failed\n");
-			fileset_unbusy(entry, FALSE, FALSE, 0);
-			return FILEBENCH_ERROR;
-		}
-	}
-	else
-	{
-		if (FB_OPEN(fdesc, path, flag | open_attrs, filemode)
+	if (FB_OPEN(fdesc, path, flag | open_attrs, filemode)
 				== FILEBENCH_ERROR) {
 			filebench_log(LOG_ERROR,
 					"Failed to open file %d, %s, with status %x: %s",
@@ -551,7 +535,6 @@ fileset_openfile(fb_fdesc_t *fdesc, fileset_t *fileset,
 
 			fileset_unbusy(entry, FALSE, FALSE, 0);
 			return (FILEBENCH_ERROR);
-		}
 	}
 #ifdef HAVE_DIRECTIO
 	if (attrs & FLOW_ATTR_DIRECTIO)

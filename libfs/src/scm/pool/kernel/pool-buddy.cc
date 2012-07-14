@@ -162,6 +162,7 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 	//not the whole region it will leak storage. so get from frees here
 	if (size == 4096 && !free_list_.empty()) {
 		*ptr = free_list_.front();
+		if (*ptr == NULL) { printf("OOPS1\n"); }
 		free_list_.pop_front();
 		return E_SUCCESS;
 	}
@@ -171,6 +172,7 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 	if (poolMalloc(&header_->buddy_, size, ptr) != NULL) {
 		return -E_NOMEM;
 	}
+	if (*ptr == NULL) { printf("OOPS1\n"); printf("%s\n", }
 	alloc_size_+=size;
 	PROFILER_SAMPLE
 	extent_base = (unsigned long) *ptr;

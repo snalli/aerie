@@ -50,7 +50,8 @@ StoragePool::Allocate(const char* path, size_t size)
 
 	v_addr = 0x8000000000;
 	//size_mb = 1024;
-	size_mb = 8192;
+	//size_mb = 8192;
+	size_mb = (size / 1024) / 1024;
 
 	// convention: syscall 313 returns 1 on success
 	if (syscall(312, v_addr, size_mb) != 1) {
@@ -131,6 +132,7 @@ StoragePool::Open(const char* path, StoragePool** pool)
 	*pool = new StoragePool(header);
 	(*pool)->free_size_ = 0;
 	(*pool)->alloc_size_ = 0;
+	pthread_mutex_init(&(*pool)->mutex_, NULL);
 	return StoragePool::Identity(path, &((*pool)->identity_));
 }
 
@@ -143,12 +145,15 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 	unsigned long extent_base;
 	PROFILER_SAMPLE
 	
+	pthread_mutex_lock(&mutex_);
 	// roundup because protect expects multiple page size
 	size = NumOfBlocks(size, kBlockSize) * kBlockSize; 
 
 	if (!(*ptr = vistaheap_malloc(&header_->vistaheap_, size))) {
-		return -E_NOMEM;
+		ret = -E_NOMEM;
+		goto done;
 	}
+
 	alloc_size_+=size;
 	PROFILER_SAMPLE
 	extent_base = (unsigned long) *ptr;
@@ -159,8 +164,10 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 		return ret;
 	}
 #endif
-	PROFILER_SAMPLE
-	return E_SUCCESS;
+	ret = E_SUCCESS;
+done:
+	pthread_mutex_unlock(&mutex_);
+	return ret;
 }
 
 
@@ -172,7 +179,9 @@ StoragePool::FreeExtent(void* ptr)
 	
 	free_size_ += 4096;
 	
+	pthread_mutex_lock(&mutex_);
 	vistaheap_free(&header_->vistaheap_, ptr, 4096);
+	pthread_mutex_unlock(&mutex_);
 	return E_SUCCESS;
 }
 

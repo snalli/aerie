@@ -93,9 +93,6 @@ public:
 			dbg_log(DBG_ERROR, "No storage available");
 			return NULL;
 		}
-		if (ptr == (void*) 0x80faa81000) {
-			printf("ALLOCATION\n");
-		}
 
 		return new(ptr) RadixTreeNode();
 	}

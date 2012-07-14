@@ -56,14 +56,6 @@ public:
 			osd::common::ObjectId& oid = msg->oid_;
 			osd::containers::server::ByteContainer::Object* object = osd::containers::server::ByteContainer::Object::Load(oid);
 			object->LinkBlock(session, msg->bn_, msg->ptr_);
-			if ((uint64_t) object == 0x80fffc0700) {
-				printf("%llu %p\n", msg->bn_, msg->ptr_);
-				if (msg->bn_ == 9) {
-					//printf("CHANGE PROTECTION\n");
-					 //Protect(0x80faa81000, 4096, getuid(), 0x2);
-				}
-				object->PrintBlocks(session);
-			}
 			return E_SUCCESS;
 		}
 	};

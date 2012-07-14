@@ -527,7 +527,9 @@ ByteContainer::Object<Session>::Free(Session* session, osd::common::ObjectId oid
 	for (iter = start, n = 0; !iter.terminate() && n < obj->size_; iter++, n+=kBlockSize) 
 	{
 		uint64_t extent_u64 = (uint64_t) (*iter).slot_base_[(*iter).slot_offset_];
-		session->salloc()->FreeExtent(session, osd::common::ExtentId(extent_u64));
+		if (extent_u64 != 0) {
+			session->salloc()->FreeExtent(session, osd::common::ExtentId(extent_u64));
+		}
 	}
 	session->salloc()->FreeContainer(session, oid);
 }
