@@ -26,7 +26,7 @@ public:
 	static int DestroyFileInode(::client::Session* session, ::client::Inode* ip);
 
 private:
-	static pthread_mutex_t mutex_;
+	static pthread_rwlock_t rwlock_;
 };
 
 

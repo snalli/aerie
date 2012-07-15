@@ -11,7 +11,7 @@
 namespace mfs {
 namespace client {
 
-pthread_mutex_t InodeFactory::mutex_ = PTHREAD_MUTEX_INITIALIZER;;
+pthread_rwlock_t InodeFactory::rwlock_ = PTHREAD_RWLOCK_INITIALIZER;
 
 int
 InodeFactory::LoadDirInode(::client::Session* session, 
@@ -21,23 +21,42 @@ InodeFactory::LoadDirInode(::client::Session* session,
 	int                                ret = E_SUCCESS;
 	osd::common::ObjectProxyReference* ref;
 	DirInode*                          dip;
+	bool                               wrlock = false;
 
+lock:
 	// atomically get a reference to the persistent object and 
 	// create the in-core Inode 
-	pthread_mutex_lock(&mutex_);
+	if (wrlock) {
+		pthread_rwlock_wrlock(&rwlock_);
+	} else {
+		pthread_rwlock_rdlock(&rwlock_);
+	}
 	if ((ret = session->omgr_->FindObject(session, oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
 			// the in-core inode already exists; just return this and 
 			// we are done
 			dip = reinterpret_cast<DirInode*>(ref->owner());
 		} else {
-			dip = new DirInode(ref);
-			ref->set_owner(dip);
+			if (!wrlock) {
+				pthread_rwlock_unlock(&rwlock_);
+				pthread_rwlock_wrlock(&rwlock_);
+			}
+			if (ref->owner()) {
+				dip = reinterpret_cast<DirInode*>(ref->owner());
+			} else {
+				dip = new DirInode(ref);
+				ref->set_owner(dip);
+			}
 		}
 	} else {
+		if (wrlock == false) {
+			pthread_rwlock_unlock(&rwlock_);
+			wrlock = true;
+			goto lock;
+		}
 		dip = new DirInode(ref);
 	}
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 	*ipp = dip;
 	return E_SUCCESS;
 }
@@ -68,23 +87,42 @@ InodeFactory::LoadFileInode(::client::Session* session,
 	int                                ret = E_SUCCESS;
 	osd::common::ObjectProxyReference* ref;
 	FileInode*                         fip;
-
+	bool                               wrlock = false;
+	
+lock:
 	// atomically get a reference to the persistent object and 
 	// create the in-core Inode 
-	pthread_mutex_lock(&mutex_);
+	if (wrlock) {
+		pthread_rwlock_wrlock(&rwlock_);
+	} else {
+		pthread_rwlock_rdlock(&rwlock_);
+	}
 	if ((ret = session->omgr_->FindObject(session, oid, &ref)) == E_SUCCESS) {
 		if (ref->owner()) {
 			// the in-core inode already exists; just return this and 
 			// we are done
 			fip = reinterpret_cast<FileInode*>(ref->owner());
 		} else {
-			fip = new FileInode(ref);
-			ref->set_owner(fip);
+			if (!wrlock) {
+				pthread_rwlock_unlock(&rwlock_);
+				pthread_rwlock_wrlock(&rwlock_);
+			}
+			if (ref->owner()) {
+				fip = reinterpret_cast<FileInode*>(ref->owner());
+			} else {
+				fip = new FileInode(ref);
+				ref->set_owner(fip);
+			}
 		}
 	} else {
+		if (wrlock == false) {
+			pthread_rwlock_unlock(&rwlock_);
+			wrlock = true;
+			goto lock;
+		}
 		fip = new FileInode(ref);
 	}
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 	*ipp = fip;
 	return ret;
 }
@@ -118,13 +156,13 @@ InodeFactory::DestroyFileInode(::client::Session* session, ::client::Inode* ip)
 	osd::common::ObjectProxyReference* ref;
 	FileInode*                         fip;
 
-	pthread_mutex_lock(&mutex_);
+	pthread_rwlock_wrlock(&rwlock_);
 	ref = ip->ref_;
 	ref->set_owner(NULL);
 	session->omgr_->CloseObject(session, ip->oid(), true);
 	ip->Unlock(session);
 
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 
 	return ret;
 }

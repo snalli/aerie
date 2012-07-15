@@ -66,7 +66,7 @@ private:
 	int RegisterBaseTypes();
 	
 	int                          id_;
-	pthread_mutex_t              mutex_;
+	pthread_rwlock_t             rwlock_;
 	ObjectManagerOfType*         objtype2mgr_tbl_[osd::containers::T_CONTAINER_TYPE_COUNT];
 	osd::client::StorageSystem*  stsystem_;
 	OsdSession*                  cb_session_; /**< the session used when calling call-back methods */

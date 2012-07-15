@@ -276,6 +276,7 @@ Client::Open(const char* path, int flags, int mode)
 			lock_mode = lock_protocol::Mode::SL; // FIXME: do we need XL, or SL is good enough?
 		}
 		lock_mode = lock_protocol::Mode::XL; // FIXME: do we need XL, or SL is good enough?
+		PROFILER_SAMPLE
 		if ((ret = global_namespace->Namei(session, path, lock_mode, &ip)) < 0) {
 			return ret;
 		}	

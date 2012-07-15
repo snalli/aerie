@@ -34,7 +34,7 @@ namespace client {
 ObjectManager::ObjectManager(osd::client::StorageSystem* stsystem)
 	: stsystem_(stsystem)
 {
-	pthread_mutex_init(&mutex_, NULL);
+	pthread_rwlock_init(&rwlock_, NULL);
 	for (int i=0; i < osd::containers::T_CONTAINER_TYPE_COUNT; i++) {
 		objtype2mgr_tbl_[i] = NULL;
 	}
@@ -108,7 +108,7 @@ ObjectManager::RegisterType(ObjectType type_id, ObjectManagerOfType* mgr)
 		return -E_INVAL;
 	}
 
-	pthread_mutex_lock(&mutex_);
+	pthread_rwlock_wrlock(&rwlock_);
 	if (objtype2mgr_tbl_[type_id]) {
 		ret = -E_EXIST;
 		goto done;
@@ -116,7 +116,7 @@ ObjectManager::RegisterType(ObjectType type_id, ObjectManagerOfType* mgr)
 	objtype2mgr_tbl_[type_id] = mgr;
 
 done:
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 	return ret;
 }
 
@@ -138,17 +138,28 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 	ObjectManagerOfType*               mgr;
 	ObjectProxy*                       objproxy;
 	osd::common::ObjectProxyReference* objproxy_ref;
+	bool                               rwlock = false;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
 
-	pthread_mutex_lock(&mutex_);
+lock:
+	if (rwlock) {
+		pthread_rwlock_wrlock(&rwlock_);
+	} else {
+		pthread_rwlock_rdlock(&rwlock_);
+	}
 	ObjectType type = oid.type();
 	if (type >= osd::containers::T_CONTAINER_TYPE_COUNT || !(mgr = objtype2mgr_tbl_[type])) { 
 		ret = -E_INVAL; // unknown type id 
 		goto done;
 	}
 	if ((ret = mgr->oid2obj_map_.Lookup(oid, &objproxy)) != E_SUCCESS) {
+		if (!rwlock) {
+			rwlock=true;
+			pthread_rwlock_unlock(&rwlock_);
+			goto lock;
+		}
 		// create the object proxy
 		if ((objproxy = mgr->Load(cb_session_, oid)) == NULL) {
 			ret = -E_NOMEM;
@@ -163,10 +174,20 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 		// object proxy exists
 		if (use_exist_obj_ref) {
 			if ((objproxy_ref = objproxy->HeadReference()) == NULL) {
+				if (!rwlock) {
+					rwlock=true;
+					pthread_rwlock_unlock(&rwlock_);
+					goto lock;
+				}
 				objproxy_ref = new osd::common::ObjectProxyReference();
 				objproxy_ref->Set(objproxy, false);
 			}
 		} else {
+			if (!rwlock) {
+				rwlock=true;
+				pthread_rwlock_unlock(&rwlock_);
+				goto lock;
+			}
 			objproxy_ref = new osd::common::ObjectProxyReference();
 			objproxy_ref->Set(objproxy, true);
 		}
@@ -174,7 +195,7 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 	ret = E_SUCCESS;
 	*objproxy_refp = objproxy_ref;
 done:
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 	return ret;
 }
 
@@ -223,9 +244,9 @@ ObjectManager::PutObject(OsdSession* session,
 {
 	int                  ret = E_SUCCESS;
 
-	pthread_mutex_lock(&mutex_);
+	pthread_rwlock_wrlock(&rwlock_);
 	obj_ref.Reset(true);
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 	return ret;
 }
 
@@ -236,7 +257,7 @@ ObjectManager::CloseObject(OsdSession* session, ObjectId oid, bool update)
 	int                  ret = E_SUCCESS;
 	ObjectManagerOfType* mgr;
 
-	pthread_mutex_lock(&mutex_);
+	pthread_rwlock_wrlock(&rwlock_);
 	ObjectType type = oid.type();
 	ObjectType2Manager::iterator itr;
 	if (type >= osd::containers::T_CONTAINER_TYPE_COUNT || !(mgr = objtype2mgr_tbl_[type])) {
@@ -245,7 +266,7 @@ ObjectManager::CloseObject(OsdSession* session, ObjectId oid, bool update)
 	mgr->Close(session, oid, update);
 
 done:
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 	return ret;
 }
 
@@ -311,7 +332,7 @@ ObjectManager::CloseAllObjects(OsdSession* session, bool update)
 	ObjectManagerOfType*         mgr;
 	ObjectType2Manager::iterator itr;
 	
-	pthread_mutex_lock(&mutex_);
+	pthread_rwlock_wrlock(&rwlock_);
 	
 	// flush the log of updates to the server
 	if (update) {
@@ -332,7 +353,7 @@ ObjectManager::CloseAllObjects(OsdSession* session, bool update)
 		}
 	}
 
-	pthread_mutex_unlock(&mutex_);
+	pthread_rwlock_unlock(&rwlock_);
 }
 
 
