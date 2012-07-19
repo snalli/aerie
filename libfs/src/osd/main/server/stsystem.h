@@ -75,6 +75,7 @@ public:
 	// factory methods
 	static int Load(::server::Ipc* ipc, const char* source, unsigned int flags, StorageSystemT** storage_system_ptr);
 	static int Make(const char* target, unsigned int flags);
+	static int Make(const char* target, unsigned int flags, int root_obj_size, void** super_objp, void** root_obj);
 	
 	StorageSystemT(::server::Ipc* ipc, StoragePool* pool)
 		: StorageSystem(ipc, pool)
@@ -183,7 +184,71 @@ StorageSystemT<Session>::Load(::server::Ipc* ipc, const char* source,
 
 
 /**
+ * \brief Creates a storage system in the pool. 
+ *
+ * root_obj will be set to point to a placeholder for the root object.
+ * caller is responsible to set the superblock to the object ID of the
+ * root object.
+ *     super_obj->set_root(session, root_obj->oid());
+ */
+template<typename Session>
+int 
+StorageSystemT<Session>::Make(const char* target, unsigned int flags, 
+                              int root_obj_size, void** super_objp, void** root_obj)
+{
+	osd::containers::server::SuperContainer::Object*                      super_obj;
+	osd::containers::server::SetContainer<osd::common::ObjectId>::Object* set_obj;
+	int                                                                   ret;
+	char*                                                                 b;
+	char*                                                                 buffer;
+	OsdSession*                                                           session = NULL; // we need no journaling and storage allocator
+	size_t                                                                master_extent_size;
+	StoragePool*                                                          pool;
+	
+	if ((ret = StoragePool::Open(target, &pool)) < 0) {
+		return ret;
+	}
+	
+	// 1) create the superblock object/proxy,
+	// 2) allocate space for a place holder for the root object.
+	//    of the superblock to point to the new directory inode.
+	
+	master_extent_size = 0;
+	master_extent_size += root_obj_size;
+	master_extent_size += sizeof(osd::containers::server::SuperContainer::Object);
+	master_extent_size += sizeof(osd::containers::server::SetContainer<osd::common::ObjectId>::Object);
+	master_extent_size = NumOfBlocks(master_extent_size, kBlockSize) * kBlockSize;
+
+	if ((ret = pool->AllocateExtent(master_extent_size, (void**) &buffer)) < 0) {
+		return ret;
+	}
+	pool->set_root((void*) buffer);
+
+	// superblock 
+	b = buffer;
+	if ((super_obj = osd::containers::server::SuperContainer::Object::Make(session, b)) == NULL) {
+		return -E_NOMEM;
+	}
+	// preallocate space for the root object place holder
+	b += sizeof(osd::containers::server::SuperContainer::Object);
+	*root_obj = (void*) b;
+	// storage container
+	b += root_obj_size; 
+	if ((set_obj = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Make(session, b)) == NULL) {
+		return -E_NOMEM;
+	}
+	super_obj->set_freelist(session, set_obj->oid());
+	b += sizeof(osd::containers::server::SetContainer<osd::common::ObjectId>::Object);
+	assert(b < buffer + master_extent_size + 1); 
+	*super_objp = super_obj;
+	return E_SUCCESS;
+}
+
+
+/**
  * \brief Creates a storage system in the pool
+ *
+ * FIXME this function should reuse the generic Make above
  */
 template<typename Session>
 int 
@@ -239,6 +304,9 @@ StorageSystemT<Session>::Make(const char* target, unsigned int flags)
 	assert(b < buffer + master_extent_size + 1); 
 	return E_SUCCESS;
 }
+
+
+
 
 
 template<typename Session>

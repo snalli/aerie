@@ -9,23 +9,23 @@
 
 namespace server {
 
-class Table {
+class SubTable {
 public:
-	Table() { }
+	SubTable() { }
 
-	Table(InodeNumber ino)
+	SubTable(InodeNumber ino)
 		: oid_(osd::common::ObjectId(ino))
 	{
 		obj_ = osd::containers::server::NameContainer::Object::Load(oid_);
 	}
 
 	// TODO: mark persistent object address by ino as allocated and construct inode into ip
-	static Table* Make(Session* session, InodeNumber ino, Table* tp) {
-		return new(tp) Table(ino);
+	static SubTable* Make(Session* session, InodeNumber ino, SubTable* tp) {
+		return new(tp) SubTable(ino);
 	}
 
-	static Table* Load(Session* session, InodeNumber ino, Table* tp) {
-		return new(tp) Table(ino);
+	static SubTable* Load(Session* session, InodeNumber ino, SubTable* tp) {
+		return new(tp) SubTable(ino);
 	}
 
 	int Insert(Session* session, const char* key, File* fp);

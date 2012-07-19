@@ -1,15 +1,15 @@
-#include "kvfs/server/table.h"
+#include "kvfs/server/subtable.h"
 #include "kvfs/server/file.h"
 
 namespace server {
 
-int Table::Insert(Session* session, const char* key, File* fp)
+int SubTable::Insert(Session* session, const char* key, File* fp)
 {
 	obj_->Insert(session, key, fp->oid());
 	return E_SUCCESS;
 }
 
-int Table::Unlink(Session* session, const char* key)
+int SubTable::Unlink(Session* session, const char* key)
 {
 	int                   ret;
 	osd::common::ObjectId needle_oid;
