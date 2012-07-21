@@ -12,7 +12,7 @@ typedef uint64_t scm_word_t;
 
 
 #define STAMNOS_SCM_LATENCY_WRITE 150
-
+#define M_PCM_CPUFREQ 2400
 
 /* Hardware Cache */
 
@@ -30,8 +30,8 @@ typedef uint64_t scm_word_t;
 
 
 
-#define NS2CYCLE(__ns) ((__ns) * M_PCM_CPUFREQ / 1000)
-#define CYCLE2NS(__cycles) ((__cycles) * 1000 / M_PCM_CPUFREQ)
+#define NS2CYCLE(__ns) (((__ns) * M_PCM_CPUFREQ) / 1000)
+#define CYCLE2NS(__cycles) (((__cycles) * 1000) / M_PCM_CPUFREQ)
 
 
 #define likely(x)	__builtin_expect(!!(x), 1)
@@ -94,6 +94,12 @@ inline void
 ScmFence()
 {
 	asm_mfence(); 
+	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
+}
+
+inline void 
+ScmLatency()
+{
 	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
 }
 
