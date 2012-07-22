@@ -527,7 +527,12 @@ StorageAllocator::FreeContainer(OsdSession* session, osd::common::ObjectId oid)
 {
 	int type = oid.type();
 	assert(type < 16);
-	//container_list_[type].push_back(oid);
+	// BUG: Recycling other types of containers is problematic because we have
+	// a bug somewhere that causes a problem in reinitializing recycled storage
+	// We hardcode the if-check below to be able to run KVFS
+	if (type == osd::containers::T_NEEDLE_CONTAINER) {
+		container_list_[type].push_back(oid);
+	}
 	return E_SUCCESS;
 }
 

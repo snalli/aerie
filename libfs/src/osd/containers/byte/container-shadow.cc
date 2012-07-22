@@ -551,6 +551,10 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 		size_ = off + w;
 	}
 
+#ifdef DURABLE_DATA
+	// wait for the writes to be performed to SCM
+	ScmFence();
+#endif
 	return w;
 }
 

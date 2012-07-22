@@ -23,6 +23,7 @@
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
 #include "common/prof.h"
+#include "scm/scm/model.h"
 
 //#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
@@ -34,7 +35,7 @@ namespace common {
 class ByteContainer {
 public:
 enum {
-	N_DIRECT = 0
+	N_DIRECT = 8
 };
 
 template<typename Session>
@@ -462,10 +463,18 @@ int __Write(Session* session, T* obj, char* src, uint64_t off, uint64_t n)
 		m = min(n - tot, kBlockSize - f);
 		ret = obj->WriteBlock(session, &src[tot], bn, f, m);
 		if (ret < 0 || ret < m) { // ret could be negative but comparing against unsigned
+#ifdef DURABLE_DATA
+			// wait for the writes to be performed to SCM
+			ScmFence();
+#endif
 			return ((ret < 0) ? ( (tot>0)? tot: ret)  
 			                  : tot + ret);
 		}
 	}
+#ifdef DURABLE_DATA
+	// wait for the writes to be performed to SCM
+	ScmFence();
+#endif
 
 	return tot;
 }
@@ -665,6 +674,7 @@ ByteContainer::Object<Session>::LinkBlock(Session* session, uint64_t bn, void* b
 	if ( ((bn+1)*kBlockSize) > size_ ) {
 		size_ = (bn+1)*kBlockSize;
 	}
+	ScmLatency();
 	return kBlockSize;
 }
 

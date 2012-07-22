@@ -1,4 +1,5 @@
 #include "osd/main/server/journal.h"
+#include "scm/scm/model.h"
 #include "common/errno.h"
 
 namespace osd {
@@ -13,6 +14,7 @@ Journal::TransactionBegin(int id)
 int
 Journal::TransactionCommit()
 {
+	ScmFence();
 	return E_SUCCESS;
 }
 

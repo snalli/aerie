@@ -48,10 +48,6 @@ scm_memcpy(void *dst, const void *src, size_t n)
 		val = ((scm_word_t *) saddr);
 		asm_sse_write_block64((uintptr_t *) daddr, val);
 	}
-
-	// wait for the writes to be performed to SCM
-	ScmFence();
-
 	return dst;
 }
 

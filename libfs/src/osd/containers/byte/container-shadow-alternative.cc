@@ -234,6 +234,7 @@ void print_culprit() {
 		tmp_object->PrintBlocks(NULL);
 	}
 }
+
 /**
  * off offset is relative to 0 (beginning of container)
  */
@@ -281,31 +282,10 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 			interval = new Interval(object(), bn, upper_bn);
 			intervaltree_->insert(IntervalKeyPair(interval));
 			ret = interval->Write(session, &src[tot], off, n-tot);
-			if (ret < 0) {
-				printf("FAILED0\n");
-			}
-			if (__counter == 2137113) {
-				printf("PRINT1\n");
-				print_debug(session, object(), false);
-			}
 		} else if (bn >= shadow_lb_bn && bn <= (*lb_interval_it).first.High()) {
 			ret = (*lb_interval_it).second->Write(session, &src[tot], off, n-tot);
-			if (ret < 0) {
-				printf("FAILED1\n");
-			}
-			if (__counter == 2137113) {
-				printf("PRINT2: bn=%llu [%llu -- %llu]\n", bn, shadow_lb_bn, (*lb_interval_it).first.High());
-				print_debug(session, object(), false);
-			}
 		} else if (bn == persistent_lb_bn) {
-			if (__counter == 2137113) {
-				printf("PRINT3\n");
-				print_debug(session, object(), false);
-			}
 			ret = object()->Write(session, &src[tot], off, n - tot);
-			if (ret < 0) {
-				printf("FAILED2\n");
-			}
 		} else { 
 			if (shadow_lb_bn > persistent_lb_bn) {
 				upper_bn = persistent_lb_bn - 1;
@@ -315,14 +295,7 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 			assert (upper_bn >= bn);
 			interval = new Interval(object(), bn, upper_bn);
 			intervaltree_->insert(IntervalKeyPair(interval));
-			if (__counter == 2137113) {
-				printf("PRINT4\n");
-				print_debug(session, object(), false);
-			}
 			ret = interval->Write(session, &src[tot], off, n-tot);
-			if (ret < 0) {
-				printf("FAILED3\n");
-			}
 		}
 		if (ret < 0) {
 			break;

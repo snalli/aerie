@@ -10,6 +10,7 @@
 #include "common/errno.h"
 #include "common/hash.h"
 #include "common/prof.h"
+#include "scm/scm/model.h"
 
 //#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
@@ -44,7 +45,9 @@ const int TAG_SIZE = 1;
 const int FACTOR = 1;
 const int VAL_SIZE = sizeof(uint64_t);
 
-const int NUM_BUCKETS = 128;
+//const int NUM_BUCKETS = 128;
+const int NUM_BUCKETS = 1024;
+//const int NUM_BUCKETS = 16384;
 
 // PCM is treated as volatile??? this should be guaranteed by the PCM assembly macros
 #define volatile 
@@ -156,6 +159,7 @@ public:
 		memcpy((void*) payload_, key, key_size);
 		memcpy((void*) &payload_[key_size], val, val_size);
 		tag_[0] = 0x80 | payload_size; // mark as allocated and set size in a single op
+		ScmFence();
 		return 0;
 	}
 	char* get_key() { 
