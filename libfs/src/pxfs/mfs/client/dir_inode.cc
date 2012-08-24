@@ -20,6 +20,7 @@ namespace client {
 int 
 DirInode::Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
 {
+	PROFILER_PREAMBLE
 	int                   ret;
 	::client::Inode*      ip;
 	osd::common::ObjectId oid;
@@ -34,12 +35,15 @@ DirInode::Lookup(::client::Session* session, const char* name, int flags, ::clie
 		ip = parent_;
 		goto done;
 	}
+	PROFILER_SAMPLE
 	if ((ret = rw_ref()->proxy()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
 		return ret;
 	}
+	PROFILER_SAMPLE
 	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
 		return ret;
 	}
+	PROFILER_SAMPLE
 
 done:
 	ip->Get();

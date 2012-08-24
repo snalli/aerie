@@ -2,9 +2,15 @@
 #include "cfs/client/libfs.h"
 #include "ubench/fs/cfs.h"
 
+int dummy(const char*f, const char *t)
+{
+	return 0;
+}
+
 int (*fs_open)(const char*, int flags) = cfs_open;
 int (*fs_open2)(const char*, int flags, mode_t mode) = cfs_open2;
 int (*fs_unlink)(const char*) = cfs_unlink;
+int (*fs_rename)(const char*, const char*) = dummy;
 int (*fs_close)(int fd) = cfs_close;
 int (*fs_fsync)(int fd) = cfs_fsync;
 int (*fs_sync)() = cfs_sync;

@@ -53,7 +53,6 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 	::Publisher::Message::LogicalOperation::MakeFile* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::MakeFile>(session, buf);
 	
 	dbg_log (DBG_INFO, "Validate MakeFile: %p %s -> %p\n", lgc_op->parino_, lgc_op->key_, lgc_op->childino_);
-	printf ("Validate MakeFile: %p %s -> %p\n", lgc_op->parino_, lgc_op->key_, lgc_op->childino_);
 
 	// verify preconditions
 	oid = osd::common::ObjectId(lgc_op->parino_);

@@ -163,7 +163,11 @@ else:
 mainEnv.Append(CPPDEFINES = ['-DKVFS_USE_INDIRECT'])
 
 # Use alternative implementation of byte container (file) buffering
-mainEnv.Append(CPPDEFINES = ['-DBYTE_CONTAINER_ALTERNATIVE_SHADOW'])
+#mainEnv.Append(CPPDEFINES = ['-DBYTE_CONTAINER_ALTERNATIVE_SHADOW'])
+
+# Wait for the writes to be performed to SCM
+#mainEnv.Append(CPPDEFINES = ['-DDURABLE_DATA'])
+
 
 Export('mainEnv')
 

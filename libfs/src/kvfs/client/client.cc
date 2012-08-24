@@ -147,7 +147,13 @@ Client::Put(const char* key, const char* src, uint64_t n)
 int 
 Client::Get(const char* key, char* dst)
 {
-	return tp_->Get(CurrentSession(), key, dst);
+	int ret;
+	ret = tp_->Get(CurrentSession(), key, dst);
+	//printf("GET: %s\n", key);
+	//if (ret < 0) {
+	//	printf("GET: %s NOT FOUND\n", key);
+	//}
+	return ((ret < 0) ? 0 : ret);
 }
 
 

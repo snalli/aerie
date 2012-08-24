@@ -1,0 +1,7 @@
+How to use it:
+
+opcontrol --reset
+opcontrol --start
+opcontrol --stop
+opreport -l > FILE
+python ./analyze.py FILE

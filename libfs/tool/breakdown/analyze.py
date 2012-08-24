@@ -50,13 +50,13 @@ def get_symbol_samples(filename, threshold, cumulative_threshold):
         sa = sample.split()
         num = int(sa[0])
         perc = float(sa[1])
-        name = sa[4]
+        name = sa[3]
         cumulative = cumulative + perc
         if (perc < threshold):
             break
         if (cumulative > cumulative_threshold):
             break
-        symbol_samples.append((sa[4], num))
+        symbol_samples.append((name, num))
     return symbol_samples
 
 def categorize_samples(sym2mod, file2mod, ctags, symbol_samples):

@@ -13,7 +13,7 @@ lib_sources = [
 	       'publisher.cc',
                'server.cc',
 	       'session.cc',
-	       'table.cc',
+	       'subtable.cc',
               ]
 
 kvfssLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)

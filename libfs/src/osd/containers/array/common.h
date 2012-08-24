@@ -8,7 +8,7 @@ namespace containers {
 namespace common {
 
 
-#define ARRAY_CONTAINER_SIZE 2
+#define ARRAY_CONTAINER_SIZE 16
 
 template<typename T>
 class ArrayContainer {

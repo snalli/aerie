@@ -38,8 +38,6 @@ FileSystem::Init()
 }
 
 
-#if KVFS_USE_INDIRECT
-
 int 
 FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flags) 
 {
@@ -68,21 +66,6 @@ FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flag
 
 	return E_SUCCESS;
 }
-
-#else 
-
-int 
-FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flags) 
-{
-	int ret;
-
-	if ((ret = StorageSystem::Make(target, flags)) < 0) {
-		return ret;
-	}
-	return E_SUCCESS;
-}
-
-#endif
 
 
 int 

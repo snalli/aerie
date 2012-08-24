@@ -6,6 +6,7 @@
 int (*fs_open)(const char*, int flags) = libfs_open;
 int (*fs_open2)(const char*, int flags, mode_t mode) = libfs_open2;
 int (*fs_unlink)(const char*) = libfs_unlink;
+int (*fs_rename)(const char*, const char*) = libfs_rename;
 int (*fs_close)(int fd) = libfs_close;
 int (*fs_fsync)(int fd) = libfs_fsync;
 int (*fs_sync)() = libfs_sync;

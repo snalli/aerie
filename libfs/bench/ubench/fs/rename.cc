@@ -19,7 +19,7 @@ usage()
 
 
 static int 
-__ubench_fs_create(const char* root, int numops, size_t size)
+__ubench_fs_rename(const char* root, int numops, size_t size)
 {
 	MEASURE_TIME_PREAMBLE
 	int                    ret = 0;
@@ -29,6 +29,7 @@ __ubench_fs_create(const char* root, int numops, size_t size)
 	hrtime_t               sync_runtime_cycles;
 	int                    fd;
 	std::string**          path = new std::string*[numops];
+	std::string**          tpath = new std::string*[numops];
 	void*                  buf = new char[size];
 	std::stringstream      ss_root;
 	char*                  token;
@@ -45,43 +46,43 @@ __ubench_fs_create(const char* root, int numops, size_t size)
 	}
 	
 	for (int i=0; i<numops; i++) {
-		std::stringstream  ss;
+		std::stringstream  ss, tss;
 		ss << std::string(root);
+		tss << std::string(root);
 		ss << "/test-" << i << ".dat";
+		tss << "/test-" << i << ".tdat";
 		path[i] = new std::string(ss.str());
+		tpath[i] = new std::string(ss.str());
 	}
 
-	MEASURE_TIME_START
 
 	for (int i=0; i<numops; i++) {
 		fd = fs_open2(path[i]->c_str(), O_CREAT|O_TRUNC|O_RDWR, S_IRWXU);
 		assert(fd>0);
-		//fs_write(fd, buf, size);
+		fs_write(fd, buf, size);
 		fs_fsync(fd);
 		fs_close(fd);
 	}
 
-	MEASURE_TIME_STOP
-
-    MEASURE_TIME_DIFF_USEC(runtime)
-    MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
-	
-	
-	MEASURE_TIME_START
 	fs_sync();
+
+	MEASURE_TIME_START
+	for (int i=0; i<numops; i++) {
+		ret = fs_rename(path[i]->c_str(), tpath[i]->c_str());
+		assert(ret==0);
+	}
 	MEASURE_TIME_STOP
 
-    MEASURE_TIME_DIFF_USEC(sync_runtime)
-    MEASURE_TIME_DIFF_CYCLES(sync_runtime_cycles)
+	MEASURE_TIME_DIFF_USEC(runtime)
+    	MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 
-	std::cout << "CREATE:\n" << measure_time_summary(numops, runtime, runtime_cycles) << std::endl;
-	std::cout << "SYNC:\n" << measure_time_summary(1, sync_runtime, sync_runtime_cycles) << std::endl;
+	std::cout << "DELETE:\n" << measure_time_summary(numops, runtime, runtime_cycles) << std::endl;
 	return ret;
 }
 
 
 int
-ubench_fs_create(int argc, char* argv[])
+ubench_fs_rename(int argc, char* argv[])
 {
 	extern int  optind;
 	extern int  opterr;
@@ -115,5 +116,5 @@ ubench_fs_create(int argc, char* argv[])
 		return -1;
 	}
 
-	return __ubench_fs_create(root_path, numops, size);
+	return __ubench_fs_rename(root_path, numops, size);
 }

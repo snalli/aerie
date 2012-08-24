@@ -14,6 +14,7 @@
 #include "osd/main/common/obj.h"
 #include "osd/main/common/const.h"
 #include "scm/const.h"
+#include "scm/scm/model.h"
 #include "bcs/main/common/cdebug.h"
 #include "common/util.h"
 
@@ -28,7 +29,7 @@ public:
 template<typename Session>
 class Object: public osd::cc::common::Object {
 	enum  { 
-		kNeedleSize = 32*1024 // be careful to not overflow (sizeof(enum) = sizeof(int))
+		kNeedleSize = (64+16)*1024 // be careful to not overflow (sizeof(enum) = sizeof(int))
 	};
 public:
 	static Object* Make(Session* session, osd::common::AclIdentifier acl_id = 0) {
@@ -78,7 +79,7 @@ template<typename Session>
 int 
 NeedleContainer::Object<Session>::Write(Session* session, const char* src, uint64_t off, uint64_t n)
 {
-	memcpy(byte_, src, n);
+	scm_memcpy(byte_, src, n);
 	size_ = n;
 	return n;
 }
@@ -88,7 +89,7 @@ template<typename Session>
 int 
 NeedleContainer::Object<Session>::Read(Session* session, char* dst, uint64_t off, uint64_t n)
 {
-	memcpy(dst, byte_, n);
+	scm_memcpy(dst, byte_, n);
 	return n;
 }
 

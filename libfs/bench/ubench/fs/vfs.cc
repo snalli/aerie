@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdio.h>
 #include "ubench/fs/vfs.h"
 
 int vfs_open(const char* path, int flags)
@@ -36,9 +37,15 @@ int vfs_mkdir(const char* pathname, int mode)
 	return mkdir(pathname, mode);
 }
 
+int vfs_rename(const char *from, const char *to)
+{
+	return rename(from, to);
+}
+
 int (*fs_open)(const char*, int flags) = vfs_open;
 int (*fs_open2)(const char*, int flags, mode_t mode) = vfs_open2;
 int (*fs_unlink)(const char*) = vfs_unlink;
+int (*fs_rename)(const char*, const char*) = vfs_rename;
 int (*fs_close)(int fd) = vfs_close;
 int (*fs_fsync)(int fd) = fsync;
 int (*fs_sync)() = vfs_sync;

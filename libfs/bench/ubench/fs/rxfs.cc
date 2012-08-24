@@ -2,10 +2,15 @@
 #include "rxfs/client/libfs.h"
 #include "ubench/fs/rxfs.h"
 
+int dummy(const char*f, const char *t)
+{
+	return 0;
+}
 
 int (*fs_open)(const char*, int flags) = rxfs_open;
 int (*fs_open2)(const char*, int flags, mode_t mode) = rxfs_open2;
 int (*fs_unlink)(const char*) = rxfs_unlink;
+int (*fs_rename)(const char*, const char*) = dummy;
 int (*fs_close)(int fd) = rxfs_close;
 int (*fs_fsync)(int fd) = rxfs_fsync;
 int (*fs_sync)() = rxfs_sync;

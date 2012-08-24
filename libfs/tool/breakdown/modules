@@ -43,3 +43,15 @@ m,module-VFS-fs
 m,module-VFS
 	s,vfs_write
 	s,vfs_read
+
+m,module-ext3
+	f,fs/ext3/inode.c
+	f,fs/ext3/hash.c
+	f,fs/ext3/xattr.c
+	f,fs/ext3/resize.c
+	f,fs/ext3/xattr.h
+	f,fs/ext3/xattr.c
+	f,fs/ext3/ialloc.c
+	f,fs/ext3/namei.c
+	f,fs/ext3/super.c
+	f,fs/ext3/fsync.c
