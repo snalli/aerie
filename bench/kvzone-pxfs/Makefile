@@ -112,7 +112,7 @@ simpleClient_DEPENDENCIES = libutil.la libkeyValueStore.la \
 	libtokyoCabinetAdapter.la libberkeleyDBAdapter.la \
 	libsqliteAdapter.la $(am__DEPENDENCIES_1)
 SCRIPTS = $(dist_noinst_SCRIPTS)
-DEFAULT_INCLUDES = -I. -I$(srcdir) 
+DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -146,23 +146,23 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /scratch/nvm/kvzone-0.9/missing --run aclocal-1.9
+ACLOCAL = ${SHELL} /scratch/nvm/stamnos/bench/kvzone-pxfs/missing --run aclocal-1.9
 AMDEP_FALSE = #
 AMDEP_TRUE = 
-AMTAR = ${SHELL} /scratch/nvm/kvzone-0.9/missing --run tar
+AMTAR = ${SHELL} /scratch/nvm/stamnos/bench/kvzone-pxfs/missing --run tar
 AM_CXXFLAGS = -I$(top_srcdir)/src/include -Wall -Wunused-parameter -Werror -Wno-non-virtual-dtor -pthread -fno-strict-aliasing -O3 -g0 -DNDEBUG -pthread -I/usr/include -m64 -DARCH64
 AM_LDFLAGS = 
 AR = ar
-AUTOCONF = ${SHELL} /scratch/nvm/kvzone-0.9/missing --run autoconf
-AUTOHEADER = ${SHELL} /scratch/nvm/kvzone-0.9/missing --run autoheader
-AUTOMAKE = ${SHELL} /scratch/nvm/kvzone-0.9/missing --run automake-1.9
+AUTOCONF = ${SHELL} /scratch/nvm/stamnos/bench/kvzone-pxfs/missing --run autoconf
+AUTOHEADER = ${SHELL} /scratch/nvm/stamnos/bench/kvzone-pxfs/missing --run autoheader
+AUTOMAKE = ${SHELL} /scratch/nvm/stamnos/bench/kvzone-pxfs/missing --run automake-1.9
 AWK = gawk
 BOOST_CPPFLAGS = -pthread -I/usr/include
-BOOST_DATE_TIME_LIB = -lboost_date_time
-BOOST_FILESYSTEM_LIB = -lboost_filesystem
+BOOST_DATE_TIME_LIB = -lboost_date_time-mt
+BOOST_FILESYSTEM_LIB = -lboost_filesystem-mt
 BOOST_LDFLAGS = -L/usr/lib64
-BOOST_SYSTEM_LIB = 
-BOOST_THREAD_LIB = -lboost_thread
+BOOST_SYSTEM_LIB = -lboost_system-mt
+BOOST_THREAD_LIB = -lboost_thread-mt
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
@@ -174,22 +174,22 @@ CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
 CYGPATH_W = echo
 DB_LIBS = -ldb_cxx
-DEFS = -DPACKAGE_NAME=\"KVZone\" -DPACKAGE_TARNAME=\"kvzone\" -DPACKAGE_VERSION=\"0.9\" -DPACKAGE_STRING=\"KVZone\ 0.9\" -DPACKAGE_BUGREPORT=\"kvzone@nec-labs.com\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_ASSERT_H=1 -DHAVE_ERRNO_H=1 -DHAVE_EXECINFO_H=1 -DHAVE_SCHED_H=1 -DHAVE_SIGNAL_H=1 -DHAVE_STDARG_H=1 -DHAVE_STDINT_H=1 -DHAVE_STDIO_H=1 -DHAVE_SYSCALL_H=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_SYSINFO_H=1 -DHAVE_SYS_TIME_H=1 -DHAVE_TIME_H=1 -DHAVE_UNISTD_H=1 -DHAVE_WCHAR_H=1 -DHAVE_STRING_H=1 -DHAVE_CSTDLIB=1 -DHAVE_CSTRING=1 -DHAVE_DEQUE=1 -DHAVE_EXCEPTION=1 -DHAVE_FUNCTIONAL=1 -DHAVE_IOMANIP=1 -DHAVE_IOSFWD=1 -DHAVE_IOSTREAM=1 -DHAVE_LIST=1 -DHAVE_MAP=1 -DHAVE_OSTREAM=1 -DHAVE_QUEUE=1 -DHAVE_SET=1 -DHAVE_SSTREAM=1 -DHAVE_STRING=1 -DHAVE_UTILITY=1 -DHAVE_VECTOR=1 -DHAVE_TYPEINFO=1 -DHAVE_TR1_UNORDERED_SET=1 -DHAVE_DLFCN_H=1 -DHAVE_BOOST= -DHAVE_BOOST_DATE_TIME= -DHAVE_BOOST_FILESYSTEM= -DHAVE_BOOST_THREAD= -DHAVE_BOOST_BIND_HPP=1 -DHAVE_BOOST_DATE_TIME_GREGORIAN_GREGORIAN_TYPES_HPP=1 -DHAVE_BOOST_DATE_TIME_LOCAL_TIME_LOCAL_TIME_HPP=1 -DHAVE_BOOST_DATE_TIME_POSIX_TIME_POSIX_TIME_DURATION_HPP=1 -DHAVE_BOOST_DATE_TIME_POSIX_TIME_POSIX_TIME_HPP=1 -DHAVE_BOOST_DATE_TIME_POSIX_TIME_POSIX_TIME_TYPES_HPP=1 -DHAVE_BOOST_FILESYSTEM_OPERATIONS_HPP=1 -DHAVE_BOOST_FILESYSTEM_PATH_HPP=1 -DHAVE_BOOST_FUNCTION_HPP=1 -DHAVE_BOOST_LEXICAL_CAST_HPP=1 -DHAVE_BOOST_NONE_HPP=1 -DHAVE_BOOST_OPTIONAL_HPP=1 -DHAVE_BOOST_PTR_CONTAINER_PTR_LIST_HPP=1 -DHAVE_BOOST_PTR_CONTAINER_PTR_MAP_HPP=1 -DHAVE_BOOST_RANDOM_HPP=1 -DHAVE_BOOST_RANDOM_LAGGED_FIBONACCI_HPP=1 -DHAVE_BOOST_SCOPED_ARRAY_HPP=1 -DHAVE_BOOST_SCOPED_PTR_HPP=1 -DHAVE_BOOST_SHARED_PTR_HPP=1 -DHAVE_BOOST_THREAD_CONDITION_HPP=1 -DHAVE_BOOST_THREAD_DETAIL_LOCK_HPP=1 -DHAVE_BOOST_THREAD_HPP=1 -DHAVE_BOOST_THREAD_MUTEX_HPP=1 -DHAVE_BOOST_THREAD_THREAD_HPP=1 -DHAVE_BOOST_THREAD_XTIME_HPP=1 -DHAVE_BOOST_VERSION_HPP=1 -DHAVE_BOOST_LIMITS_HPP=1 -DDB_HEADER=\"db_cxx.h\" 
+DEFS = -DPACKAGE_NAME=\"KVZone\" -DPACKAGE_TARNAME=\"kvzone\" -DPACKAGE_VERSION=\"0.9\" -DPACKAGE_STRING=\"KVZone\ 0.9\" -DPACKAGE_BUGREPORT=\"kvzone@nec-labs.com\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_ASSERT_H=1 -DHAVE_ERRNO_H=1 -DHAVE_EXECINFO_H=1 -DHAVE_SCHED_H=1 -DHAVE_SIGNAL_H=1 -DHAVE_STDARG_H=1 -DHAVE_STDINT_H=1 -DHAVE_STDIO_H=1 -DHAVE_SYSCALL_H=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_SYSINFO_H=1 -DHAVE_SYS_TIME_H=1 -DHAVE_TIME_H=1 -DHAVE_UNISTD_H=1 -DHAVE_WCHAR_H=1 -DHAVE_STRING_H=1 -DHAVE_CSTDLIB=1 -DHAVE_CSTRING=1 -DHAVE_DEQUE=1 -DHAVE_EXCEPTION=1 -DHAVE_FUNCTIONAL=1 -DHAVE_IOMANIP=1 -DHAVE_IOSFWD=1 -DHAVE_IOSTREAM=1 -DHAVE_LIST=1 -DHAVE_MAP=1 -DHAVE_OSTREAM=1 -DHAVE_QUEUE=1 -DHAVE_SET=1 -DHAVE_SSTREAM=1 -DHAVE_STRING=1 -DHAVE_UTILITY=1 -DHAVE_VECTOR=1 -DHAVE_TYPEINFO=1 -DHAVE_TR1_UNORDERED_SET=1 -DHAVE_DLFCN_H=1 -DHAVE_BOOST=/\*\*/ -DHAVE_BOOST_DATE_TIME=/\*\*/ -DHAVE_BOOST_FILESYSTEM=/\*\*/ -DHAVE_BOOST_THREAD=/\*\*/ -DHAVE_BOOST_SYSTEM=/\*\*/ -DHAVE_BOOST_BIND_HPP=1 -DHAVE_BOOST_DATE_TIME_GREGORIAN_GREGORIAN_TYPES_HPP=1 -DHAVE_BOOST_DATE_TIME_LOCAL_TIME_LOCAL_TIME_HPP=1 -DHAVE_BOOST_DATE_TIME_POSIX_TIME_POSIX_TIME_DURATION_HPP=1 -DHAVE_BOOST_DATE_TIME_POSIX_TIME_POSIX_TIME_HPP=1 -DHAVE_BOOST_DATE_TIME_POSIX_TIME_POSIX_TIME_TYPES_HPP=1 -DHAVE_BOOST_FILESYSTEM_OPERATIONS_HPP=1 -DHAVE_BOOST_FILESYSTEM_PATH_HPP=1 -DHAVE_BOOST_FUNCTION_HPP=1 -DHAVE_BOOST_LEXICAL_CAST_HPP=1 -DHAVE_BOOST_NONE_HPP=1 -DHAVE_BOOST_OPTIONAL_HPP=1 -DHAVE_BOOST_PTR_CONTAINER_PTR_LIST_HPP=1 -DHAVE_BOOST_PTR_CONTAINER_PTR_MAP_HPP=1 -DHAVE_BOOST_RANDOM_HPP=1 -DHAVE_BOOST_RANDOM_LAGGED_FIBONACCI_HPP=1 -DHAVE_BOOST_SCOPED_ARRAY_HPP=1 -DHAVE_BOOST_SCOPED_PTR_HPP=1 -DHAVE_BOOST_SHARED_PTR_HPP=1 -DHAVE_BOOST_THREAD_CONDITION_HPP=1 -DHAVE_BOOST_THREAD_HPP=1 -DHAVE_BOOST_THREAD_MUTEX_HPP=1 -DHAVE_BOOST_THREAD_THREAD_HPP=1 -DHAVE_BOOST_THREAD_XTIME_HPP=1 -DHAVE_BOOST_VERSION_HPP=1 -DHAVE_BOOST_LIMITS_HPP=1 -DDB_HEADER=\"db_cxx.h\"
 DEPDIR = .deps
 ECHO = echo
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
-EGREP = grep -E
+EGREP = /bin/grep -E
 EXEEXT = 
-F77 = f95
-FFLAGS = -g -O2
+F77 = 
+FFLAGS = 
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = ${SHELL} $(install_sh) -c -s
 LDFLAGS = 
-libnoopKVAdapter_la_LDFLAGS= -lpthread -lrt\
+libnoopKVAdapter_la_LDFLAGS = -lpthread -lrt\
 /scratch/nvm/stamnos/libfs/build/src/osd/libosdclt.so \
 /scratch/nvm/stamnos/libfs/build/src/common/libcommon.so \
 /scratch/nvm/stamnos/libfs/build/src/scm/libscm.so \
@@ -206,7 +206,7 @@ LIBS = -lrt
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LN_S = ln -s
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /scratch/nvm/kvzone-0.9/missing --run makeinfo
+MAKEINFO = ${SHELL} /scratch/nvm/stamnos/bench/kvzone-pxfs/missing --run makeinfo
 OBJEXT = o
 PACKAGE = kvzone
 PACKAGE_BUGREPORT = kvzone@nec-labs.com
@@ -226,13 +226,13 @@ STRIP = strip
 TOKYOCABINET_CFLAGS =  
 TOKYOCABINET_LIBS = -ltokyocabinet  
 VERSION = 0.9
-ac_ct_AR = ar
+ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = gcc
 ac_ct_CXX = g++
-ac_ct_F77 = f95
-ac_ct_RANLIB = ranlib
-ac_ct_STRIP = strip
-ac_pt_PKG_CONFIG = /usr/bin/pkg-config
+ac_ct_F77 = 
+ac_ct_RANLIB = @ac_ct_RANLIB@
+ac_ct_STRIP = @ac_ct_STRIP@
+ac_pt_PKG_CONFIG = @ac_pt_PKG_CONFIG@
 am__fastdepCC_FALSE = #
 am__fastdepCC_TRUE = 
 am__fastdepCXX_FALSE = #
@@ -256,12 +256,12 @@ host_cpu = x86_64
 host_os = linux-gnu
 host_vendor = unknown
 includedir = ${prefix}/include
-infodir = ${prefix}/info
-install_sh = /scratch/nvm/kvzone-0.9/install-sh
+infodir = ${prefix}/share/info
+install_sh = /scratch/nvm/stamnos/bench/kvzone-pxfs/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localstatedir = ${prefix}/var
-mandir = ${prefix}/man
+mandir = ${prefix}/share/man
 mkdir_p = mkdir -p --
 oldincludedir = /usr/include
 prefix = /usr/local
@@ -272,7 +272,7 @@ sysconfdir = ${prefix}/etc
 target_alias = 
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
-LDADD = -lboost_thread -lboost_date_time -lboost_filesystem 
+LDADD = -lboost_thread-mt -lboost_date_time-mt -lboost_filesystem-mt -lboost_system-mt
 noinst_LTLIBRARIES = libutil.la libkeyValueStore.la libnoopKVAdapter.la libmemMapAdapter.la libtokyoCabinetAdapter.la libberkeleyDBAdapter.la libsqliteAdapter.la
 kvzone_SOURCES = src/main/kvzone/kvzone.cpp
 kvzone_LDADD = libutil.la libkeyValueStore.la libnoopKVAdapter.la libmemMapAdapter.la libtokyoCabinetAdapter.la libberkeleyDBAdapter.la libsqliteAdapter.la ${LDADD}
@@ -407,7 +407,6 @@ src/main/keyValueStore/adapters/noop/noopAdapter.lo:  \
 	src/main/keyValueStore/adapters/noop/$(DEPDIR)/$(am__dirstamp)
 libnoopKVAdapter.la: $(libnoopKVAdapter_la_OBJECTS) $(libnoopKVAdapter_la_DEPENDENCIES) 
 	$(CXXLINK)  $(libnoopKVAdapter_la_LDFLAGS) $(libnoopKVAdapter_la_OBJECTS) $(libnoopKVAdapter_la_LIBADD) $(LIBS) $(libnoop_INCLUDES)
-
 src/main/keyValueStore/adapters/sqlite/$(am__dirstamp):
 	@$(mkdir_p) src/main/keyValueStore/adapters/sqlite
 	@: > src/main/keyValueStore/adapters/sqlite/$(am__dirstamp)

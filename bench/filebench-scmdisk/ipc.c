@@ -491,6 +491,7 @@ preallocated_entries(int obj_type)
  * returns a pointer to the object, or NULL if all objects have
  * been allocated.
  */
+
 void *
 ipc_malloc(int obj_type)
 {
@@ -548,9 +549,11 @@ ipc_malloc(int obj_type)
 		return ((char *)&filebench_shm->shm_procflow[i]);
 
 	case FILEBENCH_THREADFLOW:
+		printf("threadflow allocation %d\n", i);
 		(void) memset((char *)&filebench_shm->shm_threadflow[i], 0,
 		    sizeof (threadflow_t));
 		(void) ipc_mutex_unlock(&filebench_shm->shm_malloc_lock);
+		filebench_shm->num_threads++;
 		return ((char *)&filebench_shm->shm_threadflow[i]);
 
 	case FILEBENCH_FLOWOP:

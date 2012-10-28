@@ -13,7 +13,7 @@
 #define SCM_EMULATE_LATENCY 0x1
 
 /* CPU frequency */
-#define SCM_CPUFREQ 2500LLU /* GHz */
+#define SCM_CPUFREQ 2400LLU /* GHz */
 
 /* SCM write latency*/
 #define SCM_LATENCY_WRITE 150 /* ns */
@@ -63,8 +63,8 @@
 #define CACHELINE_SIZE (1 << CACHELINE_SIZE_LOG)
 #define BLOCK_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & ~(CACHELINE_SIZE - 1)) )
 #define INDEX_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & (CACHELINE_SIZE - 1)) )
-#define NS2CYCLE(__ns) ((__ns) * SCM_CPUFREQ / 1000)
-#define CYCLE2NS(__cycles) ((__cycles) * 1000 / SCM_CPUFREQ)
+#define NS2CYCLE(__ns) (((__ns) * SCM_CPUFREQ) / 1000)
+#define CYCLE2NS(__cycles) (((__cycles) * 1000) / SCM_CPUFREQ)
 
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)

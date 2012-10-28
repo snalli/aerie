@@ -75,6 +75,13 @@ typedef struct threadflow {
 #endif
 	avd_t		tf_ioprio;	/* ioprio attribute */
 
+	unsigned long long itr_lat;
+        unsigned long long itr_lat_sum;
+        unsigned long long itr_lat_sqr;
+        unsigned long long max_lat;
+        unsigned long long min_lat;
+	unsigned long latnums[700000];
+        unsigned long latindex;
 } threadflow_t;
 
 /* Thread attrs */

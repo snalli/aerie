@@ -37,19 +37,24 @@ void NoopAdapter::insert(InsertRequest& r)
     r.getValue().serialize(valBuf);
 
     boost::mutex::scoped_lock debug_lock(noop_mutex);
-    kvfs_put(keyBuf, valBuf, valSize);
+    printf("insert start\n");
+    //kvfs_put(keyBuf, valBuf, valSize);
+    printf("insert done\n");
     r.getSuccessCallback()(&(r.getKey()));
 }
 
 void NoopAdapter::lookup(LookupRequest& r)
 {
+    printf("lookup start\n");
     char keyBuf[16];
     r.getKey().serialize(keyBuf);
 
-    char valBuf[4096];
+    //char valBuf[4096];
 
     boost::mutex::scoped_lock debug_lock(noop_mutex);
-    kvfs_get(keyBuf, valBuf); 
+    printf("lookup start\n");
+    //kvfs_get(keyBuf, valBuf); 
+    printf("lookup done\n");
     r.getSuccessCallback()(&(r.getKey()), FOUND);
 }
 
@@ -59,7 +64,9 @@ void NoopAdapter::remove(RemoveRequest& r)
     r.getKey().serialize(keyBuf);
 
     boost::mutex::scoped_lock debug_lock(noop_mutex);
-    kvfs_del(keyBuf);
+    printf("remove start\n");
+    //kvfs_del(keyBuf);
+    printf("remove end\n");
     r.getSuccessCallback()(&(r.getKey()));
 }
 

@@ -459,6 +459,12 @@ stats_snap(void)
 	hrtime_t orig_starttime;
 	flowop_t *flowop;
 	char *str;
+	threadflow_t t;
+	unsigned long long tcount = 0, tsum = 0, tsqr = 0, max = 0, min = -1;
+	double mean, variance;
+	int i;
+	FILE *fp;
+	unsigned long j;
 
 	if (globalstats == NULL) {
 		filebench_log(LOG_ERROR,
@@ -634,6 +640,46 @@ stats_snap(void)
 	    iostat->fs_mstate[FLOW_MSTATE_LAT] /
 	    ((iostat->fs_rcount + iostat->fs_wcount) * 1000000.0) : 0);
 
+	filebench_log(LOG_INFO,"Threads %d\n", filebench_shm->num_threads);
+
+	for(i = 2; i <= filebench_shm->num_threads; i++)
+	{
+		t = filebench_shm->shm_threadflow[i];
+		tcount += t.tf_stats.fs_count;
+		tsum += t.itr_lat_sum;
+		tsqr += t.itr_lat_sqr;
+
+		if(max < t.max_lat)
+			max = t.max_lat;
+		if(min > t.min_lat)
+			min = t.min_lat;
+
+		filebench_log(LOG_INFO,"Thread:%d %llu %llu %llu", i, tcount, tsum, tsqr);
+		filebench_log(LOG_INFO,"latindex %lu", t.latindex);
+		fp = fopen("numbers.pct", "w+");
+		for(j = 0;j < t.latindex; j++)
+			//filebench_log(LOG_INFO, "%lu\n", t.latnums[j]); 
+			fprintf(fp, "%lu\n", t.latnums[j]); 
+		fclose(fp);
+	}
+
+	filebench_log(LOG_INFO,"count %llu sum %llu sqr %llu", tcount, tsum, tsqr);
+
+	mean = tsum;
+	mean = mean / tcount;
+
+	variance = tsqr;
+	variance = variance / tcount;
+	variance = variance - (mean * mean);
+
+	filebench_log(LOG_INFO,
+		"Mean:%lf Variance:%lf",
+		mean, variance);
+
+	filebench_log(LOG_INFO, "Max : %llu Min : %llu", max, min);
+
+
+		
 	filebench_shm->shm_bequiet = 0;
 }
 

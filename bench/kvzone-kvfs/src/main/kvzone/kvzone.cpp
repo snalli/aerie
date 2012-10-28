@@ -797,6 +797,7 @@ void writeData(int numReq)
             DLOG(DINFO, "writeData pendingReqs " << pendingReqs);
         }
         DLOG(DINFO, "calling insert for key " << key->getKey() << " ptr " << key << " key size " << sizeof(MyKeyType) << " value size " << blockSizes[blockSizeIndex]);
+	printf("writing something\n");
         SubmitStatus s = kvStore->insert(
                 *key,
                 *val,
@@ -951,6 +952,7 @@ void readData(KeyType const& k)
         DLOG(DINFO, "readData pendingReqs " << pendingReqs);
     }
     DLOG(DINFO, "readData for key " << key->getKey());
+    printf("reading something\n");
     SubmitStatus s = kvStore->lookup(
             *key,
             *val,
@@ -1084,6 +1086,7 @@ void delData(KeyType const& k)
         ++pendingReqs;
         DLOG(DINFO, "delData pendingReqs " << pendingReqs );
     }
+    printf("remove something\n");
     SubmitStatus s = kvStore->remove(
             *key,
             bind(&deletedOne, _1, key, reqStartTime),
@@ -1480,7 +1483,7 @@ int main(int argc, char*argv[])
 
     generateBlockSizes();
     preWriteData();
-    kvfs_sync();
+    //kvfs_sync();
     boost::thread_group threads;
     {
         boost::shared_ptr<boost::thread> genThread,writeThread,readThread,deleteThread;

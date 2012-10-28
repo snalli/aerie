@@ -228,6 +228,7 @@ flowop_endop(threadflow_t *threadflow, flowop_t *flowop, int64_t bytes)
 #endif
 
 	ll_delay = (gethrtime() - threadflow->tf_stime);
+	threadflow->itr_lat += ll_delay;
 
 	/* setting minimum and maximum latencies for this flowop */
 	if (!flowop->fo_stats.fs_minlat || ll_delay < flowop->fo_stats.fs_minlat)
@@ -665,6 +666,26 @@ flowop_start(threadflow_t *threadflow)
 		if (flowop == NULL) {
 			flowop = threadflow->tf_thrd_fops;
 			threadflow->tf_stats.fs_count++;
+
+			//printf("count:%d lat:%lld sqr:%lld sum:%lld\n", threadflow->tf_stats.fs_count, threadflow->itr_lat, threadflow->itr_lat_sqr, threadflow->itr_lat_sum);
+
+			//if(threadflow->latnums == NULL)
+			//{
+			//	threadflow->latnums = (unsigned long *)malloc(sizeof(unsigned long)*4000000);
+			//	threadflow->latindex = 0;
+			//}
+
+			threadflow->itr_lat_sum += threadflow->itr_lat;
+			threadflow->itr_lat_sqr += (threadflow->itr_lat * threadflow->itr_lat);
+
+			if(threadflow->max_lat < threadflow->itr_lat)
+				threadflow->max_lat = threadflow->itr_lat;
+			if(threadflow->min_lat == 0 || 
+				threadflow->min_lat > threadflow->itr_lat)
+				threadflow->min_lat = threadflow->itr_lat;
+
+			threadflow->latnums[threadflow->latindex++] = threadflow->itr_lat;
+			threadflow->itr_lat = 0;
 		}
 	}
 

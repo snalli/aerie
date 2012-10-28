@@ -512,8 +512,11 @@ fileset_openfile(fb_fdesc_t *fdesc, fileset_t *fileset,
 	/* If we are going to create a file, create the parent dirs */
 	if ((flag & O_CREAT) && (stat64(dir, &sb) != 0)) {
 	//if ((flag & O_CREAT) && (libstat(dir, &sb) != 0)) {
-		if (fileset_mkdir(dir, 0755) == FILEBENCH_ERROR)
-			return (FILEBENCH_ERROR);
+		//HARIS: creating existing directories causes a problem with hierarchical locks 
+		//HACK:  we don't need to create the parent dirs if we are running in the child
+		//       as we've already created them in the parent
+		//if (fileset_mkdir(dir, 0755) == FILEBENCH_ERROR)
+		//	return (FILEBENCH_ERROR);
 	}
 
 	//if(flag & O_CREAT)

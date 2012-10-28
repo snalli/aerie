@@ -27,7 +27,7 @@ set $dir=/pxfs
 set $nfiles=10000
 set $meandirwidth=20
 set $meanfilesize=16k
-set $nthreads=1
+set $nthreads=4
 set $iosize=1m
 set $meanappendsize=16k
 
@@ -81,4 +81,4 @@ usage "       set \$nthreads=<value>  defaults to $nthreads"
 usage "       set \$iosize=<size>     defaults to $iosize"
 usage "       run runtime (e.g. run 60)"
 
-run 50
+run 10

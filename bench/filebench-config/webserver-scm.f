@@ -27,7 +27,7 @@ set $dir=/mnt/scmfs
 set $nfiles=10000
 set $meandirwidth=20
 set $meanfilesize=16k
-set $nthreads=1
+set $nthreads=8
 set $iosize=1m
 set $meanappendsize=16k
 

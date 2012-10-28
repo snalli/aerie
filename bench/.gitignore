@@ -1,1 +1,16 @@
+.sconsign.dblite
+*.o
+*.os
+*.a
+*.so
+*.lo
+*.Plo
+*.la
+*.pyc
+server/fsserver
+client/fsclient
 build/
+doc/
+chunkstore.pagepheap
+chunkstore.pheap
+

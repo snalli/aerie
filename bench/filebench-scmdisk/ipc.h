@@ -240,7 +240,7 @@ typedef struct filebench_shm {
 	/* these below are not regular pools and are allocated separately from ipc_malloc() */
 	char		shm_strings[FILEBENCH_STRINGMEMORY];
 	char		shm_filesetpaths[FILEBENCH_FILESETPATHMEMORY];
-
+	int 		num_threads;
 } filebench_shm_t;
 
 extern char shmpath[128];

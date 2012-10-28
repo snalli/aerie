@@ -63,4 +63,4 @@ usage "       set \$meandirwidth=<size> defaults to $meandirwidth"
 usage "       run runtime (e.g. run 60)"
 usage "flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1"
 
-run 60
+run 5

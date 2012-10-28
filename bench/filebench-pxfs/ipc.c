@@ -551,6 +551,7 @@ ipc_malloc(int obj_type)
 		(void) memset((char *)&filebench_shm->shm_threadflow[i], 0,
 		    sizeof (threadflow_t));
 		(void) ipc_mutex_unlock(&filebench_shm->shm_malloc_lock);
+                filebench_shm->num_threads++;
 		return ((char *)&filebench_shm->shm_threadflow[i]);
 
 	case FILEBENCH_FLOWOP:

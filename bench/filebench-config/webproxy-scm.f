@@ -29,7 +29,7 @@ set $nfiles=1000
 set $meandirwidth=1500
 set $meanfilesize=16k
 #set $nthreads=100
-set $nthreads=1
+set $nthreads=4
 set $meaniosize=16k
 set $iosize=1m
 

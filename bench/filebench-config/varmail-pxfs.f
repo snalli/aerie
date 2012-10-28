@@ -28,7 +28,7 @@ set $nfiles=1000
 set $meandirwidth=1000000
 set $meanfilesize=16k
 #set $nthreads=16
-set $nthreads=1
+set $nthreads=8
 set $iosize=1m
 set $meanappendsize=16k
 
@@ -64,4 +64,4 @@ usage "       set \$iosize=<size>  defaults to $iosize"
 usage "       set \$meandirwidth=<size> defaults to $meandirwidth"
 usage "       run runtime (e.g. run 60)"
 
-run 60
+run 30
