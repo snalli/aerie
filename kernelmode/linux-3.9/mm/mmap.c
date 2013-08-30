@@ -40,6 +40,7 @@
 #include <asm/mmu_context.h>
 
 #include "internal.h"
+#include "scm.h"
 
 #ifndef arch_mmap_check
 #define arch_mmap_check(addr, len, flags)	(0)
@@ -1155,6 +1156,85 @@ static inline unsigned long round_hint_to_min(unsigned long hint)
 		return PAGE_ALIGN(mmap_min_addr);
 	return hint;
 }
+
+
+unsigned long do_mmap_pgoff_wrapper(struct file *file, unsigned long addr,
+                        unsigned long len, unsigned long prot,
+                        unsigned long flags, unsigned long pgoff,
+			unsigned long *populate)
+{
+        unsigned long ret = -EINVAL;
+        unsigned long ret_p = -EINVAL;
+
+        ret = do_mmap_pgoff(file, addr, len, prot, flags, pgoff, populate);
+
+#if 0
+		if(current->cred->uid == 0)
+		{
+			current->persistent_region_defined = true;
+			return ret;
+		}
+#endif
+
+	if(current->comm[0] == 'l' && current->comm[1] == 'v' && current->comm[2] == 'm')
+	{
+		current->persistent_region_defined = true;
+		return ret;
+	}
+	if(current->comm[0] == 'd' && current->comm[1] == 'b' && current->comm[2] == 'u' && current->comm[3] == 's')
+	{
+		current->persistent_region_defined = true;
+		return ret;
+	}
+	if(current->comm[0] == 'z' && current->comm[1] == 'z')
+	{
+		printk(KERN_ERR"zz has persistent region %ld", current->persistent_region_defined);
+	} 
+
+        if(current->persistent_region_defined == false)
+        {
+		int i;
+                unsigned long p_addr = PERS_START;
+                unsigned long p_len = PERS_SPACE; 
+                unsigned long p_flags = MAP_SHARED | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED; 
+                unsigned long p_prot = PROT_READ | PROT_WRITE;
+                unsigned long p_pgoff = 0;
+                unsigned long* p_populate = populate; //FIXME: what value?
+		struct vm_area_struct *vma = NULL;
+
+		//for(i = 0;i < 20; i++)
+		//	printk(KERN_ERR"%s virtual hole", current->comm);
+
+                ret_p = do_mmap_pgoff(NULL, p_addr, p_len, p_prot, p_flags, p_pgoff, p_populate);
+		//for(i = 0;i < 20; i++)
+		//	printk(KERN_ERR"%s virtual space returned %ld", current->comm, ret_p);
+		vma = find_vma(current->mm, p_addr);
+		if(vma)
+		{
+			vma->persistent = true;
+
+			// Initialize shared page table for persistent region
+			{
+				ppgtable_user *p = find_shared_ppgtbl_entry(
+					current->cred->uid, true, true);
+				if(p != NULL)
+				{
+					pud_assign(current->mm, 
+				  		pgd_offset(current->mm, p_addr),
+						p->ppud);
+				}
+				else
+					printk(KERN_ERR"Too many users and shared user data structure cannot be allocated");
+			}
+		}
+                current->persistent_region_defined = true;
+	}
+        return ret;
+}
+EXPORT_SYMBOL(do_mmap_pgoff_wrapper);
+
+
+
 
 /*
  * The caller must hold down_write(&current->mm->mmap_sem).
@@ -2663,6 +2743,8 @@ void exit_mmap(struct mm_struct *mm)
 	struct vm_area_struct *vma;
 	unsigned long nr_accounted = 0;
 
+	clear_ppgd_from_mm(mm);
+
 	/* mm's last user has gone, and its about to be pulled down */
 	mmu_notifier_release(mm);
 
@@ -2702,7 +2784,8 @@ void exit_mmap(struct mm_struct *mm)
 	}
 	vm_unacct_memory(nr_accounted);
 
-	WARN_ON(mm->nr_ptes > (FIRST_USER_ADDRESS+PMD_SIZE-1)>>PMD_SHIFT);
+	//FIXME: Why do we have the following warning disabled?
+	//WARN_ON(mm->nr_ptes > (FIRST_USER_ADDRESS+PMD_SIZE-1)>>PMD_SHIFT);
 }
 
 /* Insert vm structure into process list sorted by address

@@ -82,6 +82,7 @@
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/task.h>
+#include "../mm/scm.h"
 
 /*
  * Protected counters by write_lock_irq(&tasklist_lock)
@@ -595,6 +596,7 @@ struct mm_struct *mm_alloc(void)
 void __mmdrop(struct mm_struct *mm)
 {
 	BUG_ON(mm == &init_mm);
+	clear_ppgd_from_mm(mm);
 	mm_free_pgd(mm);
 	destroy_context(mm);
 	mmu_notifier_mm_destroy(mm);
@@ -1594,6 +1596,10 @@ long do_fork(unsigned long clone_flags,
 
 	p = copy_process(clone_flags, stack_start, stack_size,
 			 child_tidptr, NULL, trace);
+
+	if(!IS_ERR(p))// && !(clone_flags & CLONE_VM))
+                p->persistent_region_defined = false;
+
 	/*
 	 * Do this prior waking up the new thread - the thread pointer
 	 * might get invalid after that point, if the thread exits quickly.

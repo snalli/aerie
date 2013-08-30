@@ -1577,6 +1577,7 @@ struct task_struct {
 #ifdef CONFIG_UPROBES
 	struct uprobe_task *utask;
 #endif
+	bool persistent_region_defined;
 };
 
 /* Future-safe accessor for struct task_struct's cpus_allowed. */

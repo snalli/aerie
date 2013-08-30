@@ -63,6 +63,7 @@
 #include <asm/tlbflush.h>
 #include <asm/div64.h>
 #include "internal.h"
+#include "scm.h"
 
 #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
 DEFINE_PER_CPU(int, numa_node);
@@ -2680,9 +2681,29 @@ unsigned long get_zeroed_page(gfp_t gfp_mask)
 }
 EXPORT_SYMBOL(get_zeroed_page);
 
+#define pfn_to_virt(pfn) __va((pfn) << PAGE_SHIFT)
+extern bool ppg_tracker;
+extern bool ppmd_tracker;
+extern unsigned long ppmd;
+
 void __free_pages(struct page *page, unsigned int order)
 {
+	unsigned long addr = pfn_to_virt(page_to_pfn(page));
 	if (put_page_testzero(page)) {
+		if(addr == ppgtbl[0].ppud && ppg_tracker == true)
+		{
+			printk(KERN_ERR"OMG - freeing pmd %lx by %s", 
+				addr, current->comm);
+			dump_stack();
+		}
+
+		if(addr == ppmd && ppmd_tracker == true)
+		{
+			printk(KERN_ERR"OMG - freeing pud %lx by %s", 
+				addr, current->comm);
+			dump_stack();
+		}
+
 		if (order == 0)
 			free_hot_cold_page(page, 0);
 		else
@@ -3889,6 +3910,8 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
 	unsigned long pfn;
 	struct zone *z;
 
+	printk(KERN_ERR"start pfn %lx size %lx", start_pfn, size);
+
 	if (highest_memmap_pfn < end_pfn - 1)
 		highest_memmap_pfn = end_pfn - 1;
 
@@ -4231,8 +4254,13 @@ void __init sparse_memory_present_with_active_regions(int nid)
 	unsigned long start_pfn, end_pfn;
 	int i, this_nid;
 
-	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, &this_nid)
+	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, &this_nid) 
+	{
+		printk(KERN_ERR"nid %lx spfn %lx epfn %lx",
+				this_nid, start_pfn, end_pfn);
+
 		memory_present(this_nid, start_pfn, end_pfn);
+	}
 }
 
 /**
@@ -4436,11 +4464,15 @@ static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
 								zones_size);
 	pgdat->node_spanned_pages = totalpages;
 
+	printk(KERN_ERR"spanned pages %lx", totalpages);
+
 	realtotalpages = totalpages;
 	for (i = 0; i < MAX_NR_ZONES; i++)
 		realtotalpages -=
 			zone_absent_pages_in_node(pgdat->node_id, i,
 								zholes_size);
+	printk(KERN_ERR"present pages %lx", realtotalpages);
+
 	pgdat->node_present_pages = realtotalpages;
 	printk(KERN_DEBUG "On node %d totalpages: %lu\n", pgdat->node_id,
 							realtotalpages);
@@ -4574,6 +4606,8 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
 		realsize = freesize = size - zone_absent_pages_in_node(nid, j,
 								zholes_size);
 
+		printk(KERN_ERR"nid %lx size %lx realsize %lx", nid, size, realsize);
+		printk(KERN_ERR"zone %d start_pfn %lx", j, zone_start_pfn);
 		/*
 		 * Adjust freesize so that it accounts for how much memory
 		 * is used by this zone for memmap. This affects the watermark
