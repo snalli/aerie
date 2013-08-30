@@ -20,8 +20,8 @@ Import('scmLibrary')
 Import('bcsClientLibrary')
 Import('osdClientLibrary')
 
-#vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
-pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+#vfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+pxfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 
 pxfs_obj = pxfsBuildEnv.Object('postmark-pxfs.o', 'postmark-1_5.c')
 vfs_obj = vfsBuildEnv.Object('postmark-vfs.o', 'postmark-1_5.c')

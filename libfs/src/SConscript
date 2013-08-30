@@ -4,7 +4,7 @@ Import('mainEnv')
 buildEnv = mainEnv.Clone()
 buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
 buildEnv.Append(CPPPATH = ['#src'])
-buildEnv.Append(LIBS = ['config'])
+buildEnv.Append(LIBS = ['config', 'rt'])
 
 Export('buildEnv')
 

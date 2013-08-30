@@ -22,7 +22,7 @@ Table::Load(::client::Session* session,
 	osd::common::ObjectProxyReference* ref;
 	Table*                             tp;
         ::osd::common::ObjectId            name_oid;
-	ObjectIdArray::Object*             array_obj;
+	ObjectIdArray*                     array_obj;
 	
 	tp = new Table();
 

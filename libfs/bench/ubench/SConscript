@@ -16,9 +16,9 @@ Import('scmLibrary')
 Import('bcsClientLibrary')
 Import('osdClientLibrary')
 
-osdClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
-vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
-pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+osdClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+vfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+pxfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 cfsClientDepLibs = [cfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 rxfsClientDepLibs = [rxfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 

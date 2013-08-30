@@ -22,10 +22,10 @@ lib_sources = [
 fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
 
 # Be careful with linkage order for static libraries
-localBuildEnv.Append(LIBS = mfsClientLibrary)
 localBuildEnv.Append(LIBS = fscLibrary)
 localBuildEnv.Append(LIBS = bcsClientLibrary)
 localBuildEnv.Append(LIBS = osdClientLibrary)
+localBuildEnv.Append(LIBS = mfsClientLibrary)
 localBuildEnv.Append(LIBS = scmLibrary)
 localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])
