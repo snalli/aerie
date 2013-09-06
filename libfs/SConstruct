@@ -173,6 +173,7 @@ Export('mainEnv')
 
 # Build stuff 
 SConscript('src/SConscript', variant_dir = 'build/src')
+SConscript('tool/SConscript', variant_dir = 'build/tool')
 SConscript('bench/SConscript', variant_dir = 'build/bench')
 
 # Run tests

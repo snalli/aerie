@@ -1,0 +1,17 @@
+Import('mainEnv')
+
+libLocalBuildEnv = mainEnv.Clone()
+localBuildEnv = mainEnv.Clone()
+
+lib_target = 'perfremote'
+lib_sources = [
+               'monitor.cc', 
+	      ]
+
+perfRemoteLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+
+# Be careful with linkage order for static libraries
+localBuildEnv.Append(LIBS = perfRemoteLibrary)
+localBuildEnv.Program('perfremote', ['main.cc']) 
+
+Return('perfRemoteLibrary')

@@ -1,3 +1,4 @@
 SConscript('ubench/SConscript') #, variant_dir = s.path.join('bench', 'ubench'))
 SConscript('postmark/SConscript') #, variant_dir = s.path.join('bench', 'postmark'))
 SConscript('sharing/SConscript') #, variant_dir = s.path.join('bench', 'sharing'))
+SConscript('vfs-breakdown/SConscript') #, variant_dir = s.path.join('bench', 'vfs-breakdown'))

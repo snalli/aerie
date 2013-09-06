@@ -1,0 +1,57 @@
+m,module-page-cache
+	s,zero_user_segments
+	f,mm/filemap.c
+	f,mm/memcontrol.c
+	f,mm/page_alloc.c
+	f,mm/slab.c
+	f,mm/swap.c
+	f,include/linux/pagemap.h
+
+m,module-fs-buffer
+	f,fs/buffer.c
+
+m,module-scheduler
+	f,kernel/sched.c
+	f,kernel/wait.c
+
+m,module-lock
+	f,lib/rwsem-spinlock.c
+	f,kernel/mutex.c
+	f,include/linux/spinlock.h
+
+m,module-lib
+	f,lib/radix-tree.c
+	f,lib/string.c
+	f,include/linux/list.h
+
+m,module-syscall
+	s,copy_user_generic_string
+	s,system_call
+	s,system_call_after_swapgs
+	s,sysret_check
+	s,sysret_signal
+	f,kernel/auditsc.c
+
+m,module-VFS-fs
+	f,fs/inode.c
+	f,fs/read_write.c
+	f,fs/file_table.c
+	f,fs/xattr.c
+	f,fs/notify/inotify/inotify.c
+	f,fs/notify/fsnotify.c
+
+m,module-VFS
+	s,vfs_write
+	s,vfs_read
+
+m,module-ext3
+	f,fs/ext3/inode.c
+	f,fs/ext3/hash.c
+	f,fs/ext3/xattr.c
+	f,fs/ext3/resize.c
+	f,fs/ext3/xattr.h
+	f,fs/ext3/xattr.c
+	f,fs/ext3/ialloc.c
+	f,fs/ext3/namei.c
+	f,fs/ext3/super.c
+	f,fs/ext3/fsync.c

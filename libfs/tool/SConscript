@@ -1,0 +1,2 @@
+perfRemoteLibrary = SConscript('perfremote/SConscript') #, variant_dir = s.path.join('tool', 'perfremote'))
+Export('perfRemoteLibrary')
