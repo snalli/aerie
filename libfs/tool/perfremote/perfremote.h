@@ -5,6 +5,7 @@
   if (monitor) {                                          \
     __monitor_client = new Monitor::Client(MONITOR_PORT); \
     __monitor_client->attach();                           \
+    sleep(1);                                             \
   }
 
 #define PERF_DEATTACH(monitor)                            \

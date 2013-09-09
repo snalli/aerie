@@ -24,7 +24,7 @@ public:
 	int set_state(Entry* entry, FileState state);
 	
 	void print();
-	void create_files();
+	void create_files(int file_size);
 	
 private:
 	std::string  _path; // pathname prefix in fileset
@@ -55,7 +55,7 @@ public:
 		kFile
 	};
 	Entry(Entry::Type type, std::string name, int level, FileState initial_state);
-	int create_file(std::string prefix);
+	int create_file(std::string prefix, int file_size);
 
 	std::string _name;
 	Type        _type;

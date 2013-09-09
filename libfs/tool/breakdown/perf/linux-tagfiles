@@ -1,6 +1,7 @@
 mm/*
 fs/*
 fs/ext3/*
+fs/ext4/*
 fs/notify/inotify/*
 fs/notify/fsnotify.c
 kernel/*

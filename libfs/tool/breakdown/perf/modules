@@ -6,18 +6,69 @@ m,module-page-cache
 	f,mm/slab.c
 	f,mm/swap.c
 	f,include/linux/pagemap.h
+	f,mm/readahead.c
+
+m,module-permission
+	s,acl_by_type.constprop.33
+	s,apparmor_file_open
+	s,apparmor_file_free_security
+	s,cap_inode_permission
+	s,common_perm
+	s,security_d_instantiate
+	s,security_file_open
+	s,security_inode_permission
+	f,kernel/groups.c
 
 m,module-fs-buffer
 	f,fs/buffer.c
 
 m,module-scheduler
 	f,kernel/sched.c
+	f,kernel/task_work.c
 	f,kernel/wait.c
 
-m,module-lock
+m,module-file-descriptor
+	s,security_file_alloc
+	s,apparmor_file_alloc_security
+	f,fs/file.c
+	f,fs/file_table.c
+
+# Code that performs pathname resolution
+m,module-namespace
+	f,fs/namei.c
+	f,fs/namespace.c
+
+m,module-concurrency-control
+	s,__ticket_spin_lock
+	s,__ticket_spin_unlock
+	s,__ticket_spin_is_locked
+	s,__call_rcu.constprop.49
+	s,rcu_report_qs_rnp
+	s,_cond_resched
+	s,__cond_resched
+	s,__cmpxchg_double_slab.isra.44
+	s,__read_lock_failed
+	s,check_for_new_grace_period.isra.37
+	f,include/linux/spinlock.h
 	f,lib/rwsem-spinlock.c
 	f,kernel/mutex.c
-	f,include/linux/spinlock.h
+	f,kernel/rcutiny.c
+	f,kernel/rcutree.c
+	f,kernel/rwsem.c
+	f,kernel/lglock.c
+	f,kernel/spinlock.c
+	f,fs/locks.c
+
+# Code that accesses in-memory objects, including dentries, inodes
+m,module-memory-objects
+	s,cap_inode_alloc_security
+	s,apparmor_inode_getattr
+	s,security_inode_getattr
+	s,security_inode_alloc
+	s,setup_object.isra.61
+	f,fs/inode.c
+	f,mm/slub.c
+	f,fs/dcache.c
 
 m,module-lib
 	f,lib/radix-tree.c
@@ -26,16 +77,28 @@ m,module-lib
 
 m,module-syscall
 	s,copy_user_generic_string
+	s,strncpy_from_user
 	s,system_call
 	s,system_call_after_swapgs
 	s,sysret_check
 	s,sysret_signal
+	s,sys_newstat
+	s,sys_open
+	s,int_check_syscall_exit_work
+	s,int_signal
+	s,_copy_to_user
 	f,kernel/auditsc.c
 
+# VFS code to process operation
 m,module-VFS-fs
-	f,fs/inode.c
+	s,__dquot_initialize
+	s,dquot_file_open
+	s,do_notify_resume
+	s,dnotify_flush
 	f,fs/read_write.c
-	f,fs/file_table.c
+	f,fs/open.c
+	f,fs/stat.c
+	f,fs/super.c
 	f,fs/xattr.c
 	f,fs/notify/inotify/inotify.c
 	f,fs/notify/fsnotify.c
@@ -43,6 +106,7 @@ m,module-VFS-fs
 m,module-VFS
 	s,vfs_write
 	s,vfs_read
+
 
 m,module-ext3
 	f,fs/ext3/inode.c
@@ -55,3 +119,18 @@ m,module-ext3
 	f,fs/ext3/namei.c
 	f,fs/ext3/super.c
 	f,fs/ext3/fsync.c
+
+m,module-ext4
+	f,fs/ext4/balloc.c
+	f,fs/ext4/block_validity.c
+	f,fs/ext4/dir.c
+	f,fs/ext4/extents.c
+	f,fs/ext4/extents_status.c
+	f,fs/ext4/ext4.h
+	f,fs/ext4/file.c
+	f,fs/ext4/hash.c
+	f,fs/ext4/inline.c
+	f,fs/ext4/inode.c     # should this be under in-memory objects module?
+	f,fs/ext4/mballoc.c
+	f,fs/ext4/namei.c
+	f,fs/ext4/super.c

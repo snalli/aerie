@@ -4,4 +4,27 @@ Prerequisites:
    - https://pypi.python.org/pypi/pyctags/0.5.0
    - code.google.com/p/pyctags/
 
+How to use:
 
+1. Generate file 'linux-tags' for the kernel you are profiling
+
+   > ./linux-ctags ${LINUX_KERNEL_SRC_ROOT}
+
+2. Edit file 'modules' to group kernel symbols into categories
+
+   Example:
+
+     m,module-page-cache
+        s,zero_user_segments
+        f,mm/filemap.c
+	f,mm/memcontrol.c
+
+     
+     The above defines a module group named 'module-page-cache', which includes
+       - individual symbols: zero_user_segments
+       - all symbols from files: mm/filemap.c, mm/memcontrol.c
+
+
+3. Analyze the output of 'perf report -n'
+
+   > python analyze.py ${PERF.DATA} ${MODULES} ${LINUX_TAGS}

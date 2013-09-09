@@ -1,0 +1,9 @@
+Microbenchmarks to get a breakdown of where the time is spent in the 
+kernel's VFS layer. 
+
+We use the perf profiling utility to get the breakdown. Because perf cannot 
+profile specific sections of code, microbenchmarks use perfremote to 
+attach/deattach perf to themselves so we profile the specific sections we 
+are interested in.
+
+Use scripts/run.sh to run all the microbenchmarks and get a breakdown.

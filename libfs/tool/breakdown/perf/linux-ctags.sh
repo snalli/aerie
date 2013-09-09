@@ -1,5 +1,11 @@
 #!/bin/bash
-LINUX=../../../../kernelmode/linux-3.9
+if test -z "$1"
+then
+  LINUX=../../../../kernelmode/linux-3.9
+else
+  LINUX=$1
+fi
+echo 'Processing kernel tree' ${LINUX}
 CWD=`pwd`
 cd $LINUX
 ctags `cat $CWD/linux-tagfiles`

@@ -9,3 +9,5 @@ commonObject = buildEnv.Object(['fileset.cc'])
 
 vfsOpen = buildEnv.Program('open', buildEnv.Object(['open.cc']) + commonObject, LIBS=perfRemoteLibrary)
 vfsCreate = buildEnv.Program('create', buildEnv.Object(['create.cc']) + commonObject, LIBS=perfRemoteLibrary)
+vfsUnlink = buildEnv.Program('unlink', buildEnv.Object(['unlink.cc']) + commonObject, LIBS=perfRemoteLibrary)
+vfsRename = buildEnv.Program('rename', buildEnv.Object(['rename.cc']) + commonObject, LIBS=perfRemoteLibrary)

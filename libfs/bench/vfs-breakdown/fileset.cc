@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <string.h>
 
+char global_dummy_buf[1024*64];
+
 /*
  * Removes the last file or directory name from a pathname.
  * Basically removes characters from the end of the path by
@@ -155,7 +157,7 @@ void FileSet::print()
 	_index[kExists]->print(); 
 }
 
-void FileSet::create_files()
+void FileSet::create_files(int file_size)
 {
 	std::map<std::string, Entry*>::iterator itr;
 	std::map<std::string, Entry*>::iterator next;
@@ -163,7 +165,7 @@ void FileSet::create_files()
 		next++; // set_state below erases the element so we need to 
 		        // advance the iterator before removal
 		Entry* entry = itr->second;
-		entry->create_file(_path);
+		entry->create_file(_path, file_size);
 		set_state(entry, kExists);
 	}
 }
@@ -223,13 +225,14 @@ FileSet::Entry::Entry(Entry::Type type, std::string name, int level, FileState i
 	  _state(initial_state)
 { }
 
-int FileSet::Entry::create_file(std::string prefix)
+int FileSet::Entry::create_file(std::string prefix, int file_size)
 {
 	if (_type == kDir) {
 		mkdir_r(prefix + _name, S_IRWXU);
 	} else {
 		std::string fullname = prefix + _name; 
 		int fd = open(fullname.c_str(), O_CREAT | O_WRONLY, S_IRWXU);
+		write(fd, global_dummy_buf, file_size);
 		close(fd);
 	}
 	

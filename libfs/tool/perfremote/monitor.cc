@@ -56,7 +56,7 @@ void Monitor::Client::attach()
         handle_error("connect() failed");
     } 
     
-    std::cout << "Attach myself (" << getpid() << ") to monitor" << std::endl;  
+    std::cerr << "Attach myself (" << getpid() << ") to monitor" << std::endl;  
     Monitor::Message msg = Monitor::Payload::Attach::createMessage(getpid());
     if (sendCmd(msg) != 0) {
         handle_error("setup failed");
@@ -152,7 +152,7 @@ void Monitor::Server::handleClient(int clnt_sock)
         if (recv_msg_size == 0) { 
             return;
         }
-        std::cout << "COMMAND: " << msg._cmd << std::endl << std::flush;
+        std::cerr << "COMMAND: " << msg._cmd << std::endl << std::flush;
         switch(msg._cmd) {
             case Monitor::Message::ATTACH:
                 ret = execCmdAttach(msg);

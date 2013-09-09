@@ -27,26 +27,33 @@ def get_modinvmap(filename):
     sym2mod_map = {}
     module_name = None
     for e in entries:
+        e = e.strip()
+        # ignore empty lines
+        if len(e) == 0:
+           continue 
+        # ignore anything after a # character
+        char_pound = e.find('#')
+	if char_pound == 0:
+           continue
+        if char_pound > 0:
+           e = e[0:char_pound-1]
         if e[0] == 'm':
             module_name = (e.split(',')[1]).strip()
             continue
-        namestrip = e.strip()
-        if len(namestrip) > 0:
-            namelst = namestrip.split(',')
-            name = namelst[1]
-            if namelst[0] == 's':
-                sym2mod_map[name] = module_name
-            elif namelst[0] == 'f':
-                file2mod_map[name] = module_name
+        elif e[0] == 's':
+            name = (e.split(',')[1]).strip()
+            sym2mod_map[name] = module_name
+        elif e[0] == 'f':
+            name = (e.split(',')[1]).strip()
+            file2mod_map[name] = module_name
 
     return sym2mod_map, file2mod_map
 
 
-def get_symbol_samples(filename, user, kernel, threshold, cumulative_threshold):
+def get_symbol_samples(filename):
     samples = open(filename).readlines()
-    cumulative = 0
-    total = 0
-    symbol_samples = []
+    user_symbol_samples = []
+    kernel_symbol_samples = []
     for sample in samples:
         # ignore empty lines and lines that start with '#'
         if sample[0] == '#':
@@ -57,18 +64,13 @@ def get_symbol_samples(filename, user, kernel, threshold, cumulative_threshold):
         perc = float(sa[0][:-1]) # ignore the '%' at the end
         num = int(sa[1])
         mode = sa[4]
-        if mode == "[k]" and kernel == False:
-            continue
-        if mode != "[k]" and user == False:
-            continue
         name = sa[5]
-        cumulative = cumulative + perc
-        if (perc < threshold):
-            break
-        if (cumulative > cumulative_threshold):
-            break
-        symbol_samples.append((name, num))
-    return symbol_samples
+        if mode == "[k]":
+            kernel_symbol_samples.append((name, num))
+        else:
+            user_symbol_samples.append((name, num))
+    return user_symbol_samples, kernel_symbol_samples
+
 
 def categorize_samples(sym2mod, file2mod, ctags, symbol_samples):
     samples_dict = {}
@@ -92,27 +94,42 @@ def categorize_samples(sym2mod, file2mod, ctags, symbol_samples):
     return samples_dict 
 
 
+def print_symbol(name, perc_abs, perc_rel):
+    print name.ljust(30), 
+    if type (perc_abs) == int or type (perc_abs) == float:
+        perc_abs = str(perc_abs)
+    print perc_abs.ljust(20),
+    if type (perc_rel) == int or type (perc_rel) == float:
+        perc_rel = str(perc_rel)
+    print perc_rel.ljust(20)
+
 
 def main(argv):
-    all_symbol_samples = get_symbol_samples(argv[0], False, True, 0, 100)
-    symbol_samples = get_symbol_samples(argv[0], False, True, 0.0, 100)
+    user_symbol_samples, kernel_symbol_samples = get_symbol_samples(argv[0])
     sym2mod, file2mod = get_modinvmap(argv[1])
     names = name_lookup_harvester()
     by_name = by_name_harvester()
     tagfile = ctags_file(argv[2], harvesters=[names, by_name])
     ctags = by_name.get_data()
-    module_samples = categorize_samples(sym2mod, file2mod, ctags, symbol_samples)
-    total_samples = 0
-    for s in all_symbol_samples:
-        total_samples = total_samples + s[1]
-    sorted_module_samples = sorted(module_samples.iteritems(), key=operator.itemgetter(1), reverse=True)
-    total_perc = 0
-    print 'NAME'.ljust(30), '%'
-    for m in sorted_module_samples:
-        perc = 100*float(m[1])/float(total_samples)
-        total_perc = total_perc + perc
-        print m[0].ljust(30), perc 
-    print 'TOTAL'.ljust(30),total_perc
+    user_total_samples = 0
+    for s in user_symbol_samples:
+        user_total_samples = user_total_samples + s[1]
+    kernel_total_samples = 0
+    for s in kernel_symbol_samples:
+        kernel_total_samples = kernel_total_samples + s[1]
+    total_samples = user_total_samples + kernel_total_samples
+    kernel_module_samples = categorize_samples(sym2mod, file2mod, ctags, kernel_symbol_samples)
+    kernel_sorted_module_samples = sorted(kernel_module_samples.iteritems(), key=operator.itemgetter(1), reverse=True)
+    if total_samples == 0:
+	print 'No samples...'
+	return
+    print_symbol('NAME', '%', '% (relative)')
+    print_symbol('USER', 100*float(user_total_samples)/float(total_samples), 100)
+    print_symbol('KERNEL', 100*float(kernel_total_samples)/float(total_samples), 100)
+    for m in kernel_sorted_module_samples:
+        perc_abs = 100*float(m[1])/float(total_samples)
+        perc_rel = 100*float(m[1])/float(kernel_total_samples)
+        print_symbol(m[0], perc_abs, perc_rel)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
