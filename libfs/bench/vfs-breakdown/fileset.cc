@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string.h>
+#include <assert.h>
 
 char global_dummy_buf[1024*64];
 
@@ -161,12 +162,29 @@ void FileSet::create_files(int file_size)
 {
 	std::map<std::string, Entry*>::iterator itr;
 	std::map<std::string, Entry*>::iterator next;
+	int i = 0;
 	for (itr = next = _index[kNotExists]->_map.begin(); itr != _index[kNotExists]->_map.end(); itr = next) {
 		next++; // set_state below erases the element so we need to 
 		        // advance the iterator before removal
 		Entry* entry = itr->second;
 		entry->create_file(_path, file_size);
 		set_state(entry, kExists);
+	}
+}
+
+void FileSet::create_dirs()
+{
+	std::map<std::string, Entry*>::iterator itr;
+	std::map<std::string, Entry*>::iterator next;
+	int i = 0;
+	for (itr = next = _index[kNotExists]->_map.begin(); itr != _index[kNotExists]->_map.end(); itr = next) {
+		next++; // set_state below erases the element so we need to 
+		        // advance the iterator before removal
+		Entry* entry = itr->second;
+		if (entry->_type == Entry::kDir) {
+			entry->create_file(_path, 0);
+			set_state(entry, kExists);
+		}
 	}
 }
 
@@ -232,6 +250,8 @@ int FileSet::Entry::create_file(std::string prefix, int file_size)
 	} else {
 		std::string fullname = prefix + _name; 
 		int fd = open(fullname.c_str(), O_CREAT | O_WRONLY, S_IRWXU);
+		if (fd <= 0) { std::cout << fullname << std::endl; }
+		assert(fd > 0);
 		write(fd, global_dummy_buf, file_size);
 		close(fd);
 	}

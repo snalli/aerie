@@ -25,6 +25,7 @@ public:
 	
 	void print();
 	void create_files(int file_size);
+	void create_dirs();
 	
 private:
 	std::string  _path; // pathname prefix in fileset

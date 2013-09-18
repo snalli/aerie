@@ -7,12 +7,14 @@ m,module-page-cache
 	f,mm/swap.c
 	f,include/linux/pagemap.h
 	f,mm/readahead.c
+	f,fs/mpage.c
 
 m,module-permission
 	s,acl_by_type.constprop.33
 	s,apparmor_file_open
 	s,apparmor_file_free_security
 	s,cap_inode_permission
+	s,cap_inode_rename
 	s,common_perm
 	s,security_d_instantiate
 	s,security_file_open
@@ -21,6 +23,7 @@ m,module-permission
 
 m,module-fs-buffer
 	f,fs/buffer.c
+	f,fs/bio.c
 
 m,module-scheduler
 	f,kernel/sched.c
@@ -84,13 +87,17 @@ m,module-syscall
 	s,sysret_signal
 	s,sys_newstat
 	s,sys_open
+	s,sys_rename
+	s,sys_renameat
+	s,sys_read
+	s,sys_write
 	s,int_check_syscall_exit_work
 	s,int_signal
 	s,_copy_to_user
 	f,kernel/auditsc.c
 
 # VFS code to process operation
-m,module-VFS-fs
+m,module-VFS-op
 	s,__dquot_initialize
 	s,dquot_file_open
 	s,do_notify_resume
@@ -102,8 +109,6 @@ m,module-VFS-fs
 	f,fs/xattr.c
 	f,fs/notify/inotify/inotify.c
 	f,fs/notify/fsnotify.c
-
-m,module-VFS
 	s,vfs_write
 	s,vfs_read
 
@@ -128,9 +133,15 @@ m,module-ext4
 	f,fs/ext4/extents_status.c
 	f,fs/ext4/ext4.h
 	f,fs/ext4/file.c
+	f,fs/ext4/ext4_jbd2.c
 	f,fs/ext4/hash.c
 	f,fs/ext4/inline.c
 	f,fs/ext4/inode.c     # should this be under in-memory objects module?
+	f,fs/ext4/ialloc.c
 	f,fs/ext4/mballoc.c
 	f,fs/ext4/namei.c
 	f,fs/ext4/super.c
+	f,fs/jbd2/checkpoint.c
+	f,fs/jbd2/journal.c
+	f,fs/jbd2/transaction.c
+	f,fs/jbd2/revoke.c

@@ -168,6 +168,8 @@ CMTPGETCONNINFO	fs/compat_ioctl.c	578;"	d	file:
 CMTPGETCONNLIST	fs/compat_ioctl.c	577;"	d	file:
 COMMENT	fs/binfmt_flat.c	177;"	d	file:
 COMPATIBLE_IOCTL	fs/compat_ioctl.c	814;"	d	file:
+COMPAT_FEATURE_ON	fs/jbd2/journal.c	1760;"	d	file:
+COMPAT_FEATURE_ON	fs/jbd2/journal.c	1816;"	d	file:
 COMPAT_SYSCALL_DEFINE2	fs/open.c	/^COMPAT_SYSCALL_DEFINE2(ftruncate, unsigned int, fd, compat_ulong_t, length)$/;"	f
 COMPAT_SYSCALL_DEFINE2	fs/open.c	/^COMPAT_SYSCALL_DEFINE2(truncate, const char __user *, path, compat_off_t, length)$/;"	f
 COMPAT_SYSCALL_DEFINE2	fs/timerfd.c	/^COMPAT_SYSCALL_DEFINE2(timerfd_gettime, int, ufd,$/;"	f
@@ -205,6 +207,7 @@ CREATE_COOLDOWN	kernel/workqueue.c	/^	CREATE_COOLDOWN		= HZ,		\/* time to breath
 CREATE_TRACE_POINTS	fs/ext3/super.c	33;"	d	file:
 CREATE_TRACE_POINTS	fs/ext4/super.c	54;"	d	file:
 CREATE_TRACE_POINTS	fs/fs-writeback.c	88;"	d	file:
+CREATE_TRACE_POINTS	fs/jbd2/journal.c	47;"	d	file:
 CREATE_TRACE_POINTS	kernel/fork.c	83;"	d	file:
 CREATE_TRACE_POINTS	kernel/lockdep.c	53;"	d	file:
 CREATE_TRACE_POINTS	kernel/module.c	67;"	d	file:
@@ -1128,6 +1131,8 @@ IGNORED	mm/memory-failure.c	/^	IGNORED,	\/* Error: cannot be handled *\/$/;"	e	e
 IGNORE_IOCTL	fs/compat_ioctl.c	822;"	d	file:
 IHDR	fs/ext3/xattr.c	64;"	d	file:
 IHDR	fs/ext4/xattr.h	62;"	d
+INCOMPAT_FEATURE_ON	fs/jbd2/journal.c	1758;"	d	file:
+INCOMPAT_FEATURE_ON	fs/jbd2/journal.c	1817;"	d	file:
 INC_CACHE_INFO	mm/swap_state.c	47;"	d	file:
 INDEX	fs/ext4/namei.c	/^	EITHER, INDEX, DIRENT$/;"	e	enum:__anon59	file:
 INDEX	kernel/timer.c	1132;"	d	file:
@@ -1171,6 +1176,8 @@ I_BDEV	fs/block_dev.c	/^EXPORT_SYMBOL(I_BDEV);$/;"	v
 I_BDEV	fs/block_dev.c	/^inline struct block_device *I_BDEV(struct inode *inode)$/;"	f
 Indirect	fs/ext3/inode.c	/^} Indirect;$/;"	t	typeref:struct:__anon40	file:
 Indirect	fs/ext4/indirect.c	/^} Indirect;$/;"	t	typeref:struct:__anon56	file:
+JBD2_MAX_SLABS	fs/jbd2/journal.c	2149;"	d	file:
+JBD2_STATS_PROC_NAME	fs/jbd2/journal.c	2508;"	d	file:
 K	mm/backing-dev.c	114;"	d	file:
 K	mm/backing-dev.c	173;"	d	file:
 K	mm/backing-dev.c	87;"	d	file:
@@ -1273,6 +1280,7 @@ MASK_DECLARE_1	kernel/cpu.c	652;"	d	file:
 MASK_DECLARE_2	kernel/cpu.c	653;"	d	file:
 MASK_DECLARE_4	kernel/cpu.c	654;"	d	file:
 MASK_DECLARE_8	kernel/cpu.c	655;"	d	file:
+MAXBUF	fs/jbd2/recovery.c	69;"	d	file:
 MAXEXP2	kernel/acct.c	392;"	d	file:
 MAXFRACT	kernel/acct.c	350;"	d	file:
 MAXFRACT2	kernel/acct.c	391;"	d	file:
@@ -1372,6 +1380,7 @@ MEM_CGROUP_TARGET_NUMAINFO	mm/memcontrol.c	/^	MEM_CGROUP_TARGET_NUMAINFO,$/;"	e	
 MEM_CGROUP_TARGET_SOFTLIMIT	mm/memcontrol.c	/^	MEM_CGROUP_TARGET_SOFTLIMIT,$/;"	e	enum:mem_cgroup_events_target	file:
 MEM_CGROUP_TARGET_THRESH	mm/memcontrol.c	/^	MEM_CGROUP_TARGET_THRESH,$/;"	e	enum:mem_cgroup_events_target	file:
 MINIMUM_CONSOLE_LOGLEVEL	kernel/printk.c	63;"	d	file:
+MIN_LOG_RESERVED_BLOCKS	fs/jbd2/journal.c	507;"	d	file:
 MIN_PARTIAL	mm/slub.c	143;"	d	file:
 MIN_WRITEBACK_PAGES	fs/fs-writeback.c	35;"	d	file:
 MISC_FMT_CREDENTIALS	fs/binfmt_misc.c	45;"	d	file:
@@ -1627,6 +1636,9 @@ PARENT_INO	fs/ext3/namei.c	2331;"	d	file:
 PARTIAL	mm/slab.h	/^	PARTIAL,		\/* SLUB: kmem_cache_node available *\/$/;"	e	enum:slab_state
 PARTIAL_ARRAYCACHE	mm/slab.h	/^	PARTIAL_ARRAYCACHE,	\/* SLAB: kmalloc size for arraycache available *\/$/;"	e	enum:slab_state
 PARTIAL_L3	mm/slab.h	/^	PARTIAL_L3,		\/* SLAB: kmalloc size for l3 struct available *\/$/;"	e	enum:slab_state
+PASS_REPLAY	fs/jbd2/recovery.c	/^enum passtype {PASS_SCAN, PASS_REVOKE, PASS_REPLAY};$/;"	e	enum:passtype	file:
+PASS_REVOKE	fs/jbd2/recovery.c	/^enum passtype {PASS_SCAN, PASS_REVOKE, PASS_REPLAY};$/;"	e	enum:passtype	file:
+PASS_SCAN	fs/jbd2/recovery.c	/^enum passtype {PASS_SCAN, PASS_REVOKE, PASS_REPLAY};$/;"	e	enum:passtype	file:
 PASTE	kernel/modsign_certificate.S	/^#define PASTE(x,y) PASTE2(x,y)$/;"	d
 PASTE2	kernel/modsign_certificate.S	/^#define PASTE2(x,y) x##y$/;"	d
 PATH_ARR_SIZE	fs/eventpoll.c	1053;"	d	file:
@@ -2478,6 +2490,8 @@ __bio_free	fs/bio.c	/^static void __bio_free(struct bio *bio)$/;"	f	file:
 __bio_map_kern	fs/bio.c	/^static struct bio *__bio_map_kern(struct request_queue *q, void *data,$/;"	f	file:
 __bio_map_user_iov	fs/bio.c	/^static struct bio *__bio_map_user_iov(struct request_queue *q,$/;"	f	file:
 __bio_unmap_user	fs/bio.c	/^static void __bio_unmap_user(struct bio *bio)$/;"	f	file:
+__blist_add_buffer	fs/jbd2/transaction.c	/^__blist_add_buffer(struct journal_head **list, struct journal_head *jh)$/;"	f	file:
+__blist_del_buffer	fs/jbd2/transaction.c	/^__blist_del_buffer(struct journal_head **list, struct journal_head *jh)$/;"	f	file:
 __blk_queue_bounce	mm/bounce.c	/^static void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig,$/;"	f	file:
 __blkdev_get	fs/block_dev.c	/^static int __blkdev_get(struct block_device *bdev, fmode_t mode, int for_part)$/;"	f	file:
 __blkdev_put	fs/block_dev.c	/^static int __blkdev_put(struct block_device *bdev, fmode_t mode, int for_part)$/;"	f	file:
@@ -2502,6 +2516,9 @@ __break_lease	fs/locks.c	/^EXPORT_SYMBOL(__break_lease);$/;"	v
 __break_lease	fs/locks.c	/^int __break_lease(struct inode *inode, unsigned int mode)$/;"	f
 __brelse	fs/buffer.c	/^EXPORT_SYMBOL(__brelse);$/;"	v
 __brelse	fs/buffer.c	/^void __brelse(struct buffer_head * buf)$/;"	f
+__buffer_relink_io	fs/jbd2/checkpoint.c	/^static inline void __buffer_relink_io(struct journal_head *jh)$/;"	f	file:
+__buffer_unlink	fs/jbd2/checkpoint.c	/^static inline void __buffer_unlink(struct journal_head *jh)$/;"	f	file:
+__buffer_unlink_first	fs/jbd2/checkpoint.c	/^static inline void __buffer_unlink_first(struct journal_head *jh)$/;"	f	file:
 __build_all_zonelists	mm/page_alloc.c	/^static int __build_all_zonelists(void *data)$/;"	f	file:
 __cache_free	mm/slab.c	/^static inline void __cache_free(struct kmem_cache *cachep, void *objp,$/;"	f	file:
 __cache_shrink	mm/slab.c	/^static int __cache_shrink(struct kmem_cache *cachep)$/;"	f	file:
@@ -2614,6 +2631,7 @@ __dget_dlock	fs/dcache.c	/^static inline void __dget_dlock(struct dentry *dentry
 __disable_kprobe	kernel/kprobes.c	/^static struct kprobe *__kprobes __disable_kprobe(struct kprobe *p)$/;"	f	file:
 __disarm_kprobe	kernel/kprobes.c	/^static void __kprobes __disarm_kprobe(struct kprobe *p, bool reopt)$/;"	f	file:
 __disarm_kprobe	kernel/kprobes.c	910;"	d	file:
+__dispose_buffer	fs/jbd2/transaction.c	/^static int __dispose_buffer(struct journal_head *jh, transaction_t *transaction)$/;"	f	file:
 __do_cache_alloc	mm/slab.c	/^__do_cache_alloc(struct kmem_cache *cache, gfp_t flags)$/;"	f	file:
 __do_cache_alloc	mm/slab.c	/^__do_cache_alloc(struct kmem_cache *cachep, gfp_t flags)$/;"	f	file:
 __do_fault	mm/memory.c	/^static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,$/;"	f	file:
@@ -2695,6 +2713,7 @@ __find_get_block_slow	fs/buffer.c	/^__find_get_block_slow(struct block_device *b
 __find_resource	kernel/resource.c	/^static int __find_resource(struct resource *root, struct resource *old,$/;"	f	file:
 __find_vmap_area	mm/vmalloc.c	/^static struct vmap_area *__find_vmap_area(unsigned long addr)$/;"	f	file:
 __first_valid_page	mm/page_isolation.c	/^__first_valid_page(unsigned long pfn, unsigned long nr_pages)$/;"	f	file:
+__flush_batch	fs/jbd2/checkpoint.c	/^__flush_batch(journal_t *journal, int *batch_count)$/;"	f	file:
 __flush_cpu_slab	mm/slub.c	/^static inline void __flush_cpu_slab(struct kmem_cache *s, int cpu)$/;"	f	file:
 __flush_itimer_signals	kernel/signal.c	/^static void __flush_itimer_signals(struct sigpending *pending)$/;"	f	file:
 __flush_signals	kernel/signal.c	/^void __flush_signals(struct task_struct *t)$/;"	f
@@ -2826,6 +2845,22 @@ __is_ram	kernel/resource.c	/^static int __is_ram(unsigned long pfn, unsigned lon
 __isolate_balloon_page	mm/balloon_compaction.c	/^static inline void __isolate_balloon_page(struct page *page)$/;"	f	file:
 __isolate_free_page	mm/page_alloc.c	/^static int __isolate_free_page(struct page *page, unsigned int order)$/;"	f	file:
 __isolate_lru_page	mm/vmscan.c	/^int __isolate_lru_page(struct page *page, isolate_mode_t mode)$/;"	f
+__jbd2_journal_abort_hard	fs/jbd2/journal.c	/^void __jbd2_journal_abort_hard(journal_t *journal)$/;"	f
+__jbd2_journal_clean_checkpoint_list	fs/jbd2/checkpoint.c	/^int __jbd2_journal_clean_checkpoint_list(journal_t *journal)$/;"	f
+__jbd2_journal_drop_transaction	fs/jbd2/checkpoint.c	/^void __jbd2_journal_drop_transaction(journal_t *journal, transaction_t *transaction)$/;"	f
+__jbd2_journal_file_buffer	fs/jbd2/transaction.c	/^void __jbd2_journal_file_buffer(struct journal_head *jh,$/;"	f
+__jbd2_journal_insert_checkpoint	fs/jbd2/checkpoint.c	/^void __jbd2_journal_insert_checkpoint(struct journal_head *jh,$/;"	f
+__jbd2_journal_refile_buffer	fs/jbd2/transaction.c	/^void __jbd2_journal_refile_buffer(struct journal_head *jh)$/;"	f
+__jbd2_journal_remove_checkpoint	fs/jbd2/checkpoint.c	/^int __jbd2_journal_remove_checkpoint(struct journal_head *jh)$/;"	f
+__jbd2_journal_temp_unlink_buffer	fs/jbd2/transaction.c	/^static void __jbd2_journal_temp_unlink_buffer(struct journal_head *jh)$/;"	f	file:
+__jbd2_journal_unfile_buffer	fs/jbd2/transaction.c	/^static void __jbd2_journal_unfile_buffer(struct journal_head *jh)$/;"	f	file:
+__jbd2_log_space_left	fs/jbd2/journal.c	/^int __jbd2_log_space_left(journal_t *journal)$/;"	f
+__jbd2_log_start_commit	fs/jbd2/journal.c	/^int __jbd2_log_start_commit(journal_t *journal, tid_t target)$/;"	f
+__jbd2_log_wait_for_space	fs/jbd2/checkpoint.c	/^void __jbd2_log_wait_for_space(journal_t *journal)$/;"	f
+__jbd2_update_log_tail	fs/jbd2/journal.c	/^void __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block)$/;"	f
+__journal_abort_soft	fs/jbd2/journal.c	/^static void __journal_abort_soft (journal_t *journal, int errno)$/;"	f	file:
+__journal_remove_journal_head	fs/jbd2/journal.c	/^static void __journal_remove_journal_head(struct buffer_head *bh)$/;"	f	file:
+__journal_try_to_free_buffer	fs/jbd2/transaction.c	/^__journal_try_to_free_buffer(journal_t *journal, struct buffer_head *bh)$/;"	f	file:
 __jump_label_mod_text_reserved	kernel/jump_label.c	/^static int __jump_label_mod_text_reserved(void *start, void *end)$/;"	f	file:
 __jump_label_mod_update	kernel/jump_label.c	/^static void __jump_label_mod_update(struct static_key *key, int enable)$/;"	f	file:
 __jump_label_text_reserved	kernel/jump_label.c	/^static int __jump_label_text_reserved(struct jump_entry *iter_start,$/;"	f	file:
@@ -3071,6 +3106,7 @@ __printk_ratelimit	kernel/printk.c	/^EXPORT_SYMBOL(__printk_ratelimit);$/;"	v
 __printk_ratelimit	kernel/printk.c	/^int __printk_ratelimit(const char *func)$/;"	f
 __probe_kernel_read	mm/maccess.c	/^long __probe_kernel_read(void *dst, const void *src, size_t size)$/;"	f
 __probe_kernel_write	mm/maccess.c	/^long __probe_kernel_write(void *dst, const void *src, size_t size)$/;"	f
+__process_buffer	fs/jbd2/checkpoint.c	/^static int __process_buffer(journal_t *journal, struct journal_head *jh,$/;"	f	file:
 __profile_flip_buffers	kernel/profile.c	/^static void __profile_flip_buffers(void *unused)$/;"	f	file:
 __propagate_umount	fs/pnode.c	/^static void __propagate_umount(struct mount *mnt)$/;"	f	file:
 __pte_alloc	mm/memory.c	/^int __pte_alloc(struct mm_struct *mm, struct vm_area_struct *vma,$/;"	f
@@ -3141,6 +3177,7 @@ __read_mostly	fs/inode.c	/^static struct hlist_head *inode_hashtable __read_most
 __read_mostly	fs/inode.c	/^static struct kmem_cache *inode_cachep __read_mostly;$/;"	v	typeref:struct:inode_cachep	file:
 __read_mostly	fs/inode.c	/^static unsigned int i_hash_mask __read_mostly;$/;"	v	file:
 __read_mostly	fs/inode.c	/^static unsigned int i_hash_shift __read_mostly;$/;"	v	file:
+__read_mostly	fs/jbd2/journal.c	/^ushort jbd2_journal_enable_debug __read_mostly;$/;"	v
 __read_mostly	fs/locks.c	/^static struct kmem_cache *filelock_cache __read_mostly;$/;"	v	typeref:struct:filelock_cache	file:
 __read_mostly	fs/namei.c	/^int sysctl_protected_hardlinks __read_mostly = 0;$/;"	v
 __read_mostly	fs/namei.c	/^int sysctl_protected_symlinks __read_mostly = 0;$/;"	v
@@ -3402,6 +3439,7 @@ __touch_watchdog	kernel/watchdog.c	/^static void __touch_watchdog(void)$/;"	f	fi
 __trace_hardirqs_on_caller	kernel/lockdep.c	/^static void __trace_hardirqs_on_caller(unsigned long ip)$/;"	f	file:
 __try_remote_softirq	kernel/softirq.c	/^static int __try_remote_softirq(struct call_single_data *cp, int cpu, int softirq)$/;"	f	file:
 __try_stop_module	kernel/module.c	/^static int __try_stop_module(void *_sref)$/;"	f	file:
+__try_to_free_cp_buf	fs/jbd2/checkpoint.c	/^static int __try_to_free_cp_buf(struct journal_head *jh)$/;"	f	file:
 __try_to_reclaim_swap	mm/swapfile.c	/^__try_to_reclaim_swap(struct swap_info_struct *si, unsigned long offset)$/;"	f	file:
 __uidhashfn	kernel/user.c	67;"	d	file:
 __unhash_process	kernel/exit.c	/^static void __unhash_process(struct task_struct *p, bool group_dead)$/;"	f	file:
@@ -3447,6 +3485,7 @@ __vmalloc_node	mm/vmalloc.c	/^static void *__vmalloc_node(unsigned long size, un
 __vmalloc_node_flags	mm/vmalloc.c	/^static inline void *__vmalloc_node_flags(unsigned long size,$/;"	f	file:
 __vmalloc_node_range	mm/vmalloc.c	/^void *__vmalloc_node_range(unsigned long size, unsigned long align,$/;"	f
 __vunmap	mm/vmalloc.c	/^static void __vunmap(const void *addr, int deallocate_pages)$/;"	f	file:
+__wait_cp_io	fs/jbd2/checkpoint.c	/^static int __wait_cp_io(journal_t *journal, transaction_t *transaction)$/;"	f	file:
 __wait_on_bit	kernel/wait.c	/^EXPORT_SYMBOL(__wait_on_bit);$/;"	v
 __wait_on_bit	kernel/wait.c	/^__wait_on_bit(wait_queue_head_t *wq, struct wait_bit_queue *q,$/;"	f
 __wait_on_bit_lock	kernel/wait.c	/^EXPORT_SYMBOL(__wait_on_bit_lock);$/;"	v
@@ -4810,6 +4849,7 @@ blocking_notifier_chain_register	kernel/notifier.c	/^EXPORT_SYMBOL_GPL(blocking_
 blocking_notifier_chain_register	kernel/notifier.c	/^int blocking_notifier_chain_register(struct blocking_notifier_head *nh,$/;"	f
 blocking_notifier_chain_unregister	kernel/notifier.c	/^EXPORT_SYMBOL_GPL(blocking_notifier_chain_unregister);$/;"	v
 blocking_notifier_chain_unregister	kernel/notifier.c	/^int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,$/;"	f
+blocknr	fs/jbd2/revoke.c	/^	unsigned long long	  blocknr;$/;"	m	struct:jbd2_revoke_record_s	file:
 blocks_available	fs/direct-io.c	/^	unsigned blocks_available;	\/* At block_in_file.  changes *\/$/;"	m	struct:dio_submit	file:
 blocks_count	fs/ext3/ext3.h	/^	__u32 blocks_count;     \/* Total number of blocks in this group *\/$/;"	m	struct:ext3_new_group_input
 blocks_count	fs/ext3/ext3.h	/^	__u32 blocks_count;$/;"	m	struct:ext3_new_group_data
@@ -4945,6 +4985,7 @@ cachep	mm/slab.c	/^	struct kmem_cache *cachep;$/;"	m	struct:slab_rcu	typeref:str
 cad_pid	kernel/sys.c	/^EXPORT_SYMBOL(cad_pid);$/;"	v
 cad_pid	kernel/sys.c	/^struct pid *cad_pid;$/;"	v	typeref:struct:pid
 calc_checksum	mm/ksm.c	/^static u32 calc_checksum(struct page *page)$/;"	f	file:
+calc_chksums	fs/jbd2/recovery.c	/^static int calc_chksums(journal_t *journal, struct buffer_head *bh,$/;"	f	file:
 calc_memmap_size	mm/page_alloc.c	/^static unsigned long __paginginit calc_memmap_size(unsigned long spanned_pages,$/;"	f	file:
 calc_reloc	fs/binfmt_flat.c	/^calc_reloc(unsigned long r, struct lib_info *p, int curid, int internalp)$/;"	f	file:
 calculate_alignment	mm/slab_common.c	/^unsigned long calculate_alignment(unsigned long flags,$/;"	f
@@ -5461,6 +5502,7 @@ comm	mm/kmemleak.c	/^	char comm[TASK_COMM_LEN];	\/* executable name *\/$/;"	m	st
 command	fs/compat_ioctl.c	/^	u8 command;$/;"	m	struct:i2c_smbus_ioctl_data32	file:
 commit_creds	kernel/cred.c	/^EXPORT_SYMBOL(commit_creds);$/;"	v
 commit_creds	kernel/cred.c	/^int commit_creds(struct cred *new)$/;"	f
+commit_timeout	fs/jbd2/journal.c	/^static void commit_timeout(unsigned long __data)$/;"	f	file:
 commit_tree	fs/namespace.c	/^static void commit_tree(struct mount *mnt)$/;"	f	file:
 common_nsleep	kernel/posix-timers.c	/^static int common_nsleep(const clockid_t which_clock, int flags,$/;"	f	file:
 common_timer_create	kernel/posix-timers.c	/^static int common_timer_create(struct k_itimer *new_timer)$/;"	f	file:
@@ -5820,6 +5862,7 @@ count_open_files	fs/file.c	/^static int count_open_files(struct fdtable *fdt)$/;
 count_overhead	fs/ext4/super.c	/^static int count_overhead(struct super_block *sb, ext4_group_t grp,$/;"	f	file:
 count_partial	mm/slub.c	/^static unsigned long count_partial(struct kmem_cache_node *n,$/;"	f	file:
 count_swap_pages	mm/swapfile.c	/^unsigned int count_swap_pages(int type, int free)$/;"	f
+count_tags	fs/jbd2/recovery.c	/^static int count_tags(journal_t *journal, struct buffer_head *bh)$/;"	f	file:
 count_total	mm/slub.c	/^static int count_total(struct page *page)$/;"	f	file:
 cow_user_page	mm/memory.c	/^static inline void cow_user_page(struct page *dst, struct page *src, unsigned long va, struct vm_area_struct *vma)$/;"	f	file:
 cp_compat_stat	fs/compat.c	/^static int cp_compat_stat(struct kstat *stat, struct compat_stat __user *ubuf)$/;"	f	file:
@@ -6623,6 +6666,7 @@ do_fsync	fs/sync.c	/^static int do_fsync(unsigned int fd, int datasync)$/;"	f	fi
 do_futex	kernel/futex.c	/^long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,$/;"	f
 do_generic_file_read	mm/filemap.c	/^static void do_generic_file_read(struct file *filp, loff_t *ppos,$/;"	f	file:
 do_get_mempolicy	mm/mempolicy.c	/^static long do_get_mempolicy(int *policy, nodemask_t *nmask,$/;"	f	file:
+do_get_write_access	fs/jbd2/transaction.c	/^do_get_write_access(handle_t *handle, struct journal_head *jh,$/;"	f	file:
 do_getitimer	kernel/itimer.c	/^int do_getitimer(int which, struct itimerval *value)$/;"	f
 do_group_exit	kernel/exit.c	/^do_group_exit(int exit_code)$/;"	f
 do_handle_open	fs/fhandle.c	/^long do_handle_open(int mountdirfd,$/;"	f
@@ -6685,6 +6729,7 @@ do_nothing	kernel/smp.c	/^static void do_nothing(void *unused)$/;"	f	file:
 do_notify_parent	kernel/signal.c	/^bool do_notify_parent(struct task_struct *tsk, int sig)$/;"	f
 do_notify_parent_cldstop	kernel/signal.c	/^static void do_notify_parent_cldstop(struct task_struct *tsk,$/;"	f	file:
 do_numa_page	mm/memory.c	/^int do_numa_page(struct mm_struct *mm, struct vm_area_struct *vma,$/;"	f
+do_one_pass	fs/jbd2/recovery.c	/^static int do_one_pass(journal_t *journal,$/;"	f	file:
 do_oops_enter_exit	kernel/panic.c	/^static void do_oops_enter_exit(void)$/;"	f	file:
 do_optimize_kprobes	kernel/kprobes.c	/^static __kprobes void do_optimize_kprobes(void)$/;"	f	file:
 do_page_add_anon_rmap	mm/rmap.c	/^void do_page_add_anon_rmap(struct page *page,$/;"	f
@@ -6711,6 +6756,7 @@ do_pselect	fs/select.c	/^static long do_pselect(int n, fd_set __user *inp, fd_se
 do_raw_spin_lock_flags	include/linux/spinlock.h	133;"	d
 do_raw_spin_trylock	include/linux/spinlock.h	/^static inline int do_raw_spin_trylock(raw_spinlock_t *lock)$/;"	f
 do_read_cache_page	mm/filemap.c	/^static struct page *do_read_cache_page(struct address_space *mapping,$/;"	f	file:
+do_readahead	fs/jbd2/recovery.c	/^static int do_readahead(journal_t *journal, unsigned int start)$/;"	f	file:
 do_readahead	mm/readahead.c	/^do_readahead(struct address_space *mapping, struct file *filp,$/;"	f	file:
 do_readv_writev	fs/read_write.c	/^static ssize_t do_readv_writev(int type, struct file *file,$/;"	f	file:
 do_refcount_check	fs/pnode.c	/^static inline int do_refcount_check(struct mount *mnt, int count)$/;"	f	file:
@@ -7144,6 +7190,7 @@ end_page_writeback	mm/filemap.c	/^EXPORT_SYMBOL(end_page_writeback);$/;"	v
 end_page_writeback	mm/filemap.c	/^void end_page_writeback(struct page *page)$/;"	f
 end_swap_bio_read	mm/page_io.c	/^void end_swap_bio_read(struct bio *bio, int err)$/;"	f
 end_swap_bio_write	mm/page_io.c	/^static void end_swap_bio_write(struct bio *bio, int err)$/;"	f	file:
+end_transaction	fs/jbd2/recovery.c	/^	tid_t		end_transaction;$/;"	m	struct:recovery_info	file:
 enqueue_hrtimer	kernel/hrtimer.c	/^static int enqueue_hrtimer(struct hrtimer *timer,$/;"	f	file:
 enqueue_huge_page	mm/hugetlb.c	/^static void enqueue_huge_page(struct hstate *h, struct page *page)$/;"	f	file:
 ensure_zone_is_initialized	mm/memory_hotplug.c	/^static int __ref ensure_zone_is_initialized(struct zone *zone,$/;"	f	file:
@@ -8806,6 +8853,7 @@ find_pid_ns	kernel/pid.c	/^EXPORT_SYMBOL_GPL(find_pid_ns);$/;"	v
 find_pid_ns	kernel/pid.c	/^struct pid *find_pid_ns(int nr, struct pid_namespace *ns)$/;"	f
 find_regset	kernel/ptrace.c	/^find_regset(const struct user_regset_view *view, unsigned int type)$/;"	f	file:
 find_resource	kernel/resource.c	/^static int find_resource(struct resource *root, struct resource *new,$/;"	f	file:
+find_revoke_record	fs/jbd2/revoke.c	/^static struct jbd2_revoke_record_s *find_revoke_record(journal_t *journal,$/;"	f	file:
 find_sec	kernel/module.c	/^static unsigned int find_sec(const struct load_info *info, const char *name)$/;"	f	file:
 find_shared_ppgtbl_entry	mm/scm.c	/^ppgtable_user *find_shared_ppgtbl_entry(uid_t uid, bool create_new, bool incref)$/;"	f
 find_smallest_section_pfn	mm/memory_hotplug.c	/^static int find_smallest_section_pfn(int nid, struct zone *zone,$/;"	f	file:
@@ -8920,6 +8968,7 @@ flush_cpu_slab	mm/slub.c	/^static void flush_cpu_slab(void *d)$/;"	f	file:
 flush_delayed_fput	fs/file_table.c	/^void flush_delayed_fput(void)$/;"	f
 flush_delayed_work	kernel/workqueue.c	/^EXPORT_SYMBOL(flush_delayed_work);$/;"	v
 flush_delayed_work	kernel/workqueue.c	/^bool flush_delayed_work(struct delayed_work *dwork)$/;"	f
+flush_descriptor	fs/jbd2/revoke.c	/^static void flush_descriptor(journal_t *journal,$/;"	f	file:
 flush_disk	fs/block_dev.c	/^static void flush_disk(struct block_device *bdev, bool kill_dirty)$/;"	f	file:
 flush_itimer_signals	kernel/signal.c	/^void flush_itimer_signals(void)$/;"	f
 flush_kthread_work	kernel/kthread.c	/^EXPORT_SYMBOL_GPL(flush_kthread_work);$/;"	v
@@ -9585,6 +9634,7 @@ get_sb_block	fs/ext4/super.c	/^static ext4_fsblk_t get_sb_block(void **data)$/;"
 get_scan_count	mm/vmscan.c	/^static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,$/;"	f	file:
 get_seccomp_filter	kernel/seccomp.c	/^void get_seccomp_filter(struct task_struct *tsk)$/;"	f
 get_signal_to_deliver	kernel/signal.c	/^int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka,$/;"	f
+get_slab	fs/jbd2/journal.c	/^static struct kmem_cache *get_slab(size_t size)$/;"	f	file:
 get_slab	mm/slub.c	/^static struct kmem_cache *get_slab(size_t size, gfp_t flags)$/;"	f	file:
 get_slabinfo	mm/slab.c	/^void get_slabinfo(struct kmem_cache *cachep, struct slabinfo *sinfo)$/;"	f
 get_slabinfo	mm/slub.c	/^void get_slabinfo(struct kmem_cache *s, struct slabinfo *sinfo)$/;"	f
@@ -9799,6 +9849,8 @@ hash	fs/ext4/ext4.h	/^	u32		hash;$/;"	m	struct:dx_hash_info
 hash	fs/ext4/namei.c	/^	__le32 hash;$/;"	m	struct:dx_entry	file:
 hash	fs/ext4/namei.c	/^	u32 hash;$/;"	m	struct:dx_map_entry	file:
 hash	fs/inode.c	/^static unsigned long hash(struct super_block *sb, unsigned long hashval)$/;"	f	file:
+hash	fs/jbd2/revoke.c	/^	struct list_head  hash;$/;"	m	struct:jbd2_revoke_record_s	typeref:struct:jbd2_revoke_record_s::list_head	file:
+hash	fs/jbd2/revoke.c	/^static inline int hash(journal_t *journal, unsigned long long block)$/;"	f	file:
 hash	fs/namespace.c	/^static inline unsigned long hash(struct vfsmount *mnt, struct dentry *dentry)$/;"	f	file:
 hash	kernel/audit_tree.c	/^	struct list_head hash;$/;"	m	struct:audit_chunk	typeref:struct:audit_chunk::list_head	file:
 hash	kernel/module_signing.c	/^	u8	hash;		\/* Digest algorithm [enum pkey_hash_algo] *\/$/;"	m	struct:module_signature	file:
@@ -9809,6 +9861,9 @@ hash_dcookie	fs/dcookies.c	/^static void hash_dcookie(struct dcookie_struct * dc
 hash_futex	kernel/futex.c	/^static struct futex_hash_bucket *hash_futex(union futex_key *key)$/;"	f	file:
 hash_list	fs/dcookies.c	/^	struct list_head hash_list;$/;"	m	struct:dcookie_struct	typeref:struct:dcookie_struct::list_head	file:
 hash_name	fs/namei.c	/^static inline unsigned long hash_name(const char *name, unsigned int *hashp)$/;"	f	file:
+hash_shift	fs/jbd2/revoke.c	/^	int		  hash_shift;$/;"	m	struct:jbd2_revoke_table_s	file:
+hash_size	fs/jbd2/revoke.c	/^	int		  hash_size;$/;"	m	struct:jbd2_revoke_table_s	file:
+hash_table	fs/jbd2/revoke.c	/^	struct list_head *hash_table;$/;"	m	struct:jbd2_revoke_table_s	typeref:struct:jbd2_revoke_table_s::list_head	file:
 hash_version	fs/ext3/ext3.h	/^	int		hash_version;$/;"	m	struct:dx_hash_info
 hash_version	fs/ext3/namei.c	/^		u8 hash_version;$/;"	m	struct:dx_root::dx_root_info	file:
 hash_version	fs/ext4/ext4.h	/^	int		hash_version;$/;"	m	struct:dx_hash_info
@@ -10561,6 +10616,7 @@ insert_pfn	mm/memory.c	/^static int insert_pfn(struct vm_area_struct *vma, unsig
 insert_resource	kernel/resource.c	/^int insert_resource(struct resource *parent, struct resource *new)$/;"	f
 insert_resource_conflict	kernel/resource.c	/^struct resource *insert_resource_conflict(struct resource *parent, struct resource *new)$/;"	f
 insert_resource_expand_to_fit	kernel/resource.c	/^void insert_resource_expand_to_fit(struct resource *root, struct resource *new)$/;"	f
+insert_revoke_hash	fs/jbd2/revoke.c	/^static int insert_revoke_hash(journal_t *journal, unsigned long long blocknr,$/;"	f	file:
 insert_to_mm_slots_hash	mm/huge_memory.c	/^static void insert_to_mm_slots_hash(struct mm_struct *mm,$/;"	f	file:
 insert_to_mm_slots_hash	mm/ksm.c	/^static void insert_to_mm_slots_hash(struct mm_struct *mm,$/;"	f	file:
 insert_vm_struct	mm/mmap.c	/^int insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)$/;"	f
@@ -10792,6 +10848,182 @@ itimer_get_remtime	kernel/itimer.c	/^static struct timeval itimer_get_remtime(st
 iunique	fs/inode.c	/^EXPORT_SYMBOL(iunique);$/;"	v
 iunique	fs/inode.c	/^ino_t iunique(struct super_block *sb, ino_t max_reserved)$/;"	f
 j_kprobe_target	kernel/test_kprobes.c	/^static u32 j_kprobe_target(u32 value)$/;"	f	file:
+jbd2-objs	fs/jbd2/Makefile	/^jbd2-objs := transaction.o commit.o recovery.o checkpoint.o revoke.o journal.o$/;"	m
+jbd2__journal_restart	fs/jbd2/transaction.c	/^EXPORT_SYMBOL(jbd2__journal_restart);$/;"	v
+jbd2__journal_restart	fs/jbd2/transaction.c	/^int jbd2__journal_restart(handle_t *handle, int nblocks, gfp_t gfp_mask)$/;"	f
+jbd2__journal_start	fs/jbd2/transaction.c	/^EXPORT_SYMBOL(jbd2__journal_start);$/;"	v
+jbd2__journal_start	fs/jbd2/transaction.c	/^handle_t *jbd2__journal_start(journal_t *journal, int nblocks, gfp_t gfp_mask,$/;"	f
+jbd2_alloc	fs/jbd2/journal.c	/^void *jbd2_alloc(size_t size, gfp_t flags)$/;"	f
+jbd2_block_tag_csum_set	fs/jbd2/commit.c	/^static void jbd2_block_tag_csum_set(journal_t *j, journal_block_tag_t *tag,$/;"	f	file:
+jbd2_block_tag_csum_verify	fs/jbd2/recovery.c	/^static int jbd2_block_tag_csum_verify(journal_t *j, journal_block_tag_t *tag,$/;"	f	file:
+jbd2_buffer_abort_trigger	fs/jbd2/transaction.c	/^void jbd2_buffer_abort_trigger(struct journal_head *jh,$/;"	f
+jbd2_buffer_frozen_trigger	fs/jbd2/transaction.c	/^void jbd2_buffer_frozen_trigger(struct journal_head *jh, void *mapped_data,$/;"	f
+jbd2_checksum_data	fs/jbd2/commit.c	/^static __u32 jbd2_checksum_data(__u32 crc32_sum, struct buffer_head *bh)$/;"	f	file:
+jbd2_cleanup_journal_tail	fs/jbd2/checkpoint.c	/^int jbd2_cleanup_journal_tail(journal_t *journal)$/;"	f
+jbd2_clear_buffer_revoked_flags	fs/jbd2/revoke.c	/^void jbd2_clear_buffer_revoked_flags(journal_t *journal)$/;"	f
+jbd2_commit_block_csum_set	fs/jbd2/commit.c	/^static void jbd2_commit_block_csum_set(journal_t *j,$/;"	f	file:
+jbd2_commit_block_csum_verify	fs/jbd2/recovery.c	/^static int jbd2_commit_block_csum_verify(journal_t *j, void *buf)$/;"	f	file:
+jbd2_create_jbd_stats_proc_entry	fs/jbd2/journal.c	/^static void __init jbd2_create_jbd_stats_proc_entry(void)$/;"	f	file:
+jbd2_create_jbd_stats_proc_entry	fs/jbd2/journal.c	2523;"	d	file:
+jbd2_descr_block_csum_set	fs/jbd2/commit.c	/^static void jbd2_descr_block_csum_set(journal_t *j,$/;"	f	file:
+jbd2_descr_block_csum_verify	fs/jbd2/recovery.c	/^static int jbd2_descr_block_csum_verify(journal_t *j,$/;"	f	file:
+jbd2_free	fs/jbd2/journal.c	/^void jbd2_free(void *ptr, size_t size)$/;"	f
+jbd2_get_transaction	fs/jbd2/transaction.c	/^jbd2_get_transaction(journal_t *journal, transaction_t *transaction)$/;"	f	file:
+jbd2_handle_cache	fs/jbd2/journal.c	/^struct kmem_cache *jbd2_handle_cache, *jbd2_inode_cache;$/;"	v	typeref:struct:kmem_cache
+jbd2_handle_key	fs/jbd2/transaction.c	/^static struct lock_class_key jbd2_handle_key;$/;"	v	typeref:struct:lock_class_key	file:
+jbd2_inode_cache	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_inode_cache);$/;"	v
+jbd2_inode_cache	fs/jbd2/journal.c	/^struct kmem_cache *jbd2_handle_cache, *jbd2_inode_cache;$/;"	v	typeref:struct:
+jbd2_journal_abort	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_abort);$/;"	v
+jbd2_journal_abort	fs/jbd2/journal.c	/^void jbd2_journal_abort(journal_t *journal, int errno)$/;"	f
+jbd2_journal_ack_err	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_ack_err);$/;"	v
+jbd2_journal_ack_err	fs/jbd2/journal.c	/^void jbd2_journal_ack_err(journal_t *journal)$/;"	f
+jbd2_journal_add_journal_head	fs/jbd2/journal.c	/^struct journal_head *jbd2_journal_add_journal_head(struct buffer_head *bh)$/;"	f
+jbd2_journal_begin_ordered_truncate	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_begin_ordered_truncate);$/;"	v
+jbd2_journal_begin_ordered_truncate	fs/jbd2/transaction.c	/^int jbd2_journal_begin_ordered_truncate(journal_t *journal,$/;"	f
+jbd2_journal_blocks_per_page	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_blocks_per_page);$/;"	v
+jbd2_journal_blocks_per_page	fs/jbd2/journal.c	/^int jbd2_journal_blocks_per_page(struct inode *inode)$/;"	f
+jbd2_journal_bmap	fs/jbd2/journal.c	/^int jbd2_journal_bmap(journal_t *journal, unsigned long blocknr,$/;"	f
+jbd2_journal_cancel_revoke	fs/jbd2/revoke.c	/^int jbd2_journal_cancel_revoke(handle_t *handle, struct journal_head *jh)$/;"	f
+jbd2_journal_check_available_features	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_check_available_features);$/;"	v
+jbd2_journal_check_available_features	fs/jbd2/journal.c	/^int jbd2_journal_check_available_features (journal_t *journal, unsigned long compat,$/;"	f
+jbd2_journal_check_used_features	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_check_used_features);$/;"	v
+jbd2_journal_check_used_features	fs/jbd2/journal.c	/^int jbd2_journal_check_used_features (journal_t *journal, unsigned long compat,$/;"	f
+jbd2_journal_clear_err	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_clear_err);$/;"	v
+jbd2_journal_clear_err	fs/jbd2/journal.c	/^int jbd2_journal_clear_err(journal_t *journal)$/;"	f
+jbd2_journal_clear_features	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_clear_features);$/;"	v
+jbd2_journal_clear_features	fs/jbd2/journal.c	/^void jbd2_journal_clear_features(journal_t *journal, unsigned long compat,$/;"	f
+jbd2_journal_clear_revoke	fs/jbd2/revoke.c	/^void jbd2_journal_clear_revoke(journal_t *journal)$/;"	f
+jbd2_journal_commit_transaction	fs/jbd2/commit.c	/^void jbd2_journal_commit_transaction(journal_t *journal)$/;"	f
+jbd2_journal_create_slab	fs/jbd2/journal.c	/^static int jbd2_journal_create_slab(size_t size)$/;"	f	file:
+jbd2_journal_destroy	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_destroy);$/;"	v
+jbd2_journal_destroy	fs/jbd2/journal.c	/^int jbd2_journal_destroy(journal_t *journal)$/;"	f
+jbd2_journal_destroy_caches	fs/jbd2/journal.c	/^static void jbd2_journal_destroy_caches(void)$/;"	f	file:
+jbd2_journal_destroy_handle_cache	fs/jbd2/journal.c	/^static void jbd2_journal_destroy_handle_cache(void)$/;"	f	file:
+jbd2_journal_destroy_journal_head_cache	fs/jbd2/journal.c	/^static void jbd2_journal_destroy_journal_head_cache(void)$/;"	f	file:
+jbd2_journal_destroy_revoke	fs/jbd2/revoke.c	/^void jbd2_journal_destroy_revoke(journal_t *journal)$/;"	f
+jbd2_journal_destroy_revoke_caches	fs/jbd2/revoke.c	/^void jbd2_journal_destroy_revoke_caches(void)$/;"	f
+jbd2_journal_destroy_revoke_table	fs/jbd2/revoke.c	/^static void jbd2_journal_destroy_revoke_table(struct jbd2_revoke_table_s *table)$/;"	f	file:
+jbd2_journal_destroy_slabs	fs/jbd2/journal.c	/^static void jbd2_journal_destroy_slabs(void)$/;"	f	file:
+jbd2_journal_destroy_transaction_cache	fs/jbd2/transaction.c	/^void jbd2_journal_destroy_transaction_cache(void)$/;"	f
+jbd2_journal_dirty_metadata	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_dirty_metadata);$/;"	v
+jbd2_journal_dirty_metadata	fs/jbd2/transaction.c	/^int jbd2_journal_dirty_metadata(handle_t *handle, struct buffer_head *bh)$/;"	f
+jbd2_journal_enable_debug	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_enable_debug);$/;"	v
+jbd2_journal_errno	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_errno);$/;"	v
+jbd2_journal_errno	fs/jbd2/journal.c	/^int jbd2_journal_errno(journal_t *journal)$/;"	f
+jbd2_journal_extend	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_extend);$/;"	v
+jbd2_journal_extend	fs/jbd2/transaction.c	/^int jbd2_journal_extend(handle_t *handle, int nblocks)$/;"	f
+jbd2_journal_file_buffer	fs/jbd2/transaction.c	/^void jbd2_journal_file_buffer(struct journal_head *jh,$/;"	f
+jbd2_journal_file_inode	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_file_inode);$/;"	v
+jbd2_journal_file_inode	fs/jbd2/transaction.c	/^int jbd2_journal_file_inode(handle_t *handle, struct jbd2_inode *jinode)$/;"	f
+jbd2_journal_flush	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_flush);$/;"	v
+jbd2_journal_flush	fs/jbd2/journal.c	/^int jbd2_journal_flush(journal_t *journal)$/;"	f
+jbd2_journal_force_commit	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_force_commit);$/;"	v
+jbd2_journal_force_commit	fs/jbd2/transaction.c	/^int jbd2_journal_force_commit(journal_t *journal)$/;"	f
+jbd2_journal_force_commit_nested	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_force_commit_nested);$/;"	v
+jbd2_journal_force_commit_nested	fs/jbd2/journal.c	/^int jbd2_journal_force_commit_nested(journal_t *journal)$/;"	f
+jbd2_journal_forget	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_forget);$/;"	v
+jbd2_journal_forget	fs/jbd2/transaction.c	/^int jbd2_journal_forget (handle_t *handle, struct buffer_head *bh)$/;"	f
+jbd2_journal_free_transaction	fs/jbd2/transaction.c	/^void jbd2_journal_free_transaction(transaction_t *transaction)$/;"	f
+jbd2_journal_get_create_access	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_get_create_access);$/;"	v
+jbd2_journal_get_create_access	fs/jbd2/transaction.c	/^int jbd2_journal_get_create_access(handle_t *handle, struct buffer_head *bh)$/;"	f
+jbd2_journal_get_descriptor_buffer	fs/jbd2/journal.c	/^struct journal_head *jbd2_journal_get_descriptor_buffer(journal_t *journal)$/;"	f
+jbd2_journal_get_log_tail	fs/jbd2/journal.c	/^int jbd2_journal_get_log_tail(journal_t *journal, tid_t *tid,$/;"	f
+jbd2_journal_get_undo_access	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_get_undo_access);$/;"	v
+jbd2_journal_get_undo_access	fs/jbd2/transaction.c	/^int jbd2_journal_get_undo_access(handle_t *handle, struct buffer_head *bh)$/;"	f
+jbd2_journal_get_write_access	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_get_write_access);$/;"	v
+jbd2_journal_get_write_access	fs/jbd2/transaction.c	/^int jbd2_journal_get_write_access(handle_t *handle, struct buffer_head *bh)$/;"	f
+jbd2_journal_grab_journal_head	fs/jbd2/journal.c	/^struct journal_head *jbd2_journal_grab_journal_head(struct buffer_head *bh)$/;"	f
+jbd2_journal_head_cache	fs/jbd2/journal.c	/^static struct kmem_cache *jbd2_journal_head_cache;$/;"	v	typeref:struct:kmem_cache	file:
+jbd2_journal_init_dev	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_init_dev);$/;"	v
+jbd2_journal_init_dev	fs/jbd2/journal.c	/^journal_t * jbd2_journal_init_dev(struct block_device *bdev,$/;"	f
+jbd2_journal_init_handle_cache	fs/jbd2/journal.c	/^static int __init jbd2_journal_init_handle_cache(void)$/;"	f	file:
+jbd2_journal_init_inode	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_init_inode);$/;"	v
+jbd2_journal_init_inode	fs/jbd2/journal.c	/^journal_t * jbd2_journal_init_inode (struct inode *inode)$/;"	f
+jbd2_journal_init_jbd_inode	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_init_jbd_inode);$/;"	v
+jbd2_journal_init_jbd_inode	fs/jbd2/journal.c	/^void jbd2_journal_init_jbd_inode(struct jbd2_inode *jinode, struct inode *inode)$/;"	f
+jbd2_journal_init_journal_head_cache	fs/jbd2/journal.c	/^static int jbd2_journal_init_journal_head_cache(void)$/;"	f	file:
+jbd2_journal_init_revoke	fs/jbd2/revoke.c	/^int jbd2_journal_init_revoke(journal_t *journal, int hash_size)$/;"	f
+jbd2_journal_init_revoke_caches	fs/jbd2/revoke.c	/^int __init jbd2_journal_init_revoke_caches(void)$/;"	f
+jbd2_journal_init_revoke_table	fs/jbd2/revoke.c	/^static struct jbd2_revoke_table_s *jbd2_journal_init_revoke_table(int hash_size)$/;"	f	file:
+jbd2_journal_init_transaction_cache	fs/jbd2/transaction.c	/^int __init jbd2_journal_init_transaction_cache(void)$/;"	f
+jbd2_journal_invalidatepage	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_invalidatepage);$/;"	v
+jbd2_journal_invalidatepage	fs/jbd2/transaction.c	/^int jbd2_journal_invalidatepage(journal_t *journal,$/;"	f
+jbd2_journal_load	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_load);$/;"	v
+jbd2_journal_load	fs/jbd2/journal.c	/^int jbd2_journal_load(journal_t *journal)$/;"	f
+jbd2_journal_lock_updates	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_lock_updates);$/;"	v
+jbd2_journal_lock_updates	fs/jbd2/transaction.c	/^void jbd2_journal_lock_updates(journal_t *journal)$/;"	f
+jbd2_journal_next_log_block	fs/jbd2/journal.c	/^int jbd2_journal_next_log_block(journal_t *journal, unsigned long long *retp)$/;"	f
+jbd2_journal_put_journal_head	fs/jbd2/journal.c	/^void jbd2_journal_put_journal_head(struct journal_head *jh)$/;"	f
+jbd2_journal_recover	fs/jbd2/recovery.c	/^int jbd2_journal_recover(journal_t *journal)$/;"	f
+jbd2_journal_refile_buffer	fs/jbd2/transaction.c	/^void jbd2_journal_refile_buffer(journal_t *journal, struct journal_head *jh)$/;"	f
+jbd2_journal_release_jbd_inode	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_release_jbd_inode);$/;"	v
+jbd2_journal_release_jbd_inode	fs/jbd2/journal.c	/^void jbd2_journal_release_jbd_inode(journal_t *journal,$/;"	f
+jbd2_journal_restart	fs/jbd2/transaction.c	/^EXPORT_SYMBOL(jbd2_journal_restart);$/;"	v
+jbd2_journal_restart	fs/jbd2/transaction.c	/^int jbd2_journal_restart(handle_t *handle, int nblocks)$/;"	f
+jbd2_journal_revoke	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_revoke);$/;"	v
+jbd2_journal_revoke	fs/jbd2/revoke.c	/^int jbd2_journal_revoke(handle_t *handle, unsigned long long blocknr,$/;"	f
+jbd2_journal_set_features	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_set_features);$/;"	v
+jbd2_journal_set_features	fs/jbd2/journal.c	/^int jbd2_journal_set_features (journal_t *journal, unsigned long compat,$/;"	f
+jbd2_journal_set_revoke	fs/jbd2/revoke.c	/^int jbd2_journal_set_revoke(journal_t *journal,$/;"	f
+jbd2_journal_set_triggers	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_set_triggers);$/;"	v
+jbd2_journal_set_triggers	fs/jbd2/transaction.c	/^void jbd2_journal_set_triggers(struct buffer_head *bh,$/;"	f
+jbd2_journal_skip_recovery	fs/jbd2/recovery.c	/^int jbd2_journal_skip_recovery(journal_t *journal)$/;"	f
+jbd2_journal_start	fs/jbd2/transaction.c	/^EXPORT_SYMBOL(jbd2_journal_start);$/;"	v
+jbd2_journal_start	fs/jbd2/transaction.c	/^handle_t *jbd2_journal_start(journal_t *journal, int nblocks)$/;"	f
+jbd2_journal_start_commit	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_start_commit);$/;"	v
+jbd2_journal_start_commit	fs/jbd2/journal.c	/^int jbd2_journal_start_commit(journal_t *journal, tid_t *ptid)$/;"	f
+jbd2_journal_start_thread	fs/jbd2/journal.c	/^static int jbd2_journal_start_thread(journal_t *journal)$/;"	f	file:
+jbd2_journal_stop	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_stop);$/;"	v
+jbd2_journal_stop	fs/jbd2/transaction.c	/^int jbd2_journal_stop(handle_t *handle)$/;"	f
+jbd2_journal_switch_revoke_table	fs/jbd2/revoke.c	/^void jbd2_journal_switch_revoke_table(journal_t *journal)$/;"	f
+jbd2_journal_test_revoke	fs/jbd2/revoke.c	/^int jbd2_journal_test_revoke(journal_t *journal,$/;"	f
+jbd2_journal_try_to_free_buffers	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_try_to_free_buffers);$/;"	v
+jbd2_journal_try_to_free_buffers	fs/jbd2/transaction.c	/^int jbd2_journal_try_to_free_buffers(journal_t *journal,$/;"	f
+jbd2_journal_unfile_buffer	fs/jbd2/transaction.c	/^void jbd2_journal_unfile_buffer(journal_t *journal, struct journal_head *jh)$/;"	f
+jbd2_journal_unlock_updates	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_unlock_updates);$/;"	v
+jbd2_journal_unlock_updates	fs/jbd2/transaction.c	/^void jbd2_journal_unlock_updates (journal_t *journal)$/;"	f
+jbd2_journal_update_sb_errno	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_update_sb_errno);$/;"	v
+jbd2_journal_update_sb_errno	fs/jbd2/journal.c	/^void jbd2_journal_update_sb_errno(journal_t *journal)$/;"	f
+jbd2_journal_update_sb_log_tail	fs/jbd2/journal.c	/^void jbd2_journal_update_sb_log_tail(journal_t *journal, tid_t tail_tid,$/;"	f
+jbd2_journal_wipe	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_journal_wipe);$/;"	v
+jbd2_journal_wipe	fs/jbd2/journal.c	/^int jbd2_journal_wipe(journal_t *journal, int write)$/;"	f
+jbd2_journal_write_metadata_buffer	fs/jbd2/journal.c	/^int jbd2_journal_write_metadata_buffer(transaction_t *transaction,$/;"	f
+jbd2_journal_write_revoke_records	fs/jbd2/revoke.c	/^void jbd2_journal_write_revoke_records(journal_t *journal,$/;"	f
+jbd2_log_do_checkpoint	fs/jbd2/checkpoint.c	/^int jbd2_log_do_checkpoint(journal_t *journal)$/;"	f
+jbd2_log_start_commit	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_log_start_commit);$/;"	v
+jbd2_log_start_commit	fs/jbd2/journal.c	/^int jbd2_log_start_commit(journal_t *journal, tid_t tid)$/;"	f
+jbd2_log_wait_commit	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_log_wait_commit);$/;"	v
+jbd2_log_wait_commit	fs/jbd2/journal.c	/^int jbd2_log_wait_commit(journal_t *journal, tid_t tid)$/;"	f
+jbd2_mark_journal_empty	fs/jbd2/journal.c	/^static void jbd2_mark_journal_empty(journal_t *journal)$/;"	f	file:
+jbd2_remove_jbd_stats_proc_entry	fs/jbd2/journal.c	/^static void __exit jbd2_remove_jbd_stats_proc_entry(void)$/;"	f	file:
+jbd2_remove_jbd_stats_proc_entry	fs/jbd2/journal.c	2524;"	d	file:
+jbd2_revoke_block_csum_verify	fs/jbd2/recovery.c	/^static int jbd2_revoke_block_csum_verify(journal_t *j,$/;"	f	file:
+jbd2_revoke_csum_set	fs/jbd2/revoke.c	/^static void jbd2_revoke_csum_set(journal_t *j,$/;"	f	file:
+jbd2_revoke_record_cache	fs/jbd2/revoke.c	/^static struct kmem_cache *jbd2_revoke_record_cache;$/;"	v	typeref:struct:kmem_cache	file:
+jbd2_revoke_record_s	fs/jbd2/revoke.c	/^struct jbd2_revoke_record_s$/;"	s	file:
+jbd2_revoke_table_cache	fs/jbd2/revoke.c	/^static struct kmem_cache *jbd2_revoke_table_cache;$/;"	v	typeref:struct:kmem_cache	file:
+jbd2_revoke_table_s	fs/jbd2/revoke.c	/^struct jbd2_revoke_table_s$/;"	s	file:
+jbd2_seq_info_fops	fs/jbd2/journal.c	/^static const struct file_operations jbd2_seq_info_fops = {$/;"	v	typeref:struct:file_operations	file:
+jbd2_seq_info_next	fs/jbd2/journal.c	/^static void *jbd2_seq_info_next(struct seq_file *seq, void *v, loff_t *pos)$/;"	f	file:
+jbd2_seq_info_open	fs/jbd2/journal.c	/^static int jbd2_seq_info_open(struct inode *inode, struct file *file)$/;"	f	file:
+jbd2_seq_info_ops	fs/jbd2/journal.c	/^static const struct seq_operations jbd2_seq_info_ops = {$/;"	v	typeref:struct:seq_operations	file:
+jbd2_seq_info_release	fs/jbd2/journal.c	/^static int jbd2_seq_info_release(struct inode *inode, struct file *file)$/;"	f	file:
+jbd2_seq_info_show	fs/jbd2/journal.c	/^static int jbd2_seq_info_show(struct seq_file *seq, void *v)$/;"	f	file:
+jbd2_seq_info_start	fs/jbd2/journal.c	/^static void *jbd2_seq_info_start(struct seq_file *seq, loff_t *pos)$/;"	f	file:
+jbd2_seq_info_stop	fs/jbd2/journal.c	/^static void jbd2_seq_info_stop(struct seq_file *seq, void *v)$/;"	f	file:
+jbd2_slab	fs/jbd2/journal.c	/^static struct kmem_cache *jbd2_slab[JBD2_MAX_SLABS];$/;"	v	typeref:struct:kmem_cache	file:
+jbd2_slab_names	fs/jbd2/journal.c	/^static const char *jbd2_slab_names[JBD2_MAX_SLABS] = {$/;"	v	file:
+jbd2_stats_proc_exit	fs/jbd2/journal.c	/^static void jbd2_stats_proc_exit(journal_t *journal)$/;"	f	file:
+jbd2_stats_proc_init	fs/jbd2/journal.c	/^static void jbd2_stats_proc_init(journal_t *journal)$/;"	f	file:
+jbd2_stats_proc_session	fs/jbd2/journal.c	/^struct jbd2_stats_proc_session {$/;"	s	file:
+jbd2_superblock_csum	fs/jbd2/journal.c	/^static __u32 jbd2_superblock_csum(journal_t *j, journal_superblock_t *sb)$/;"	f	file:
+jbd2_superblock_csum_set	fs/jbd2/journal.c	/^void jbd2_superblock_csum_set(journal_t *j, journal_superblock_t *sb)$/;"	f
+jbd2_superblock_csum_verify	fs/jbd2/journal.c	/^int jbd2_superblock_csum_verify(journal_t *j, journal_superblock_t *sb)$/;"	f
+jbd2_trans_will_send_data_barrier	fs/jbd2/journal.c	/^EXPORT_SYMBOL(jbd2_trans_will_send_data_barrier);$/;"	v
+jbd2_trans_will_send_data_barrier	fs/jbd2/journal.c	/^int jbd2_trans_will_send_data_barrier(journal_t *journal, tid_t tid)$/;"	f
+jbd2_update_log_tail	fs/jbd2/journal.c	/^void jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block)$/;"	f
+jbd2_verify_csum_type	fs/jbd2/journal.c	/^int jbd2_verify_csum_type(journal_t *j, journal_superblock_t *sb)$/;"	f
+jbd2_write_superblock	fs/jbd2/journal.c	/^static void jbd2_write_superblock(journal_t *journal, int write_op)$/;"	f	file:
 jce_func	fs/ext4/ext4_jbd2.h	/^	void (*jce_func)(struct super_block *sb,$/;"	m	struct:ext4_journal_cb_entry
 jce_list	fs/ext4/ext4_jbd2.h	/^	struct list_head jce_list;$/;"	m	struct:ext4_journal_cb_entry	typeref:struct:ext4_journal_cb_entry::list_head
 jiffies	mm/kmemleak.c	/^	unsigned long jiffies;		\/* creation timestamp *\/$/;"	m	struct:kmemleak_object	file:
@@ -10816,13 +11048,37 @@ jiffies_to_timeval	kernel/time.c	/^void jiffies_to_timeval(const unsigned long j
 jiffies_to_usecs	kernel/time.c	/^EXPORT_SYMBOL(jiffies_to_usecs);$/;"	v
 jiffies_to_usecs	kernel/time.c	/^unsigned int jiffies_to_usecs(const unsigned long j)$/;"	f
 jinode	fs/ext4/ext4.h	/^	struct jbd2_inode *jinode;$/;"	m	struct:ext4_inode_info	typeref:struct:ext4_inode_info::jbd2_inode
+journal	fs/jbd2/journal.c	/^	journal_t *journal;$/;"	m	struct:jbd2_stats_proc_session	file:
+journal_alloc_journal_head	fs/jbd2/journal.c	/^static struct journal_head *journal_alloc_journal_head(void)$/;"	f	file:
 journal_bdev	fs/ext3/ext3.h	/^	struct block_device *journal_bdev;$/;"	m	struct:ext3_sb_info	typeref:struct:ext3_sb_info::block_device
 journal_bdev	fs/ext4/ext4.h	/^	struct block_device *journal_bdev;$/;"	m	struct:ext4_sb_info	typeref:struct:ext4_sb_info::block_device
+journal_brelse_array	fs/jbd2/recovery.c	/^static void journal_brelse_array(struct buffer_head *b[], int n)$/;"	f	file:
+journal_clean_one_cp_list	fs/jbd2/checkpoint.c	/^static int journal_clean_one_cp_list(struct journal_head *jh, int *released)$/;"	f	file:
 journal_dirty_data_fn	fs/ext3/inode.c	/^static int journal_dirty_data_fn(handle_t *handle, struct buffer_head *bh)$/;"	f	file:
+journal_end_buffer_io_sync	fs/jbd2/commit.c	/^static void journal_end_buffer_io_sync(struct buffer_head *bh, int uptodate)$/;"	f	file:
+journal_exit	fs/jbd2/journal.c	/^module_exit(journal_exit);$/;"	v
+journal_exit	fs/jbd2/journal.c	/^static void __exit journal_exit(void)$/;"	f	file:
+journal_fail_superblock	fs/jbd2/journal.c	/^static void journal_fail_superblock (journal_t *journal)$/;"	f	file:
+journal_finish_inode_data_buffers	fs/jbd2/commit.c	/^static int journal_finish_inode_data_buffers(journal_t *journal,$/;"	f	file:
+journal_free_journal_head	fs/jbd2/journal.c	/^static void journal_free_journal_head(struct journal_head *jh)$/;"	f	file:
+journal_get_superblock	fs/jbd2/journal.c	/^static int journal_get_superblock(journal_t *journal)$/;"	f	file:
+journal_init	fs/jbd2/journal.c	/^module_init(journal_init);$/;"	v
+journal_init	fs/jbd2/journal.c	/^static int __init journal_init(void)$/;"	f	file:
+journal_init_caches	fs/jbd2/journal.c	/^static int __init journal_init_caches(void)$/;"	f	file:
+journal_init_common	fs/jbd2/journal.c	/^static journal_t * journal_init_common (void)$/;"	f	file:
+journal_kill_thread	fs/jbd2/journal.c	/^static void journal_kill_thread(journal_t *journal)$/;"	f	file:
+journal_reset	fs/jbd2/journal.c	/^static int journal_reset(journal_t *journal)$/;"	f	file:
+journal_submit_commit_record	fs/jbd2/commit.c	/^static int journal_submit_commit_record(journal_t *journal,$/;"	f	file:
+journal_submit_data_buffers	fs/jbd2/commit.c	/^static int journal_submit_data_buffers(journal_t *journal,$/;"	f	file:
+journal_submit_inode_data_buffers	fs/jbd2/commit.c	/^static int journal_submit_inode_data_buffers(struct address_space *mapping)$/;"	f	file:
+journal_tag_bytes	fs/jbd2/journal.c	/^size_t journal_tag_bytes(journal_t *journal)$/;"	f
+journal_unmap_buffer	fs/jbd2/transaction.c	/^static int journal_unmap_buffer(journal_t *journal, struct buffer_head *bh,$/;"	f	file:
+journal_wait_on_commit_record	fs/jbd2/commit.c	/^static int journal_wait_on_commit_record(journal_t *journal,$/;"	f	file:
 jp	kernel/test_kprobes.c	/^static struct jprobe jp = {$/;"	v	typeref:struct:jprobe	file:
 jp2	kernel/test_kprobes.c	/^static struct jprobe jp2 = {$/;"	v	typeref:struct:jprobe	file:
 jph_val	kernel/test_kprobes.c	/^static u32 rand1, preh_val, posth_val, jph_val;$/;"	v	file:
 jprobe_return	kernel/kprobes.c	/^EXPORT_SYMBOL_GPL(jprobe_return);$/;"	v
+jread	fs/jbd2/recovery.c	/^static int jread(struct buffer_head **bhp, journal_t *journal,$/;"	f	file:
 jump_label_add_module	kernel/jump_label.c	/^static int jump_label_add_module(struct module *mod)$/;"	f	file:
 jump_label_apply_nops	kernel/jump_label.c	/^void jump_label_apply_nops(struct module *mod)$/;"	f
 jump_label_cmp	kernel/jump_label.c	/^static int jump_label_cmp(const void *a, const void *b)$/;"	f	file:
@@ -11031,6 +11287,7 @@ kiocb_batch_init	fs/aio.c	/^static void kiocb_batch_init(struct kiocb_batch *bat
 kiocb_batch_refill	fs/aio.c	/^static int kiocb_batch_refill(struct kioctx *ctx, struct kiocb_batch *batch)$/;"	f	file:
 kiocb_cachep	fs/aio.c	/^static struct kmem_cache	*kiocb_cachep;$/;"	v	typeref:struct:kmem_cache	file:
 kioctx_cachep	fs/aio.c	/^static struct kmem_cache	*kioctx_cachep;$/;"	v	typeref:struct:kmem_cache	file:
+kjournald2	fs/jbd2/journal.c	/^static int kjournald2(void *arg)$/;"	f	file:
 kleave	mm/nommu.c	50;"	d	file:
 kmalloc	mm/util.c	/^EXPORT_TRACEPOINT_SYMBOL(kmalloc);$/;"	v
 kmalloc_caches	mm/slub.c	/^EXPORT_SYMBOL(kmalloc_caches);$/;"	v
@@ -11571,6 +11828,7 @@ load_module_signing_keys	kernel/modsign_pubkey.c	/^static __init int load_module
 load_script	fs/binfmt_script.c	/^static int load_script(struct linux_binprm *bprm)$/;"	f	file:
 load_som_binary	fs/binfmt_som.c	/^load_som_binary(struct linux_binprm * bprm)$/;"	f	file:
 load_som_library	fs/binfmt_som.c	/^static int load_som_library(struct file *f)$/;"	f	file:
+load_superblock	fs/jbd2/journal.c	/^static int load_superblock(journal_t *journal)$/;"	f	file:
 loaded	fs/binfmt_flat.c	/^		short loaded;				\/* Has this library been loaded? *\/$/;"	m	struct:lib_info::__anon22	file:
 loads	kernel/compat.c	/^	u32 loads[3];$/;"	m	struct:compat_sysinfo	file:
 loc	mm/slub.c	/^	struct location *loc;$/;"	m	struct:loc_track	typeref:struct:loc_track::location	file:
@@ -11968,6 +12226,7 @@ match_held_lock	kernel/lockdep.c	/^static int match_held_lock(struct held_lock *
 match_tree_refs	kernel/auditsc.c	/^static int match_tree_refs(struct audit_context *ctx, struct audit_tree *tree)$/;"	f	file:
 mattr	kernel/module.c	/^	struct module_attribute mattr;$/;"	m	struct:module_sect_attr	typeref:struct:module_sect_attr::module_attribute	file:
 mattr	kernel/params.c	/^	struct module_attribute mattr;$/;"	m	struct:param_attribute	typeref:struct:param_attribute::module_attribute	file:
+max	fs/jbd2/journal.c	/^	int max;$/;"	m	struct:jbd2_stats_proc_session	file:
 max	kernel/resource.c	/^	resource_size_t min, max, align;$/;"	m	struct:resource_constraint	file:
 max	kernel/sysctl.c	/^	int *max;$/;"	m	struct:do_proc_dointvec_minmax_conv_param	file:
 max	mm/slub.c	/^	unsigned long max;$/;"	m	struct:loc_track	file:
@@ -13063,6 +13322,7 @@ nested_call_node	fs/eventpoll.c	/^struct nested_call_node {$/;"	s	file:
 nested_calls	fs/eventpoll.c	/^struct nested_calls {$/;"	s	file:
 nested_symlink	fs/namei.c	/^static inline int nested_symlink(struct path *path, struct nameidata *nd)$/;"	f	file:
 new	mm/slab.c	/^	struct array_cache *new[0];$/;"	m	struct:ccupdate_struct	typeref:struct:ccupdate_struct::array_cache	file:
+new_handle	fs/jbd2/transaction.c	/^static handle_t *new_handle(int nblocks)$/;"	f	file:
 new_idmap_permitted	kernel/user_namespace.c	/^static bool new_idmap_permitted(const struct file *file, $/;"	f	file:
 new_inode	fs/inode.c	/^EXPORT_SYMBOL(new_inode);$/;"	v
 new_inode	fs/inode.c	/^struct inode *new_inode(struct super_block *sb)$/;"	f
@@ -13258,6 +13518,7 @@ nr_hugepages_store_common	mm/hugetlb.c	/^static ssize_t nr_hugepages_store_commo
 nr_idle	kernel/workqueue.c	/^	int			nr_idle;	\/* L: currently idle ones *\/$/;"	m	struct:worker_pool	file:
 nr_ids	kernel/pid_namespace.c	/^	int nr_ids;$/;"	m	struct:pid_cache	file:
 nr_in_flight	kernel/workqueue.c	/^	int			nr_in_flight[WORK_NR_COLORS];$/;"	m	struct:pool_workqueue	file:
+nr_journal_heads	fs/jbd2/journal.c	/^static atomic_t nr_journal_heads = ATOMIC_INIT(0);$/;"	v	file:
 nr_kernel_pages	mm/page_alloc.c	/^static unsigned long __meminitdata nr_kernel_pages;$/;"	v	file:
 nr_list_entries	kernel/lockdep.c	/^unsigned long nr_list_entries;$/;"	v
 nr_lock_chains	kernel/lockdep.c	/^unsigned long nr_lock_chains;$/;"	v
@@ -13275,6 +13536,9 @@ nr_process_chains	kernel/lockdep.c	/^unsigned int nr_process_chains;$/;"	v
 nr_processes	kernel/fork.c	/^int nr_processes(void)$/;"	f
 nr_pwqs_to_flush	kernel/workqueue.c	/^	atomic_t		nr_pwqs_to_flush; \/* flush in progress *\/$/;"	m	struct:workqueue_struct	file:
 nr_reclaimed	mm/vmscan.c	/^	unsigned long nr_reclaimed;$/;"	m	struct:scan_control	file:
+nr_replays	fs/jbd2/recovery.c	/^	int		nr_replays;$/;"	m	struct:recovery_info	file:
+nr_revoke_hits	fs/jbd2/recovery.c	/^	int		nr_revoke_hits;$/;"	m	struct:recovery_info	file:
+nr_revokes	fs/jbd2/recovery.c	/^	int		nr_revokes;$/;"	m	struct:recovery_info	file:
 nr_scanned	mm/vmscan.c	/^	unsigned long nr_scanned;$/;"	m	struct:scan_control	file:
 nr_sgvecs	fs/bio.c	/^	int nr_sgvecs;$/;"	m	struct:bio_map_data	file:
 nr_softirq_chains	kernel/lockdep.c	/^unsigned int nr_softirq_chains;$/;"	v
@@ -13828,6 +14092,7 @@ partial_show	mm/slub.c	/^static ssize_t partial_show(struct kmem_cache *s, char 
 passed_quiesce	kernel/rcutree.h	/^	bool		passed_quiesce;	\/* User-mode\/idle loop etc. *\/$/;"	m	struct:rcu_data
 passive_map1	mm/scm.c	/^virt_phys_map passive_map1;$/;"	v
 passive_map2	mm/scm.c	/^virt_phys_map passive_map2;$/;"	v
+passtype	fs/jbd2/recovery.c	/^enum passtype {PASS_SCAN, PASS_REVOKE, PASS_REPLAY};$/;"	g	file:
 past_time	fs/locks.c	/^static bool past_time(unsigned long then)$/;"	f	file:
 path	fs/dcookies.c	/^	struct path path;$/;"	m	struct:dcookie_struct	typeref:struct:dcookie_struct::path	file:
 path	kernel/audit_watch.c	/^	char			*path;	\/* insertion path *\/$/;"	m	struct:audit_watch	file:
@@ -14383,6 +14648,7 @@ proc_gid_seq_operations	kernel/user_namespace.c	/^struct seq_operations proc_gid
 proc_inum	fs/mount.h	/^	unsigned int		proc_inum;$/;"	m	struct:mnt_namespace
 proc_iomem_operations	kernel/resource.c	/^static const struct file_operations proc_iomem_operations = {$/;"	v	typeref:struct:file_operations	file:
 proc_ioports_operations	kernel/resource.c	/^static const struct file_operations proc_ioports_operations = {$/;"	v	typeref:struct:file_operations	file:
+proc_jbd2_stats	fs/jbd2/journal.c	/^static struct proc_dir_entry *proc_jbd2_stats;$/;"	v	typeref:struct:proc_dir_entry	file:
 proc_kprobes_optimization_handler	kernel/kprobes.c	/^int proc_kprobes_optimization_handler(struct ctl_table *table, int write,$/;"	f
 proc_lock_stat_operations	kernel/lockdep_proc.c	/^static const struct file_operations proc_lock_stat_operations = {$/;"	v	typeref:struct:file_operations	file:
 proc_lockdep_chains_operations	kernel/lockdep_proc.c	/^static const struct file_operations proc_lockdep_chains_operations = {$/;"	v	typeref:struct:file_operations	file:
@@ -15160,6 +15426,7 @@ read_profile	kernel/profile.c	/^read_profile(struct file *file, char __user *buf
 read_scan_unevictable_node	mm/vmscan.c	/^static ssize_t read_scan_unevictable_node(struct device *dev,$/;"	f	file:
 read_swap_cache_async	mm/swap_state.c	/^struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,$/;"	f
 read_swap_header	mm/swapfile.c	/^static unsigned long read_swap_header(struct swap_info_struct *p,$/;"	f	file:
+read_tag_block	fs/jbd2/recovery.c	/^static inline unsigned long long read_tag_block(int tag_bytes, journal_block_tag_t *tag)$/;"	f	file:
 read_write	fs/compat_ioctl.c	/^	u8 read_write;$/;"	m	struct:i2c_smbus_ioctl_data32	file:
 readahead	mm/readahead.c	/^SYSCALL_DEFINE(readahead)(int fd, loff_t offset, size_t count)$/;"	f
 readdir_callback	fs/readdir.c	/^struct readdir_callback {$/;"	s	file:
@@ -15200,6 +15467,7 @@ reclaim_account_store	mm/slub.c	/^static ssize_t reclaim_account_store(struct km
 reclaim_clean_pages_from_list	mm/vmscan.c	/^unsigned long reclaim_clean_pages_from_list(struct zone *zone,$/;"	f
 reclaim_iter	mm/memcontrol.c	/^	struct mem_cgroup_reclaim_iter reclaim_iter[DEF_PRIORITY + 1];$/;"	m	struct:mem_cgroup_per_zone	typeref:struct:mem_cgroup_per_zone::mem_cgroup_reclaim_iter	file:
 record_gp_stall_check_time	kernel/rcutree.c	/^static void record_gp_stall_check_time(struct rcu_state *rsp)$/;"	f	file:
+recovery_info	fs/jbd2/recovery.c	/^struct recovery_info$/;"	s	file:
 recv_idle	fs/compat_ioctl.c	/^	compat_time_t recv_idle;$/;"	m	struct:ppp_idle32	file:
 recycle_rp_inst	kernel/kprobes.c	/^void __kprobes recycle_rp_inst(struct kretprobe_instance *ri,$/;"	f
 red_zone	mm/slub.c	/^SLAB_ATTR(red_zone);$/;"	v
@@ -15331,6 +15599,7 @@ relay_switch_subbuf	kernel/relay.c	/^size_t relay_switch_subbuf(struct rchan_buf
 releasable_read	kernel/cgroup.c	/^static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)$/;"	f	file:
 release_agent	kernel/cgroup.c	/^	char *release_agent;$/;"	m	struct:cgroup_sb_opts	file:
 release_agent_path	kernel/cgroup.c	/^	char release_agent_path[PATH_MAX];$/;"	m	struct:cgroupfs_root	file:
+release_buffer_page	fs/jbd2/commit.c	/^static void release_buffer_page(struct buffer_head *bh)$/;"	f	file:
 release_child_resources	kernel/resource.c	/^void release_child_resources(struct resource *r)$/;"	f
 release_freepages	mm/compaction.c	/^static unsigned long release_freepages(struct list_head *freelist)$/;"	f	file:
 release_memory_resource	mm/memory_hotplug.c	/^static void release_memory_resource(struct resource *res)$/;"	f	file:
@@ -16038,6 +16307,7 @@ scan_gray_list	mm/kmemleak.c	/^static void scan_gray_list(void)$/;"	f	file:
 scan_lru_pages	mm/memory_hotplug.c	/^static unsigned long scan_lru_pages(unsigned long start, unsigned long end)$/;"	f	file:
 scan_nodes	mm/memcontrol.c	/^	nodemask_t	scan_nodes;$/;"	m	struct:mem_cgroup	file:
 scan_object	mm/kmemleak.c	/^static void scan_object(struct kmemleak_object *object)$/;"	f	file:
+scan_revoke_records	fs/jbd2/recovery.c	/^static int scan_revoke_records(journal_t *journal, struct buffer_head *bh,$/;"	f	file:
 scan_should_stop	mm/kmemleak.c	/^static int scan_should_stop(void)$/;"	f	file:
 scan_sleep_millisecs_attr	mm/huge_memory.c	/^static struct kobj_attribute scan_sleep_millisecs_attr =$/;"	v	typeref:struct:kobj_attribute	file:
 scan_sleep_millisecs_show	mm/huge_memory.c	/^static ssize_t scan_sleep_millisecs_show(struct kobject *kobj,$/;"	f	file:
@@ -16196,6 +16466,7 @@ seq_vprintf	fs/seq_file.c	/^int seq_vprintf(struct seq_file *m, const char *f, v
 seq_write	fs/seq_file.c	/^EXPORT_SYMBOL(seq_write);$/;"	v
 seq_write	fs/seq_file.c	/^int seq_write(struct seq_file *seq, const void *data, size_t len)$/;"	f
 seqnr	mm/ksm.c	/^	unsigned long seqnr;$/;"	m	struct:ksm_scan	file:
+sequence	fs/jbd2/revoke.c	/^	tid_t		  sequence;	\/* Used for recovery only *\/$/;"	m	struct:jbd2_revoke_record_s	file:
 serial	kernel/auditsc.c	/^	unsigned int	    serial;     \/* serial number for record *\/$/;"	m	struct:audit_context	file:
 serial_struct32	fs/compat_ioctl.c	/^struct serial_struct32 {$/;"	s	file:
 serial_struct_ioctl	fs/compat_ioctl.c	/^static int serial_struct_ioctl(unsigned fd, unsigned cmd,$/;"	f	file:
@@ -17076,6 +17347,7 @@ stack_trace	kernel/lockdep.c	/^static unsigned long stack_trace[MAX_STACK_TRACE_
 stall_cpu	kernel/rcutorture.c	/^static int stall_cpu;		\/* CPU-stall duration (s).  0 for no stall. *\/$/;"	v	file:
 stall_cpu_holdoff	kernel/rcutorture.c	/^static int stall_cpu_holdoff = 10; \/* Time to wait until stall (s).  *\/$/;"	v	file:
 stall_task	kernel/rcutorture.c	/^static struct task_struct *stall_task;$/;"	v	typeref:struct:task_struct	file:
+start	fs/jbd2/journal.c	/^	int start;$/;"	m	struct:jbd2_stats_proc_session	file:
 start	kernel/resource.c	/^	resource_size_t start;$/;"	m	struct:region_devres	file:
 start	mm/kmemleak.c	/^	unsigned long start;$/;"	m	struct:kmemleak_scan_area	file:
 start	mm/shmem.c	/^	pgoff_t start;		\/* start of range currently being fallocated *\/$/;"	m	struct:shmem_falloc	file:
@@ -17089,10 +17361,12 @@ start_flush_work	kernel/workqueue.c	/^static bool start_flush_work(struct work_s
 start_isolate_page_range	mm/page_isolation.c	/^int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,$/;"	f
 start_khugepaged	mm/huge_memory.c	/^static int start_khugepaged(void)$/;"	f	file:
 start_scan_thread	mm/kmemleak.c	/^static void start_scan_thread(void)$/;"	f	file:
+start_this_handle	fs/jbd2/transaction.c	/^static int start_this_handle(journal_t *journal, handle_t *handle,$/;"	f	file:
 start_thread	fs/compat_binfmt_elf.c	117;"	d	file:
 start_thread	fs/compat_binfmt_elf.c	118;"	d	file:
 start_transaction	fs/ext3/inode.c	/^static handle_t *start_transaction(struct inode *inode)$/;"	f	file:
 start_transaction	fs/ext4/indirect.c	/^static handle_t *start_transaction(struct inode *inode)$/;"	f	file:
+start_transaction	fs/jbd2/recovery.c	/^	tid_t		start_transaction;$/;"	m	struct:recovery_info	file:
 start_worker	kernel/workqueue.c	/^static void start_worker(struct worker *worker)$/;"	f	file:
 start_zero_done	fs/direct-io.c	/^	unsigned start_zero_done;	\/* flag: sub-blocksize zeroing has$/;"	m	struct:dio_submit	file:
 started_after	kernel/cgroup.c	/^static inline int started_after(void *p1, void *p2)$/;"	f	file:
@@ -17119,6 +17393,7 @@ static_key_slow_inc	kernel/jump_label.c	/^void static_key_slow_inc(struct static
 static_obj	kernel/lockdep.c	/^static int static_obj(void *obj)$/;"	f	file:
 stats	fs/ext3/namei.c	/^struct stats$/;"	s	file:
 stats	fs/ext4/namei.c	/^struct stats$/;"	s	file:
+stats	fs/jbd2/journal.c	/^	struct transaction_stats_s *stats;$/;"	m	struct:jbd2_stats_proc_session	typeref:struct:jbd2_stats_proc_session::transaction_stats_s	file:
 stats	kernel/lockdep_proc.c	/^	struct lock_class_stats stats;$/;"	m	struct:lock_stat_data	typeref:struct:lock_stat_data::lock_class_stats	file:
 stats	kernel/lockdep_proc.c	/^	struct lock_stat_data stats[MAX_LOCKDEP_KEYS];$/;"	m	struct:lock_stat_seq	typeref:struct:lock_stat_seq::lock_stat_data	file:
 stats	kernel/rcutorture.c	/^	int (*stats)(char *page);$/;"	m	struct:rcu_torture_ops	file:
@@ -17874,6 +18149,7 @@ tracepoint_update_probe_range	kernel/tracepoint.c	/^static void tracepoint_updat
 tracepoint_update_probes	kernel/tracepoint.c	/^static void tracepoint_update_probes(void)$/;"	f	file:
 track	mm/slub.c	/^struct track {$/;"	s	file:
 track_item	mm/slub.c	/^enum track_item { TRACK_ALLOC, TRACK_FREE };$/;"	g	file:
+transaction_cache	fs/jbd2/transaction.c	/^static struct kmem_cache *transaction_cache;$/;"	v	typeref:struct:kmem_cache	file:
 transfer_objects	mm/slab.c	/^static int transfer_objects(struct array_cache *to,$/;"	f	file:
 transfer_pid	kernel/pid.c	/^void transfer_pid(struct task_struct *old, struct task_struct *new,$/;"	f
 transmit	fs/compat_ioctl.c	/^	compat_int_t		transmit;$/;"	m	struct:ppp_option_data32	file:
@@ -18198,6 +18474,7 @@ update_relax_domain_level	kernel/cpuset.c	/^static int update_relax_domain_level
 update_removable_memblocks	mm/scm.c	/^static void update_removable_memblocks()$/;"	f	file:
 update_rlimit_cpu	kernel/posix-cpu-timers.c	/^void update_rlimit_cpu(struct task_struct *task, unsigned long rlim_new)$/;"	f
 update_rmtp	kernel/hrtimer.c	/^static int update_rmtp(struct hrtimer *timer, struct timespec __user *rmtp)$/;"	f	file:
+update_t_max_wait	fs/jbd2/transaction.c	/^static inline void update_t_max_wait(transaction_t *transaction,$/;"	f	file:
 update_tasks_cpumask	kernel/cpuset.c	/^static void update_tasks_cpumask(struct cpuset *cs, struct ptr_heap *heap)$/;"	f	file:
 update_tasks_flags	kernel/cpuset.c	/^static void update_tasks_flags(struct cpuset *cs, struct ptr_heap *heap)$/;"	f	file:
 update_tasks_nodemask	kernel/cpuset.c	/^static void update_tasks_nodemask(struct cpuset *cs, const nodemask_t *oldmem,$/;"	f	file:
@@ -18725,6 +19002,7 @@ wants_signal	kernel/signal.c	/^static inline int wants_signal(int sig, struct ta
 warn	kernel/module.c	/^	bool warn;$/;"	m	struct:find_symbol_arg	file:
 warn_alloc_failed	mm/page_alloc.c	/^void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...)$/;"	f
 warn_deprecated_v2	kernel/capability.c	/^static void warn_deprecated_v2(void)$/;"	f	file:
+warn_dirty_buffer	fs/jbd2/transaction.c	/^static void warn_dirty_buffer(struct buffer_head *bh)$/;"	f	file:
 warn_legacy_capability_use	kernel/capability.c	/^static void warn_legacy_capability_use(void)$/;"	f	file:
 warn_no_space_for_csum	fs/ext4/namei.c	/^static void warn_no_space_for_csum(struct inode *inode)$/;"	f	file:
 warn_on_bintable	kernel/sysctl_binary.c	/^static void warn_on_bintable(const int *name, int nlen)$/;"	f	file:
@@ -18848,6 +19126,7 @@ wq_worker_waking_up	kernel/workqueue.c	/^void wq_worker_waking_up(struct task_st
 wqh	fs/eventfd.c	/^	wait_queue_head_t wqh;$/;"	m	struct:eventfd_ctx	file:
 wqh	fs/timerfd.c	/^	wait_queue_head_t wqh;$/;"	m	struct:timerfd_ctx	file:
 wqh	kernel/cgroup.c	/^	wait_queue_head_t *wqh;$/;"	m	struct:cgroup_event	file:
+wrap	fs/jbd2/recovery.c	230;"	d	file:
 write_boundary_block	fs/buffer.c	/^void write_boundary_block(struct block_device *bdev,$/;"	f
 write_cache_pages	mm/page-writeback.c	/^EXPORT_SYMBOL(write_cache_pages);$/;"	v
 write_cache_pages	mm/page-writeback.c	/^int write_cache_pages(struct address_space *mapping,$/;"	f
@@ -18864,11 +19143,13 @@ write_mmp_block	fs/ext4/mmp.c	/^static int write_mmp_block(struct super_block *s
 write_note_info	fs/binfmt_elf.c	/^static int write_note_info(struct elf_note_info *info,$/;"	f	file:
 write_one_page	mm/page-writeback.c	/^EXPORT_SYMBOL(write_one_page);$/;"	v
 write_one_page	mm/page-writeback.c	/^int write_one_page(struct page *page, int wait)$/;"	f
+write_one_revoke_record	fs/jbd2/revoke.c	/^static void write_one_revoke_record(journal_t *journal,$/;"	f	file:
 write_pipe_buf	fs/splice.c	/^static int write_pipe_buf(struct pipe_inode_info *pipe, struct pipe_buffer *buf,$/;"	f	file:
 write_pipefifo_fops	fs/pipe.c	/^const struct file_operations write_pipefifo_fops = {$/;"	v	typeref:struct:file_operations
 write_profile	kernel/profile.c	/^static ssize_t write_profile(struct file *file, const char __user *buf,$/;"	f	file:
 write_protect_page	mm/ksm.c	/^static int write_protect_page(struct vm_area_struct *vma, struct page *page,$/;"	f	file:
 write_scan_unevictable_node	mm/vmscan.c	/^static ssize_t write_scan_unevictable_node(struct device *dev,$/;"	f	file:
+write_tag_block	fs/jbd2/commit.c	/^static void write_tag_block(int tag_bytes, journal_block_tag_t *tag,$/;"	f	file:
 writeback	mm/memory-failure.c	749;"	d	file:
 writeback	mm/memory-failure.c	806;"	d	file:
 writeback_chunk_size	fs/fs-writeback.c	/^static long writeback_chunk_size(struct backing_dev_info *bdi,$/;"	f	file:

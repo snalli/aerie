@@ -1,0 +1,9 @@
+AERIE_ROOT=/home/volos/workspace/aerie
+PERFREMOTE=${AERIE_ROOT}/libfs/build/tool/perfremote/perfremote
+PERF=${AERIE_ROOT}/kernelmode/linux-3.9/tools/perf/perf
+UBENCH_ROOT=${AERIE_ROOT}/libfs/build/bench/vfs-breakdown
+#FILESET_ROOT=/home/volos/tmp/bigfileset
+#FILESET_ROOT=/mnt/pmfs/bigfileset
+FILESET_ROOT=/mnt/scmfs/bigfileset
+ANALYZE_ROOT=${AERIE_ROOT}/libfs/tool/breakdown/perf
+ANALYZE_PERF=${ANALYZE_ROOT}/analyze.py

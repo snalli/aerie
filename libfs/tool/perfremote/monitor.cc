@@ -177,9 +177,10 @@ int Monitor::Server::execCmdAttach(Monitor::Message& msg)
 
     _perf_pid = fork();
     if (!_perf_pid) { /* child */
-	char buf[16];
-	sprintf(buf, "-p %d", _target_pid);
-        if (execl(_perf_path, "perf", "record", buf, (char*) 0) < 0) {
+	char arg1[16];
+	sprintf(arg1, "-p %d", _target_pid);
+        //if (execl(_perf_path, "perf", "record", arg1, "-g", "fp",  (char*) 0) < 0) {
+        if (execl(_perf_path, "perf", "record", arg1, (char*) 0) < 0) {
             std::cerr << "ERROR: Failed to execute perf" << std::endl;
 	}
     }

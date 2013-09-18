@@ -8,6 +8,7 @@
 #include <assert.h>
 #include "tool/perfremote/perfremote.h"
 #include "fileset.h"
+#include "src/common/hrtime.h"
 
 //FIXME: pick_file may pick a directory. the problem is that the index includes both directory and file entries. we should fix the index to keep separate vectors for each entry type and depth so that we can pick anything we like at random
 
@@ -94,6 +95,19 @@ int main(int argc, char** argv)
 
 	char dummy_buf[64*1024];
 
+	hrtime_t      open_start;
+	hrtime_t      open_stop;
+	hrtime_t      open_cycles = 0;
+	hrtime_t      read_start;
+	hrtime_t      read_stop;
+	hrtime_t      read_cycles = 0;
+	hrtime_t      write_start;
+	hrtime_t      write_stop;
+	hrtime_t      write_cycles = 0;
+	hrtime_t      close_start;
+	hrtime_t      close_stop;
+	hrtime_t      close_cycles = 0;
+	
 	for (int i=0; i < nops; i++) {
 		struct stat buf;
 		std::string path;
@@ -103,23 +117,38 @@ int main(int argc, char** argv)
 			int ret = stat(path.c_str(), &buf);
 			assert(ret == 0);
 		} else {
+			open_start = hrtime_cycles();
 			int fd = open(path.c_str(), O_RDWR);
+			open_stop = hrtime_cycles();
 			assert(fd > 0);
 			if (do_write) {
+				write_start = hrtime_cycles();
 				write(fd, dummy_buf, ncount);
+				write_stop = hrtime_cycles();
 			}
 			if (do_read) {
+				read_start = hrtime_cycles();
 				read(fd, dummy_buf, ncount);
+				read_stop = hrtime_cycles();
 			}
+			close_start = hrtime_cycles();
 			close(fd);
+			close_stop = hrtime_cycles();
 		}
+		open_cycles += open_stop - open_start;
+		read_cycles += read_stop - read_start;
+		write_cycles += write_stop - write_start;
+		close_cycles += close_stop - close_start;
 	}
 
 	gettimeofday(&stop, NULL);
 	timersub(&stop, &start,&result);
 	std::cout << "elapsed time=" << result.tv_sec + result.tv_usec/1000000.0 
 		  << " sec (" << (1000000*result.tv_sec + result.tv_usec) << " usec)" << std::endl;
-
+	std::cout << "opem=" << open_cycles << " cycles" << std::endl;
+	std::cout << "read=" << read_cycles << " cycles" << std::endl;
+	std::cout << "write=" << write_cycles << " cycles" << std::endl;
+	std::cout << "close=" << close_cycles << " cycles" << std::endl;
 	PERF_DEATTACH(monitor)
 	return 0;
 }

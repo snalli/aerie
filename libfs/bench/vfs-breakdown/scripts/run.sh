@@ -1,12 +1,6 @@
 #!/bin/bash
 
-AERIE_ROOT=/home/volos/workspace/aerie
-PERFREMOTE=${AERIE_ROOT}/libfs/build/tool/perfremote/perfremote
-PERF=${AERIE_ROOT}/kernelmode/linux-3.9/tools/perf/perf
-UBENCH_ROOT=${AERIE_ROOT}/libfs/build/bench/vfs-breakdown
-FILESET_ROOT=/home/volos/tmp/bigfileset
-ANALYZE_ROOT=${AERIE_ROOT}/libfs/tool/breakdown/perf
-ANALYZE_PERF=${ANALYZE_ROOT}/analyze.py
+. common.sh
 
 FILESET_NFILES=1000000
 FILESET_DIRWIDTH_INNER=20
@@ -14,27 +8,32 @@ FILESET_DIRWIDTH_LEAF=1000
 
 NOPS=1000
 
+MONITOR=0
+
 function drop_dentry_inode_cache
 {
-	echo 2 | sudo tee /proc/sys/vm/drop_caches
+#	echo 2 | sudo tee /proc/sys/vm/drop_caches
+	echo 2 > /proc/sys/vm/drop_caches
 }
 
-function analyze
+function run_and_monitor
 {
-	python ${ANALYZE_PERF} ${AERIE_ROOT}/libfs/perf.data.out ${ANALYZE_ROOT}/modules ${ANALYZE_ROOT}/linux-tags
-}
-
-function monitor_and_analyze
-{
-	CMD=$1
+	local CMD=$1
+	local PERF_DATA_PREFIX=$2
 
 	rm ${AERIE_ROOT}/libfs/perf.data
-	rm ${AERIE_ROOT}/libfs/perf.data.out
-	CMD="${CMD} -m"
+        if [ ${MONITOR} -ne 0 ]; then
+	  CMD="${CMD} -m"
+        fi
 	echo ${CMD} 
 	${CMD}
-	${PERF} report -n > ${AERIE_ROOT}/libfs/perf.data.out
-	python ${ANALYZE_PERF} ${AERIE_ROOT}/libfs/perf.data.out ${ANALYZE_ROOT}/modules ${ANALYZE_ROOT}/linux-tags
+	mv ${AERIE_ROOT}/libfs/perf.data ${AERIE_ROOT}/libfs/${PERF_DATA_PREFIX}.perf.data
+}
+
+function clear_fileset
+{
+	echo "Clearing fileset..."
+	rm -rf ${FILESET_ROOT}
 }
 
 function create_fileset
@@ -42,7 +41,18 @@ function create_fileset
 	local FILESIZE=$1
 
 	echo "Creating fileset..."
+	CMD="${UBENCH_ROOT}/create -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -s ${FILESIZE}"
+	echo ${CMD}
+	${CMD}
+}
+
+function clear_and_create_fileset
+{
+	local FILESIZE=$1
+
+	echo "Clearing fileset..."
 	rm -rf ${FILESET_ROOT}
+	echo "Creating fileset..."
 	CMD="${UBENCH_ROOT}/create -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -s ${FILESIZE}"
 	echo ${CMD}
 	${CMD}
@@ -54,7 +64,16 @@ function run_stat
 
 	echo "Running stat..."
 	CMD="${UBENCH_ROOT}/open -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -n ${NOPS} -s"
-	monitor_and_analyze "${CMD}"
+	run_and_monitor "${CMD}" stat
+}
+
+function run_create
+{
+	local NOPS=$1
+
+	echo "Running create..."
+	CMD="${UBENCH_ROOT}/create -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -s 0 -n ${NOPS}"
+	run_and_monitor "${CMD}" create
 }
 
 function run_open
@@ -63,7 +82,7 @@ function run_open
 
 	echo "Running open..."
 	CMD="${UBENCH_ROOT}/open -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -n ${NOPS}"
-	monitor_and_analyze "${CMD}"
+	run_and_monitor "${CMD}" open
 }
 
 function run_read
@@ -73,7 +92,7 @@ function run_read
 
 	echo "Running read..."
 	CMD="${UBENCH_ROOT}/open -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -n ${NOPS} -r ${FILESIZE}"
-	monitor_and_analyze "${CMD}"
+	run_and_monitor "${CMD}" read
 }
 
 function run_write
@@ -83,7 +102,7 @@ function run_write
 
 	echo "Running write..."
 	CMD="${UBENCH_ROOT}/open -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -n ${NOPS} -w ${FILESIZE}"
-	monitor_and_analyze "${CMD}"
+	run_and_monitor "${CMD}" write
 }
 
 function run_unlink
@@ -92,7 +111,7 @@ function run_unlink
 
 	echo "Running unlink..."
 	CMD="${UBENCH_ROOT}/unlink -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -n ${NOPS}"
-	monitor_and_analyze "${CMD}"
+	run_and_monitor "${CMD}" unlink
 }
 
 function run_rename
@@ -101,7 +120,7 @@ function run_rename
 
 	echo "Running rename..."
 	CMD="${UBENCH_ROOT}/rename -p ${FILESET_ROOT} -f ${FILESET_NFILES} -i ${FILESET_DIRWIDTH_INNER} -l ${FILESET_DIRWIDTH_LEAF} -n ${NOPS}"
-	monitor_and_analyze "${CMD}"
+	run_and_monitor "${CMD}" rename
 }
 
 
@@ -115,17 +134,56 @@ cd ${AERIE_ROOT}/libfs
 pkill -9 perfremote
 pkill -9 perf
 
-# run perfremote so as to profile processes
-${PERFREMOTE} -p ${PERF} &
+if [ ${MONITOR} -ne 0 ]; then
+  ${PERFREMOTE} -p ${PERF} &
+fi
 
+clear_fileset
+drop_dentry_inode_cache
+run_create 1000000
 
-#create_fileset 64
+exit
+
+#clear_and_create_fileset 64
 #drop_dentry_inode_cache
-#run_stat ${NOPS}
+#run_read 150000
+
+#exit
+
+clear_and_create_fileset 0
+drop_dentry_inode_cache
+run_write 150000
+
+exit
+
+clear_and_create_fileset 0
+drop_dentry_inode_cache
+run_stat 1000000
+
+clear_and_create_fileset 0
+drop_dentry_inode_cache
+run_open 1000000
 #drop_dentry_inode_cache
-#run_open ${NOPS}
+#run_open 1000000
+
+clear_and_create_fileset 0
+drop_dentry_inode_cache
+run_rename 100000
 #drop_dentry_inode_cache
-#run_read ${NOPS}
+#run_rename 100000
+
+clear_and_create_fileset 0
+drop_dentry_inode_cache
+run_unlink 100000
 #drop_dentry_inode_cache
-#run_unlink ${NOPS}
-run_rename ${NOPS}
+#run_unlink 100000
+
+exit
+
+clear_and_create_fileset 64
+drop_dentry_inode_cache
+run_read 100000
+
+clear_and_create_fileset 0
+drop_dentry_inode_cache
+run_write 100000
