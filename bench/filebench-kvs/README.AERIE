@@ -1,0 +1,9 @@
+Build instructions
+==================
+
+1. Build KyotoCabinet ($AERIE_ROOT/bench/kyotocabinet-1.2.76)
+2. Give the directory where to keep the database file (const char* dbdir, kvs.c)
+3. Edit ./configure.sh to set the path to KyotoCabinet (KCPATH)
+4. Build filebench
+   > ./configure.sh   
+   > make
