@@ -1,7 +1,7 @@
 #!/bin/bash
 if test -z "$1"
 then
-  LINUX=../../../../kernelmode/linux-3.9
+  LINUX=../../../../kernelmode/linux-3.2.2
 else
   LINUX=$1
 fi

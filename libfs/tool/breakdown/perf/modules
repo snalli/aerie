@@ -81,6 +81,7 @@ m,module-lib
 m,module-syscall
 	s,copy_user_generic_string
 	s,strncpy_from_user
+	s,__strncpy_from_user
 	s,system_call
 	s,system_call_after_swapgs
 	s,sysret_check
@@ -116,6 +117,7 @@ m,module-VFS-op
 m,module-ext3
 	f,fs/ext3/inode.c
 	f,fs/ext3/hash.c
+	f,fs/ext3/dir.c
 	f,fs/ext3/xattr.c
 	f,fs/ext3/resize.c
 	f,fs/ext3/xattr.h
@@ -124,6 +126,21 @@ m,module-ext3
 	f,fs/ext3/namei.c
 	f,fs/ext3/super.c
 	f,fs/ext3/fsync.c
+	f,fs/ext3/balloc.c
+	f,fs/ext3/ext3_jbd.c
+	f,fs/jbd2/checkpoint.c
+	f,fs/jbd2/journal.c
+	f,fs/jbd2/transaction.c
+	f,fs/jbd2/revoke.c
+	s,journal_add_journal_head
+	s,journal_cancel_revoke
+	s,journal_dirty_metadata
+	s,journal_put_journal_head
+	s,journal_stop
+	s,journal_get_write_access
+	s,__journal_file_buffer
+	s,__journal_temp_unlink_buffer
+	s,journal_grab_journal_head
 
 m,module-ext4
 	f,fs/ext4/balloc.c
