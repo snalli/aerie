@@ -11,7 +11,8 @@ typedef uint64_t scm_word_t;
 #include "scm/scm/asm.h"
 
 
-#define STAMNOS_SCM_LATENCY_WRITE 150
+#define STAMNOS_SCM_LATENCY_WRITE 0
+//#define STAMNOS_SCM_LATENCY_WRITE 150
 #define M_PCM_CPUFREQ 2400
 
 /* Hardware Cache */
@@ -58,6 +59,10 @@ emulate_latency_ns(int ns)
 	hrtime_t start;
 	hrtime_t stop;
 	
+	if (ns==0) {
+		return;
+	}
+ 
 	start = hrtime_cycles();
 	cycles = HRTIME_NS2CYCLE(ns);
 
@@ -94,7 +99,6 @@ inline void
 ScmFence()
 {
 	asm_mfence(); 
-	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
 }
 
 inline void 
@@ -109,6 +113,17 @@ ScmLatency()
  */
 inline void
 ScmFlush(volatile void *addr)
+{
+	asm_clflush((volatile scm_word_t*) addr); 	
+	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
+}
+
+
+/*
+ * Flush the cacheline containing address addr.
+ */
+inline void
+ScmFlushFence(volatile void *addr)
 {
 	asm_mfence(); 
 	asm_clflush((volatile scm_word_t*) addr); 	

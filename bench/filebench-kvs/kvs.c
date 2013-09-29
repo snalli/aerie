@@ -10,7 +10,8 @@ void kvs_init() {
 	db = kcdbnew();
 	/* open the database */
 	fprintf(stderr, "Initialize KVS...\n");
-	uint32_t mode = KCOWRITER | KCOCREATE | KCOAUTOTRAN;
+	//uint32_t mode = KCOWRITER | KCOCREATE | KCOAUTOTRAN;
+	uint32_t mode = KCOWRITER | KCOCREATE;
 	sprintf(dbpath, "%s/kvs.kch", dbdir);
 	if (!kcdbopen(db, dbpath, mode)) {
 		fprintf(stderr, "open error: %s\n", kcecodename(kcdbecode(db)));

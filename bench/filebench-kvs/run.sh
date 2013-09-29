@@ -13,7 +13,7 @@ function cleanup2 {
 }
 
 function cleanup {
-	rm /tmp/kvs.kch
+	rm /tmp/kvs.*
 }
 
 

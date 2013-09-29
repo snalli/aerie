@@ -14,6 +14,11 @@ namespace server {
 
 class Journal {
 public:
+	struct Entry {
+		void*    addr;
+		uint64_t val;
+	};
+	
 	Journal()
 	  : mode_(osd::common::Journal::Server)
 	{ }
@@ -25,7 +30,14 @@ public:
 	template<typename T>
 	void Store(volatile T* addr, T val)
 	{
-		//*addr = val;
+		entries_[nentries_].addr = (void*) addr;
+		entries_[nentries_++].val = (uint64_t) val;
+	}
+	
+	void LogStore(void* addr, const void* val, int val_size)
+	{
+		entries_[nentries_].addr = addr;
+		entries_[nentries_++].val = *((uint64_t*) val);
 	}
 	
 	// FIXME: This is the Client Journal API that Server Journal does not 
@@ -34,15 +46,17 @@ public:
 	// of containers at the server. We need a more elegant way to reuse container common.h
 	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::ContainerOperationHeader& header) {
 		assert(0); // do not use this interface at server side.
-    }
+	}
 	
 	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::LogicalOperationHeader& header) {
 		assert(0); // do not use this interface at server side.
-    }
+	}
 
 	int mode() { return mode_; }
 private:
-	int mode_;
+	int     mode_;
+	Entry   entries_[1024*128];
+	int     nentries_;
 };
 
 

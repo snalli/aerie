@@ -140,6 +140,7 @@ public:
 	}
 	void set_size(Session* session, int size) { 
 		assert(size-TAG_SIZE < (TAG_SIZE << 7)); 
+		session->journal()->Store(&tag_[0], (char) ((tag_[0] & 0x80) | (size-TAG_SIZE)));
 		tag_[0] = (tag_[0] & 0x80) | (size-TAG_SIZE); 
 	}
 	void set_payload_size(Session* session, int size) { 
@@ -156,10 +157,11 @@ public:
 		if (max_payload_size < payload_size) {
 			return -1;
 		}
+		session->journal()->LogStore((void*) payload_, key, key_size);
+		session->journal()->LogStore((void*) &payload_[key_size], val, val_size);
 		memcpy((void*) payload_, key, key_size);
 		memcpy((void*) &payload_[key_size], val, val_size);
 		tag_[0] = 0x80 | payload_size; // mark as allocated and set size in a single op
-		ScmFence();
 		return 0;
 	}
 	char* get_key() { 
@@ -230,7 +232,8 @@ public:
 		return (Page*) next_;
 	}
 
-	void set_next(Page* next) {
+	void set_next(Session* session, Page* next) {
+		session->journal()->Store(&next_, (uint64_t) next);
 		next_ = (uint64_t) next;
 	}
 
@@ -674,7 +677,7 @@ Bucket<Session>::Insert(Session* session, const char* key, int key_size,
 	
 	page = Page<Session>::Make(session);
 	page->Insert(session, key, key_size, val, val_size);
-	last_page->set_next(page);
+	last_page->set_next(session, page);
 
 	//TODO: trigger re-hash 
 
@@ -754,7 +757,7 @@ dosplit:
 				//FIXME: protect against cycle-loop resulting from infinite splits. 
 				//       is this possible? shouldn't splits converge?
 				new_page = Page<Session>::Make(session);
-				splitover_page->set_next(new_page);
+				splitover_page->set_next(session, new_page);
 			}
 			splitover_page = new_page;
 			goto dosplit;

@@ -50,7 +50,7 @@
 #define MEMORY_BANKING_FACTOR 8
 
 /* Cache line size in log2 format . */
-#define CACHELINE_SIZE_LOG 6 
+#define CACHE_LINE_SIZE_LOG 6 
 
 /* Maximum page size */
 #define PAGE_MAX_SIZE 8198
@@ -60,9 +60,10 @@
 
 /* Definitions */
 
-#define CACHELINE_SIZE (1 << CACHELINE_SIZE_LOG)
-#define BLOCK_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & ~(CACHELINE_SIZE - 1)) )
-#define INDEX_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & (CACHELINE_SIZE - 1)) )
+#define CACHE_LINE_SIZE (1 << CACHE_LINE_SIZE_LOG)
+#define CACHE_LINE_OFFSET(addr) ( (uint64_t *) (((uint64_t) (addr)) & (CACHE_LINE_SIZE - 1)) )
+#define BLOCK_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & ~(CACHE_LINE_SIZE - 1)) )
+#define INDEX_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & (CACHE_LINE_SIZE - 1)) )
 #define NS2CYCLE(__ns) (((__ns) * SCM_CPUFREQ) / 1000)
 #define CYCLE2NS(__cycles) (((__cycles) * 1000) / SCM_CPUFREQ)
 
@@ -81,7 +82,7 @@ typedef struct cacheline_tbl_s cacheline_tbl_t;
 typedef struct scm_storeset_s scm_storeset_t;
 
 struct cacheline_tbl_s {
-	struct list_head chain[PAGE_MAX_SIZE/CACHELINE_SIZE];
+	struct list_head chain[PAGE_MAX_SIZE/CACHE_LINE_SIZE];
 	unsigned int     size;
 	unsigned int     count;
 };
@@ -337,7 +338,7 @@ SCM_NT_STORE(scm_storeset_t *set, volatile scm_word_t *addr, scm_word_t val)
 #ifdef SCM_EMULATE_LATENCY
 	byte_addr = (UINTPTR_T) addr;
 	block_byte_addr = (UINTPTR_T) BLOCK_ADDR(byte_addr);
-	index_addr = (uint16_t) ((block_byte_addr >> CACHELINE_SIZE_LOG)  & ((uint16_t) (-1)));
+	index_addr = (uint16_t) ((block_byte_addr >> CACHE_LINE_SIZE_LOG)  & ((uint16_t) (-1)));
 
 retry:
 	if (set->wcbuf_hashtbl_count < WRITE_COMBINING_BUFFERS_NUM) {
@@ -404,7 +405,7 @@ SCM_SEQSTREAM_STORE(scm_storeset_t *set, volatile scm_word_t *addr, scm_word_t v
 
 #ifdef SCM_EMULATE_LATENCY
 	set->seqstream_len = (set->seqstream_len + 1) & ((MEMORY_BANKING_FACTOR * 
-	                                                  CACHELINE_SIZE / sizeof(scm_word_t) - 1));
+	                                                  CACHE_LINE_SIZE / sizeof(scm_word_t) - 1));
 	if (set->seqstream_len == 0) {
 		emulate_latency_ns(SCM_LATENCY_WRITE);
 	}

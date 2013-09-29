@@ -3,9 +3,6 @@
 
 #include "scmmodel/scm.h"
 
-#define SCM_EMULATE_LATENCY
-//#undef SCM_EMULATE_LATENCY
-
 #define MAX_NCPUS 32
 
 typedef struct {

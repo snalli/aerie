@@ -92,7 +92,19 @@ AddOption('--build-debug',
 AddOption('--no-build-debug',
 	action="store_false", dest="build_debug",
 	default = True,
-	help="build with debug info and debug output [default]")
+	help="build with NO debug info and debug output")
+
+AddOption('--build-stats',
+	action="store_true", dest="build_stats",
+	default = True,
+	help="build with support for gathering runtime statistics [default]")
+
+AddOption('--no-build-stats',
+	action="store_false", dest="build_stats",
+	default = True,
+	help="build with NO support for gathering runtime statistics")
+
+
 
 mainEnv['RPC'] = GetOption('rpc_type')
 mainEnv['TEST_ATTACH_GDB'] = GetOption('test_attach_gdb')
@@ -115,6 +127,9 @@ else:
 	mainEnv.Append(CCFLAGS='-g -O3')
 	#mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
 	#mainEnv.Append(CCFLAGS=' -g -O2 -Wall -Wno-unused-function -Wno-unused-parameter -Wno-unused-label')
+
+if GetOption('build_stats'):
+	mainEnv.Append(CPPDEFINES = ['-D_STAMNOS_EXPAND_STATISTICS'])
 
 
 if ARGUMENTS.get('VERBOSE') != "1":
@@ -167,7 +182,6 @@ mainEnv.Append(CPPDEFINES = ['-DKVFS_USE_INDIRECT'])
 
 # Wait for the writes to be performed to SCM
 #mainEnv.Append(CPPDEFINES = ['-DDURABLE_DATA'])
-
 
 Export('mainEnv')
 

@@ -3,6 +3,7 @@
 #include <linux/types.h>
 #include <linux/delay.h>
 #include <linux/preempt.h>
+#include "scmdisk.h"
 #include "scm.h"
 
 								  
@@ -127,8 +128,8 @@ scm_stat_print(scm_t *scm)
 	stat_aggr_uint64_read(&stat->bytes_written, &bytes_written);
 	printk(KERN_INFO "SCM-DISK Statistics\n");
 	printk(KERN_INFO "SCM_BW: %d\n", (int) scm_bw);
-	printk(KERN_INFO "SCM_BYTES_READ: %lu\n", bytes_read);
-	printk(KERN_INFO "SCM_BYTES_WRITTEN: %lu\n", bytes_written);
+	printk(KERN_INFO "SCM_BYTES_READ: %llu\n", bytes_read);
+	printk(KERN_INFO "SCM_BYTES_WRITTEN: %llu\n", bytes_written);
 }
 
 
@@ -179,59 +180,78 @@ static inline void asm_sse_write_block64(uintptr_t *addr, scm_word_t *val)
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*&addr[7]): "r" (val[7]));
 }
 
-static
-void *
-scm_memcpy_internal(scm_t *scm, void *dst, const void *src, size_t n)
+static inline void asm_sse_write(volatile void *dst, uint64_t val)
 {
-	volatile uint8_t* saddr=((volatile uint8_t *) src);
-	volatile uint8_t* daddr=dst;
-	uint8_t           offset;
- 	scm_word_t*       val;
-	size_t            size = n;
-	int               extra_latency;
-	scm_hrtime_t      start;
-	scm_hrtime_t      stop;
-	scm_hrtime_t      duration;
-	double            throughput;
+	uint64_t* daddr = (uint64_t*) dst;
+	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*daddr): "r" (val));
+}
+
+
+static
+void*
+scm_memcpy_internal(scm_t* scm, void *dst, const void *src, size_t n)
+{
+	uintptr_t     saddr = (uintptr_t) src;
+	uintptr_t     daddr = (uintptr_t) dst;
+	uintptr_t     offset;
+	uint64_t*     val;
+	size_t        size = n;
+	scm_hrtime_t  start;
+	scm_hrtime_t  stop;
+	scm_hrtime_t  duration;
+	double        throughput;
 
 	if (size == 0) {
 		return dst;
 	}
 
+	// We need to align stream stores at cacheline boundaries
+	// Start with a non-aligned cacheline write, then proceed with
+	// a bunch of aligned writes, and then do a last non-aligned
+	// cacheline for the remaining data.
+
 	start = gethrtime();
-	/* First write the new data. */
-	while(size >= sizeof(scm_word_t) * 8) {
-		val = ((scm_word_t *) saddr);
-		asm_sse_write_block64((uintptr_t *) daddr, val);
-		saddr+=8*sizeof(scm_word_t);
-		daddr+=8*sizeof(scm_word_t);
-		size-=8*sizeof(scm_word_t);
+	if (size >= CACHE_LINE_SIZE) {
+		if ((offset = (uintptr_t) CACHE_LINE_OFFSET(daddr)) != 0) {
+			size_t nlivebytes = (CACHE_LINE_SIZE - offset);
+			while (nlivebytes >= sizeof(uint64_t)) {
+				asm_sse_write((uint64_t *) daddr, *((uint64_t *) saddr));
+				saddr+=sizeof(uint64_t);
+				daddr+=sizeof(uint64_t);
+				size-=sizeof(uint64_t);
+				nlivebytes-=sizeof(uint64_t);
+			}
+		}
+		while(size >= CACHE_LINE_SIZE) {
+			val = ((uint64_t *) saddr);
+			asm_sse_write_block64((uintptr_t *) daddr, val);
+			saddr+=CACHE_LINE_SIZE;
+			daddr+=CACHE_LINE_SIZE;
+			size-=CACHE_LINE_SIZE;
+		}
 	}
-	if (size > 0) {
-		/* Ugly hack: asm_sse_write_block64 requires a 64 bytes size value. We move
-		 * back a few bytes to form a block of 64 bytes.
-		 */ 
-		offset = 64 - size;
-		saddr-=offset;
-		daddr-=offset;
-		val = ((scm_word_t *) saddr);
-		asm_sse_write_block64((uintptr_t *) daddr, val);
-
+	while (size >= sizeof(uint64_t)) {
+		val = ((uint64_t *) saddr);
+		asm_sse_write((uint64_t *) daddr, *((uint64_t *) saddr));
+		saddr+=sizeof(uint64_t);
+		daddr+=sizeof(uint64_t);
+		size-=sizeof(uint64_t);
 	}
-
-	size = n;
-
 	/* Now make sure data is flushed out */
 	asm_mfence();
-#ifdef SCM_EMULATE_LATENCY
-#if 0
+
+#ifdef SCMDISK_PERF_MODEL_ENABLE
+	int extra_latency;
+# ifdef SCMDISK_BANDWIDTH_MODEL_ENABLE
 	extra_latency = (int) size * (1-(float) (((float) SCM_BANDWIDTH_MB)/1000)/(((float) DRAM_BANDWIDTH_MB)/1000))/(((float)SCM_BANDWIDTH_MB)/1000);
 	spin_lock(&(scm->bwlock));
 	emulate_latency_ns(extra_latency);
 	spin_unlock(&(scm->bwlock));
-	//asm_cpuid();
-#endif
-	emulate_latency_ns(SCM_LATENCY_NS);
+# else
+	extra_latency = SCM_LATENCY_NS;
+# endif
+	emulate_latency_ns(extra_latency);
+
 #endif
 	stop = gethrtime();
 	duration = stop - start;
@@ -246,4 +266,5 @@ void *
 scm_memcpy(scm_t *scm, void *dst, const void *src, size_t n) 
 {
 	return scm_memcpy_internal(scm, dst, src, n);
+	//return memcpy(dst, src, n);
 }

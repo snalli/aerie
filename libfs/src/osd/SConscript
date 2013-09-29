@@ -12,7 +12,7 @@ clt_lib_sources = [
                    'main/client/omgr.cc',
                    'main/client/salloc.cc',
                    'main/client/stm.cc',
-	               'main/client/stsystem.cc',
+                   'main/client/stsystem.cc',
                    'main/client/registry.cc',
                    'containers/name/container-client.cc',
                    'containers/super/container.cc',
@@ -29,7 +29,7 @@ srv_lib_target = 'osdsrv'
 srv_lib_objects = []
 srv_lib_sources = [
                    'main/server/journal.cc',
-				   'main/server/hlckmgr.cc',
+                   'main/server/hlckmgr.cc',
                    'main/server/lckmgr.cc',
                    'main/server/publisher.cc',
                    'main/server/registry.cc',
@@ -37,6 +37,7 @@ srv_lib_sources = [
                    'main/server/shbuf.cc',
                    'main/server/session.cc',
                    'main/server/verifier.cc',
+                   'main/server/stats.cc',
                    'containers/name/container-server.cc',
                   ]
 

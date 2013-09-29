@@ -27,7 +27,6 @@ Journal::TransactionCommit()
 	TransactionCommitMessage tx = TransactionCommitMessage();
 	buffer_.Write(&tx, sizeof(tx));
 	buffer_.Flush(session_->stsystem()->shbuf());
-	ScmFence();
 	return E_SUCCESS;
 }
 

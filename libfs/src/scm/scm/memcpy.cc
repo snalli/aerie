@@ -18,7 +18,7 @@ scm_memcpy(void *dst, const void *src, size_t n)
 
 	if (size < CACHELINE_SIZE) {
 		ret = memcpy(dst, src, n);
-		ScmFlush(dst);
+		ScmFlushFence(dst);
 		return ret;
 	}
 
