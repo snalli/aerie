@@ -7,7 +7,7 @@ lib_sources = ['hash.c', 'interval_tree.cc']
 
 localBuildEnv.Append(CPPPATH = ['#src/common'])
 
+
 commonLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
-
-
-Return('commonLibrary')
+common_lib_objs = localBuildEnv.Object(lib_sources)
+Return('commonLibrary','common_lib_objs')

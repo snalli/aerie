@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "pxfs/client/c_api.h"
 #include <stdio.h>
 #include <sys/types.h>
@@ -6,10 +8,21 @@
 #include "rpc/rpc.h"
 #include "pxfs/client/client_i.h"
 #include "bcs/main/common/cdebug.h"
+//#include "pxfs/client/cache.h"
 
 using namespace client;
 
+void*
+PXFS_FRONTAPI(lock_cont)()
+{
+	return Client::lock_cont();
+}
 
+void
+PXFS_FRONTAPI(prefetch)()
+{
+	return Client::Prefetch();
+}
 int
 PXFS_FRONTAPI(init) (int argc, char* argv[])
 {
@@ -26,6 +39,10 @@ PXFS_FRONTAPI(init2) (const char* xdst)
 int
 PXFS_FRONTAPI(init3) (const char* xdst, int debug_level)
 {
+	#ifdef CONFIG_DEBUG
+	openlog(NULL, LOG_PID | LOG_CONS, LOG_USER);
+	#endif
+
 	return Client::Init(xdst, debug_level);
 }
 
@@ -33,6 +50,11 @@ PXFS_FRONTAPI(init3) (const char* xdst, int debug_level)
 int
 PXFS_FRONTAPI(shutdown) ()
 {
+/*	   int        fd = open("/sys/kernel/debug/tracing/tracing_enabled", O_WRONLY);
+                        write(fd,"0",1);
+                        close(fd);
+	//printf("\n Shutting...");
+*/	//printf("\nTotal files deleted : %d", delFile);
 	return Client::Shutdown();
 }
 
@@ -60,7 +82,9 @@ PXFS_FRONTAPI(mkdir) (const char* path, int mode)
 	int ret;
 
 	if ((ret = Client::CreateDir(path, mode)) == -E_KVFS) {
-		return mkdir(path, mode);
+		////printf("\n Sanketh : Using mkdir() syscall... \n");
+		//return mkdir(path, mode);
+		return 0;
 	}
 	return ret;
 }
@@ -106,6 +130,8 @@ int
 PXFS_FRONTAPI(unlink) (const char* pathname)
 {
 	int ret;
+        s_log("[%ld] %s %s",s_tid, __func__, pathname);
+
 
 	if ((ret = Client::Unlink(pathname)) == -E_KVFS) {
 		return unlink(pathname);
@@ -118,7 +144,6 @@ int
 PXFS_FRONTAPI(chdir) (const char* path)
 {
 	int ret;
-
 	if ((ret = Client::SetCurWrkDir(path)) == -E_KVFS) {
 		return chdir(path);
 	}
@@ -134,6 +159,7 @@ PXFS_FRONTAPI(getcwd) (char* path, size_t size)
 	if ((ret = Client::GetCurWrkDir(path, size)) == -E_KVFS) {
 		return getcwd(path, size);
 	}
+	s_log("[%ld] %s %s",s_tid, __func__, path);
 	return (ret == E_SUCCESS) ? path: NULL;
 }
 
@@ -204,7 +230,7 @@ PXFS_FRONTAPI(write) (int fd, const void *buf, size_t count)
 	const char* src = reinterpret_cast<const char*>(buf);
 
 	if ((ret = Client::Write(fd, src, count)) == -E_KVFS) {
-		return write(fd, buf, count);
+	//	return write(fd, buf, count);
 	}
 	return ret;
 }

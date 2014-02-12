@@ -1,14 +1,15 @@
+#define  __CACHE_GUARD__
 #include "pxfs/mfs/client/dir_inode.h"
+#include "pxfs/mfs/client/inode_factory.h"
+
 #include <stdint.h>
 #include "common/util.h"
 #include "common/prof.h"
 #include "pxfs/client/backend.h"
-#include "pxfs/client/inode.h"
 #include "pxfs/client/session.h"
 #include "pxfs/client/const.h"
-#include "pxfs/mfs/client/inode_factory.h"
 #include "pxfs/common/publisher.h"
-
+#include <stdio.h>
 //#define PROFILER_SAMPLE __PROFILER_SAMPLE
 
 namespace mfs {
@@ -16,6 +17,45 @@ namespace client {
 
 // FIXME: Should Link/Unlink increment/decrement the link count as well? currently the caller 
 // must do a separate call, which breaks encapsulation. 
+
+int
+DirInode::return_dentry(::client::Session* session, void * inode_list_head)
+{
+
+	struct dentry dentry_head;
+
+        struct list_item *head = (struct list_item *)inode_list_head;
+        struct list_item *tail = (struct list_item *)head->data;
+        struct list_item *tmp;
+
+        dentry_head.val = (uint64_t) &dentry_head;
+        dentry_head.next_dentry = NULL;
+        rw_ref()->proxy()->interface()->return_dentry((void *)&dentry_head);
+        
+	struct dentry *it;
+        ::client::Inode *ip;
+        it = dentry_head.next_dentry;
+        
+	while(it){
+                osd::common::ObjectId *oid = (osd::common::ObjectId *)it->val;
+                InodeFactory::LoadInode(session, *oid, &ip);
+
+                strcpy(ip->self_name, self_name);
+                strcat(ip->self_name, "/");
+                strcat(ip->self_name, it->key);
+                ip->parent = this;
+                tmp = new struct list_item;
+                tmp->data = (void *)ip;
+                tmp->next = NULL;
+
+                tail->next = tmp;
+                tail = tail->next;
+                it = it->next_dentry;
+
+        }
+        ((struct list_item *)inode_list_head)->data = (void *)tail;
+
+}
 
 int 
 DirInode::Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
@@ -36,17 +76,29 @@ DirInode::Lookup(::client::Session* session, const char* name, int flags, ::clie
 		goto done;
 	}
 	PROFILER_SAMPLE
-	if ((ret = rw_ref()->proxy()->interface()->Find(session, name, &oid)) != E_SUCCESS) {
+//	printf("\nInside DirInode::Lookup.");
+	ip = NULL;
+	if ((ret = rw_ref()->proxy()->interface()->Find(session, name, &oid, ip)) != E_SUCCESS) {
+	// insight : This look up has to end in the persistent structure.
 		return ret;
 	}
+
+//	if(ip) {
+
+//	goto done;
+//	}
+      // insight : DO ME : Distinguish between a successful lookup in the ShadowCache and Collection
+      // insight : DO ME : Do not proceed to LoadInode if we have a successful lookup in the ShadowCache
+      //
 	PROFILER_SAMPLE
 	if ((ret = InodeFactory::LoadInode(session, oid, &ip)) != E_SUCCESS) {
 		return ret;
 	}
 	PROFILER_SAMPLE
+//	Link(session, name, ip, false);
 
 done:
-	ip->Get();
+	ip->Get(); // insgiht : You should not be doing it here .
 	*ipp = ip;
 	return E_SUCCESS;
 }
@@ -102,7 +154,8 @@ DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip
 		pthread_mutex_unlock(&mutex_);
 		return E_SUCCESS;
 	}
-	if ((ret = rw_ref()->proxy()->interface()->Insert(session, name, ip->oid())) != E_SUCCESS) {
+//	printf("\n @ Inserting %s into hash table.");
+	if ((ret = rw_ref()->proxy()->interface()->Insert(session, name, ip->oid(), ip)) != E_SUCCESS) {
 		return ret;
 	}
 	return E_SUCCESS;
@@ -165,12 +218,17 @@ int DirInode::set_nlink(int nlink)
 int
 DirInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
+	s_log("[%ld] DirInode::%s (1)", s_tid, __func__);
+	#ifdef FAST_SPIDER_LOCK_PATH
+		pthread_mutex_lock(&spider_lock);
+	#else
 	osd::containers::client::NameContainer::Proxy* cc_proxy;
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
 		return cc_proxy->Lock(session, mode);
 	}
+	#endif
 	return E_SUCCESS;
 }
 
@@ -178,8 +236,12 @@ DirInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 int
 DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
+	#ifdef FAST_SPIDER_LOCK_PATH
+		pthread_mutex_lock(&spider_lock);
+	#else
 	osd::containers::client::NameContainer::Proxy* cc_proxy;
 	osd::containers::client::NameContainer::Proxy* cc_proxy_parent;
+	s_log("[%ld] DirInode::%s (2)", s_tid, __func__);
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -193,7 +255,7 @@ DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::M
 			return cc_proxy->Lock(session, mode);
 		}
 	}
-
+	#endif
 	return E_SUCCESS;
 }
 
@@ -201,12 +263,17 @@ DirInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::M
 int
 DirInode::Unlock(::client::Session* session)
 {
+	#ifdef FAST_SPIDER_LOCK_PATH
+		pthread_mutex_unlock(&spider_lock);
+	#else
 	osd::containers::client::NameContainer::Proxy* cc_proxy;
+	s_log("[%ld] DirInode::%s ", s_tid, __func__);
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
 		return cc_proxy->Unlock(session);
 	}
+	#endif
 	return E_SUCCESS;
 }
  

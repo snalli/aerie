@@ -9,6 +9,7 @@
 #include "osd/containers/map/hashtable.h"
 #include "osd/containers/name/container.h"
 #include "osd/main/common/obj.h"
+#include <stdio.h>
 
 namespace client {
 	class Session; // forward declaration
@@ -26,6 +27,7 @@ public:
 	DirInode(osd::common::ObjectProxyReference* ref)
 		: parent_(NULL)
 	{ 
+		//printf("\n Creating DirInode.");
 		ref_ = ref;
 		fs_type_ = kMFS;
 		type_ = kDirInode;
@@ -49,9 +51,25 @@ public:
 	int xOpenRO(::client::Session* session); 
 
 	int ioctl(::client::Session* session, int request, void* info);
+        int return_dentry(::client::Session*, void *);
+
+	struct dentry {
+                char key[128];
+                uint64_t val;
+                struct dentry *next_dentry;
+        };
+
+
+	struct list_item {
+                void *data;
+                struct list_item *next;
+        };
+
+
 
 private:
 	osd::containers::client::NameContainer::Reference* rw_ref() {
+		//printf("\nInside osd::containers::client::NameContainer::Reference::rw_ref().");
 		return static_cast<osd::containers::client::NameContainer::Reference*>(ref_);
 	}
 	int              nlink_;

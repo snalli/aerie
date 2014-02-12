@@ -166,6 +166,9 @@ public:
 		__sync_fetch_and_sub(&dlink_, n);
 	}
 
+
+//   void printme() { printf("\n* Hailing from Object."); }
+
 protected:
 	ObjectType type_;   //!< Magic number identifying object type
 	int        nlink_;  //!< Number of containers linking to this container
@@ -205,7 +208,11 @@ public:
 	{ }
 
 	VersionNumber ccVersion() { return version_; }
-	void ccSetVersion(VersionNumber version) { version_ = version; }
+	void ccSetVersion(VersionNumber version) 
+	{ 
+		// printf("\n Chkpt 2 : Inside Object::ccSetVersionNumber.");
+		version_ = version; 
+	}
 
 protected:
 	//! bit flags that indicate the state of the object

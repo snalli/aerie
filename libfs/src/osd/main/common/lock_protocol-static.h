@@ -1,4 +1,4 @@
-// contains static initializations
+
 // must be included by one .cc file per binary only
 
 #ifndef __STAMNOS_OSD_LOCK_PROTOCOL_STATIC_H

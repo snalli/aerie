@@ -16,7 +16,6 @@
 #include "osd/main/server/shbuf.h"
 #include "osd/main/server/session.h"
 #include "osd/main/server/publisher.h"
-#include "osd/main/server/stats.h"
 #include "osd/containers/super/container.h"
 #include "osd/containers/name/container.h"
 #include "osd/containers/set/container.h"
@@ -131,19 +130,16 @@ StorageSystemT<Session>::Init()
 	if ((sessionmgr_ = new SessionManager<Session, StorageSystemT>(ipc_, this)) == NULL) {
 		return -E_NOMEM;
 	}
-	if ((ret = sessionmgr_->Init()) < 0) {
+	if ((ret = sessionmgr_->Init() == E_SUCCESS) < 0) {
 		return ret;
 	}
 	if ((publisher_ = new Publisher(ipc_)) == NULL) {
 		return ret;
 	}
-	if ((ret = publisher_->Init()) < 0) {
+	if ((ret = publisher_->Init() == E_SUCCESS) < 0) {
 		return ret;
 	}
 	if ((ret = ipc_->shbuf_manager()->RegisterSharedBufferType("OsdSharedBuffer", OsdSharedBuffer::Make)) < 0) {
-		return ret;
-	}
-	if ((ret = Statistics::Create()) < 0) {
 		return ret;
 	}
 	return E_SUCCESS;

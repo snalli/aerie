@@ -1,9 +1,11 @@
 #include "ubench/main.h"
 #include "ubench/fs/fs.h"
+#include <stdio.h>
 
 int 
 RegisterUbench()
 {
+	//printf("\n Sanketh : Inside RegisterUbench()... \n");
 	ubench_table.push_back(UbenchDescriptor("fs_create", ubench_fs_create));
 	ubench_table.push_back(UbenchDescriptor("fs_delete", ubench_fs_delete));
 	ubench_table.push_back(UbenchDescriptor("fs_rename", ubench_fs_rename));

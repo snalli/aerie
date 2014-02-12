@@ -45,9 +45,13 @@ static inline unsigned long long asm_rdtscp(void)
 
 static inline void asm_sse_write_block64(volatile scm_word_t *addr, scm_word_t *val)
 {
+
+
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*&addr[0]): "r" (val[0]));
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*&addr[1]): "r" (val[1]));
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*&addr[2]): "r" (val[2]));
+	// insight : SEGFAULT occurs in the third movnti when fileserver profile
+	// is run with two threads and the cache
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*&addr[3]): "r" (val[3]));
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*&addr[4]): "r" (val[4]));
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*&addr[5]): "r" (val[5]));

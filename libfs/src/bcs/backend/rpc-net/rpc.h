@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #ifndef __STAMNOS_RPCNET_RPC_h
 #define __STAMNOS_RPCNET_RPC_h
 

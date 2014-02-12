@@ -8,7 +8,7 @@
 #include "osd/main/client/stm.h"
 #include "osd/main/client/session.h"
 #include "osd/main/common/publisher.h"
-
+#include <stdio.h>
 //TODO: Currently we rely on the hierarchical lock manager to transition the lock 
 //between hierarchical mode or flat mode (capability). However this complicates the
 //lock manager a lot. We could simplify the lock manager by having two separate locks:
@@ -38,6 +38,7 @@ namespace client {
 typedef ::osd::client::OsdSession OsdSession;
 
 class ObjectProxy: public osd::common::ObjectProxy {
+// insight : Notice that the name of the child and parent class are same simply because they are in different namespaces
 public:
 	ObjectProxy(OsdSession* session, osd::common::ObjectId oid) 
 		: osd::common::ObjectProxy(oid)
@@ -47,6 +48,7 @@ public:
 	}
 
 	int Lock(OsdSession* session, lock_protocol::Mode mode) {
+		s_log("[%ld] ObjectProxy::%s (1)", s_tid, __func__);
 		return session->hlckmgr_->Acquire(hlock_, mode, 0);
 	}
 
@@ -55,6 +57,7 @@ public:
 	//to the lock. In such a case, release the lock you just acquired and grab the 
 	//explicit lock
 	int Lock(OsdSession* session, osd::cc::client::ObjectProxy* parent, lock_protocol::Mode mode, int flags) {
+		s_log("[%ld] ObjectProxy::%s (2)", s_tid, __func__);
 		if (object()->dlink() > 0) {
 			return session->hlckmgr_->Acquire(hlock_, mode, flags);
 		} else {
@@ -64,6 +67,7 @@ public:
 	}
 
 	int Unlock(OsdSession* session) {
+		s_log("[%ld] ObjectProxy::%s ", s_tid, __func__);
 		return session->hlckmgr_->Release(hlock_);
 	}
 
@@ -87,6 +91,9 @@ public:
 			session->journal() << *certificate;
 		}
 	}
+//	~ObjectProxy() { printf("\n + Destroying ObjectProxy 001. in src/osd/main/client/proxy.h");}
+//	   void printme() { printf("\n* Hailing from ObjectProxy."); }
+
 private:
 	osd::cc::client::HLock* hlock_; // hierarchical lock
 	osd::cc::client::Lock*  lock_;  // flat lock 
@@ -98,12 +105,14 @@ class ObjectProxyTemplate: public ObjectProxy {
 public:
 	ObjectProxyTemplate(OsdSession* session, osd::common::ObjectId oid)
 		: ObjectProxy(session, oid)
-	{ }
+	{ //printf("\nVerify 4. In osd/main/client/proxy.h");}
+	}
 
 	Subject* object() { return static_cast<Subject*>(object_); }
 
 	Derived* xOpenRO(osd::stm::client::Transaction* tx);
 	Derived* xOpenRO();
+// ~ObjectProxyTemplate() { printf("\n + Destroying ObjectProxy 002. in src/osd/main/client/proxy.h");}
 
 private:
 	osd::stm::client::Transaction* tx_;
@@ -147,7 +156,8 @@ public:
 	VersionManager(Subject* object = NULL)
 		: object_(object),
 		  nlink_(0)
-	{ }
+	{ //printf("\n-------> Ola Mofus !");}
+	}
 
 	void set_object(Subject* object) {
 		object_ = object;
@@ -164,6 +174,7 @@ public:
 	
 	int vUpdate(OsdSession* session) {
 		//FIXME: version counter must be updated by the server
+		//printf("\n Chkpt 1 : Inside VersionManager::vUpdate");	
 		object_->ccSetVersion(object_->ccVersion() + 1);
 		return 0;
 	}
@@ -189,7 +200,7 @@ protected:
 // save us from the extra object_ kept in the VersionManager class
 // and avoid the call to the ugly interface() to access the shadow object
 
-
+//insight : namespace : osd::vm::client
 template<class Derived, class Subject, class VersionManager>
 class ObjectProxy: public osd::cc::client::ObjectProxyTemplate<Derived, Subject>
 {
@@ -203,11 +214,13 @@ public:
 		// must be sure that 
 		// osd::cc::client::ObjectProxyTemplate<Derived, Subject>
 		// has been initialized first.
+		//printf("\nVerifying 3. In osd/main/client/proxy.h"); 
 		vm_.set_object(osd::cc::client::ObjectProxyTemplate<Derived, Subject>::object());
 	}
 
 	// provides access to the buffered state
 	VersionManager* interface() {
+		//printf("\nInside osd::vm::client::ObjectProxy::interface().");
 		return &vm_;
 	}
 
@@ -250,14 +263,24 @@ public:
 	 * path. We could use biased mutexes to avoid the overhead of locking on the 
 	 * common case.
 	 */
-	int vClose(OsdSession* session, bool update) {
+	int vClose(OsdSession* session, bool update, bool flush = false) 
+	{
 		int ret = E_SUCCESS;
+		
+		#ifdef CONFIG_CACHE
+		#ifdef CONFIG_CALLBACK
+		osd::common::ObjectProxy::invalidate_self_in_cache(flush);
+		#endif
+		#endif
+
 		if (valid_ && update) {
 			ret = vm_.vUpdate(session);
 		}
 		valid_ = false;
+	//	printf("\n + Sanketh : Closing ObjectProxy %s",self_name);
 		return ret;
 	}
+// ~ObjectProxy() { printf("\n + Sanketh : Destroying ObjectProxy 003. in src/osd/main/client/proxy.h");}
 
 protected:
 	bool           valid_; // invalid, opened (valid)

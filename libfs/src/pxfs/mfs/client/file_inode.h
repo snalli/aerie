@@ -7,6 +7,7 @@
 #include "pxfs/client/inode.h"
 #include "osd/containers/byte/container.h"
 #include "osd/main/common/obj.h"
+#include <stdio.h>
 
 namespace client {
 	class Session; // forward declaration
@@ -20,6 +21,7 @@ class FileInode: public ::client::Inode
 public:
 	FileInode(osd::common::ObjectProxyReference* ref)
 	{ 
+		//printf("\n @ Creating FileInode.");
 		ref_ = ref;
 		fs_type_ = kMFS;
 		type_ = kFileInode;
@@ -41,8 +43,16 @@ public:
 	int Lock(::client::Session* session, lock_protocol::Mode mode); 
 	int Unlock(::client::Session* session);
 	int xOpenRO(::client::Session* session) { assert(0); }
+	int return_dentry(::client::Session* sessio, void *) { return 0;}
+
 
 	int ioctl(::client::Session* session, int request, void* info);
+//	~FileInode() { printf("\n & Destroying FileInode."); }
+	  osd::containers::client::ByteContainer::Reference* Rw_ref() {
+                return static_cast<osd::containers::client::ByteContainer::Reference*>(ref_);
+        }
+//	void printme() { printf("\n* Hailing from FileInode."); }
+
 private:
 	osd::containers::client::ByteContainer::Reference* rw_ref() {
 		return static_cast<osd::containers::client::ByteContainer::Reference*>(ref_);

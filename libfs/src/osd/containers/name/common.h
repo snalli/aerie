@@ -31,9 +31,11 @@ public:
 	static Object* Make(Session* session, osd::common::AclIdentifier acl_id = 0) {
 		osd::common::ObjectId oid;
 		
+		
 		if (session->salloc()->AllocateContainer(session, acl_id, T_NAME_CONTAINER, &oid) < 0) {
 			dbg_log(DBG_ERROR, "No storage available\n");
 		}
+//		printf("\n @ Inside NameContainer::Object::Make");
 		return Load(oid);
 	}
 
@@ -57,20 +59,29 @@ public:
 	int Find(Session* session, const char* name, osd::common::ObjectId* oid);
 	int Insert(Session* session, const char* name, osd::common::ObjectId oid);
 	int Erase(Session* session, const char* name);
+        int return_dentry(void *);
+
 
 	int Size(Session* sesion);
 
 private:
-	HashTable<Session>* ht() {
+	HashTable<Session>* ht() { // insight : defined in hashtable-linear.h
 		return &ht_;
 	}
 
 	osd::common::ObjectId  self_;    // entry '.'
 	HashTable<Session>     ht_;      // entries
-};
+}; // class Object
 
 }; // class NameContainer
 
+
+template<typename Session>
+int
+NameContainer::Object<Session>::return_dentry(void *head_addr)
+{
+        ht()->return_dentry(head_addr);
+}
 
 template<typename Session>
 int 
@@ -112,7 +123,7 @@ int
 NameContainer::Object<Session>::Insert(Session* session, const char* name, osd::common::ObjectId oid)
 {
 	uint64_t u64;
-
+//	printf("\n @ Inside NameContainer::Object::Insert");
 	dbg_log(DBG_DEBUG, "NameContainer %p, insert %s --> %p\n", this, name, (void*) oid.u64());
 
 	if (name[0] == '\0') {

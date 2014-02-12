@@ -1,12 +1,15 @@
+#define  __CACHE_GUARD__
+
+#include "pxfs/mfs/client/dir_inode.h"
+#include "pxfs/mfs/client/inode_factory.h"
+#include "pxfs/mfs/client/sb.h"
+#include "osd/main/common/obj.h"
+
 #include "pxfs/mfs/client/sb_factory.h"
 #include "common/errno.h"
 #include "pxfs/client/session.h"
 #include "osd/containers/super/container.h"
 #include "osd/containers/name/container.h"
-#include "osd/main/common/obj.h"
-#include "pxfs/mfs/client/sb.h"
-#include "pxfs/mfs/client/dir_inode.h"
-#include "pxfs/mfs/client/inode_factory.h"
 
 namespace mfs {
 namespace client {

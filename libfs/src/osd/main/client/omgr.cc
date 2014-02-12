@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 /**
  * \file omgr.cc 
  *
@@ -139,39 +141,67 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 	ObjectProxy*                       objproxy;
 	osd::common::ObjectProxyReference* objproxy_ref;
 	bool                               rwlock = false;
-
+	int i = 0 ;
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
-	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());
+	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());\
+
 
 lock:
-	if (rwlock) {
+
+/*	
+ *	Uncomment this !
+ *	if (rwlock) {
 		pthread_rwlock_wrlock(&rwlock_);
 	} else {
 		pthread_rwlock_rdlock(&rwlock_);
 	}
+*/
 	ObjectType type = oid.type();
-	if (type >= osd::containers::T_CONTAINER_TYPE_COUNT || !(mgr = objtype2mgr_tbl_[type])) { 
-		ret = -E_INVAL; // unknown type id 
+	if (type >= osd::containers::T_CONTAINER_TYPE_COUNT || !(mgr = objtype2mgr_tbl_[type])) {
+	// insight : Files and Directories have different managers.  
+		ret = -E_INVAL; 
 		goto done;
 	}
-	if ((ret = mgr->oid2obj_map_.Lookup(oid, &objproxy)) != E_SUCCESS) {
+
+	//ret = mgr->oid2obj_map_.Lookup(oid, &objproxy); // insight : Is this lookup needed ??????
+/*	
+ *	Uncomment this !
+ *	if (ret != E_SUCCESS) {  
+		
 		if (!rwlock) {
 			rwlock=true;
 			pthread_rwlock_unlock(&rwlock_);
 			goto lock;
 		}
-		// create the object proxy
+*/
 		if ((objproxy = mgr->Load(cb_session_, oid)) == NULL) {
+		// insight : Checkout osd/main/client/rwproxy.h for Load
 			ret = -E_NOMEM;
 			goto done;
 		}
-		assert(mgr->oid2obj_map_.Insert(objproxy) == E_SUCCESS);
+		assert(mgr->oid2obj_map_.Insert(&objproxy) == E_SUCCESS); 
+
+	        objproxy->lock();
+                objproxy_ref = objproxy->HeadReference();
+                if (objproxy_ref  == NULL) {
+                        objproxy_ref = new osd::common::ObjectProxyReference();
+                        objproxy_ref->Set(objproxy, false);
+                }
+
+		*objproxy_refp = objproxy_ref;
+                objproxy->unlock();
+
 		// no need to grab the lock on obj after creation as it's not reachable 
 		// before we release the lock manager's mutex lock
-		objproxy_ref = new osd::common::ObjectProxyReference();
+
+/*		
+ *		Uncomment this !
+ *		objproxy_ref = new osd::common::ObjectProxyReference();
 		objproxy_ref->Set(objproxy, false);
 	} else {
 		// object proxy exists
+		// insight : WTF is the difference between these two branches ?
+		// Check the call to objproxy_ref->Set.
 		if (use_exist_obj_ref) {
 			if ((objproxy_ref = objproxy->HeadReference()) == NULL) {
 				if (!rwlock) {
@@ -192,10 +222,11 @@ lock:
 			objproxy_ref->Set(objproxy, true);
 		}
 	}
+*/
 	ret = E_SUCCESS;
-	*objproxy_refp = objproxy_ref;
 done:
-	pthread_rwlock_unlock(&rwlock_);
+//	Uncomment this !
+//	pthread_rwlock_unlock(&rwlock_);
 	return ret;
 }
 
@@ -323,9 +354,7 @@ ObjectManager::OnConvert(osd::cc::client::Lock* lock)
 	assert(CloseObject(cb_session_, oid, false) == E_SUCCESS);
 }
 
-
-void
-ObjectManager::CloseAllObjects(OsdSession* session, bool update)
+void ObjectManager::CloseAllObjects(OsdSession* session, bool update, bool flush )
 {
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), "[%d] Close all objects\n", id());
 	
@@ -349,7 +378,7 @@ ObjectManager::CloseAllObjects(OsdSession* session, bool update)
 	// now close all the objects 
 	for (int i=0; i < osd::containers::T_CONTAINER_TYPE_COUNT; i++) {
 		if (mgr = objtype2mgr_tbl_[i]) {
-			mgr->CloseAll(session, false);
+			mgr->CloseAll(session, false, flush);
 		}
 	}
 
@@ -360,7 +389,7 @@ ObjectManager::CloseAllObjects(OsdSession* session, bool update)
 void
 ObjectManager::PreDowngrade()
 {
-	CloseAllObjects(cb_session_, true);
+	CloseAllObjects(cb_session_, true, true);
 }
 
 

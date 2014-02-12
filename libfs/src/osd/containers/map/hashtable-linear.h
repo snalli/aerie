@@ -140,7 +140,6 @@ public:
 	}
 	void set_size(Session* session, int size) { 
 		assert(size-TAG_SIZE < (TAG_SIZE << 7)); 
-		session->journal()->Store(&tag_[0], (char) ((tag_[0] & 0x80) | (size-TAG_SIZE)));
 		tag_[0] = (tag_[0] & 0x80) | (size-TAG_SIZE); 
 	}
 	void set_payload_size(Session* session, int size) { 
@@ -157,11 +156,10 @@ public:
 		if (max_payload_size < payload_size) {
 			return -1;
 		}
-		session->journal()->LogStore((void*) payload_, key, key_size);
-		session->journal()->LogStore((void*) &payload_[key_size], val, val_size);
 		memcpy((void*) payload_, key, key_size);
 		memcpy((void*) &payload_[key_size], val, val_size);
 		tag_[0] = 0x80 | payload_size; // mark as allocated and set size in a single op
+		ScmFence();
 		return 0;
 	}
 	char* get_key() { 
@@ -232,8 +230,7 @@ public:
 		return (Page*) next_;
 	}
 
-	void set_next(Session* session, Page* next) {
-		session->journal()->Store(&next_, (uint64_t) next);
+	void set_next(Page* next) {
 		next_ = (uint64_t) next;
 	}
 
@@ -246,6 +243,13 @@ public:
 	int Split(Session* session, Page* splitover_page, const SplitPredicate& split_predicate);
 	int Merge(Session* session, Page* other_page);
 	void Print();
+	struct dentry {
+                char key[128];
+                uint64_t val;
+                struct dentry *next_dentry;
+        };
+        int return_dentry(void *);
+
 
 private:
 	union {
@@ -615,6 +619,41 @@ Page<Session>::Print()
 	}
 }
 
+template<typename Session>
+int
+Page<Session>::return_dentry(void *head_addr)
+{
+
+        int             i;
+        uint64_t        val;
+        int             size;
+        struct dentry   *dentry_list_item;
+        struct dentry   *curr_ptr;
+        curr_ptr = (struct dentry *)((struct dentry *)(head_addr))->val;
+     
+        struct dentry *a = NULL, *b;
+        Entry<Session>* entry;
+
+        for (i=0; i < PAGE_SIZE - sizeof(next_); i+=size)
+        {    
+                entry = GetEntry(i);
+                size = entry->get_size();
+                val = *((uint64_t*) entry->get_val());
+                if (!entry->IsFree()) {
+
+                        dentry_list_item = new struct dentry;
+                        strcpy(dentry_list_item->key, entry->get_key());
+                        dentry_list_item->val = val;
+                        dentry_list_item->next_dentry = NULL;
+
+                        curr_ptr->next_dentry = dentry_list_item;
+                        curr_ptr = curr_ptr->next_dentry;
+
+                }
+        }
+        ((struct dentry *)(head_addr))->val = (uint64_t)curr_ptr;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -644,6 +683,8 @@ public:
 	int Split(Session* session, Bucket* new_bucket, const SplitPredicate& split_predicate);
 	int Merge(Session* session, Bucket*);
 	void Print();
+        int return_dentry(void *);
+
 
 private:
 	Page<Session> page_;
@@ -677,7 +718,7 @@ Bucket<Session>::Insert(Session* session, const char* key, int key_size,
 	
 	page = Page<Session>::Make(session);
 	page->Insert(session, key, key_size, val, val_size);
-	last_page->set_next(session, page);
+	last_page->set_next(page);
 
 	//TODO: trigger re-hash 
 
@@ -757,7 +798,7 @@ dosplit:
 				//FIXME: protect against cycle-loop resulting from infinite splits. 
 				//       is this possible? shouldn't splits converge?
 				new_page = Page<Session>::Make(session);
-				splitover_page->set_next(session, new_page);
+				splitover_page->set_next(new_page);
 			}
 			splitover_page = new_page;
 			goto dosplit;
@@ -778,6 +819,20 @@ void Bucket<Session>::Print()
 		printf("}\n");
 	}
 }
+
+template<typename Session>
+int
+Bucket<Session>::return_dentry(void *head_addr)
+{
+
+  Page<Session>* page;
+
+        for (page=&page_; page != 0x0; page=page->Next()) {
+                page->return_dentry(head_addr);
+        }    
+
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -823,6 +878,8 @@ public:
 	int Delete(Session* session, const char* key, int key_size);
 	void Print();
 	int Size(Session* session) { return ncount_; }
+	 int return_dentry(void *);
+
 
 private:
 	class LinearSplit;
@@ -990,6 +1047,26 @@ HashTable<Session>::Print()
 		bucket->Print();
 	}	
 }
+
+template<typename Session>
+int
+HashTable<Session>::return_dentry(void *head_addr)
+{
+        int              i;
+        uint32_t         idx;
+        Bucket<Session>* bucket;
+
+        for (i=0; i<(1<<size_log2_)+split_idx_; i++) {
+                bucket = &buckets_[i];
+                bucket->return_dentry(head_addr);
+        }
+
+
+
+
+
+}
+
 
 #undef volatile 
 

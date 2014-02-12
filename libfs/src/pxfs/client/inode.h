@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "pxfs/common/types.h"
 #include "pxfs/client/const.h"
+//#include "pxfs/client/cache.h"
 #include "osd/main/client/proxy.h"
 
 namespace client {
@@ -19,7 +20,17 @@ public:
 		kSize
 	};
 
-	Inode();
+	Inode()
+        : ref_(NULL),
+          refcnt_(0),
+          sb_(NULL)
+	{
+        	pthread_mutex_init(&mutex_, NULL);
+        	pthread_mutex_init(&spider_lock, NULL);
+	}
+
+
+
 
 	virtual int Write(client::Session* session, char* src, uint64_t off, uint64_t n) = 0;
 	virtual int Read(client::Session* session, char* dst, uint64_t off, uint64_t n) = 0;
@@ -37,6 +48,8 @@ public:
 	virtual int Lock(::client::Session* session, lock_protocol::Mode mode) = 0; 
 	virtual int Unlock(::client::Session* session) = 0;
 	virtual int xOpenRO(::client::Session* session) = 0; 
+        virtual int return_dentry(::client::Session*, void *) = 0;
+
 
 	/** 
 	 * A generic interface method for functionality that doesn't fall under
@@ -68,14 +81,26 @@ public:
 		return refcnt_;
 	}
 
+	#ifdef CONFIG_CACHE
+	#ifdef CONFIG_CALLBACK
+	void Christen(char *path, osd::common::Cache *val)
+	{
+		ref_->proxy()->set_name_cache(path, val);
+	}
+	#endif
+	#endif
 //protected:
+	char                               self_name[128];
+        Inode* parent;
+
 	osd::common::ObjectProxyReference* ref_;     // reference to the persistent object container
 	//! process-wide mutex; used for synchronizing access to the
 	//! volatile inode metadata
 	pthread_mutex_t                    mutex_;
+	pthread_mutex_t			   spider_lock;
 	//! dynamic reference count; number of objects referencing the
 	//! volatile inode object
-	int                                refcnt_; 
+	int                                refcnt_; // No. of references to the file associated with this inode ???????? 
 	int                                fs_type_; // file system type this inode belongs to
 	int                                type_;    // type of this inode
 	client::SuperBlock*                sb_;      // volatile file system superblock

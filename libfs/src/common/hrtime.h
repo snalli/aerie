@@ -10,6 +10,7 @@
 
 #ifndef _HRTIME_CPUFREQ
 # define _HRTIME_CPUFREQ 2500 /* MHz */
+// insight : All CPu Frequencies aren't same !!!!!!
 #endif
 
 #define HRTIME_NS2CYCLE(__ns) ((__ns) * _HRTIME_CPUFREQ / 1000)

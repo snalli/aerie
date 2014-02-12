@@ -21,6 +21,7 @@ usage()
 static int 
 __ubench_fs_create(const char* root, int numops, size_t size)
 {
+	//printf("\n Sanketh : Inside __ubench_fs_create()...\n");
 	MEASURE_TIME_PREAMBLE
 	int                    ret = 0;
 	unsigned long long     runtime;

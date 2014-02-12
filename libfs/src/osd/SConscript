@@ -12,7 +12,7 @@ clt_lib_sources = [
                    'main/client/omgr.cc',
                    'main/client/salloc.cc',
                    'main/client/stm.cc',
-                   'main/client/stsystem.cc',
+	               'main/client/stsystem.cc',
                    'main/client/registry.cc',
                    'containers/name/container-client.cc',
                    'containers/super/container.cc',
@@ -21,7 +21,7 @@ clt_lib_sources = [
                   ]
 
 osdClientLibrary = localBuildEnv.SharedLibrary(target = clt_lib_target, source = clt_lib_sources + clt_lib_objects)
-
+osdclt_lib_objs = localBuildEnv.Object(clt_lib_sources)
 
 # Server OSD layer
 
@@ -29,7 +29,7 @@ srv_lib_target = 'osdsrv'
 srv_lib_objects = []
 srv_lib_sources = [
                    'main/server/journal.cc',
-                   'main/server/hlckmgr.cc',
+				   'main/server/hlckmgr.cc',
                    'main/server/lckmgr.cc',
                    'main/server/publisher.cc',
                    'main/server/registry.cc',
@@ -37,10 +37,13 @@ srv_lib_sources = [
                    'main/server/shbuf.cc',
                    'main/server/session.cc',
                    'main/server/verifier.cc',
-                   'main/server/stats.cc',
                    'containers/name/container-server.cc',
                   ]
 
 osdServerLibrary = localBuildEnv.SharedLibrary(target = srv_lib_target, source = srv_lib_sources + srv_lib_objects)
+#osdServerLibrary = localBuildEnv.Library(target = srv_lib_target, source = srv_lib_sources + srv_lib_objects)
 
-Return('osdClientLibrary', 'osdServerLibrary')
+print "CXX = ", localBuildEnv.subst('$CXX')
+print "CCFLAGS = ", localBuildEnv.subst('$CCFLAGS')
+
+Return('osdClientLibrary', 'osdServerLibrary', 'osdclt_lib_objs')

@@ -36,6 +36,10 @@ class ByteContainer {
 public:
 enum {
 	N_DIRECT = 8
+
+	//insight :
+	//What are these ?
+	//Direct blocks of an inode ?
 };
 
 template<typename Session>
@@ -56,6 +60,7 @@ public:
 		if (session->salloc()->AllocateContainer(session, acl_id, T_BYTE_CONTAINER, &oid) < 0) {
 			dbg_log(DBG_ERROR, "No storage available\n");
 		}
+//		printf("\nIn ByteContainer::Object::Make");
 		return Load(oid);
 	}
 
@@ -465,7 +470,7 @@ int __Write(Session* session, T* obj, char* src, uint64_t off, uint64_t n)
 		if (ret < 0 || ret < m) { // ret could be negative but comparing against unsigned
 #ifdef DURABLE_DATA
 			// wait for the writes to be performed to SCM
-			ScmFence();
+			ScmFence(); // insight : ScmFence calls emulate_latency
 #endif
 			return ((ret < 0) ? ( (tot>0)? tot: ret)  
 			                  : tot + ret);
@@ -626,6 +631,16 @@ ByteContainer::Object<Session>::ReadBlock(Session* session,
 	return rn;
 }
 
+/*
+template<typename Session>
+    896 int
+    897 ByteContainer::Region<Session>::WriteBlock(Session* session,
+    898                                            char* src,
+    899                                            uint64_t bn,
+    900                                            int off,
+    901                                            int n)
+
+*/
 
 // FIXME: do we need to dynamically allocate region instead to keep it around 
 // until we publish it???
@@ -674,7 +689,7 @@ ByteContainer::Object<Session>::LinkBlock(Session* session, uint64_t bn, void* b
 	if ( ((bn+1)*kBlockSize) > size_ ) {
 		size_ = (bn+1)*kBlockSize;
 	}
-	ScmLatency();
+	ScmLatency();// insight : ScmLatency calls emulate_latency
 	return kBlockSize;
 }
 
@@ -694,6 +709,7 @@ ByteContainer::Object<Session>::ReadImmutable(Session* session,
                              uint64_t off, 
                              uint64_t n)
 {
+//	printf("\n Yippee 2 ! Inside ByteContainer::Object::Read.");
 	uint64_t                tot;
 	uint64_t                m;
 	uint64_t                fbn; // first block number

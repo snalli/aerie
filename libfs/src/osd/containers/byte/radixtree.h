@@ -304,7 +304,7 @@ RadixTree<Session>::MapSlot(Session* session,
 				if (node) {
 					node->Link(session, offset, slot);
 				} else {
-					rnode_ = reinterpret_cast<RadixTreeNode<Session> *> (radix_tree_ptr_to_indirect(reinterpret_cast<void*>(slot)));
+				rnode_ = reinterpret_cast<RadixTreeNode<Session> *> (radix_tree_ptr_to_indirect(reinterpret_cast<void*>(slot)));
 				}	
 			} else {
 				if (node) {

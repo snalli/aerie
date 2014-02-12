@@ -45,6 +45,7 @@ StoragePool::StoragePool(Header* header)
 int 
 StoragePool::Allocate(const char* path, size_t size)
 {
+	
 	unsigned long v_addr;
 	unsigned long size_mb;
 
@@ -52,11 +53,15 @@ StoragePool::Allocate(const char* path, size_t size)
 	//size_mb = 1024;
 	//size_mb = 8192;
 	size_mb = (size / 1024) / 1024;
-
-	// convention: syscall 313 returns 1 on success
+	
+	printf("\n\n Inside StoragePool::Allocate : line 57");
+	printf("\n Making a syscall 312...");
+	// convention: syscall 312 returns 1 on success
 	if (syscall(312, v_addr, size_mb) != 1) {
+		printf("\n syscall 312 failed...");
 		return -E_PROT;
 	}
+	//printf("\n syscall 312 succeeded...");
 	return E_SUCCESS;
 }
 
@@ -79,7 +84,12 @@ StoragePool::Create(const char* path, size_t size, int flags)
 	}
 	// we create a file to ensure we don't do multiple allocations
 	if ((fd = open(path, O_CREAT|O_TRUNC|O_EXCL, S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP)) > 0) {
-		Allocate(path, size);
+	
+	printf("\n\n Inside StoragePool::Create : line 83");
+	printf("\n fd = %d", fd);
+	printf("\n Calling Allocate()...");
+	
+	Allocate(path, size);
 		close(fd);
 	}
 
@@ -89,6 +99,7 @@ StoragePool::Create(const char* path, size_t size, int flags)
 	header_addr = base;
 	vistaheap_base_addr = header_addr + header_size;
 	vistaheap_limit_addr = base + size;
+	printf("\n Calling Protect...");
 	if ((ret = Protect(base, size, getuid(), 0x3)) < 0) {
 		return ret;
 	}
@@ -111,11 +122,15 @@ StoragePool::Protect(unsigned long extent_base, size_t extent_size, uid_t uid, i
 	e.size = extent_size; // convention: size in bytes
 	r.uid = uid;
 	r.rw = rw;
-
+	printf("\n\n Inside StoragePool::Protect : line 125");
+	printf("\n Making a syscall 313...");
+	printf("\n Size : %lld, Base : %016llX, page_prot : %d\n", e.size, e.base, r.rw);
 	// convention: syscall 313 returns 1 on success
 	if (syscall(313, (void*) &e, (void*) &r, 1) != 1) {
+		printf("\n syscall 313 failed...");
 		return -E_PROT;
 	}
+	printf("\n syscall 313 succeeded...");
 	return E_SUCCESS;
 }
 

@@ -1,11 +1,13 @@
+#define  __CACHE_GUARD__
+
+#include "pxfs/mfs/client/dir_inode.h"
+#include "pxfs/mfs/client/inode_factory.h"
 #include "pxfs/mfs/client/file_inode.h"
+
 #include <stdint.h>
 #include "common/util.h"
-#include "pxfs/client/inode.h"
 #include "pxfs/client/session.h"
 #include "pxfs/client/const.h"
-#include "pxfs/mfs/client/inode_factory.h"
-#include "pxfs/mfs/client/dir_inode.h"
 #include "pxfs/common/publisher.h"
 
 namespace mfs {
@@ -26,6 +28,8 @@ int
 FileInode::Write(::client::Session* session, char* src, uint64_t off, uint64_t n)
 {
 	int ret;
+        s_log("[%ld] FileInode::%s",s_tid, __func__);
+
 	ret = rw_ref()->proxy()->interface()->Write(session, src, off, n);
 	return ret;
 }
@@ -52,12 +56,17 @@ int FileInode::set_nlink(int nlink)
 int
 FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 {
-	osd::containers::client::ByteContainer::Proxy* cc_proxy;
+	#ifdef FAST_SPIDER_LOCK_PATH
+		pthread_mutex_lock(&spider_lock);
+	#else
+		osd::containers::client::ByteContainer::Proxy* cc_proxy;
+			s_log("[%ld] FileInode::%s (1)", s_tid, __func__);
 
-	if (ref_) {
-		cc_proxy = rw_ref()->proxy();	
-		return cc_proxy->Lock(session, mode);
-	}
+		if (ref_) {
+			cc_proxy = rw_ref()->proxy();	
+			return cc_proxy->Lock(session, mode);
+		}
+	#endif
 	return E_SUCCESS;
 }
 
@@ -67,8 +76,12 @@ FileInode::Lock(::client::Session* session, lock_protocol::Mode mode)
 int
 FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
 {
+	#ifdef FAST_SPIDER_LOCK_PATH
+		pthread_mutex_lock(&spider_lock);
+	#else
 	osd::containers::client::ByteContainer::Proxy* cc_proxy;
 	osd::containers::client::NameContainer::Proxy* cc_proxy_parent;
+		s_log("[%ld] FileInode::%s (2)", s_tid, __func__);
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
@@ -78,11 +91,13 @@ FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::
 			DirInode* parent_dir_inode = dynamic_cast<DirInode*>(parent_inode);
 			cc_proxy_parent = parent_dir_inode->rw_ref()->proxy();	
 			return cc_proxy->Lock(session, cc_proxy_parent, mode, osd::cc::client::HLock::FLG_STICKY);
+		s_log("[%ld] FileInode::%s (2) <a>", s_tid, __func__);
 		} else {
 			return cc_proxy->Lock(session, mode);
+		s_log("[%ld] FileInode::%s (2) <b>", s_tid, __func__);
 		}
 	}
-
+	#endif
 	return E_SUCCESS;
 }
 
@@ -90,12 +105,17 @@ FileInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::
 int
 FileInode::Unlock(::client::Session* session)
 {
+	#ifdef FAST_SPIDER_LOCK_PATH
+		pthread_mutex_unlock(&spider_lock);
+	#else
 	osd::containers::client::ByteContainer::Proxy* cc_proxy;
+		s_log("[%ld] FileInode::%s ", s_tid, __func__);
 
 	if (ref_) {
 		cc_proxy = rw_ref()->proxy();	
 		return cc_proxy->Unlock(session);
 	}
+	#endif
 	return E_SUCCESS;
 }
  

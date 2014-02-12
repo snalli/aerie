@@ -2,5 +2,7 @@ Import('buildEnv')
 localBuildEnv = buildEnv.Clone()
 lib_sources = ['rpc.cc', 'connection.cc', 'pollmgr.cc', 'thr_pool.cc', 'jsl_log.cc']
 lib_objects = localBuildEnv.SharedObject(lib_sources)
+rpc_net_lib_objects = localBuildEnv.Object(lib_sources)
 rpcLibrary = localBuildEnv.SharedLibrary('rpc', lib_objects)
-Return('rpcLibrary', 'lib_objects')
+rpcnetStaticLib = localBuildEnv.StaticLibrary('rpcnet', rpc_net_lib_objects)
+Return('rpcLibrary', 'lib_objects', 'rpc_net_lib_objects', 'rpcnetStaticLib')

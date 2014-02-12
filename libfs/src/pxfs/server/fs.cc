@@ -50,21 +50,26 @@ FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flag
 int 
 FileSystem::Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** fsp)
 {
+	//printf("\n\n Inside FileSystem::Load...\n\n");
 	int            ret;
 	StorageSystem* storage_system;
 	FileSystem*    fs;
 
 	if ((ret = StorageSystem::Load(ipc, source, flags, &storage_system)) < 0) {
+	//	printf("\n Return from StorageSystem::Load failed...\n");
 		return ret;
 	}
 	if ((fs = new FileSystem(ipc, storage_system)) == NULL) {
 		storage_system->Close();
+	//	printf("\n Return from new FileSystem failed...\n");
 		return -E_NOMEM;
 	}
 	if ((ret = fs->Init()) < 0) {
+	//	printf("\n Return from fs->Init failed...\n");
 		return ret;
 	}
 	*fsp = fs;
+	////printf("\n\n FileSystem::Load succeeded...\n");
 	return E_SUCCESS;
 }
 

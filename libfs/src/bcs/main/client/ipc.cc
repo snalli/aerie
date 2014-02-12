@@ -6,6 +6,7 @@
 #include "common/errno.h"
 #include "bcs/main/common/ipc_protocol.h"
 #include "bcs/main/client/shbuf.h"
+#include <stdio.h>
 
 namespace client {
 
@@ -17,6 +18,7 @@ Ipc::Ipc(const char* xdst)
 int 
 Ipc::Init()
 {
+	
 	int                         r;
 	struct sockaddr_in          dst; //server's ip address
 	int                         rport;
@@ -26,7 +28,9 @@ Ipc::Init()
 	IpcProtocol::SubscribeReply rep;
 	std::string                 idstr;
 	
-	// setup RPC for making calls to the server
+//	printf("\nInitializing IPC Layer...");	
+
+// setup RPC for making calls to the server
 #ifdef _CLT2SVR_RPCNET
 	rpcnet::make_sockaddr(xdst_.c_str(), &dst);
 	rpcc_ = new rpcnet::rpcc(dst);
@@ -50,7 +54,7 @@ Ipc::Init()
 	host.str("");
 	host << hname << ":" << rport;
 	idstr = host.str();
-	std::cout << "Client: id=" << idstr <<std::endl;
+	//std::cout << "Client: id=" << idstr <<std::endl;
 #endif
 #ifdef _SVR2CLT_RPCFAST
 	srandom(getpid());
@@ -60,7 +64,7 @@ Ipc::Init()
 	rpcs_ = new rpcfast::rpcs(ss.str().c_str());
 	rpcs_->main_service_loop();
 	idstr = ss.str();
-	std::cout << "Client: id=" << idstr <<std::endl;
+	//std::cout << "Client: id=" << idstr <<std::endl;
 #endif
 
 	// contact the server and tell him my rpc address to subscribe 
@@ -70,6 +74,7 @@ Ipc::Init()
 		DBG_LOG(DBG_CRITICAL, DBG_MODULE(client_lckmgr), 
 		        "failed to subscribe client: %u\n", rpcc_->id());
 	}
+//	printf("\nSUCCESS");
 	return E_SUCCESS;
 }
 

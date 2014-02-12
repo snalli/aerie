@@ -4,7 +4,7 @@
 #include "common/types.h"
 #include "pxfs/client/inode.h"
 #include "osd/main/client/hlckmgr.h"
-#include "osd/main/common/obj.h"
+//#include "osd/main/common/obj.h"
 
 /**
  *

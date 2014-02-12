@@ -1,3 +1,10 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <signal.h>
+#include <errno.h>
+#include <sys/types.h>
+
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <stdio.h>
@@ -13,10 +20,15 @@
 int                    port;
 pthread_attr_t         attr;
 
-
+void sig_handler(int signal)
+{
+        exit(0);
+}
 int
 main(int argc, char *argv[])
 {
+        signal(SIGUSR2,sig_handler);
+
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 	int   debug_level = -1;

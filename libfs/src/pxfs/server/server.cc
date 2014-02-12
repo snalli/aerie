@@ -3,7 +3,12 @@
 #include "osd/main/server/osd.h"
 #include "pxfs/mfs/server/mfs.h"
 #include "pxfs/server/fs.h"
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
 
+        #include <sys/syscall.h>
+        #define s_tid      syscall(SYS_gettid)
 
 namespace server {
 
@@ -37,6 +42,9 @@ Server::Init(const char* pathname, int flags, int port)
 void 
 Server::Start()
 {
+	char wd[128];
+	getcwd(wd,128);
+	printf("[%ld] Server::%s cur dir : %s", s_tid, __func__, wd);
 	while (1) {
 		sleep(1);
 	}

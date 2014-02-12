@@ -28,7 +28,6 @@ struct HLockPtrLockModePair {
 typedef std::list<HLockPtrLockModePair> HLockPtrLockModePairSet;
 typedef std::list<HLock*> HLockPtrList;
 typedef google::dense_hash_set<HLock*> HLockPtrSet;
-
 /**
  * A hierarchical lock is identified by an ID=(TYPE_ID, NUMBER)
  * Don't confuse the TYPE_ID of the hierarchical lock with the TYPE_ID
@@ -41,7 +40,7 @@ typedef google::dense_hash_set<HLock*> HLockPtrSet;
  * To simplify the implementation of the hierarchical lock and to make 
  * it more lightweight, the lock cannnot be acquired by multiple threads
  * concurrently. Thus, the locking mode is not used to synchronize threads
- *
+ * insight : but can the hlock be acquired by multiple procs at the same time ?
  */
 class HLock {
 public:
@@ -84,10 +83,10 @@ public:
 	void set_payload(void* payload) { payload_ = payload; }
 
 	Lock*                 lock_;   //!< the public base lock if one is attached
+	//insight : What is this public base lock ??
 	HLock*                parent_;
 	
 	pthread_t             owner_;  //!< thread that owns the lock
-	
 	//! we use only a single cv to monitor changes of the lock's status
 	//! this may be less efficient because there would be many spurious
 	//! wake-ups, but it's simple anyway
@@ -143,10 +142,12 @@ public:
 	HLock* FindOrCreateLock(LockId lid);
 
 	lock_protocol::status Acquire(HLock* hlock, HLock* phlock, lock_protocol::Mode mode, int flags);
-	lock_protocol::status Acquire(LockId lid, HLock* phlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(HLock* hlock, lock_protocol::Mode mode, int flags);
+
+	lock_protocol::status Acquire(LockId lid, HLock* phlock, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(LockId lid, LockId, lock_protocol::Mode mode, int flags);
 	lock_protocol::status Acquire(LockId lid, lock_protocol::Mode mode, int flags);
+	
 	lock_protocol::status Release(HLock* hlock);
 	lock_protocol::status Release(LockId lid);
 	void RegisterLockCallback(HLockCallback* hcb) { hcb_ = hcb; };
@@ -196,6 +197,7 @@ namespace client {
 	typedef ::osd::cc::client::HLockManager  HLockManager;
 	typedef ::osd::cc::client::HLockCallback HLockCallback;
 } // namespace client
+
 
 
 #endif // __STAMNOS_OSD_CLIENT_HIERARCHICAL_LOCK_MANAGER_H

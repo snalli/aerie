@@ -2,7 +2,7 @@
 #define __STAMNOS_FS_CLIENT_MPINODE_H
 
 #include <stdint.h>
-#include "pxfs/client/inode.h"
+//#include "pxfs/client/inode.h"
 #include "pxfs/client/sb.h"
 
 namespace client {
@@ -14,13 +14,15 @@ const int MAX_NUM_ENTRIES=3;
 
 class Session;
 
-class MPInode: public Inode {
+class MPInode: public Inode { // MPInode : Mount point Inode
 public:
 
 	MPInode()
 		: entries_count_(0)
 	{ 
 		pthread_mutex_init(&mutex_, NULL);
+                strcpy(self_name,"/");
+		parent = 0x0;	
 	}
 	
 	int Write(Session* session, char* src, uint64_t off, uint64_t n) { return 0; }
@@ -42,15 +44,19 @@ public:
 	
 	int ioctl(::client::Session* session, int request, void* info) { return 0; }
 
+	void* return_pxfs_inode();
+        int return_dentry(::client::Session*, void *);
+
+
 	struct Entry {
-		char   name_[64];
+		char   name_[64]; // insight : A 64-character long file name !!!!!!!! wtf !!!
 		Inode* inode_;
 	};
 
 private:
 	Inode*      parent_;
-	Entry       entries_[MAX_NUM_ENTRIES];
-	int         entries_count_;
+	Entry       entries_[MAX_NUM_ENTRIES]; // insight : Only 3 files per directory !!!!!!!!!!!!!!!!!! wtf HARISSSSSSS aarrgh !!!!!!!!!11
+	int         entries_count_;	// insight : Guess : Increase it when you create a file in a directory ?????????
 };
 
 

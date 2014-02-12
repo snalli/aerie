@@ -1,6 +1,6 @@
 Import('mainEnv')
 
-rpcNetLibrary, rpcNetLibraryObjects = SConscript('rpc-net/SConscript')
-rpcLibrary, rpcLibraryObjects = SConscript('rpc-fast/SConscript')
-
-Return('rpcNetLibrary', 'rpcNetLibraryObjects', 'rpcLibrary', 'rpcLibraryObjects')
+rpcNetLibrary, rpcNetLibraryObjects, rpc_net_lib_objs, rpcnetStaticLib = SConscript('rpc-net/SConscript')
+rpcLibrary, rpcLibraryObjects, rpc_fast_lib_objs, rpcfastStaticLib = SConscript('rpc-fast/SConscript')
+rpc_lib_objs = rpc_net_lib_objs + rpc_fast_lib_objs
+Return('rpcNetLibrary', 'rpcNetLibraryObjects', 'rpcLibrary', 'rpcLibraryObjects', 'rpc_lib_objs', 'rpcnetStaticLib', 'rpcfastStaticLib')

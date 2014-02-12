@@ -20,11 +20,11 @@ Import('scmLibrary')
 Import('bcsClientLibrary')
 Import('osdClientLibrary')
 
-#vfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
-pxfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+#vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+#pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 
-pxfs_obj = pxfsBuildEnv.Object('postmark-pxfs.o', 'postmark-1_5.c')
-vfs_obj = vfsBuildEnv.Object('postmark-vfs.o', 'postmark-1_5.c')
+#pxfs_obj = pxfsBuildEnv.Object('postmark-pxfs.o', 'postmark-1_5.c')
+#vfs_obj = vfsBuildEnv.Object('postmark-vfs.o', 'postmark-1_5.c')
 
-pxfsPostmarkProgram = pxfsBuildEnv.Program('postmark_pxfs', pxfs_obj, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
-vfsPostmarkProgram = vfsBuildEnv.Program('postmark_vfs', vfs_obj, LIBS=['pthread', 'rt'])
+#pxfsPostmarkProgram = pxfsBuildEnv.Program('postmark_pxfs', pxfs_obj, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
+#vfsPostmarkProgram = vfsBuildEnv.Program('postmark_vfs', vfs_obj, LIBS=['pthread', 'rt'])

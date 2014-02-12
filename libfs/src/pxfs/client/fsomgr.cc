@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include <string>
 #include "pxfs/client/fsomgr.h"
 #include "pxfs/client/sb_factory.h"
@@ -122,7 +124,7 @@ FileSystemObjectManager::CreateInode(Session* session, Inode* parent,
 	InodeFactoryMap::iterator it;
 	InodeFactory*             inode_factory; 
 	Inode*                    ip;
-	int                       fs_type = parent->fs_type();
+	int                       fs_type = parent->fs_type(); // insight : How many types of filesystem are there ? Ans : Guess : pxfs, kvfs ??
 
 	dbg_log (DBG_INFO, "Create inode\n");
 
@@ -131,10 +133,21 @@ FileSystemObjectManager::CreateInode(Session* session, Inode* parent,
 		return -1;
 	}
 	inode_factory = it->second;
+
+// insight : Parent determines fs_type. fs_type determines iterator. Iterator determines inode_factory.
+// insight : Seems like each fs_type has a unique inode_factory.
+// insight : Look at how the arguments to the function flow. This function had 4.
+//	printf("\nCreating inode...");	
+//	printf("\nInside FileSystemObjectManager::CreateInode...");
 	if ((ret = inode_factory->Make(session, inode_type, &ip)) != E_SUCCESS) {
 		return ret;
 	}
 	ip->Lock(session, parent, lock_protocol::Mode::XR);
+	// insight : Why do we need to lock the newly created directory in
+	// XR mode ? It makes sense if we want to write to a file, but not
+	// even a read.
+	// Look into thi.
+	// This locking is not needed if we are eventually going to release it.
 	ip->Get();
 	
 	*ipp = ip;
@@ -143,7 +156,7 @@ FileSystemObjectManager::CreateInode(Session* session, Inode* parent,
 
 
 /**
- * \brief Creates an inode of the same file system as the parent inode.
+ * \brief Destroys an inode of the same file system as the parent inode.
  * The inode is write locked and referenced (refcnt=1)
  *
  */

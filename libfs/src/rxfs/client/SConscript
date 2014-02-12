@@ -17,6 +17,7 @@ lib_sources = [
 	      ]
 
 fscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+rxfsc_lib_objs = libLocalBuildEnv.Object(lib_sources)
 
 # Be careful with linkage order for static libraries
 localBuildEnv.Append(LIBS = fscLibrary)
@@ -27,4 +28,4 @@ localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])
 localBuildEnv.Program('fsclient', ['main.cc']) 
 
-Return('fscLibrary')
+Return('fscLibrary','rxfsc_lib_objs')

@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "cfs/server/dir_inode.h"
 #include "cfs/server/file_inode.h"
 #include "cfs/server/session.h"

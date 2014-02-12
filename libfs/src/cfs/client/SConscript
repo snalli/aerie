@@ -15,6 +15,7 @@ lib_sources = [
 	      ]
 
 cfscLibrary = libLocalBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
+cfs_lib_objs = libLocalBuildEnv.Object(lib_sources)
 
 # Be careful with linkage order for static libraries
 localBuildEnv.Append(LIBS = cfscLibrary)
@@ -25,4 +26,4 @@ localBuildEnv.Append(LIBS = commonLibrary)
 localBuildEnv.Append(LIBS = ['pthread', 'rt'])
 localBuildEnv.Program('cfsclient', ['main.cc']) 
 
-Return('cfscLibrary')
+Return('cfscLibrary', 'cfs_lib_objs')

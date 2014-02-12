@@ -48,6 +48,8 @@ public:
 	static int Sync();
 	static int Sync(int fd);
 	static int TestServerIsAlive();
+	static void Prefetch();
+	static void* lock_cont();
 };
 
 

@@ -110,7 +110,7 @@ __cconfig_lookup_int(config_t *cfg, const char *name, int *value)
 	if (env_setting_lookup_int(name, &val) == CONFIG_TRUE) {
 		found_val = 1;
 	} else {
-	    if (config_lookup_int(cfg, name, &val) == CONFIG_TRUE) {
+	    if (config_lookup_int(cfg, name, (long int *)&val) == CONFIG_TRUE) {
 			found_val = 1;
 		}
 	}

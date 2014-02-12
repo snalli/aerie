@@ -51,7 +51,7 @@ main(int argc, char* argv[])
 	if ((ret = command(argc, argv)) == E_SUCCESS) {
 		std::cerr << "SUCCESS!" << std::endl;
 	} else {
-		std::cerr << "FAILURE" << std::endl;
+		std::cerr << "FAILURE!!!" << std::endl;
 	}
 	return ret;
 }

@@ -1,2 +1,3 @@
-rxfscLibrary = SConscript('client/SConscript')
+rxfscLibrary, rxfsc_lib_objs = SConscript('client/SConscript')
 Export('rxfscLibrary')
+Export('rxfsc_lib_objs')

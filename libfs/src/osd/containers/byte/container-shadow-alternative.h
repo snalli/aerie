@@ -116,6 +116,11 @@ typedef std::map<IntervalKey, Interval*, IntervalKeyCompare> IntervalTree;
 class ByteContainer::VersionManager: public osd::vm::client::VersionManager<ByteContainer::Object> {
 
 public:
+	 VersionManager()
+        {
+                printf("\n @ Inside ByteContainer::VersionManager. from src/osd/containers/byte/container-shadow.h");
+        }
+
 	int vOpen();
 	int vUpdate(OsdSession* session);
 	

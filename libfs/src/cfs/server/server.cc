@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "cfs/server/server.h"
 #include "bcs/main/server/bcs.h"
 #include "osd/main/server/osd.h"

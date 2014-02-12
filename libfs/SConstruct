@@ -92,19 +92,7 @@ AddOption('--build-debug',
 AddOption('--no-build-debug',
 	action="store_false", dest="build_debug",
 	default = True,
-	help="build with NO debug info and debug output")
-
-AddOption('--build-stats',
-	action="store_true", dest="build_stats",
-	default = True,
-	help="build with support for gathering runtime statistics [default]")
-
-AddOption('--no-build-stats',
-	action="store_false", dest="build_stats",
-	default = True,
-	help="build with NO support for gathering runtime statistics")
-
-
+	help="build with debug info and debug output [default]")
 
 mainEnv['RPC'] = GetOption('rpc_type')
 mainEnv['TEST_ATTACH_GDB'] = GetOption('test_attach_gdb')
@@ -119,29 +107,37 @@ if GetOption('gcc_path') == 'gcc44':
 	mainEnv.Replace(CXX = "g++44")
 
 #mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer', LINKFLAGS= '/home/hvolos/workspace/tools/google-perftools-1.7/.libs/libprofiler.so')
+#mainEnv.Append(CCFLAGS = '-fno-omit-frame-pointer -fno-inline-functions -fno-inline-functions-called-once -fno-optimize-sibling-calls -fno-default-inline -fno-inline')
+#mainEnv.Append(LINKFLAGS= '-ltcmalloc')
+#mainEnv.Append(LINKFLAGS= '-lprofiler')
 
 if GetOption('build_debug'):
-	mainEnv.Append(CPPDEFINES = ['-D_STAMNOS_EXPAND_DEBUG'])
-	mainEnv.Append(CCFLAGS=' -g -O0')
+	#mainEnv.Append(CPPDEFINES = ['-D_STAMNOS_EXPAND_DEBUG'])
+	#mainEnv.Append(CCFLAGS='-pg -g -O0')
+	#mainEnv.Append(CCFLAGS='-pg -O2')
+	#mainEnv.Append(CCFLAGS='-pg -O0')
+	mainEnv.Append(CCFLAGS='-O2')
+	#mainEnv.Append(LINKFLAGS= '-pg')
+	#mainEnv.Append(CCFLAGS='-O2')
+	#mainEnv.Append(CCFLAGS='-g -O0')
 else:
-	mainEnv.Append(CCFLAGS='-g -O3')
+	#mainEnv.Append(CCFLAGS='-O3')
+	#mainEnv.Append(CCFLAGS='-pg -O3')
+	mainEnv.Append(CCFLAGS='-pg -O2')
 	#mainEnv.Append(CCFLAGS=' -g -O2 -finstrument-functions')
 	#mainEnv.Append(CCFLAGS=' -g -O2 -Wall -Wno-unused-function -Wno-unused-parameter -Wno-unused-label')
 
-if GetOption('build_stats'):
-	mainEnv.Append(CPPDEFINES = ['-D_STAMNOS_EXPAND_STATISTICS'])
-
 
 if ARGUMENTS.get('VERBOSE') != "1":
-	mainEnv['CCCOMSTR']     = "(COMPILE)  $TARGET"
-	mainEnv['CXXCOMSTR']    = "(COMPILE)  $TARGET"
-	mainEnv['SHCCCOMSTR']   = "(COMPILE)  $TARGET"
-	mainEnv['SHCXXCOMSTR']  = "(COMPILE)  $TARGET"
-	mainEnv['ASPPCOMSTR']   = "(ASSEMBLE) $TARGET"
-	mainEnv['ARCOMSTR']     = "(BUILD)    $TARGET"
-	mainEnv['RANLIBCOMSTR'] = "(INDEX)    $TARGET"
-	mainEnv['LINKCOMSTR']   = "(LINK)     $TARGET"
-	mainEnv['SHLINKCOMSTR'] = "(LINK)     $TARGET"
+	mainEnv['CCCOMSTR']     = "(COMPILE_1)  $TARGET"
+	mainEnv['CXXCOMSTR']    = "(COMPILE_2)  $TARGET"
+	mainEnv['SHCCCOMSTR']   = "(COMPILE_3)  $TARGET"
+	mainEnv['SHCXXCOMSTR']  = "(COMPILE_4)  $TARGET"
+	mainEnv['ASPPCOMSTR']   = "(ASSEMBLE_1) $TARGET"
+	mainEnv['ARCOMSTR']     = "(BUILD_1)    $TARGET"
+	mainEnv['RANLIBCOMSTR'] = "(INDEX_1)    $TARGET"
+	mainEnv['LINKCOMSTR']   = "(LINK_1)     $TARGET"
+	mainEnv['SHLINKCOMSTR'] = "(LINK_2)     $TARGET"
 
 
 if mainEnv['GOOGLE_SPARSEHASH']:
@@ -183,12 +179,15 @@ mainEnv.Append(CPPDEFINES = ['-DKVFS_USE_INDIRECT'])
 # Wait for the writes to be performed to SCM
 #mainEnv.Append(CPPDEFINES = ['-DDURABLE_DATA'])
 
+
 Export('mainEnv')
 
+#print "CXX = ", mainEnv.subst('$CXX')
+print "CCFLAGS = ", mainEnv.subst('$CCFLAGS')
+print  "LINKFLAGS = ", mainEnv.subst('$LINKFLAGS')
 # Build stuff 
 SConscript('src/SConscript', variant_dir = 'build/src')
-SConscript('tool/SConscript', variant_dir = 'build/tool')
 SConscript('bench/SConscript', variant_dir = 'build/bench')
 
 # Run tests
-SConscript('test/SConscript', variant_dir = os.path.join('build/test'))
+#SConscript('test/SConscript', variant_dir = os.path.join('build/test'))

@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "cfs/server/namespace.h"
 #include <assert.h>
 #include <fcntl.h>

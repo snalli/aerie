@@ -18,7 +18,7 @@ scm_memcpy(void *dst, const void *src, size_t n)
 
 	if (size < CACHELINE_SIZE) {
 		ret = memcpy(dst, src, n);
-		ScmFlushFence(dst);
+		ScmFlush(dst); // insight : Scmflush calls emulate_latency
 		return ret;
 	}
 
@@ -34,6 +34,10 @@ scm_memcpy(void *dst, const void *src, size_t n)
 		daddr += 64 - offset;
 		size -= (64 - offset);
 	}
+	// insight : This loop can potentially be slowing us down
+	// Using the call graph, this is where i come to
+	// If i manage to optimize this routine then may be i can
+	// optimize the whole stack !!!
 	while(size >= 64) {
 		val = ((scm_word_t *) saddr);
 		asm_sse_write_block64((uintptr_t *) daddr, val);

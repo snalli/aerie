@@ -4,7 +4,7 @@
 #include "bcs/bcs.h"
 #include "osd/main/client/lckmgr.h"
 #include "common/hrtime.h"
-
+#include "pxfs/client/cache.h"
 
 namespace osd {
 namespace cc {
@@ -16,17 +16,20 @@ namespace client {
  * Downgrade:
  *
  * SR --> SL 
+ * (Shared recursive to Shared Local)
  * upgrade each child's local SL lock to a base SR lock 
  * 
  * OR? 
  *
  * SR --> IXSL
+ * (Shared Recursive to Intention exclusive shared local)
  * we need this downgrade if we want to prevent someone from 
  * getting the base lock at SR. I don't think we need this 
  * because the children lock at SR to allow this downgrade 
  * to happen.
  *
  * XR --> IXSL
+ * (Exclusive recursive to Intention exclusive shared local)
  * upgrade each child's IXSL lock to a base XR lock
  *
  * all other downgrades require releasing the subtree of locks
@@ -108,6 +111,7 @@ HLock::HLock(LockId lid)
 	  owner_depth_(0),
 	  status_(NONE)
 {
+	//insight : Constructor
 	pthread_mutex_init(&mutex_, NULL);
 	pthread_cond_init(&status_cv_, NULL);
 	pthread_cond_init(&used_cv_, NULL);
@@ -145,6 +149,7 @@ HLock::BeginConverting(bool lock)
 	while (!(status_ == HLock::FREE || 
 	         status_ == HLock::LOCKED)) 
 	{
+	//insight : Why do we wait when the lock is free ?
 		pthread_cond_wait(&status_cv_, &mutex_);
 	}
 	if (status_ == HLock::LOCKED) {
@@ -217,7 +222,7 @@ HLock::WaitStatus(LockStatus old_sts)
 	return 0;
 }
 
-
+// insight : HLockManager Constructor
 HLockManager::HLockManager(LockManager* lm)
 	: status_(NONE),
 	  hcb_(NULL),
@@ -630,6 +635,7 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 	lock_protocol::status r = lock_protocol::NOENT;
 	lock_protocol::Mode   mode_granted;
 	LockId                lid = hlock->lid_;
+	int depth;
 	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d:%lu] Acquiring hierarchical lock %s (%s) under %s\n", id(), 
@@ -637,19 +643,23 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 	        phlock ? phlock->lid_.string().c_str(): "NULL");
 	
 	pthread_mutex_lock(&hlock->mutex_);
+	//insight : This is an example of a fine grained lock !
 	
 	hlock->sticky_ |= (flags & HLock::FLG_STICKY);
 
 check_state:
 	switch (hlock->status()) {
+lock_compatible :
 		case HLock::FREE:
 			// great! no one is using the lock
 			if (hlock->lock_) {
-				DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr),
-			            "[%d:%lu] trying to acquire locally free hierarchical lock %s at mode %s (base lock mode %s, hlock mode %s): "
-					    "grant to thread %lu\n",
-			            id(), tid, lid.c_str(), mode.String().c_str(),
-			            hlock->lock_->public_mode_.String().c_str(), hlock->mode_.String().c_str(), tid);
+
+					DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr),
+				            "[%d:%lu] trying to acquire locally free hierarchical lock %s at mode %s (base lock mode %s, hlock mode %s): "
+						    "grant to thread %lu\n",
+			        	    id(), tid, lid.c_str(), mode.String().c_str(),
+			            	hlock->lock_->public_mode_.String().c_str(), hlock->mode_.String().c_str(), tid);
+
 				if (mode < hlock->mode_) {
 					// silent acquisition covered by private mode
 					hlock->owner_ = tid;
@@ -683,10 +693,13 @@ check_state:
 				// FIXME: What if the old parent (hlock->parent_) is different from
 				// the new parent (phlock)?
 				if (hlock->parent_) {
+		
 					if (lock_protocol::Mode::AbidesRecursiveRule(mode, 
 						   hlock->ancestor_recursive_mode_))
 					{
+						
 						hlock->mode_ = lock_protocol::Mode::Supremum(hlock->mode_, mode);
+						
 						assert(lock_protocol::Mode::AbidesRecursiveRule(hlock->mode_, hlock->ancestor_recursive_mode_));
 						hlock->owner_ = tid;
 						hlock->owner_depth_ = 1;
@@ -733,25 +746,42 @@ check_state:
 				pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
 			}
 			goto check_state;	// Status changed. Re-check.
+
 		case HLock::LOCKED:
-			if (hlock->owner_ == tid) {
-				// current thread has already obtained the lock
-				DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
+
+	
+
+					// insight : revert point
+					if (hlock->owner_ == tid) {
+					// current thread has already obtained the lock
+					DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 				        "[%d:%lu] current thread already got lock %s\n",
 				        id(), tid, lid.c_str());
-				hlock->owner_depth_++;
-				r = lock_protocol::OK;
-			} else {
-				if (flags & Lock::FLG_NOBLK) {
-					r = lock_protocol::RETRY;
-					break;
+			
+
+					// revert point : 
+					hlock->owner_depth_++;
+					r = lock_protocol::OK;
+				} else {
+					if (flags & Lock::FLG_NOBLK) {
+						r = lock_protocol::RETRY;
+						break;
+					}
+						// issue the lock
+						//if (lock_protocol::Mode::Compatible(hlock->mode_, mode) == 1)  { //check compatibility
+
+						while (hlock->status() == HLock::LOCKED) {
+							pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
+							// insight : Even when the lock_protocol::Mode == SL
+							// the contenders have to wait.
+							// This is alright as we are not doing hierarchial locking
+							// we are doing spider locking. We do not have to go
+							// thorugh this muck of hlock mgr for spider locking.
+						}
+						goto check_state;	// Status changed. Re-check.
 				}
-				while (hlock->status() == HLock::LOCKED) {
-					pthread_cond_wait(&hlock->status_cv_, &hlock->mutex_);
-				}
-				goto check_state;	// Status changed. Re-check.
-			}
 			break;
+
 		case HLock::NONE:
 			DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr),
 			        "[%d:%lu] Hierarchical lock %s not available; acquiring now\n",
@@ -811,11 +841,12 @@ done:
 	return r;
 }
 
-
+// insight : Here is the lock function.
 lock_protocol::status
 HLockManager::Acquire(HLock* hlock, lock_protocol::Mode mode, int flags)
 {
 	lock_protocol::status r;
+	s_log("[%ld] HLockManager::%s (1)", s_tid, __func__);
 
 	r = AcquireInternal(pthread_self(), hlock, NULL, mode, flags);
 	return r;
@@ -826,6 +857,7 @@ lock_protocol::status
 HLockManager::Acquire(HLock* hlock, HLock* phlock, lock_protocol::Mode mode, int flags)
 {
 	lock_protocol::status r;
+	s_log("[%ld] HLockManager::%s (2)", s_tid, __func__);
 	r = AcquireInternal(pthread_self(), hlock, phlock, mode, flags);
 	return r;
 }
@@ -892,16 +924,21 @@ HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 {
 	lock_protocol::status r = lock_protocol::OK;
 	LockId                lid = hlock->lid_;
+	int depth;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d:%lu] Releasing hierarchical lock %s\n", id(), tid, lid.c_str()); 
-	
+
+
 	if (hlock->owner_ == tid) {
 		if (--hlock->owner_depth_ == 0) {
 			if (hlock->status() == HLock::LOCKED_CONVERTING) {
 				hlock->set_status(HLock::CONVERTING);
 			} else {
 				hlock->set_status(HLock::FREE);
+				// revert point
+				hlock->mode_ = lock_protocol::Mode::NL;
+				// insight : Change the mode to NL !
 			}
 		}
 	} else {

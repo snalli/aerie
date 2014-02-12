@@ -16,9 +16,9 @@ Import('scmLibrary')
 Import('bcsClientLibrary')
 Import('osdClientLibrary')
 
-osdClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
-vfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
-pxfsClientDepLibs = [fscLibrary, mfsClientLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+osdClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+vfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
+pxfsClientDepLibs = [mfsClientLibrary, fscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 cfsClientDepLibs = [cfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 rxfsClientDepLibs = [rxfscLibrary, bcsClientLibrary, osdClientLibrary, scmLibrary, commonLibrary]
 
@@ -32,3 +32,15 @@ vfsUbenchProgram = buildEnv.Program('ubench_vfs', commonObject + vfsObject, LIBS
 pxfsUenchProgram = buildEnv.Program('ubench_pxfs', commonObject + pxfsObject, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
 cfsUbenchProgram = buildEnv.Program('ubench_cfs', commonObject + cfsObject, LIBS=['pthread', 'rt'] + cfsClientDepLibs)
 rxfsUbenchProgram = buildEnv.Program('ubench_rxfs', commonObject + rxfsObject, LIBS=['pthread', 'rt'] + rxfsClientDepLibs)
+
+clientObject01 = buildEnv.Object(['clt01.cc'])
+clientProgram01 = buildEnv.Program('clt01', clientObject01 + pxfsObject, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
+
+clientObject02 = buildEnv.Object(['clt02.cc'])
+clientProgram02 = buildEnv.Program('clt02', clientObject02 + pxfsObject, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)
+
+clientObject03 = buildEnv.Object(['clt03.cc'])
+clientProgram03 = buildEnv.Program('clt03', clientObject03 , LIBS=['pthread', 'rt'] )
+
+readObject = buildEnv.Object(['read.cc'])
+readProgram = buildEnv.Program('read', readObject + pxfsObject, LIBS=['pthread', 'rt'] + pxfsClientDepLibs)

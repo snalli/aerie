@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "pxfs/client/file.h"
 #include <iostream>
 #include "pxfs/client/client_i.h"
@@ -19,6 +21,8 @@ namespace client {
 int 
 File::Init(Inode* ip, int flags)
 {
+	
+	//printf("\n Sanketh : Inside File::Init...\n");
 	if (flags & O_APPEND) {
 		append_ = true;
 	}
@@ -39,15 +43,18 @@ File::Init(Inode* ip, int flags)
 int 
 File::Write(client::Session* session, const char* src, uint64_t n)
 {
+	////printf("\n Sanketh : Inside File::Write...\n");
 	int      ret;
 	uint64_t size;
 
 	if (writable_ == false) {
 		return -1;
 	}
-
+	s_log("[%ld] File::%s",s_tid, __func__);
 	pthread_mutex_lock(&mutex_);
 	ip_->Lock(session, lock_protocol::Mode::XL);
+	// insight : You should have removed the compatibility check for locks
+	// from the lock manager !
 	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Message::LogicalOperation::Write(ip_->ino());
 	if (append_) {
@@ -56,6 +63,7 @@ File::Write(client::Session* session, const char* src, uint64_t n)
 	}
 	if ((ret = ip_->Write(session, const_cast<char*>(src), off_, n)) > 0) {
 		off_ += ret;
+		// insight : off_ is simply a variable to keep track of where our last write ended !
 	}
 	session->journal()->TransactionCommit();
 	ip_->Unlock(session);
@@ -152,7 +160,10 @@ File::Seek(client::Session* session, uint64_t offset, int whence)
 int 
 File::Release() 
 {
+        s_log("[%ld] File::%s",s_tid, __func__);
+
 	ip_->Put();
+        //s_log("[%ld] (R) File::%s",s_tid, __func__);
 	return E_SUCCESS;
 } 
 
@@ -163,9 +174,11 @@ File::Release()
 int 
 FileManager::Init()
 {
+//	printf("\nInitializing File Manager...");
 	fdset_.resize(fdmax_ - fdmin_ + 1);
 	ftable_.resize(fdmax_ - fdmin_ + 1);
 	pthread_mutex_init(&mutex_, NULL);
+//	printf("\nSUCCESS");
 	return E_SUCCESS;
 }
 
@@ -203,6 +216,7 @@ FileManager::AllocFd(int start)
 	int                                fd;
 	boost::dynamic_bitset<>::size_type first_bit_zero;
 
+//	printf("\n @ Allocating fd");
 	first_bit_zero = find_first_zero(fdset_, start);
 	if (first_bit_zero == boost::dynamic_bitset<>::npos) {
 		return -1;
@@ -222,8 +236,9 @@ FileManager::AllocFd(File* fp)
 {
 	int fd;
 
+//	printf("\n @ Allocating fd");
 	pthread_mutex_lock(&mutex_);
-	if ((fd = AllocFd(0)) < 0) {
+	if ((fd = AllocFd(0)) < 0) { // insight : I don't understand this.
 		pthread_mutex_unlock(&mutex_);
 		return -1;
 	}
@@ -237,6 +252,7 @@ FileManager::AllocFd(File* fp)
 int 
 FileManager::AllocFile(File** fpp)
 {
+//	printf("\n @ Allocating fp");
 	*fpp = new File();
 	(*fpp)->ref_ = 1;
 	return 0;
@@ -246,7 +262,10 @@ FileManager::AllocFile(File** fpp)
 int 
 FileManager::ReleaseFile(File* fp)
 {
+        s_log("[%ld] FileManager::%s",s_tid, __func__);
+
 	fp->Release();
+        //s_log("[%ld] (R) FileManager::%s",s_tid, __func__);
 	delete fp;
 	return 0;
 }
@@ -303,6 +322,8 @@ FileManager::Put(int fd)
 {
 	File* fp;
 
+        s_log("[%ld] FileManager::%s %d",s_tid, __func__, fd);
+
 	if (fd > fdmax_ || fd < fdmin_) {
 		return -E_KVFS;
 	}
@@ -324,7 +345,9 @@ FileManager::Put(int fd)
 	// ref is 0, release the File object
 	// we no longer need to hold the manager mutex as the file object
 	// is unreachable.
-	return ReleaseFile(fp);
+	int ret = ReleaseFile(fp);
+        //s_log("[%ld] (R) FileManager::%s %d",s_tid, __func__, fd);
+	return ret;
 }
 
 

@@ -29,9 +29,9 @@ class ObjectManager; // forward declaration
 class ObjectManagerOfType {
 friend class ObjectManager;
 public:
-	virtual ObjectProxy* Load(OsdSession* session, ObjectId oid) = 0;
+	virtual ObjectProxy* Load(OsdSession* session, ObjectId oid) = 0; // insight : oid gets used here !!
 	virtual void Close(OsdSession* session, ObjectId oid, bool update) = 0;
-	virtual void CloseAll(OsdSession* session, bool update) = 0;
+	virtual void CloseAll(OsdSession* session, bool update, bool flush = false) = 0;
 
 protected:	
 	ObjectMap oid2obj_map_;
@@ -52,7 +52,7 @@ public:
 	int PutObject(OsdSession* session, osd::common::ObjectProxyReference& obj_ref);
 	int CloseObject(OsdSession* session, ObjectId oid, bool update);
 	int id() { return id_; }
-	void CloseAllObjects(OsdSession* session, bool update);
+		void CloseAllObjects(OsdSession* session, bool update, bool flush = false);
 
 	// call-back methods
 	void PreDowngrade();

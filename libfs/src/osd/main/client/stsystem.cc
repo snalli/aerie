@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "osd/main/client/stsystem.h"
 #include "common/errno.h"
 #include "scm/pool/pool.h"
@@ -7,6 +9,7 @@
 #include "osd/main/client/hlckmgr.h"
 #include "osd/main/client/registry.h"
 #include "osd/main/client/shbuf.h"
+#include <stdio.h>
 
 namespace osd {
 namespace client {
@@ -14,6 +17,7 @@ namespace client {
 int
 StorageSystem::Init()
 {
+//	printf("\nIntializing Storage System...");
 	if ((lckmgr_ = new ::osd::cc::client::LockManager(ipc_)) == NULL) {
 		return -E_NOMEM;
 	}
@@ -41,6 +45,7 @@ StorageSystem::Init()
 		delete salloc_;
 		return -E_NOMEM;
 	}
+//	printf("\nSUCCESS");
 	return E_SUCCESS;
 }
 

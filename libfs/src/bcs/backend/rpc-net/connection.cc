@@ -403,6 +403,8 @@ connect_to_dst(const sockaddr_in &dst, chanmgr *mgr, int lossy)
 	int s= socket(AF_INET, SOCK_STREAM, 0);
 	int yes = 1;
 	setsockopt(s, IPPROTO_TCP, TCP_NODELAY, &yes, sizeof(yes));
+//[5866] CRITICAL in connect_to_dst <build/src/bcs/backend/rpc-net/connection.cc,408>: rpcc::connect_to_dst failed to 127.0.0.1:10000
+//
 	if(connect(s, (sockaddr*)&dst, sizeof(dst)) < 0) {
 		jsl_log(JSL_DBG_1, "rpcc::connect_to_dst failed to %s:%d\n", 
 				inet_ntoa(dst.sin_addr), (int)ntohs(dst.sin_port));

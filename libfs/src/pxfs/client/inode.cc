@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "pxfs/client/inode.h"
 #include "common/errno.h"
 #include "bcs/bcs.h"
@@ -5,13 +7,7 @@
 
 namespace client {
 
-Inode::Inode()
-	: ref_(NULL),
-	  refcnt_(0),
-	  sb_(NULL)
-{ 
-	pthread_mutex_init(&mutex_, NULL);
-}
+
 
 int 
 Inode::Get() 
@@ -34,6 +30,7 @@ Inode::Put()
 	assert(refcnt_>0); 
 	refcnt_--; 
 	pthread_mutex_unlock(&mutex_);
+        //s_log("[%ld] %s %d",s_tid, __func__, refcnt_);
 	return 0; 
 }
 

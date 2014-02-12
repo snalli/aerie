@@ -1,6 +1,9 @@
-#include "pxfs/client/backend.h"
+#define  __CACHE_GUARD__
+
 #include "pxfs/mfs/client/sb_factory.h"
 #include "pxfs/mfs/client/inode_factory.h"
+
+#include "pxfs/client/backend.h"
 
 namespace mfs {
 namespace client {

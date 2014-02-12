@@ -2,11 +2,9 @@
 #include "osd/main/server/session.h"
 #include "osd/main/server/shbuf.h"
 #include "osd/main/server/salloc.h"
-#include "osd/main/server/stats.h"
 #include "osd/main/common/publisher.h"
 #include "common/errno.h"
 #include "common/util.h"
-#include "common/hrtime.h"
 #include "bcs/main/common/cdebug.h"
 #include "bcs/bcs.h"
 
@@ -68,16 +66,12 @@ Publisher::Publish(OsdSession* session)
 	int                                    ret;
 	char                                   buf[512];
 	int                                    n;
-	osd::Publisher::Message::BaseMessage*  msg;
-	osd::Publisher::Message::BaseMessage   next;
+	osd::Publisher::Message::BaseMessage* msg;
+	osd::Publisher::Message::BaseMessage  next;
 	LogicalOperation                       lgc_op;
-	hrtime_t                               start;
-	hrtime_t                               stop;
-
+	
 	dbg_log(DBG_INFO, "PUBLISH\n");
-	STATISTICS_INC(publish);
 
-	start = hrtime_cycles();
 	OsdSharedBuffer* shbuf = session->shbuf_;
 	shbuf->Acquire();
 	while (shbuf->Read(buf, sizeof(*msg))) {
@@ -89,11 +83,9 @@ Publisher::Publish(OsdSession* session)
 					ret = -1;
 					goto done;
 				}
-				session->journal()->TransactionBegin(0);
 				break;
 			} 
 			if (msg->type_ == osd::Publisher::Message::kTransactionCommit) {
-				session->journal()->TransactionCommit();
 				break;
 			} 
 			if (msg->type_ == osd::Publisher::Message::kLogicalOperation) {
@@ -121,8 +113,6 @@ Publisher::Publish(OsdSession* session)
 	}
 	ret = E_SUCCESS;
 done:
-	stop = hrtime_cycles();
-	STATISTICS_INC_BY(publish_time, stop - start);
 	if (ret != E_SUCCESS) {
 		dbg_log(DBG_INFO, "FAILED VALIDATION FOR CLIENT %d\n", session->clt());
 	}

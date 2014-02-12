@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "cfs/server/session.h"
 #include "osd/main/server/osd.h"
 #include "osd/main/server/session.h"

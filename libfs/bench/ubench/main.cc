@@ -79,6 +79,7 @@ main(int argc, char *argv[])
 	principal_id = getuid();
 
 	RegisterUbench();
+	//printf("\n Sanketh : Return from ubench RegisterUbench() : %d \n", RegisterUbench());
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '+') {
 			if (ubench_cnt>0) {
@@ -132,7 +133,8 @@ main(int argc, char *argv[])
 	if ((ret = Init(debug_level, xdst)) < 0) {
 		return ret;
 	}
-
+	//printf("\n Sanketh : Return from ubench Init() : %d \n", ret);
+	//printf("\n Sanketh : ubench_cnt = %d \n", ubench_cnt);
 	for (int i=0; i < ubench_cnt; i++) {
 		printf("Invoking %s...\n", ubench[i].name);
 		if ((ret = ubench[i].function(ubench[i].argc, ubench[i].argv)) < 0) {
@@ -140,8 +142,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	ShutDown();
 
+	//printf("\n Sanketh : Return from ubench ShutDown() : %d \n", ShutDown());
 	if (ret < 0) {
 		fprintf(stderr, "FAILURE\n");
 	}

@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "osd/containers/super/container.h"
 #include <stdint.h>
 #include "common/errno.h"

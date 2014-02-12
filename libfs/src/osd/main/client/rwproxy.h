@@ -29,7 +29,11 @@ template<class Subject, class VersionManager>
 class ObjectManager: public osd::client::ObjectManagerOfType {
 public:
 	osd::client::ObjectProxy* Load(OsdSession* session, ObjectId oid) {
+		// insight : DO ME : Verify that here is where new object proxy is created
+//		printf("\nVerifying 1. Inside ObjectManager::Load...");
+		// insight : oid gets used here 
 		osd::client::ObjectProxy* proxy = new ObjectProxy<Subject, VersionManager>(session, oid);
+		// insight : For ObjectProxy, see below
 		return proxy;
 	}
 	
@@ -41,7 +45,8 @@ public:
 		assert(obj_proxy->vClose(session, update) == E_SUCCESS);
 	}
 	
-	void CloseAll(OsdSession* session, bool update) {
+	void CloseAll(OsdSession* session, bool update, bool flush = false) 
+	{
 		ObjectProxy<Subject, VersionManager>* obj_proxy;
 		osd::client::ObjectProxy*             obj2_proxy;
 		ObjectMap::iterator                   itr;
@@ -51,13 +56,14 @@ public:
 			DBG_LOG(DBG_DEBUG, DBG_MODULE(client_omgr), "Close object: %lx\n", 
 			        obj2_proxy->object()->oid().u64());
 			obj_proxy = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2_proxy);
-			assert(obj_proxy->vClose(session, update) == E_SUCCESS);
+			assert(obj_proxy->vClose(session, update, flush) == E_SUCCESS);
 		}
 	}
 };
 
 
 template<class Subject, class VersionManager>
+// insight : osd::client::rw 
 class ObjectProxyReference: public osd::common::ObjectProxyReference {
 public:
 	ObjectProxyReference(void* owner = NULL)
@@ -65,8 +71,10 @@ public:
 	{ }
 
 	ObjectProxy<Subject, VersionManager>* proxy() { 
+//		printf("\nInside osd::client::rw::ObjectProxyReference::proxy().");
 		return static_cast<ObjectProxy<Subject, VersionManager>*>(proxy_);
 	}
+//	void printme() { printf("\n* Hailing from ObjectProxyReference."); }
 };
 
 
@@ -78,11 +86,17 @@ public:
  */
 template<class Subject, class VersionManager>
 class ObjectProxy: public osd::vm::client::ObjectProxy< ObjectProxy<Subject, VersionManager>, Subject, VersionManager> {
+// insight : Due to its inheritance, this class gets vm_ member
+// insight : Checkout osd/main/client/proxy.h
+// insight : namspace : osd::client:rw
 public:
 	ObjectProxy(OsdSession* session, ObjectId oid)
 		: osd::vm::client::ObjectProxy<ObjectProxy<Subject, VersionManager>, Subject, VersionManager>(session, oid),
 	      session_(session)
-	{ }
+	{
+		// insight : DO ME : verify if this is the ObjectProxy constructor getting called when creating a new object.
+//		printf("\nVerifying 2 : Inside ObjectProxy()...");
+	}
 
 	int Lock(OsdSession* session, lock_protocol::Mode mode) {
 		int ret;
@@ -113,6 +127,7 @@ public:
 		// TODO: check if object is private or public. if public then unlock. 
 		return osd::cc::client::ObjectProxy::Unlock(session);
 	}
+// ~ObjectProxy() { printf("\n + Destroying ObjectProxy 004. in src/osd/main/client/rwproxy.h");}
 
 private:
 	OsdSession* session_;

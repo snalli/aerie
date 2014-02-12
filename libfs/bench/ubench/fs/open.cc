@@ -35,7 +35,6 @@ __ubench_fs_open(const char* root, int numops)
 		path[i] = new std::string(ss.str());
 	}
 
-	//system("echo 2 >> /proc/sys/vm/drop_caches"); // to measure with cold inode and dentry cache
 
 	MEASURE_TIME_START
 

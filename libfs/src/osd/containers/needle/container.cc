@@ -1,3 +1,5 @@
+#define  __CACHE_GUARD__
+
 #include "osd/containers/needle/container.h"
 #include <stdint.h>
 #include <inttypes.h>
@@ -63,3 +65,4 @@ NeedleContainer::VersionManager::Size(OsdSession* session)
 } // namespace osd
 } // namespace containers
 } // namespace client
+

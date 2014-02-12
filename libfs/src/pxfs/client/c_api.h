@@ -43,6 +43,8 @@ ssize_t PXFS_FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offs
 off_t PXFS_FRONTAPI(lseek) (int fd, off_t offset, int whence);
 int PXFS_FRONTAPI(stat) (const char *path, struct stat *buf);
 int PXFS_FRONTAPI(sync) ();
+void PXFS_FRONTAPI(prefetch) ();
+void* PXFS_FRONTAPI(lock_cont) ();
 int PXFS_FRONTAPI(fsync) (int fd);
 
 

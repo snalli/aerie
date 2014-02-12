@@ -54,13 +54,15 @@ class NameContainer::VersionManager: public osd::vm::client::VersionManager<Name
 			: present(false)
 		{ }
 
-		Shadow(bool _present, osd::common::ObjectId _oid) 
+		Shadow(bool _present, osd::common::ObjectId _oid, void *_ip) 
 			: present(_present),
-			  oid(_oid)
+			  oid(_oid),
+			  ip(_ip)
 		{ }
 
 		bool                  present;
 		osd::common::ObjectId oid;
+		void 			*ip;
 	};
 
 	typedef google::dense_hash_map<std::string, Shadow> ShadowCache;
@@ -68,18 +70,27 @@ class NameContainer::VersionManager: public osd::vm::client::VersionManager<Name
 public:
 	VersionManager() 
 	{
+	//	printf("\n @ Inside VersionManager. from src/osd/containers/name/container.h");
 		entries_.set_empty_key("");
 		entries_.set_deleted_key("__#DELETED__KEY#__"); // this must not conflict with a real key
+		// insight : Tombstone
 	}
 
 	int vOpen();
 	int vUpdate(OsdSession* session);
 	
-	int Find(OsdSession* session, const char* name, osd::common::ObjectId* oidp);
-	int Insert(OsdSession* session, const char* name, osd::common::ObjectId oid);
+	int Find(OsdSession* session, const char* name, osd::common::ObjectId* oidp, void *ip = NULL);
+	int Insert(OsdSession* session, const char* name, osd::common::ObjectId oid, void *ip = NULL);
 	int Erase(OsdSession* session, const char* name);
 
 	int Size(OsdSession* session);
+
+	struct dentry {
+                char key[128];
+                uint64_t val;
+                struct dentry *next_dentry;
+        };
+        int return_dentry(void *);
 
 	// do we need these?
 	// int Find(::client::Session* session, const char* name, NameContainer::Reference* oref);

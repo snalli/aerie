@@ -4,23 +4,39 @@ Import('mainEnv')
 buildEnv = mainEnv.Clone()
 buildEnv.Append(CPPDEFINES = ['-D__STDC_FORMAT_MACROS'])
 buildEnv.Append(CPPPATH = ['#src'])
-buildEnv.Append(LIBS = ['config', 'rt'])
+buildEnv.Append(LIBS = ['config'])
 
 Export('buildEnv')
 
-rpcNetLibrary, rpcLibrary, bcsClientLibrary, bcsServerLibrary = SConscript('bcs/SConscript')
+rpcNetLibrary, rpcLibrary, bcsClientLibrary, bcsServerLibrary, bcs_lib_objs, rpcnetStaticLib, rpcfastStaticLib = SConscript('bcs/SConscript')
 Export('rpcNetLibrary')
 Export('rpcLibrary')
 Export('bcsClientLibrary')
 Export('bcsServerLibrary')
-scmLibrary = SConscript('scm/SConscript')
+
+scmLibrary, scm_lib_objs = SConscript('scm/SConscript')
 Export('scmLibrary')
-commonLibrary = SConscript('common/SConscript')
+Export('scm_lib_objs')
+
+commonLibrary, common_lib_objs = SConscript('common/SConscript')
 Export('commonLibrary')
-osdClientLibrary, osdServerLibrary = SConscript('osd/SConscript')
+Export('common_lib_objs')
+
+osdClientLibrary, osdServerLibrary, osdclt_lib_objs = SConscript('osd/SConscript')
 Export('osdClientLibrary')
+Export('osdclt_lib_objs')
 Export('osdServerLibrary')
+
+
 SConscript('pxfs/SConscript')
 SConscript('rxfs/SConscript')
-SConscript('kvfs/SConscript')
+#SConscript('kvfs/SConscript')
 SConscript('cfs/SConscript')
+
+Import('mfsclt_lib_objs')
+Import('fsc_lib_objs')
+Import('rxfsc_lib_objs')
+pxfs_objs = bcs_lib_objs + scm_lib_objs + common_lib_objs + osdclt_lib_objs + mfsclt_lib_objs + fsc_lib_objs + rxfsc_lib_objs
+pxfsLibrary = buildEnv.StaticLibrary(target = 'pxfs', source = pxfs_objs)
+Export('pxfsLibrary')
+
