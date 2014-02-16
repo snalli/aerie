@@ -3445,8 +3445,29 @@ int handle_pte_fault(struct mm_struct *mm,
 		   pte is present but rw bit is not set. 
 		   So, any write access would trap into the OS.
  		*/
-		printk(KERN_ERR"fault: address %lx entry %lx", address, *pte);
-		return VM_FAULT_PERS_PROT; 
+		/*
+		 * Check if the page exists in memory by checking if the pte exists
+		 * Check if it is writable page table, Kernel shd have methods for this
+		 * Check if it is writable in page_prot_map.
+		 * 
+		 **/	
+		/*if (pte_present(entry))
+		{ 
+			printk(KERN_ERR"Sanketh : pte for %lx is present", address);
+			if (pte_write(entry) == _PAGE_RW)
+			printk(KERN_ERR"Sanketh : page for %lx is writable", address);
+		}
+		else
+		printk(KERN_ERR"Sanketh : pte for %lx is NOT present", address);
+		
+		
+		printk(KERN_ERR"fault(2.1): address %lx entry %lx native_pte_val %llX \
+                native_pte_val | RW %llX, _PAGE_RW %llx", address, *pte, native_pte_val(entry), native_pte_val(pte_mkwrite(entry)), _PAGE_RW);
+		*/
+
+		return do_persistent_fault(mm, vma, address,
+				pte, pmd, flags);
+		//return VM_FAULT_PERS_PROT; 
 	}
 
 	ptl = pte_lockptr(mm, pmd);
