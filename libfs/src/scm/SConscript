@@ -1,14 +1,19 @@
 Import('buildEnv')
 localBuildEnv = buildEnv.Clone()
+scmLibraryBuildEnv = buildEnv.Clone()
 
 lib_target = 'scm'
-lib_sources = [
-               'scm/scm.cc',
+
+scm_sources = [
+               'scm/model.cc',
                'scm/memcpy.cc',
-	       'pregion/pregion.cc',
-               'pheap/pheap.cc',
-               'pheap/vistaheap.c'	       
               ]
+
+pool_sources = [
+                'pregion/pregion.cc',
+                'pheap/pheap.cc',
+                'pheap/vistaheap.c'	       
+               ]
 
 pool_user_sources = [
                      'pool/user/pool.cc'
@@ -20,13 +25,14 @@ pool_kernel_sources = [
                        'pool/kernel/buddy.cc'
                       ]
 
-#lib_sources += pool_user_sources
-lib_sources += pool_kernel_sources
+#pool_sources += pool_user_sources
+pool_sources += pool_kernel_sources
 
-scmLibrary = localBuildEnv.SharedLibrary(target = lib_target, source = lib_sources)
-scm_lib_objs = localBuildEnv.Object(lib_sources)
+scm_lib_objs = scmLibraryBuildEnv.Object(scm_sources)
+pool_objs = scmLibraryBuildEnv.Object(pool_sources)
+scmLibrary = scmLibraryBuildEnv.SharedLibrary(target = lib_target, source = scm_sources + pool_sources)
 
 localBuildEnv.Append(LIBS = ['pthread'])
-localBuildEnv.Program(target = 'tool/pool/pool', source = lib_sources + ['tool/pool/main.cc', 'tool/pool/mkpool.cc'])
+localBuildEnv.Program(target = 'tool/pool/pool', source = pool_objs + ['tool/pool/main.cc', 'tool/pool/mkpool.cc'])
 
 Return('scmLibrary', 'scm_lib_objs')

@@ -60,6 +60,13 @@ static inline void asm_sse_write_block64(volatile scm_word_t *addr, scm_word_t *
 }
 
 
+static inline void asm_sse_write(volatile void *dst, uint64_t val)
+{
+	uint64_t* daddr = (uint64_t*) dst;
+	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*daddr): "r" (val));
+}
+
+
 static inline void asm_movnti(volatile scm_word_t *addr, scm_word_t val)
 {
 	__asm__ __volatile__ ("movnti %1, %0" : "=m"(*addr): "r" (val));

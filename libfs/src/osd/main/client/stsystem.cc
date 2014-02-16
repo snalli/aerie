@@ -3,6 +3,7 @@
 #include "osd/main/client/stsystem.h"
 #include "common/errno.h"
 #include "scm/pool/pool.h"
+#include "scm/scm/scm.h"
 #include "osd/main/client/salloc.h"
 #include "osd/main/client/omgr.h"
 #include "osd/main/client/lckmgr.h"
@@ -17,6 +18,8 @@ namespace client {
 int
 StorageSystem::Init()
 {
+	ScmModel::Init();
+
 //	printf("\nIntializing Storage System...");
 	if ((lckmgr_ = new ::osd::cc::client::LockManager(ipc_)) == NULL) {
 		return -E_NOMEM;

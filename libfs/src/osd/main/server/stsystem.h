@@ -109,6 +109,8 @@ StorageSystemT<Session>::Init()
 {
 	int ret;
 
+	ScmModel::Init();
+
 	if (ipc_) {
 		if ((ret = ipc_handlers_.Register(this)) < 0) {
 			return ret;

@@ -103,7 +103,7 @@ ByteInterval::WriteBlockNoRegion(OsdSession* session, char* src, uint64_t bn, in
 	}
 
 	//memmove(&bp[off], src, n);
-	scm_memcpy(&bp[off], src, n);
+	ScmMemCopy(&bp[off], src, n);
 	return n;
 }
 
@@ -510,7 +510,7 @@ ByteContainer::VersionManager::WriteImmutable(OsdSession* session,
 			// pinode already points to a block, therefore we do an in-place write
 			assert(bcount == 1);
 			//memmove(&ptr[f], &src[tot], m);
-			scm_memcpy(&ptr[f], &src[tot], m);
+			ScmMemCopy(&ptr[f], &src[tot], m);
 		}
 
 		f = 0; // after the first block is written, each other block is written 

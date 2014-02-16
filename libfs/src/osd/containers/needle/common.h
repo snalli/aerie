@@ -79,7 +79,7 @@ template<typename Session>
 int 
 NeedleContainer::Object<Session>::Write(Session* session, const char* src, uint64_t off, uint64_t n)
 {
-	scm_memcpy(byte_, src, n);
+	ScmMemCopy(byte_, src, n);
 	size_ = n;
 	return n;
 }
@@ -89,7 +89,7 @@ template<typename Session>
 int 
 NeedleContainer::Object<Session>::Read(Session* session, char* dst, uint64_t off, uint64_t n)
 {
-	scm_memcpy(dst, byte_, n);
+	ScmMemCopy(dst, byte_, n);
 	return n;
 }
 

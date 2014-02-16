@@ -189,17 +189,13 @@ static inline void asm_sse_write(volatile void *dst, uint64_t val)
 
 static
 void*
-scm_memcpy_internal(void *dst, const void *src, size_t n)
+ntmemcpy_noinline(void *dst, const void *src, size_t n)
 {
 	uintptr_t     saddr = (uintptr_t) src;
 	uintptr_t     daddr = (uintptr_t) dst;
 	uintptr_t     offset;
 	uint64_t*     val;
 	size_t        size = n;
-
-	if (size == 0) {
-		return dst;
-	}
 
 	// We need to align stream stores at cacheline boundaries
 	// Start with a non-aligned cacheline write, then proceed with
@@ -238,6 +234,19 @@ scm_memcpy_internal(void *dst, const void *src, size_t n)
 
 	return dst;
 }
+
+void* ntmemcpy_noinline(void *dst, const void *src, size_t n);
+
+// handle some special cases as inline for speed
+static inline void* ntmemcpy(void *dst, const void *src, size_t n)
+{
+	if (n == sizeof(uint64_t)) {
+		uint64_t val = *((uint64_t*) src);
+		asm_sse_write(dst, val);
+		return dst;
+        }
+        return ntmemcpy_noinline(dst, src, n);
+}
 	
 static
 void*
@@ -253,7 +262,7 @@ scm_memcpy_perfmodel(scm_t* scm, void *dst, const void *src, size_t n)
 #endif
 
 	start = gethrtime();
-	scm_memcpy_internal(dst, src, n);
+	ntmemcpy(dst, src, n);
 
 #ifdef SCMDISK_PERF_MODEL_ENABLE
 # ifdef SCMDISK_BANDWIDTH_MODEL_ENABLE

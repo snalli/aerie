@@ -63,7 +63,7 @@ Interval::WriteBlock(OsdSession* session, char* src, uint64_t bn, int off, int n
 	}
 
 	//memmove(&bp[off], src, n);
-	scm_memcpy(&bp[off], src, n);
+	ScmMemCpy(&bp[off], src, n);
 	return n;
 }
 

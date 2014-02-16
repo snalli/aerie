@@ -8,6 +8,8 @@
 
 typedef uint64_t scm_word_t;
 
+void* ntmemcpy(void *dst, const void *src, size_t n);
+
 #include "scm/scm/asm.h"
 
 extern int STAMNOS_SCM_LATENCY_WRITE;
@@ -17,16 +19,17 @@ extern int STAMNOS_SCM_LATENCY_WRITE;
 /* Hardware Cache */
 
 #ifdef __x86_64__
-# define CACHELINE_SIZE     64
-# define CACHELINE_SIZE_LOG 6
+# define CACHE_LINE_SIZE_LOG 6 // 64 bytes
 #else
-# define CACHELINE_SIZE     32
-# define CACHELINE_SIZE_LOG 5
+# define CACHE_LINE_SIZE_LOG 5 // 32 bytes
 #endif
 
 #define CACHEBLOCK_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & ~(CACHELINE_SIZE - 1)) )
 #define CACHEINDEX_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & (CACHELINE_SIZE - 1)) )
-
+#define CACHE_LINE_SIZE (1 << CACHE_LINE_SIZE_LOG)
+#define CACHE_LINE_OFFSET(addr) ( (uint64_t *) (((uint64_t) (addr)) & (CACHE_LINE_SIZE - 1)) )
+#define BLOCK_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & ~(CACHE_LINE_SIZE - 1)) )
+#define INDEX_ADDR(addr) ( (scm_word_t *) (((scm_word_t) (addr)) & (CACHE_LINE_SIZE - 1)) )
 
 
 
@@ -38,8 +41,19 @@ extern int STAMNOS_SCM_LATENCY_WRITE;
 #define unlikely(x)	__builtin_expect(!!(x), 0)
 
 
+class ScmModel {
+public:
+	static int Init();
 
-/* Public types */
+private:
+	class RuntimeConfig {
+		public:
+			static int Init();
+
+			static int scm_latency_write;
+	};
+};
+
 
 
 static inline
@@ -115,6 +129,14 @@ ScmFlush(volatile void *addr)
 	asm_clflush((volatile scm_word_t*) addr); 	
 	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
 	asm_mfence(); 
+}
+
+inline void* 
+ScmMemCopy(void *dst, const void *src, size_t n)
+{
+	void* ret = ntmemcpy(dst, src, n);
+	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
+	return ret;
 }
 
 
