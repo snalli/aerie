@@ -8,6 +8,7 @@
  * of their respective owners.
  */
 
+#include <linux/kobject.h>
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
@@ -28,6 +29,7 @@
 #define PAGE_SECTORS_SHIFT	(PAGE_SHIFT - SECTOR_SHIFT)
 #define PAGE_SECTORS		(1 << PAGE_SECTORS_SHIFT)
 
+extern int SCM_LATENCY_NS;
 extern int SCM_BANDWIDTH_MB;
 extern int DRAM_BANDWIDTH_MB;
 
@@ -267,6 +269,8 @@ static void copy_to_brd(struct brd_device *brd, const void *src,
 		scm_memcpy(brd->scm, dst, src, copy);
 		kunmap_atomic(dst, KM_USER1);
 	}
+
+	stat_aggr_uint64_add(&brd->scm->stat.bytes_written, n);
 }
 
 /*
@@ -571,64 +575,84 @@ static struct kobject *brd_probe(dev_t dev, int *part, void *data)
 }
 
 
-/* 
- * The function operations of the character device driver controlling the 
- * block device driver 
- */ 
-static int scmctrl_ioctl (struct inode *inode, struct file *filp,
-                          unsigned int cmd, unsigned long arg) 
+#define CONTROL_ARG_SHOW(arg)                                                \
+static ssize_t arg##_show(struct kobject *kobj, struct kobj_attribute *attr, \
+                        char *buf)                                           \
+{                                                                            \
+	return sprintf(buf, "%d\n", arg);                                    \
+}
+
+#define CONTROL_ARG_STORE(arg)                                               \
+static ssize_t arg##_store(struct kobject *kobj, struct kobj_attribute *attr,\
+                         const char *buf, size_t count)                      \
+{                                                                            \
+	sscanf(buf, "%du", &arg);                                            \
+	return count;                                                        \
+}
+
+#define CONTROL_ARG_ATTR(arg)                                                \
+static struct kobj_attribute arg##_attribute =                               \
+         __ATTR(arg, 0666, arg##_show, arg##_store);
+
+
+#define CONTROL_ARG(arg)                                                     \
+  CONTROL_ARG_SHOW(arg)                                                      \
+  CONTROL_ARG_STORE(arg)                                                     \
+  CONTROL_ARG_ATTR(arg)
+
+CONTROL_ARG(SCM_LATENCY_NS)
+CONTROL_ARG(SCM_BANDWIDTH_MB)
+CONTROL_ARG(DRAM_BANDWIDTH_MB)
+
+
+static ssize_t statistics_show(struct kobject *kobj, struct kobj_attribute *attr,
+                               char *buf)
 {
 	struct brd_device *brd;
 
-	if (cmd == SCMDISK_SET_SCM_BANDWIDTH) {
-		SCM_BANDWIDTH_MB = arg;
-		printk(KERN_INFO "SET SCM bandwidth: %lu\n", arg);
-		return 0;
-	}
+	list_for_each_entry(brd, &brd_devices, brd_list) {
+		scm_stat_print(brd->scm);
+	}	
 
-	if (cmd == SCMDISK_GET_SCM_BANDWIDTH) {
-		printk(KERN_INFO "GET SCM bandwidth: %d\n", SCM_BANDWIDTH_MB);
-		return SCM_BANDWIDTH_MB;
-	}
-
-	if (cmd == SCMDISK_SET_DRAM_BANDWIDTH) {
-		DRAM_BANDWIDTH_MB = arg;
-		printk(KERN_INFO "SET DRAM bandwidth: %lu\n", arg);
-		return 0;
-	}
-
-	if (cmd == SCMDISK_GET_DRAM_BANDWIDTH) {
-		printk(KERN_INFO "GET DRAM bandwidth: %d\n", DRAM_BANDWIDTH_MB);
-		return DRAM_BANDWIDTH_MB;
-	}
-
-	if (cmd == SCMDISK_RESET_STATISTICS) {
-		list_for_each_entry(brd, &brd_devices, brd_list) {
-			scm_stat_reset(brd->scm);
-		}	
-
-		return DRAM_BANDWIDTH_MB;
-	}
-
-	if (cmd == SCMDISK_PRINT_STATISTICS) {
-		list_for_each_entry(brd, &brd_devices, brd_list) {
-			scm_stat_print(brd->scm);
-		}	
-		return DRAM_BANDWIDTH_MB;
-	}
-
-	return 0;
+	return sprintf(buf, "%d\n", 0);
 }
 
+static ssize_t statistics_reset(struct kobject *kobj, struct kobj_attribute *attr,
+                                const char *buf, size_t count)
+{
+	struct brd_device *brd;
 
-struct file_operations scmctrl_fops = {
-	compat_ioctl: scmctrl_ioctl
+	// reset statistics
+	list_for_each_entry(brd, &brd_devices, brd_list) {
+		scm_stat_reset(brd->scm);
+	}	
+
+	return count;
+}
+
+static struct kobj_attribute statistics_attribute =
+         __ATTR(statistics, 0666, statistics_show, statistics_reset);
+
+
+static struct attribute *attrs[] = {
+	&SCM_LATENCY_NS_attribute.attr,
+	&SCM_BANDWIDTH_MB_attribute.attr,
+	&DRAM_BANDWIDTH_MB_attribute.attr,
+	&statistics_attribute.attr,
+	NULL,   
 };
 
+static struct attribute_group attr_group = {
+	.attrs = attrs,
+};
+
+
+static struct kobject *control_kobj;
 
 static int __init brd_init(void)
 {
 	int i, nr;
+	int ret;
 	unsigned long range;
 	struct brd_device *brd, *next;
 
@@ -679,7 +703,13 @@ static int __init brd_init(void)
 	if (register_blkdev(SCMDISK_MAJOR, "scmdisk"))
 		return -EIO;
 	
-	if (register_chrdev(SCMDISK_CONTROL_MAJOR, "scm-ctrl", &scmctrl_fops)) {
+	control_kobj = kobject_create_and_add("scm-ctrl", kernel_kobj);
+	if (!control_kobj) {
+		goto out_unregister_blockdev;
+	}
+	ret = sysfs_create_group(control_kobj, &attr_group);
+	if (ret) {
+		kobject_put(control_kobj);
 		goto out_unregister_blockdev;
 	}
 
@@ -706,7 +736,6 @@ out_free:
 		list_del(&brd->brd_list);
 		brd_free(brd);
 	}
-	unregister_chrdev(SCMDISK_CONTROL_MAJOR, "scm-ctrl");
 out_unregister_blockdev:
 	unregister_blkdev(SCMDISK_MAJOR, "scmdisk");
 
@@ -723,7 +752,8 @@ static void __exit brd_exit(void)
 	list_for_each_entry_safe(brd, next, &brd_devices, brd_list)
 		brd_del_one(brd);
 
-	unregister_chrdev(SCMDISK_CONTROL_MAJOR, "scm-ctrl");
+	kobject_put(control_kobj);
+
 	blk_unregister_region(MKDEV(SCMDISK_MAJOR, 0), range);
 	unregister_blkdev(SCMDISK_MAJOR, "scmdisk");
 }

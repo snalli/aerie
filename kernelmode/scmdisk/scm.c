@@ -7,11 +7,11 @@
 #include "scm.h"
 
 								  
-/* SCM write bandwidth */
-int SCM_BANDWIDTH_MB = 1200;
-
 /* SCM write latency */
 int SCM_LATENCY_NS = 150;
+
+/* SCM write bandwidth */
+int SCM_BANDWIDTH_MB = 1200;
 
 /* DRAM system peak bandwidth */
 int DRAM_BANDWIDTH_MB = 7000;
@@ -189,17 +189,13 @@ static inline void asm_sse_write(volatile void *dst, uint64_t val)
 
 static
 void*
-scm_memcpy_internal(scm_t* scm, void *dst, const void *src, size_t n)
+scm_memcpy_internal(void *dst, const void *src, size_t n)
 {
 	uintptr_t     saddr = (uintptr_t) src;
 	uintptr_t     daddr = (uintptr_t) dst;
 	uintptr_t     offset;
 	uint64_t*     val;
 	size_t        size = n;
-	scm_hrtime_t  start;
-	scm_hrtime_t  stop;
-	scm_hrtime_t  duration;
-	double        throughput;
 
 	if (size == 0) {
 		return dst;
@@ -210,7 +206,6 @@ scm_memcpy_internal(scm_t* scm, void *dst, const void *src, size_t n)
 	// a bunch of aligned writes, and then do a last non-aligned
 	// cacheline for the remaining data.
 
-	start = gethrtime();
 	if (size >= CACHE_LINE_SIZE) {
 		if ((offset = (uintptr_t) CACHE_LINE_OFFSET(daddr)) != 0) {
 			size_t nlivebytes = (CACHE_LINE_SIZE - offset);
@@ -237,11 +232,30 @@ scm_memcpy_internal(scm_t* scm, void *dst, const void *src, size_t n)
 		daddr+=sizeof(uint64_t);
 		size-=sizeof(uint64_t);
 	}
+
 	/* Now make sure data is flushed out */
 	asm_mfence();
 
+	return dst;
+}
+	
+static
+void*
+scm_memcpy_perfmodel(scm_t* scm, void *dst, const void *src, size_t n)
+{
+	size_t        size = n;
+	scm_hrtime_t  start;
+	scm_hrtime_t  stop;
+	scm_hrtime_t  duration;
+	double        throughput;
 #ifdef SCMDISK_PERF_MODEL_ENABLE
 	int extra_latency;
+#endif
+
+	start = gethrtime();
+	scm_memcpy_internal(dst, src, n);
+
+#ifdef SCMDISK_PERF_MODEL_ENABLE
 # ifdef SCMDISK_BANDWIDTH_MODEL_ENABLE
 	extra_latency = (int) size * (1-(float) (((float) SCM_BANDWIDTH_MB)/1000)/(((float) DRAM_BANDWIDTH_MB)/1000))/(((float)SCM_BANDWIDTH_MB)/1000);
 	spin_lock(&(scm->bwlock));
@@ -251,7 +265,6 @@ scm_memcpy_internal(scm_t* scm, void *dst, const void *src, size_t n)
 	extra_latency = SCM_LATENCY_NS;
 # endif
 	emulate_latency_ns(extra_latency);
-
 #endif
 	stop = gethrtime();
 	duration = stop - start;
@@ -265,6 +278,5 @@ scm_memcpy_internal(scm_t* scm, void *dst, const void *src, size_t n)
 void *
 scm_memcpy(scm_t *scm, void *dst, const void *src, size_t n) 
 {
-	return scm_memcpy_internal(scm, dst, src, n);
-	//return memcpy(dst, src, n);
+	return scm_memcpy_perfmodel(scm, dst, src, n);
 }

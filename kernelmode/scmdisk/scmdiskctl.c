@@ -9,6 +9,8 @@
 #include <getopt.h>
 #include "scmdisk.h"
 
+static char* scmctrl_path = "/sys/kernel/scm-ctrl/";
+
 
 void write_fs()
 {
@@ -29,71 +31,46 @@ void write_fs()
 	}
 }
 
-
-int
-set_scm_bw(int fd, int val)
+int scmctrl_read(char* var)
 {
-	int r;
+	FILE* file;
+	char  buf[512];
+	int   val;
 
-	if (val >=0) {
-		printf("Set SCM bandwidth: %d\n", val);
-		if ((r = ioctl(fd, SCMDISK_SET_SCM_BANDWIDTH, val)) < 0) {
-			goto err;
-		}
+	strcpy(buf, scmctrl_path);
+	strcat(buf, var);
+	if (file = fopen(buf, "r")) {
+		fscanf(file, "%d", &val);
+		return val;
 	}
-
-	return 0;
-err:
 	return -1;
 }
 
-int
-set_dram_bw(int fd, int val)
+void scmctrl_write(char* var, int val)
 {
-	int r;
+	FILE* file;
+	char  buf[512];
 
-	if (val >=0) {
-		printf("Set DRAM bandwidth: %d\n", val);
-		if ((r = ioctl(fd, SCMDISK_SET_DRAM_BANDWIDTH, val)) < 0) {
-			goto err;
-		}
+	strcpy(buf, scmctrl_path);
+	strcat(buf, var);
+	if (file = fopen(buf, "w")) {
+		fprintf(file, "%d", val);
 	}
-
-	return 0;
-err:
-	return -1;
 }
 
 
 int
 reset_statistics(int fd)
 {
-	int r;
-
-	printf("Reset statistics\n");
-	if ((r = ioctl(fd, SCMDISK_RESET_STATISTICS, 0)) < 0) {
-		goto err;
-	}
-
+	scmctrl_write("statistics", 0);
 	return 0;
-err:
-	return -1;
 }
 
 
 int
 print_statistics(int fd)
 {
-	int r;
-
-	printf("Print statistics...check output with dmesg\n");
-	if ((r = ioctl(fd, SCMDISK_PRINT_STATISTICS, 0)) < 0) {
-		goto err;
-	}
-
-	return 0;
-err:
-	return -1;
+	return scmctrl_read("statistics");
 }
 
 
@@ -101,23 +78,29 @@ err:
 int
 print_config(FILE *fout, int fd)
 {
+	int scm_latency;
 	int scm_bw;
 	int dram_bw;
 
-	if ((scm_bw = ioctl(fd, SCMDISK_GET_SCM_BANDWIDTH)) < 0) {
+	if ((scm_latency = scmctrl_read("SCM_LATENCY_NS")) < 0) {
 		goto err;
 	}
-	if ((dram_bw = ioctl(fd, SCMDISK_GET_DRAM_BANDWIDTH)) < 0) { 
+	if ((scm_bw = scmctrl_read("SCM_BANDWIDTH_MB")) < 0) {
+		goto err;
+	}
+	if ((dram_bw = scmctrl_read("DRAM_BANDWIDTH_MB")) < 0) {
 		goto err;
 	}
 	
 	fprintf(fout, "SCMDISK CONFIGURATION\n");
 	fprintf(fout, "==================================\n");
+	fprintf(fout, "SCM latency           %d (ns)\n", scm_latency);
 	fprintf(fout, "SCM bandwidth         %d (MB/s)\n", scm_bw);
 	fprintf(fout, "DRAM bandwidth        %d (MB/s)\n", dram_bw);
 
 	return 0;
 err:
+	fprintf(fout, "Cannot read SCM-disk configuration\n");
 	return -1;
 }
 
@@ -127,13 +110,14 @@ void usage(FILE *fout, char *name)
 	fprintf(fout, "usage:\n");
 	fprintf(fout, "\n");
 	fprintf(fout, "Options\n");
-	fprintf(fout, "  %s  %s\n", "--crash       ", "Crash SCM-disk");
-	fprintf(fout, "  %s  %s\n", "--reset       ", "Reset SCM-disk");
-	fprintf(fout, "  %s  %s\n", "--print-config", "Print SCM-disk configuration");
-	fprintf(fout, "  %s  %s\n", "--set-scm-bw  ", "Set SCM bandwidth");
-	fprintf(fout, "  %s  %s\n", "--set-dram-bw ", "Set DRAM bandwidth");
-	fprintf(fout, "  %s  %s\n", "--reset-stat  ", "Reset statistics");
-	fprintf(fout, "  %s  %s\n", "--print-stat  ", "Print statistics");
+	fprintf(fout, "  %s  %s\n", "--crash          ", "Crash SCM-disk");
+	fprintf(fout, "  %s  %s\n", "--reset          ", "Reset SCM-disk");
+	fprintf(fout, "  %s  %s\n", "--print-config   ", "Print SCM-disk configuration");
+	fprintf(fout, "  %s  %s\n", "--set-scm-latency", "Set SCM latency");
+	fprintf(fout, "  %s  %s\n", "--set-scm-bw     ", "Set SCM bandwidth");
+	fprintf(fout, "  %s  %s\n", "--set-dram-bw    ", "Set DRAM bandwidth");
+	fprintf(fout, "  %s  %s\n", "--reset-stat     ", "Reset statistics");
+	fprintf(fout, "  %s  %s\n", "--print-stat     ", "Print statistics");
 	exit(1);
 }
 
@@ -145,19 +129,14 @@ main(int argc, char **argv)
 	int  i;
 	int  c;
 	int  val;
-	char *prog_name = "userctl";
-
-	r = fd = open("/dev/scm0-ctl", O_RDWR);
-	if (r <0) {
-		printf("%s\n", strerror(errno));
-		goto err;
-	}
+	char *prog_name = argv[0];
 
 	while (1) {
 		static struct option long_options[] = {
 			{"reset",  no_argument, 0, 'R'},
 			{"crash",  no_argument, 0, 'C'},
 			{"print-config", no_argument, 0, 'f'},
+			{"set-scm-latency", required_argument, 0, 'l'},
 			{"set-scm-bw", required_argument, 0, 'p'},
 			{"set-dram-bw", required_argument, 0, 'd'},
 			{"reset-stat", no_argument, 0, 'r'},
@@ -182,17 +161,17 @@ main(int argc, char **argv)
 				printf("Reset SCM disk.\n");
 				r = ioctl(fd, 32001);
 				break;
+			case 'l':
+				val = atoi(optarg);
+				scmctrl_write("SCM_LATENCY_NS", val);
+				break;
 			case 'p':
 				val = atoi(optarg);
-				if (set_scm_bw(fd, val) < 0) {
-					goto err;
-				}
+				scmctrl_write("SCM_BANDWIDTH_MB", val);
 				break;
 			case 'd':
 				val = atoi(optarg);
-				if (set_dram_bw(fd, val) < 0) {
-					goto err;
-				}
+				scmctrl_write("DRAM_BANDWIDTH_MB", val);
 				break;
 			case 'f':
 				if ((r=print_config(stderr, fd)) < 0) {
