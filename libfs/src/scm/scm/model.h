@@ -10,8 +10,7 @@ typedef uint64_t scm_word_t;
 
 #include "scm/scm/asm.h"
 
-//#define STAMNOS_SCM_LATENCY_WRITE 150
-#define STAMNOS_SCM_LATENCY_WRITE 0
+extern int STAMNOS_SCM_LATENCY_WRITE;
 
 #define M_PCM_CPUFREQ 2400
 
@@ -98,6 +97,7 @@ ScmFence()
 	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
 }
 
+
 inline void 
 ScmLatency()
 {
@@ -113,36 +113,9 @@ ScmFlush(volatile void *addr)
 {
 	asm_mfence(); 
 	asm_clflush((volatile scm_word_t*) addr); 	
-//	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
+	emulate_latency_ns(STAMNOS_SCM_LATENCY_WRITE);
 	asm_mfence(); 
 }
-
-
-static
-void *
-ScmLimitBandwidth(size_t n)
-{
-/*
- 	scm_word_t*       val;
-	size_t            size = n;
-	int               extra_latency;
-	double            throughput;
-
-	if (size == 0) {
-		return dst;
-	}
-
-	asm_mfence();
-#ifdef SCM_EMULATE_LATENCY
-	extra_latency = (int) size * (1-(float) (((float) SCM_BANDWIDTH_MB)/1000)/(((float) DRAM_BANDWIDTH_MB)/1000))/(((float)SCM_BANDWIDTH_MB)/1000);
-	emulate_latency_ns(extra_latency);
-	//asm_cpuid();
-#endif
-	stop = gethrtime();
-	return dst;
-*/
-}
-
 
 
 #endif // __STAMNOS_SCM_MODEL_H

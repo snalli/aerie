@@ -3,6 +3,7 @@ localBuildEnv = buildEnv.Clone()
 
 lib_target = 'scm'
 lib_sources = [
+               'scm/scm.cc',
                'scm/memcpy.cc',
 	       'pregion/pregion.cc',
                'pheap/pheap.cc',
