@@ -1,6 +1,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -46,6 +48,21 @@ int scmctrl_read(char* var)
 	return -1;
 }
 
+uint64_t scmctrl_readu(char* var)
+{
+	FILE*    file;
+	char     buf[512];
+	uint64_t val;
+
+	strcpy(buf, scmctrl_path);
+	strcat(buf, var);
+	if (file = fopen(buf, "r")) {
+		fscanf(file, "%"SCNu64, &val);
+		return val;
+	}
+	return -1;
+}
+
 void scmctrl_write(char* var, int val)
 {
 	FILE* file;
@@ -60,7 +77,7 @@ void scmctrl_write(char* var, int val)
 
 
 int
-reset_statistics(int fd)
+reset_statistics()
 {
 	scmctrl_write("statistics", 0);
 	return 0;
@@ -68,9 +85,15 @@ reset_statistics(int fd)
 
 
 int
-print_statistics(int fd)
+print_statistics(FILE *fout)
 {
-	return scmctrl_read("statistics");
+	uint64_t bytes_written = scmctrl_readu("bytes_written");
+	uint64_t blocks_written = scmctrl_readu("blocks_written");
+	uint64_t total_write_latency = scmctrl_readu("total_write_latency");
+	
+	fprintf(fout, "bytes written            %" PRIu64 " (bytes)\n", bytes_written);
+	fprintf(fout, "blocks written           %" PRIu64 " (blocks)\n", blocks_written);
+	fprintf(fout, "avg block write latency  %" PRIu64 " (ns)\n", (blocks_written > 0) ? total_write_latency/blocks_written : 0);
 }
 
 
@@ -182,10 +205,10 @@ main(int argc, char **argv)
 				write_fs();
 				break;
 			case 'r':
-				reset_statistics(fd);
+				reset_statistics();
 				break;
 			case 's':
-				print_statistics(fd);
+				print_statistics(stderr);
 				break;
 			case '?':
 				/* getopt_long already printed an error message. */

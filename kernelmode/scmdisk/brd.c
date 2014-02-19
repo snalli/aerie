@@ -257,6 +257,7 @@ static void copy_to_brd(struct brd_device *brd, const void *src,
 	dst = kmap_atomic(page, KM_USER1);
 	scm_memcpy(brd->scm, dst + offset, src, copy);
 	kunmap_atomic(dst, KM_USER1);
+	stat_aggr_uint64_add(&brd->scm->stat.blocks_written, 1);
 
 	if (copy < n) {
 		src += copy;
@@ -268,6 +269,7 @@ static void copy_to_brd(struct brd_device *brd, const void *src,
 		dst = kmap_atomic(page, KM_USER1);
 		scm_memcpy(brd->scm, dst, src, copy);
 		kunmap_atomic(dst, KM_USER1);
+		stat_aggr_uint64_add(&brd->scm->stat.blocks_written, 1);
 	}
 
 	stat_aggr_uint64_add(&brd->scm->stat.bytes_written, n);
@@ -575,24 +577,66 @@ static struct kobject *brd_probe(dev_t dev, int *part, void *data)
 }
 
 
-#define CONTROL_ARG_SHOW(arg)                                                \
-static ssize_t arg##_show(struct kobject *kobj, struct kobj_attribute *attr, \
-                        char *buf)                                           \
-{                                                                            \
-	return sprintf(buf, "%d\n", arg);                                    \
+#define CONTROL_ARG_SHOW(arg)                                                         \
+static ssize_t arg##_show(struct kobject *kobj, struct kobj_attribute *attr,          \
+                        char *buf)                                                    \
+{                                                                                     \
+	return sprintf(buf, "%d\n", arg);                                             \
 }
 
-#define CONTROL_ARG_STORE(arg)                                               \
-static ssize_t arg##_store(struct kobject *kobj, struct kobj_attribute *attr,\
-                         const char *buf, size_t count)                      \
-{                                                                            \
-	sscanf(buf, "%du", &arg);                                            \
-	return count;                                                        \
+#define CONTROL_ARG_STORE(arg)                                                        \
+static ssize_t arg##_store(struct kobject *kobj, struct kobj_attribute *attr,         \
+                         const char *buf, size_t count)                               \
+{                                                                                     \
+	sscanf(buf, "%du", &arg);                                                     \
+	return count;                                                                 \
 }
 
-#define CONTROL_ARG_ATTR(arg)                                                \
-static struct kobj_attribute arg##_attribute =                               \
+#define CONTROL_ARG_ATTR(arg)                                                         \
+static struct kobj_attribute arg##_attribute =                                        \
          __ATTR(arg, 0666, arg##_show, arg##_store);
+
+
+#define STAT_ARG_SHOW(arg,stattype,type,format)                                       \
+static ssize_t stat_##arg##_show(struct kobject *kobj, struct kobj_attribute *attr,   \
+                                 char *buf)                                           \
+{                                                                                     \
+        struct brd_device *brd;                                                       \
+        type val;                                                                     \
+        list_for_each_entry(brd, &brd_devices, brd_list) {                            \
+	        /* we only care for the first device */                               \
+                scm_stat_t *stat = &brd->scm->stat;                                   \
+	        stat_##stattype##_read(&stat->arg, &val);                             \
+	        return sprintf(buf, format"\n", val);                                 \
+        }                                                                             \
+	return sprintf(buf, "0\n");                                                   \
+}
+
+#define STAT_ARG_SHOW2(arg,stattype,type,format)                                       \
+static ssize_t stat_##arg##_show(struct kobject *kobj, struct kobj_attribute *attr,   \
+                                 char *buf)                                           \
+{                                                                                     \
+        struct brd_device *brd;                                                       \
+        type val;                                                                     \
+        scm_stat_t *stat = &brd->scm->stat;                                           \
+        brd=list_first_entry(&brd_devices, typeof(*brd), brd_list);                   \
+	stat_##stattype##_read(&stat->arg, &val);                                     \
+        printk(KERN_INFO "Statistic: "format"\n", val);                               \
+	return sprintf(buf, format"\n", val);                                         \
+}
+
+
+#define STAT_ARG_STORE(arg)                                                           \
+static ssize_t stat_##arg##_store(struct kobject *kobj, struct kobj_attribute *attr,  \
+                                  const char *buf, size_t count)                      \
+{                                                                                     \
+	/* do nothing */                                                              \
+	return count;                                                                 \
+}
+
+#define STAT_ARG_ATTR(arg)                                                   \
+static struct kobj_attribute stat_##arg##_attribute =                        \
+         __ATTR(arg, 0666, stat_##arg##_show, stat_##arg##_store);
 
 
 #define CONTROL_ARG(arg)                                                     \
@@ -600,20 +644,24 @@ static struct kobj_attribute arg##_attribute =                               \
   CONTROL_ARG_STORE(arg)                                                     \
   CONTROL_ARG_ATTR(arg)
 
+
+#define STAT_ARG(arg,stattype,type,format)                                   \
+  STAT_ARG_SHOW(arg,stattype,type,format)                                    \
+  STAT_ARG_STORE(arg)                                                        \
+  STAT_ARG_ATTR(arg)
+
 CONTROL_ARG(SCM_LATENCY_NS)
 CONTROL_ARG(SCM_BANDWIDTH_MB)
 CONTROL_ARG(DRAM_BANDWIDTH_MB)
+
+STAT_ARG(bytes_written, aggr_uint64, uint64_t, "%llu")
+STAT_ARG(blocks_written, aggr_uint64, uint64_t, "%llu")
+STAT_ARG(total_write_latency, aggr_uint64, uint64_t, "%llu")
 
 
 static ssize_t statistics_show(struct kobject *kobj, struct kobj_attribute *attr,
                                char *buf)
 {
-	struct brd_device *brd;
-
-	list_for_each_entry(brd, &brd_devices, brd_list) {
-		scm_stat_print(brd->scm);
-	}	
-
 	return sprintf(buf, "%d\n", 0);
 }
 
@@ -639,6 +687,9 @@ static struct attribute *attrs[] = {
 	&SCM_BANDWIDTH_MB_attribute.attr,
 	&DRAM_BANDWIDTH_MB_attribute.attr,
 	&statistics_attribute.attr,
+	&stat_bytes_written_attribute.attr,
+	&stat_blocks_written_attribute.attr,
+	&stat_total_write_latency_attribute.attr,
 	NULL,   
 };
 

@@ -31,6 +31,19 @@ stat_avg_double_reset(stat_avg_double_t *stat)
 	}
 }
 
+
+void
+stat_avg_uint64_reset(stat_avg_uint64_t *stat)
+{
+	int i;
+
+	for (i=0; i<MAX_NCPUS; i++) {
+		stat->n_per_cpu[i] = 0;
+		stat->total_per_cpu[i] =0;
+	}
+}
+
+
 void
 stat_aggr_uint64_reset(stat_aggr_uint64_t *stat)
 {
@@ -80,6 +93,39 @@ stat_avg_double_read(stat_avg_double_t *stat, double *val)
 }
 
 void
+stat_avg_uint64_add(stat_avg_uint64_t *stat, uint64_t val)
+{
+	int      id;
+
+	//preempt_disable();
+	id = smp_processor_id();
+	stat->n_per_cpu[id]++;
+	stat->total_per_cpu[id] += val;
+	//preempt_enable();
+}
+
+void
+stat_avg_uint64_read(stat_avg_uint64_t *stat, uint64_t *val)
+{
+	uint64_t   total=0;
+	uint64_t   avg = 0;
+	uint64_t   n=0;
+	int        i;
+	
+	for (i=0; i<MAX_NCPUS; i++) {
+		if (stat->n_per_cpu[i] > 0) {
+			n+=stat->n_per_cpu[i];
+			total += stat->total_per_cpu[i];
+		}
+	}
+	if (n>0) {
+		avg=total/n;
+	}
+	*val = avg;
+}
+
+
+void
 stat_aggr_uint64_add(stat_aggr_uint64_t *stat, uint64_t val)
 {
 	int      id;
@@ -111,25 +157,9 @@ scm_stat_reset(scm_t *scm)
 	printk(KERN_INFO "Reset statistics\n");
 	stat = &scm->stat;
 	stat_avg_double_reset(&stat->scm_bw);
+	stat_aggr_uint64_reset(&stat->blocks_written);
 	stat_aggr_uint64_reset(&stat->bytes_written);
 	stat_aggr_uint64_reset(&stat->bytes_read);
-}
-
-void
-scm_stat_print(scm_t *scm)
-{
-	scm_stat_t *stat = &scm->stat;
-	double     scm_bw;
-	uint64_t   bytes_read;
-	uint64_t   bytes_written;
-
-	stat_avg_double_read(&stat->scm_bw, &scm_bw);
-	stat_aggr_uint64_read(&stat->bytes_read, &bytes_read);
-	stat_aggr_uint64_read(&stat->bytes_written, &bytes_written);
-	printk(KERN_INFO "SCM-DISK Statistics\n");
-	printk(KERN_INFO "SCM_BW: %d\n", (int) scm_bw);
-	printk(KERN_INFO "SCM_BYTES_READ: %llu\n", bytes_read);
-	printk(KERN_INFO "SCM_BYTES_WRITTEN: %llu\n", bytes_written);
 }
 
 
@@ -279,6 +309,7 @@ scm_memcpy_perfmodel(scm_t* scm, void *dst, const void *src, size_t n)
 	duration = stop - start;
 	throughput = 1000*((double) size) / ((double) CYCLE2NS(duration));
 	stat_avg_double_add(&scm->stat.scm_bw, throughput);
+	stat_aggr_uint64_add(&scm->stat.total_write_latency, CYCLE2NS(duration));
 
 	return dst;
 }
