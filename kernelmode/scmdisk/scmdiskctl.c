@@ -93,6 +93,7 @@ print_statistics(FILE *fout)
 	
 	fprintf(fout, "bytes written            %" PRIu64 " (bytes)\n", bytes_written);
 	fprintf(fout, "blocks written           %" PRIu64 " (blocks)\n", blocks_written);
+	fprintf(fout, "total write latency      %" PRIu64 " (us)\n", total_write_latency/1000);
 	fprintf(fout, "avg block write latency  %" PRIu64 " (ns)\n", (blocks_written > 0) ? total_write_latency/blocks_written : 0);
 }
 
