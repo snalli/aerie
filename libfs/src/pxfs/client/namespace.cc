@@ -372,7 +372,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	Inode*      inode;
 	Inode*      inode_next;
 	int         ret;
-	bool smart_lookup;
+	bool smart_lookup = false;
 
 retry_namex:
 	path = const_cast<char*>(cpath);
@@ -679,14 +679,14 @@ done:
 }
 
 int
-NameSpace::namex_sans_locks(Session* session, const char *cpath, lock_protocol::Mode lock_mode, 
+NameSpace::namex_sans_locks(Session* session, const char *cpath, lock_protocol::Mode lock_mode,
                  bool nameiparent, char* name, Inode** inodep)
 {
 	char*       path;
 	Inode*      inode;
 	Inode*      inode_next;
 	int         ret;
-	bool smart_lookup;
+	bool smart_lookup = false;
 
 retry_namex:
 	path = const_cast<char*>(cpath);
