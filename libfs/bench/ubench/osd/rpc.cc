@@ -64,7 +64,7 @@ ubench_rpc(int argc, char* argv[])
 			case '?':
 				usage();
 				break;
-			default:default:
+			default:
 				break;
 		}
 	}

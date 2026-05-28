@@ -109,7 +109,7 @@ ubench_fs_randread(int argc, char* argv[])
 			case '?':
 				usage();
 				break;
-			default:default:
+			default:
 				break;
 		}
 	}

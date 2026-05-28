@@ -101,7 +101,7 @@ ubench_fs_delete(int argc, char* argv[])
 			case '?':
 				usage();
 				break;
-			default:default:
+			default:
 				break;
 		}
 	}

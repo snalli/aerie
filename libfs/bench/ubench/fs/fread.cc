@@ -102,7 +102,7 @@ ubench_fs_fread(int argc, char* argv[])
 			case '?':
 				usage();
 				break;
-			default:default:
+			default:
 				break;
 		}
 	}

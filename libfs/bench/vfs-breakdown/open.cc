@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 			case '?':
 				usage(progname);
 				break;
-			default:default:
+			default:
 				break;
 		}
 	}
