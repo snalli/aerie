@@ -418,7 +418,7 @@ public:
 		NextSlot(session);
 	}
 
-    const int terminate() const {
+    int terminate() const {
     	return current_.slot_base_ == NULL;
     }
 

@@ -289,7 +289,7 @@ public:
 		return *this;
 	}
 
-	const lock_protocol::Mode::Set operator|(const lock_protocol::Mode::Set& other)
+	lock_protocol::Mode::Set operator|(const lock_protocol::Mode::Set& other)
 	{
 		Set result = *this;
 		result |= other;
