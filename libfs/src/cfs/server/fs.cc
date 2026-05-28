@@ -195,8 +195,7 @@ FileSystem::Unlink(Session* session, const char* path)
 	DirInode    dinode2;
 	FileInode   finode;
 	InodeNumber parino;
-	InodeNumber childino;
-	
+
 	dbg_log (DBG_INFO, "Unlink %s\n", path);
 	
 	if ((ret = session->namespace_->Nameiparent(session, path, name, &parino)) < 0) {

@@ -20,11 +20,11 @@ public:
 	}
 
 	// TODO: mark persistent object address by ino as allocated and construct inode into ip
-	static SubTable* Make(Session* session, InodeNumber ino, SubTable* tp) {
+	static SubTable* Make(Session* /*session*/, InodeNumber ino, SubTable* tp) {
 		return new(tp) SubTable(ino);
 	}
 
-	static SubTable* Load(Session* session, InodeNumber ino, SubTable* tp) {
+	static SubTable* Load(Session* /*session*/, InodeNumber ino, SubTable* tp) {
 		return new(tp) SubTable(ino);
 	}
 

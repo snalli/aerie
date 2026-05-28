@@ -41,8 +41,8 @@ T* LoadLogicalOperation(::osd::server::OsdSession* session, char* buf)
 
 
 int
-Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf, 
-                    ::osd::Publisher::Message::BaseMessage* next)
+Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
+                    ::osd::Publisher::Message::BaseMessage* /*next*/)
 {
 	int                   ret;
 	osd::common::ObjectId oid;
@@ -70,8 +70,8 @@ Publisher::MakeFile(::osd::server::OsdSession* osdsession, char* buf,
 
 
 int
-Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf, 
-                  ::osd::Publisher::Message::BaseMessage* next)
+Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf,
+                  ::osd::Publisher::Message::BaseMessage* /*next*/)
 {
 	int                   ret;
 	osd::common::ObjectId oid;

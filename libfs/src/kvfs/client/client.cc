@@ -33,10 +33,8 @@ osd::client::StorageSystem* global_storage_system;
 ::client::Table*            Client::tp_;
 
 int 
-Client::Init(const char* xdst) 
+Client::Init(const char* xdst)
 {
-	int     ret;
-
 	dbg_log (DBG_INFO, "Initialize\n");
 
 	Config::Init();

@@ -19,11 +19,11 @@ public:
 	}
 
 	// TODO: mark persistent object address by ino as allocated and construct inode into ip
-	static File* Make(Session* session, InodeNumber ino, File* tp) {
+	static File* Make(Session* /*session*/, InodeNumber ino, File* tp) {
 		return new(tp) File(ino);
 	}
 
-	static File* Load(Session* session, InodeNumber ino, File* tp) {
+	static File* Load(Session* /*session*/, InodeNumber ino, File* tp) {
 		return new(tp) File(ino);
 	}
 

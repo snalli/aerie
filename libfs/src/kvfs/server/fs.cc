@@ -41,7 +41,7 @@ FileSystem::Init()
 #if KVFS_USE_INDIRECT
 
 int 
-FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flags) 
+FileSystem::Make(const char* target, size_t /*nblocks*/, size_t /*block_size*/, int flags)
 {
 	int                                              ret;
 	void*                                            root_obj;
@@ -72,7 +72,7 @@ FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flag
 #else 
 
 int 
-FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flags) 
+FileSystem::Make(const char* target, size_t /*nblocks*/, size_t /*block_size*/, int flags)
 {
 	int ret;
 

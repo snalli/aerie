@@ -98,7 +98,7 @@ Table::Put(::client::Session* session, const char* key, const char* src, uint64_
 			goto done;
 		}
 	}
-	if ((ret = obj->Write(session, src, 0, n)) != n) {
+	if ((ret = obj->Write(session, src, 0, n)) != (int)n) {
 		ret = -E_NOMEM;
 		goto done;
 	}
@@ -260,7 +260,7 @@ Table::Put(::client::Session* session, const char* key, const char* src, uint64_
 		}
 	}
 #if 0
-	if ((ret = obj->Write(session, src, 0, n)) != n) {
+	if ((ret = obj->Write(session, src, 0, n)) != (int)n) {
 		ret = -E_NOMEM;
 		goto done;
 	}
