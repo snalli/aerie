@@ -20,7 +20,7 @@ main(int argc, char *argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 	int   debug_level = -1;
-	char* pathname;
+	char* pathname = NULL;
 
 	srandom(getpid());
 	port = 20000 + (getpid() % 10000);

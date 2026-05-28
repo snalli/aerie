@@ -83,7 +83,7 @@ ArrayHash(const char *str)
 	int c;
 	char* tmp_str = const_cast<char*>(str);
 
-	while (c = *tmp_str++) {
+	while ((c = *tmp_str++)) {
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 	}
 	return hash;

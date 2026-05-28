@@ -74,7 +74,7 @@ DirInode::Link(Session* session, const char* name, FileInode* child)
 int 
 DirInode::Unlink(Session* session, const char* name)
 {
-	int         ret;
+	int         ret = -E_INVAL;
 #if 0
 	int         nlink;
 	FileInode   finode;

@@ -39,6 +39,7 @@ ThrPool::~ThrPool()
 	for (int i = 0; i < nthreads_; i++) {
 		job_t j;
 		j.f = (void *(*)(void *))NULL; //poison pill to tell worker threads to exit
+		j.a = NULL;
 		jobq_.enq(j);
 	}
 

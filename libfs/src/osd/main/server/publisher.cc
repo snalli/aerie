@@ -95,7 +95,7 @@ Publisher::Publish(OsdSession* session)
 					goto done;
 				}
 				osd::Publisher::Message::LogicalOperationHeader* header = osd::Publisher::Message::LogicalOperationHeader::Load(buf);
-				if ((lgc_op = lgc_op_array_[header->id_]) != NULL) {
+				if ((lgc_op = lgc_op_array_[(unsigned char)header->id_]) != NULL) {
 					// the buffer buf must have enough space to hold the rest of the logical 
 					// operation when lgc_op decodes it
 					if ((ret = lgc_op(session, buf, &next)) < 0) {

@@ -234,6 +234,12 @@ public:
 	{ }
 
 	Region(const Region& copy)
+		: slot_(copy.slot_),
+		  base_bn_(copy.base_bn_),
+		  maxbcount_(copy.maxbcount_),
+		  size_(copy.size_),
+		  dblock_(copy.dblock_),
+		  radixtree_(copy.radixtree_)
 	{ }
 
 	Region(Session* session, Object<Session>* bcobj, uint64_t base_bn) 

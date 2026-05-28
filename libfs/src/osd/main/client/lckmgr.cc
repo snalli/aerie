@@ -439,7 +439,7 @@ LockManager::AcquireInternal(unsigned long tid,
                              void** argv,
                              lock_protocol::Mode& mode_granted)
 {
-	lock_protocol::status r;
+	lock_protocol::status r = lock_protocol::OK;
 	LockId                lid = l->lid_;
 	ThreadRecord*         tr;
 	lock_protocol::Mode   mode;

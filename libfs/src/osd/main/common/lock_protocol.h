@@ -132,7 +132,7 @@ public:
 	static lock_protocol::Mode Supremum(lock_protocol::Mode mode1, 
 	                                    lock_protocol::Mode mode2) 
 	{
-		int po;
+		int po = 0;
 
 		while (mode1 != mode2) {
 			po = PartialOrder(mode1, mode2);

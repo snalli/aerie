@@ -229,8 +229,8 @@ rpcc::call1(unsigned int proc, marshall &req, unmarshall &rep,
 		if (transmit) {
 			get_refconn(&ch);
 			if (ch) {
-			        if (reachable_) ch->send(req.cstr(), req.size());
-				else jsl_log(JSL_DBG_1, "not reachable\n");
+				if (reachable_) { ch->send(req.cstr(), req.size()); }
+			else { jsl_log(JSL_DBG_1, "not reachable\n"); }
 				jsl_log(JSL_DBG_2, 
 						"rpcc::call1 %u just sent req proc %x xid %u clt_nonce %d\n", 
 						clt_nonce_, proc, ca.xid, clt_nonce_); 

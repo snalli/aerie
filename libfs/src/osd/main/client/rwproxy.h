@@ -39,7 +39,7 @@ public:
 	
 	void Close(OsdSession* session, ObjectId oid, bool update) {
 		ObjectProxy<Subject, VersionManager>* obj_proxy;
-		osd::client::ObjectProxy*             obj2_proxy;
+		osd::client::ObjectProxy*             obj2_proxy = NULL;
 		assert(oid2obj_map_.Lookup(oid, &obj2_proxy) == E_SUCCESS);
 		obj_proxy = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2_proxy);
 		assert(obj_proxy->vClose(session, update) == E_SUCCESS);

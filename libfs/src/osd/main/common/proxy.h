@@ -15,7 +15,7 @@ class ObjectProxyReference {
 friend class ObjectProxy;
 public:
 	pthread_spinlock_t ref_lock;
-	int pshared;
+	int pshared = PTHREAD_PROCESS_PRIVATE;
 	void lock(){
 		pthread_spin_lock(&ref_lock);
 	}

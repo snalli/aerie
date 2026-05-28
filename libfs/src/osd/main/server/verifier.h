@@ -18,7 +18,7 @@ int Action(osd::server::OsdSession* session,
 {
 	osd::server::OsdSharedBuffer* shbuf = session->shbuf_;
 	size_t                        size = header->payload_size_;
-	T*                            physical_op_msg;
+	T*                            physical_op_msg = NULL;
 	if (size > 0) {
 		shbuf->Read(&buf[sizeof(*header)], size);
 		physical_op_msg = T::Load(buf);
@@ -72,7 +72,7 @@ Verifier::Parse(::osd::server::OsdSession* session,
 			return -1;
 		}
 		header = osd::Publisher::Message::ContainerOperationHeader::Load(buf);
-		action_[header->id_](session, buf, header);
+		action_[(unsigned char)header->id_](session, buf, header);
 	}
 	return 1; /* there is one next message  */
 }

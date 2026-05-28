@@ -377,7 +377,7 @@ void ObjectManager::CloseAllObjects(OsdSession* session, bool update, bool flush
 
 	// now close all the objects 
 	for (int i=0; i < osd::containers::T_CONTAINER_TYPE_COUNT; i++) {
-		if (mgr = objtype2mgr_tbl_[i]) {
+		if ((mgr = objtype2mgr_tbl_[i])) {
 			mgr->CloseAll(session, false, flush);
 		}
 	}

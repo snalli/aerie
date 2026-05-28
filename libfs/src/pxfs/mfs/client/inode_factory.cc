@@ -28,18 +28,17 @@ InodeFactory::LoadDirInode(::client::Session* session,
 	bool                               wrlock = false;
 
 lock:
-	while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS);
+	while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS) { }
 
-
-                ref->lock();
-                if (ref->owner()) {
-                        dip = reinterpret_cast<DirInode*>(ref->owner());
-                } else {
-                                dip = new DirInode(ref);
-                                ref->set_owner(dip);
-                }
-	        *ipp = dip;
-                ref->unlock();
+	ref->lock();
+	if (ref->owner()) {
+		dip = reinterpret_cast<DirInode*>(ref->owner());
+	} else {
+		dip = new DirInode(ref);
+		ref->set_owner(dip);
+	}
+	*ipp = dip;
+	ref->unlock();
 /*
  * 	Uncomment this !
 	// atomically get a reference to the persistent object and 
@@ -113,18 +112,17 @@ InodeFactory::LoadFileInode(::client::Session* session,
 //printf("\nInside InodeFactory::LoadFileInode...");
 	
 lock:
-	 while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS);
+	while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS) { }
 
-
-                ref->lock();
-                if (ref->owner()) {
-                        fip = reinterpret_cast<FileInode*>(ref->owner());
-                } else {
-                                fip = new FileInode(ref);
-                                ref->set_owner(fip);
-                }
-                *ipp = fip;
-                ref->unlock();
+	ref->lock();
+	if (ref->owner()) {
+		fip = reinterpret_cast<FileInode*>(ref->owner());
+	} else {
+		fip = new FileInode(ref);
+		ref->set_owner(fip);
+	}
+	*ipp = fip;
+	ref->unlock();
 /*
 	// atomically get a reference to the persistent object and 
 	// create the in-core Inode 

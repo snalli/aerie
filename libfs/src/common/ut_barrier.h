@@ -51,13 +51,13 @@ ut_barrier_init(ut_barrier_t *bp, int count, int pshared)
 	for (i = 0; i < 2; ++i) {  
 		bp->sb[i].runners = count;  
   
-		if (r = pthread_mutex_init(&bp->sb[i].wait_lk, m_attr)) {  
-			return(r);  
-		}	
-  
-		if (r = pthread_cond_init(&bp->sb[i].wait_cv, cv_attr)) {  
-			return(r);  
-		}	
+		if ((r = pthread_mutex_init(&bp->sb[i].wait_lk, m_attr))) {
+			return(r);
+		}
+
+		if ((r = pthread_cond_init(&bp->sb[i].wait_cv, cv_attr))) {
+			return(r);
+		}
    }  
    return(0);  
 }  
@@ -98,12 +98,12 @@ ut_barrier_destroy(ut_barrier_t *bp) {
 	int i;  
   
 	for (i=0; i < 2; ++ i) {  
-		if (r = pthread_cond_destroy(&bp->sb[i].wait_cv)) {  
-			return(r);  
-		}	
-  
-		if (r = pthread_mutex_destroy( &bp->sb[i].wait_lk)) { 
-			return(r);  
+		if ((r = pthread_cond_destroy(&bp->sb[i].wait_cv))) {
+			return(r);
+		}
+
+		if ((r = pthread_mutex_destroy(&bp->sb[i].wait_lk))) {
+			return(r);
 		}  
 	}
 	return (0);

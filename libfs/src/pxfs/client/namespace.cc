@@ -1135,13 +1135,13 @@ NameSpace::Unlink(Session* session, const char *pathname)
 
 	char          name[128],dup_name[128];
 	char 	      *d_name,  *b_name;
-	Inode*        dp;
-	Inode*        ip;
+	Inode*        dp = NULL;
+	Inode*        ip = NULL;
 	Inode*        gp;
 //	mfs::client::FileInode* fip;
 	int           ret;
 
-  
+
       #ifdef CONFIG_CACHE
 /*	strcpy(dup_name, pathname);
 	Lookup(dup_name, (void **)&ip, (void **)&dp);
@@ -1191,7 +1191,7 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	assert(ip->nlink() > 0);
 
 	if (ip->type() == kDirInode) {
-		bool isempty;
+		bool isempty = false;
 		assert(ip->ioctl(session, 1, &isempty) == E_SUCCESS);
 		if (!isempty) {
 			ip->Put();
