@@ -176,14 +176,10 @@ ObjectMap::Insert(ObjectProxy** __proxy)
 */
 }
 
-inline int 
+inline int
 ObjectMap::Remove(ObjectId oid)
 {
-	int ret;
-        printf("\nRemoving oid : %016llX", (unsigned long long)oid);
-
-	ret = oid2obj_map_.erase(oid);
-	return ret;
+	return oid2obj_map_.erase(oid);
 }
 
 
