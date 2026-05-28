@@ -144,7 +144,7 @@ ByteInterval::Write(OsdSession* session, char* src, uint64_t off, uint64_t n)
 
 
 int
-ByteInterval::ReadBlockNoRegion(OsdSession* session, char* dst, uint64_t bn, int off, int n)
+ByteInterval::ReadBlockNoRegion(OsdSession* /*session*/, char* dst, uint64_t bn, int off, int n)
 {
 	char* bp;
 
@@ -597,7 +597,7 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 
 
 int
-ByteContainer::VersionManager::Size(OsdSession* session)
+ByteContainer::VersionManager::Size(OsdSession* /*session*/)
 {
 	return size_;
 }

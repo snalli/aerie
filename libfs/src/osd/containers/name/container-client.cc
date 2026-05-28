@@ -94,10 +94,10 @@ NameContainer::VersionManager::Find(OsdSession* session,
 // Insert does not allow overwrite. Returns E_EXIST in case the entry 
 // already exists
 int 
-NameContainer::VersionManager::Insert(OsdSession* session, 
-                                      const char* name, 
+NameContainer::VersionManager::Insert(OsdSession* /*session*/,
+                                      const char* name,
                                       osd::common::ObjectId oid,
-					void *ip)
+                                      void *ip)
 {
 //	printf("\nNameContainer::VersionManager::Insert <name : %s, ip : %p>",name, ip);
 	ShadowCache::iterator  it;
