@@ -552,8 +552,9 @@ lock_protocol::status
 HLockManager::AttachPublicLockToChild(HLock* phlock, HLock* chlock, lock_protocol::Mode mode)
 {
 	lock_protocol::status  r;
-	
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
+	(void)phlock; // only used in DBG_LOG/assert which disappear in release builds
+
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr),
 	        "[%d] Attach public lock (%s) to child %s of hierarchical lock %s.\n", 
 	        id(), mode.String().c_str(), chlock->lid_.c_str(), phlock->lid_.c_str());
 
@@ -1076,7 +1077,8 @@ HLockManager::DowngradePublicLock(HLock* hlock, lock_protocol::Mode new_mode)
 		pthread_mutex_unlock(&phlock->mutex_);
 	}
 	release_set.clear();
-	assert(DowngradePublicLockRecursive(hlock, new_mode, &release_set) == 0);
+	int dgret = DowngradePublicLockRecursive(hlock, new_mode, &release_set);
+	assert(dgret == 0); (void)dgret;
 	
 	// prepare locks for downgrade(release/convert), then call any pre-downgrade callbacks,
 	// and finally downgrade locks.

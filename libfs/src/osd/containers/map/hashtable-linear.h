@@ -304,7 +304,6 @@ Page<Session>::Insert(Session* session, const char* key, int key_size,
 			Entry<Session>::Split(session, free_entry, TAG_SIZE+payload_size);
 		}
 
-		uval = *((uint64_t*) val);
 		free_entry->set_kv(session, key, key_size, val, val_size);
 		return 0;
 	}

@@ -139,7 +139,8 @@ LockManager::Init()
 	// register client's lock manager RPC handlers with srv2cl_
 	ipc_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
 	ipc_->reg(rlock_protocol::retry, this, &LockManager::retry);
-	assert(pthread_create(&releasethread_th_, NULL, &releasethread, (void *) this) == 0);
+	int cr = pthread_create(&releasethread_th_, NULL, &releasethread, (void *) this);
+	assert(cr == 0); (void)cr;
 
 	return E_SUCCESS;
 }
@@ -993,8 +994,9 @@ LockManager::do_release(Lock* l, int flags)
 int 
 LockManager::stat(LockId lid)
 {
-	int r;
-	assert(ipc_->call(lock_protocol::stat, id(), lid.marshall(), r) == lock_protocol::OK);
+	int r = 0;
+	int ret = ipc_->call(lock_protocol::stat, id(), lid.marshall(), r);
+	assert(ret == lock_protocol::OK); (void)ret;
 	return r;
 }
 
