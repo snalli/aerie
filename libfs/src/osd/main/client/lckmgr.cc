@@ -832,7 +832,7 @@ LockManager::Cancel(LockId lid)
 
 
 rlock_protocol::status 
-LockManager::revoke(lock_protocol::LockId lid_u64, int seq, int revoke_type, int &unused)
+LockManager::revoke(lock_protocol::LockId lid_u64, int seq, int revoke_type, int &/*unused*/)
 {
 	rlock_protocol::status r = rlock_protocol::OK;
 	Lock*                  l;

@@ -327,7 +327,7 @@ HLockManager::FindOrCreateLock(LockId lid)
 ///   caller holds hlock's mutex or has the lock set at CONVERTING state
 ///
 lock_protocol::status
-HLockManager::AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int flags)
+HLockManager::AttachPublicLockCapability(HLock* hlock, lock_protocol::Mode mode, int /*flags*/)
 {
 	LockId                   lid = hlock->lid_;
 	lock_protocol::Mode::Set mode_set;
@@ -457,7 +457,7 @@ done:
 ///   hlock's mutex or has the lock set at CONVERTING state
 ///
 lock_protocol::status
-HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, int flags)
+HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, int /*flags*/)
 {
 	struct LockDsc{
 		LockId lid;
@@ -917,7 +917,7 @@ HLockManager::Acquire(LockId lid,
  * the owner of the lock
  */
 lock_protocol::status
-HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
+HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool /*force*/)
 {
 	lock_protocol::status r = lock_protocol::OK;
 	LockId                lid = hlock->lid_; (void)lid;
