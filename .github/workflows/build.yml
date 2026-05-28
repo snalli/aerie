@@ -1,0 +1,50 @@
+name: Build
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  cmake:
+    name: CMake build (Linux x86-64)
+    runs-on: ubuntu-latest   # always x86-64 on GitHub-hosted runners
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            libconfig++-dev \
+            libboost-dev \
+            libsparsehash-dev
+
+      - name: Configure
+        run: |
+          cmake -S libfs -B libfs/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DRPC=fast \
+            -DSCMPOOL=kernel \
+            -DBUILD_BENCH=ON
+
+      - name: Build
+        run: cmake --build libfs/build --parallel $(nproc)
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: aerie-binaries
+          path: |
+            libfs/build/src/pxfs/pxfs_server
+            libfs/build/src/pxfs/pxfs_mkfs
+            libfs/build/src/kvfs/kvfs_server
+            libfs/build/src/kvfs/kvfs_mkfs
+            libfs/build/src/cfs/cfs_server
+            libfs/build/src/scm/tool/pool/pool_tool
+            libfs/build/bench/ubench/ubench_pxfs
+          retention-days: 7
