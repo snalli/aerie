@@ -56,11 +56,11 @@ ThreadRecord::ThreadRecord(id_t tid, Mode mode)
 
 Lock::Lock(LockId lid = 0)
 	: lid_(lid),
-	  seq_(0), 
-	  used_(false), 
+	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode::NL),
+	  seq_(0),
+	  used_(false),
 	  can_retry_(false),
 	  revoke_type_(0),
-	  gtque_(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode::NL),
 	  public_mode_(lock_protocol::Mode(lock_protocol::Mode::NL)),
 	  cancel_(false),
 	  payload_(0),
