@@ -32,7 +32,7 @@ class Object: public osd::cc::common::Object {
 		kNeedleSize = (64+16)*1024 // be careful to not overflow (sizeof(enum) = sizeof(int))
 	};
 public:
-	static Object* Make(Session* session, osd::common::AclIdentifier acl_id = 0) {
+	static Object* Make(Session* /*session*/, osd::common::AclIdentifier acl_id = 0) {
 		osd::common::ObjectId oid;
 		
 		if (session->salloc()->AllocateContainer(session, acl_id, T_NEEDLE_CONTAINER, &oid) < 0) {

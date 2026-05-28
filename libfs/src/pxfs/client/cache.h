@@ -215,7 +215,7 @@ class Cache {
 
 	}
 
-	int flush_cache(const char* name) {
+	int flush_cache(const char* /*name*/) {
 /*
            pthread_spin_lock(&spinlock);
                 DentryCache::iterator it;

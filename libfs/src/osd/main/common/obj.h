@@ -101,7 +101,7 @@ public:
 		: ObjectId(oid.u64())
 	{ }
 
-	ExtentId(void* addr, int size)
+	ExtentId(void* addr, int /*size*/)
 		: ObjectId(T_EXTENT, addr)
 	{ }
 };

@@ -16,7 +16,7 @@ class Object: public osd::cc::common::Object {
 	typedef osd::containers::common::ByteContainer::Object<Session>  ByteContainer;
 
 public:
-	static Object* Make(Session* session, volatile char* b) {
+	static Object* Make(Session* /*session*/, volatile char* b) {
 		//TODO: Initialize
 		return new ((void*) b) Object();
 	}

@@ -111,7 +111,7 @@ public:
 		return Link(session, slot_index, (void*) n);
 	}
 
-	RadixTreeNode* Slot(Session* session, int slot_index) 
+	RadixTreeNode* Slot(Session* /*session*/, int slot_index) 
 	{
 		return reinterpret_cast<RadixTreeNode<Session> *> (slots[slot_index]);
 	}

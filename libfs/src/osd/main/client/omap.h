@@ -81,7 +81,7 @@ public:
 	        return E_SUCCESS;
 
 	}
-        int Remove(ObjectId oid){ return 0; }
+        int Remove(ObjectId /*oid*/){ return 0; }
         int RemoveAll(){ return 0; }
         iterator begin() { return oid2obj_map_.begin(); }
         iterator end() { return oid2obj_map_.end(); }

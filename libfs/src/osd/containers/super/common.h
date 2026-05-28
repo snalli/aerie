@@ -36,7 +36,7 @@ public:
 		return new(ptr) Object();
 	}
 
-	static Object* Make(Session* session, volatile char* ptr) {
+	static Object* Make(Session* /*session*/, volatile char* ptr) {
 		return new((void*)ptr) Object();
 	}
 

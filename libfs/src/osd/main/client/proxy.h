@@ -172,7 +172,7 @@ public:
 		return 0;
 	}
 	
-	int vUpdate(OsdSession* session) {
+	int vUpdate(OsdSession* /*session*/) {
 		//FIXME: version counter must be updated by the server
 		//printf("\n Chkpt 1 : Inside VersionManager::vUpdate");	
 		object_->ccSetVersion(object_->ccVersion() + 1);

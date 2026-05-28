@@ -23,7 +23,7 @@ public:
 	int TransactionAbort();
 
 	template<typename T>
-	void Store(volatile T* addr, T val)
+	void Store(volatile T* /*addr*/, T /*val*/)
 	{
 		//*addr = val;
 	}
@@ -32,12 +32,12 @@ public:
 	// support (doesn't make sense to log publishing at Server side).
 	// Unfortunately we need these dummy functions to avoid getting compilation problems 
 	// of containers at the server. We need a more elegant way to reuse container common.h
-	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::ContainerOperationHeader& header) {
+	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::ContainerOperationHeader& /*header*/) {
 		assert(0); // do not use this interface at server side.
 		return journal;
     }
 
-	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::LogicalOperationHeader& header) {
+	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::LogicalOperationHeader& /*header*/) {
 		assert(0); // do not use this interface at server side.
 		return journal;
     }

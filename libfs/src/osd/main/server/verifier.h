@@ -35,7 +35,7 @@ public:
 	int Parse(::osd::server::OsdSession* session, ::osd::Publisher::Message::BaseMessage* next);
 	
 	struct LockCertificate {
-		static int Action(osd::server::OsdSession* session, osd::Publisher::Message::ContainerOperation::LockCertificate* msg) {
+		static int Action(osd::server::OsdSession* /*session*/, osd::Publisher::Message::ContainerOperation::LockCertificate* /*msg*/) {
 			return E_SUCCESS;
 		}
 	};

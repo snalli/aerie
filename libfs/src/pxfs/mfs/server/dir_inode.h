@@ -23,7 +23,7 @@ public:
 	}
 
 	// TODO: mark persistent object address by ino as allocated and construct inode into ip
-	static DirInode* Make(Session* session, InodeNumber ino, DirInode* ip) {
+	static DirInode* Make(Session* /*session*/, InodeNumber ino, DirInode* ip) {
 		return new(ip) DirInode(ino);
 	}
 

@@ -22,11 +22,11 @@ public:
 	}
 
 	// mark persistent object for inode ino as allocated and construct inode into ip
-	static FileInode* Make(Session* session, InodeNumber ino, FileInode* ip) {
+	static FileInode* Make(Session* /*session*/, InodeNumber ino, FileInode* ip) {
 		return new(ip) FileInode(ino);
 	}
 
-	static void Free(Session* session, FileInode* ip) {
+	static void Free(Session* /*session*/, FileInode* ip) {
 		osd::containers::server::ByteContainer::Object::Free(session, ip->obj_->oid());
 	}
 

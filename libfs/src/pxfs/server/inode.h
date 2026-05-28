@@ -55,7 +55,7 @@ public:
 	{ }
 
 	// construct inode over existing persistent persistent object into ip
-	static T* Load(Session* session, InodeNumber ino, T* ip) {
+	static T* Load(Session* /*session*/, InodeNumber ino, T* ip) {
 		return new(ip) T(ino);
 	}
 	

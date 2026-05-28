@@ -29,11 +29,11 @@ public:
 
 	int Read(::client::Session* session, char* dst, uint64_t off, uint64_t n); 
 	int Write(::client::Session* session, char* src, uint64_t off, uint64_t n); 
-	int Unlink(::client::Session* session, const char* name) { assert(0); return 0; }
-	int Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) { assert(0); return 0; }
-	int xLookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) { assert(0); return 0; }
-	int Link(::client::Session* session, const char* name, ::client::Inode* ip, bool overwrite) { assert(0); return 0; }
-	int Link(::client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); return 0; }
+	int Unlink(::client::Session* /*session*/, const char* /*name*/) { assert(0); return 0; }
+	int Lookup(::client::Session* /*session*/, const char* /*name*/, int /*flags*/, ::client::Inode** /*ipp*/) { assert(0); return 0; }
+	int xLookup(::client::Session* /*session*/, const char* /*name*/, int /*flags*/, ::client::Inode** /*ipp*/) { assert(0); return 0; }
+	int Link(::client::Session* /*session*/, const char* /*name*/, ::client::Inode* /*ip*/, bool /*overwrite*/) { assert(0); return 0; }
+	int Link(::client::Session* /*session*/, const char* /*name*/, uint64_t /*ino*/, bool /*overwrite*/) { assert(0); return 0; }
 	int Sync(::client::Session* session);
 
 	int nlink();
@@ -42,8 +42,8 @@ public:
 	int Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode); 
 	int Lock(::client::Session* session, lock_protocol::Mode mode); 
 	int Unlock(::client::Session* session);
-	int xOpenRO(::client::Session* session) { assert(0); return 0; }
-	int return_dentry(::client::Session* sessio, void *) { return 0;}
+	int xOpenRO(::client::Session* /*session*/) { assert(0); return 0; }
+	int return_dentry(::client::Session* /*sessio*/, void *) { return 0;}
 
 
 	int ioctl(::client::Session* session, int request, void* info);
