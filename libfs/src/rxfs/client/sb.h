@@ -12,7 +12,7 @@ namespace client {
 
 class SuperBlock {
 public:
-	static SuperBlock* Load(Session* session, osd::common::ObjectId oid, SuperBlock* sb) {
+	static SuperBlock* Load(Session* /*session*/, osd::common::ObjectId oid, SuperBlock* sb) {
 		osd::containers::client::SuperContainer::Object* obj = osd::containers::client::SuperContainer::Object::Load(oid);
 		return new(sb) SuperBlock(obj);
 	}

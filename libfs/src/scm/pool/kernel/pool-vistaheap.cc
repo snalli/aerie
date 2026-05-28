@@ -67,11 +67,10 @@ StoragePool::Allocate(const char* path, size_t size)
 
 
 int
-StoragePool::Create(const char* path, size_t size, int flags)
+StoragePool::Create(const char* path, size_t size, int /*flags*/)
 {
 	int           ret;
 	int           fd;
-	size_t        bitmap_size;
 	size_t        header_size;
 	unsigned long base;
 	unsigned long vistaheap_base_addr;
@@ -89,7 +88,7 @@ StoragePool::Create(const char* path, size_t size, int flags)
 	printf("\n fd = %d", fd);
 	printf("\n Calling Allocate()...");
 	
-	Allocate(path, size);
+	(void)Allocate(path, size);
 		close(fd);
 	}
 
@@ -157,12 +156,11 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 {
 	PROFILER_PREAMBLE
 	int           ret;
-	unsigned long extent_base;
 	PROFILER_SAMPLE
-	
+
 	pthread_mutex_lock(&mutex_);
 	// roundup because protect expects multiple page size
-	size = NumOfBlocks(size, kBlockSize) * kBlockSize; 
+	size = NumOfBlocks(size, kBlockSize) * kBlockSize;
 
 	if (!(*ptr = vistaheap_malloc(&header_->vistaheap_, size))) {
 		ret = -E_NOMEM;
@@ -171,7 +169,6 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 
 	alloc_size_+=size;
 	PROFILER_SAMPLE
-	extent_base = (unsigned long) *ptr;
 //FIXME: Enable protection change below
 #if 0 
 	if ((ret = Protect(extent_base, size, getuid(), 0x3)) < 0) {
@@ -189,9 +186,6 @@ done:
 int 
 StoragePool::FreeExtent(void* ptr)
 {
-	int           ret;
-	unsigned long extent_base;
-	
 	free_size_ += 4096;
 	
 	pthread_mutex_lock(&mutex_);

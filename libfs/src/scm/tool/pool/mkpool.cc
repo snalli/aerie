@@ -19,9 +19,7 @@ int
 main_mkpool(int argc, char* argv[]) 
 {
 	extern char* optarg;
-	extern int   optind;
 	const char*  pathname = NULL;
-	const char*  type = NULL;
 	const char*  size_str = NULL;
 	uint64_t     usize = 0;
 	int          ret;

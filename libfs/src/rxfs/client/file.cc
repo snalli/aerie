@@ -37,15 +37,15 @@ File::Init(InodeNumber ino, int flags)
 
 
 int 
-File::Write(client::Session* session, const char* src, uint64_t n)
+File::Write(client::Session* /*session*/, const char* /*src*/, uint64_t /*n*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
 }
 
 
-int 
-File::Write(client::Session* session, const char* src, uint64_t n, uint64_t offset)
+int
+File::Write(client::Session* /*session*/, const char* /*src*/, uint64_t /*n*/, uint64_t /*offset*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -89,9 +89,8 @@ File::Read(client::Session* session, char* dst, uint64_t n, uint64_t offset)
 
 
 uint64_t
-File::Seek(client::Session* session, uint64_t offset, int whence)
+File::Seek(client::Session* /*session*/, uint64_t offset, int whence)
 {
-	uint64_t size;
 	switch(whence) {
 		case SEEK_SET:
 			off_ = offset;
@@ -194,7 +193,7 @@ FileManager::AllocFd(File* fp)
 
 
 int 
-FileManager::AllocFile(Session* session, File** fpp)
+FileManager::AllocFile(Session* /*session*/, File** fpp)
 {
 	//void* ptr = slab_.alloc();
 	//*fpp = new(ptr) File();
@@ -205,7 +204,7 @@ FileManager::AllocFile(Session* session, File** fpp)
 
 
 int 
-FileManager::ReleaseFile(Session* session, File* fp)
+FileManager::ReleaseFile(Session* /*session*/, File* fp)
 {
 	fp->Release();
 	//slab_.release((void*)fp);

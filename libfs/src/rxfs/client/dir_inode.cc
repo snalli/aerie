@@ -12,7 +12,7 @@ namespace client {
 
 
 int 
-DirInode::Link(Session* session, const char* name, uint64_t ino)
+DirInode::Link(Session* /*session*/, const char* /*name*/, uint64_t /*ino*/)
 {
 #if 0
 	if (Inode::type(ino) != kFileInode) {
@@ -27,9 +27,8 @@ DirInode::Link(Session* session, const char* name, uint64_t ino)
 
 
 int 
-DirInode::Link(Session* session, const char* name, DirInode* child)
+DirInode::Link(Session* /*session*/, const char* /*name*/, DirInode* /*child*/)
 {
-	int ret;
 #if 0
 	if ((ret = obj_->Insert(session, name, child->oid())) < 0) {
 		dbg_log (DBG_ERROR, "Failed: trying to link a file as %s\n", name);
@@ -52,9 +51,8 @@ DirInode::Link(Session* session, const char* name, DirInode* child)
 
 
 int 
-DirInode::Link(Session* session, const char* name, FileInode* child)
+DirInode::Link(Session* /*session*/, const char* /*name*/, FileInode* /*child*/)
 {
-	int ret;
 #if 0
 	if (str_is_dot(name) > 0) {
 		dbg_log (DBG_INFO, "Failed: trying to link a file as %s\n", name);
@@ -72,7 +70,7 @@ DirInode::Link(Session* session, const char* name, FileInode* child)
 
 
 int 
-DirInode::Unlink(Session* session, const char* name)
+DirInode::Unlink(Session* /*session*/, const char* /*name*/)
 {
 	int         ret = -E_INVAL;
 #if 0

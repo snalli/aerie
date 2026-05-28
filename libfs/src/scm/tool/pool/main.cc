@@ -41,7 +41,6 @@ main(int argc, char* argv[])
 	int (*command)(int, char* []) = NULL;
 
 	for (int i=0; command_table[i].name != NULL; i++) {
-		const char* name = command_table[i].name;
 		command = command_table[i].command;
 	}
 

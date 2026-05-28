@@ -82,12 +82,8 @@ NameSpace::Namex(Session* session, const char *cpath,
 	FileInode   finode;
 	Inode*      ip;
 	DirInode*   dp;
-	DirInode*   dpn;
-	FileInode*  fp;
-	FileInode*  fpn;
 	InodeNumber next_ino;
 	int         ret;
-	char*       old_name;
 	PROFILER_SAMPLE
 
 	if (*path == '/') {
@@ -132,7 +128,7 @@ NameSpace::Namex(Session* session, const char *cpath,
 
 
 int
-NameSpace::Nameiparent(Session* session, const char* path, char* name, lock_protocol::Mode mode, InodeNumber* ino)
+NameSpace::Nameiparent(Session* session, const char* path, char* name, lock_protocol::Mode /*mode*/, InodeNumber* ino)
 {
 	int ret; 
 
@@ -142,7 +138,7 @@ NameSpace::Nameiparent(Session* session, const char* path, char* name, lock_prot
 
 
 int
-NameSpace::Namei(Session* session, const char* path, lock_protocol::Mode mode, InodeNumber* ino)
+NameSpace::Namei(Session* session, const char* path, lock_protocol::Mode /*mode*/, InodeNumber* ino)
 {
 	int  ret; 
 	char name[128];

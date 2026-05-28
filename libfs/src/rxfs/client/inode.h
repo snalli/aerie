@@ -25,11 +25,11 @@ public:
 		  type_(type)
 	{ }
 	
-	int Lock(::rxfs::client::Session* session) {
+	int Lock(::rxfs::client::Session* /*session*/) {
 		return E_SUCCESS;
 	}
 
-	int Unlock(::rxfs::client::Session* session) {
+	int Unlock(::rxfs::client::Session* /*session*/) {
 		return E_SUCCESS;
 	}
 
@@ -75,7 +75,7 @@ public:
 	{ }
 
 	// construct inode over existing persistent persistent object into ip
-	static T* Load(Session* session, InodeNumber ino, T* ip) {
+	static T* Load(Session* /*session*/, InodeNumber ino, T* ip) {
 		return new(ip) T(ino);
 	}
 	

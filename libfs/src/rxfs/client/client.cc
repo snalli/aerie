@@ -153,9 +153,7 @@ int
 Client::Open(const char* path, int flags, int mode, File** file)
 {
 	PROFILER_PREAMBLE
-	Inode*      ip;
 	int         ret;
-	int         fd;
 	File*       fp;
 	Session*    session = CurrentSession();
 	InodeNumber ino;
@@ -188,7 +186,6 @@ int
 Client::Open(const char* path, int flags, int mode)
 {
 	PROFILER_PREAMBLE
-	Inode*      ip;
 	int         ret;
 	int         fd;
 	File*       fp;
@@ -232,7 +229,7 @@ Client::Duplicate(int oldfd)
 
 
 int
-Client::Duplicate(int oldfd, int newfd)
+Client::Duplicate(int oldfd, int /*newfd*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -333,7 +330,7 @@ Client::Seek(int fd, uint64_t offset, int whence)
 
 
 int
-Client::CreateDir(const char* path, int mode)
+Client::CreateDir(const char* /*path*/, int /*mode*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -350,7 +347,7 @@ Client::DeleteDir(const char* pathname)
 
 
 int
-Client::SetCurWrkDir(const char* path)
+Client::SetCurWrkDir(const char* /*path*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -358,7 +355,7 @@ Client::SetCurWrkDir(const char* path)
 
 
 int
-Client::GetCurWrkDir(const char* path, size_t size)
+Client::GetCurWrkDir(const char* /*path*/, size_t /*size*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -366,7 +363,7 @@ Client::GetCurWrkDir(const char* path, size_t size)
 
 
 int 
-Client::Rename(const char* oldpath, const char* newpath)
+Client::Rename(const char* /*oldpath*/, const char* /*newpath*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -374,7 +371,7 @@ Client::Rename(const char* oldpath, const char* newpath)
 
 
 int 
-Client::Link(const char* oldpath, const char* newpath)
+Client::Link(const char* /*oldpath*/, const char* /*newpath*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -382,7 +379,7 @@ Client::Link(const char* oldpath, const char* newpath)
 
 
 int 
-Client::Unlink(const char* pathname)
+Client::Unlink(const char* /*pathname*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -391,7 +388,7 @@ Client::Unlink(const char* pathname)
 
 
 int 
-Client::Stat(const char *path, struct stat *buf)
+Client::Stat(const char *path, struct stat* /*buf*/)
 {
 	int                 ret;
 	lock_protocol::Mode lock_mode = lock_protocol::Mode::XL; 
@@ -417,7 +414,7 @@ Client::Sync()
 
 // current rxfs synchronously writes data and metadata
 int 
-Client::Sync(int fd)
+Client::Sync(int /*fd*/)
 {
 	return E_SUCCESS;
 }
