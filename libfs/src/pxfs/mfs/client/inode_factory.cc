@@ -27,7 +27,6 @@ InodeFactory::LoadDirInode(::client::Session* session,
 	DirInode*                          dip;
 	bool                               wrlock = false;
 
-lock:
 	while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS) { }
 
 	ref->lock();
@@ -110,8 +109,7 @@ InodeFactory::LoadFileInode(::client::Session* session,
 	bool                               wrlock = false;
 
 //printf("\nInside InodeFactory::LoadFileInode...");
-	
-lock:
+
 	while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS) { }
 
 	ref->lock();

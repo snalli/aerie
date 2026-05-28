@@ -157,7 +157,6 @@ HLock::BeginConverting(bool lock)
 	} else {
 		set_status(HLock::CONVERTING);
 	}
-done:
 	if (lock) {
 		pthread_mutex_unlock(&mutex_);
 	}
@@ -649,7 +648,6 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 
 check_state:
 	switch (hlock->status()) {
-lock_compatible :
 		case HLock::FREE:
 			// great! no one is using the lock
 			if (hlock->lock_) {

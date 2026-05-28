@@ -1077,11 +1077,6 @@ grab_locks:
 	ip->Put();
 	ip->Unlock(session);
 	return 0;
-
-bad:
-	//FIXME: re-lock
-	assert(ip->set_nlink(ip->nlink() - 1) == 0);
-	return ret;
 }
 
 

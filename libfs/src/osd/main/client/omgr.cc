@@ -146,9 +146,7 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());\
 
 
-lock:
-
-/*	
+/*
  *	Uncomment this !
  *	if (rwlock) {
 		pthread_rwlock_wrlock(&rwlock_);
