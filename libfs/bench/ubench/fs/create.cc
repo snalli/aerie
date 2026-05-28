@@ -105,7 +105,8 @@ ubench_fs_create(int argc, char* argv[])
 				break;
 			case '?':
 				usage();
-			default:
+				break;
+			default:default:
 				break;
 		}
 	}

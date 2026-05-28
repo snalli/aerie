@@ -113,7 +113,8 @@ main(int argc, char *argv[])
 				break;
 			case '?':
 				usage(progname);
-			default:
+				break;
+			default:default:
 				break;
 		}
 	}

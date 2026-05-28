@@ -111,7 +111,8 @@ ubench_fs_seqwrite(int argc, char* argv[])
 				break;
 			case '?':
 				usage();
-			default:
+				break;
+			default:default:
 				break;
 		}
 	}

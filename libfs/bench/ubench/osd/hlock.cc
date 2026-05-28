@@ -166,7 +166,8 @@ ubench_hlock(int argc, char* argv[])
 				break;
 			case '?':
 				usage();
-			default:
+				break;
+			default:default:
 				break;
 		}
 	}
@@ -199,7 +200,8 @@ ubench_hlock_create(int argc, char* argv[])
 				break;
 			case '?':
 				usage();
-			default:
+				break;
+			default:default:
 				break;
 		}
 	}

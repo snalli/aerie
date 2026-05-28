@@ -83,7 +83,8 @@ ubench_fs_unlink(int argc, char* argv[])
 				break;
 			case '?':
 				usage();
-			default:
+				break;
+			default:default:
 				break;
 		}
 	}

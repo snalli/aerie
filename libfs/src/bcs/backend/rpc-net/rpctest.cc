@@ -413,6 +413,7 @@ main(int argc, char *argv[])
 				break;
 			case 'l':
 				assert(setenv("RPC_LOSSY", "5", 1) == 0);
+				break;
 			default:
 				break;
 		}
