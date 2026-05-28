@@ -138,7 +138,7 @@ SkipElem(char *path, char *name)
 
 
 int
-NameSpace::Init(Session* session) 
+NameSpace::Init(Session* /*session*/)
 {
 	//printf("\n Sanketh : Inside Namespace::Init... \n");
 	root_ = new MPInode;
