@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "rpc/rpc.h"
 #include "cfs/client/client_i.h"
 #include "bcs/main/common/cdebug.h"
 

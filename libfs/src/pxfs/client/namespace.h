@@ -2,7 +2,6 @@
 #define _NAMESPACE_H_AGT127
 
 #include <sys/types.h>
-#include "rpc/rpc.h"
 #include "pxfs/client/mpinode.h"
 //#include "pxfs/client/sb.h"
 #include <google/dense_hash_map>

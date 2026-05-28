@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "rpc/rpc.h"
 #include "kvfs/client/client.h"
 #include "bcs/main/common/cdebug.h"
 

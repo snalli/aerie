@@ -28,7 +28,6 @@
 
 #include <string>
 #include <google/dense_hash_map>
-#include "rpc/rpc.h"
 #include "pxfs/client/inode.h"
 
 namespace client {

@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "rpc/rpc.h"
 #include "pxfs/client/client_i.h"
 #include "bcs/main/common/cdebug.h"
 //#include "pxfs/client/cache.h"
