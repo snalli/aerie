@@ -304,18 +304,20 @@ StorageAllocator::GetDescriptorPool(OsdSession* session, osd::common::AclIdentif
 
 
 // OBSOLETE
-int 
+int
 StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
+	return 0;
 }
- 
+
 
 // OBSOLETE
-int 
+int
 StorageAllocator::Alloc(OsdSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
 {
 	assert(0);
+	return 0;
 }
 
 

@@ -29,8 +29,7 @@ NameContainer::VersionManager::return_dentry(void *dentry_list_head_addr)
                 it->val = (uint64_t) oid;
                 it = it->next_dentry;
         }
-
-
+        return 0;
 }
 
 int 

@@ -81,6 +81,7 @@ int
 NameContainer::Object<Session>::return_dentry(void *head_addr)
 {
         ht()->return_dentry(head_addr);
+        return 0;
 }
 
 template<typename Session>

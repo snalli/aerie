@@ -124,10 +124,10 @@ StorageSystem::Mount(const char* source, unsigned int flags)
 }
 
 
-int 
+int
 StorageSystem::Close()
 {
-
+	return 0;
 }
 
 

@@ -81,8 +81,8 @@ public:
 	        return E_SUCCESS;
 
 	}
-        int Remove(ObjectId oid){}
-        int RemoveAll(){}
+        int Remove(ObjectId oid){ return 0; }
+        int RemoveAll(){ return 0; }
         iterator begin() { return oid2obj_map_.begin(); }
         iterator end() { return oid2obj_map_.end(); }
 
@@ -180,7 +180,7 @@ inline int
 ObjectMap::Remove(ObjectId oid)
 {
 	int ret;
-        printf("\nRemoving oid : %016llX", &oid);
+        printf("\nRemoving oid : %016llX", (unsigned long long)oid);
 
 	ret = oid2obj_map_.erase(oid);
 	return ret;

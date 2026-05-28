@@ -13,7 +13,7 @@ void BarrierInit(int count)
 	ut_barrier_t *bp;
 	fd = open("/tmp/sharing_barrier", O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
 	assert(fd>0);
-	ftruncate(fd, 1024);
+	(void)ftruncate(fd, 1024);
 	bp = (ut_barrier_t*) mmap(0, 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	ut_barrier_init(bp, count, true);
 }
@@ -25,7 +25,7 @@ void BarrierWait()
 	ut_barrier_t *bp;
 	fd = open("/tmp/sharing_barrier", O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
 	assert(fd>0);
-	ftruncate(fd, 1024);
+	(void)ftruncate(fd, 1024);
 	bp = (ut_barrier_t*) mmap(0, 1024, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 	ut_barrier_wait(bp);
 }

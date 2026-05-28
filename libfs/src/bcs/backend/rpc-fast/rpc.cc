@@ -64,7 +64,7 @@ rpcc::bind()
   //set the shared channel, shared file, etc etc, returned by the fast rpc register
   client_id = (unsigned) atoi(c_shf);
   sh_chan_shf = string(c_shf);
-  sprintf(&c_shf[0], "/tmp/%d", client_id);
+  sprintf(&c_shf[0], "/tmp/%lu", client_id);
   sh_chan = (rpc_sync_t*) map_shared_file(c_shf, NULL, OTHER);
 
   if (ret == 0) {
@@ -932,6 +932,7 @@ void* rpcs::rpc_server_kernel(void* arg) {
 static void* server_kernel_handler(void* arg) {
   rpcs *serv = ((sthr_args*) arg)->serv_obj;
   serv->rpc_server_kernel(arg);
+  return NULL;
 }
 
 int rpcs::main_service_loop()

@@ -124,7 +124,7 @@ StoragePool::Protect(unsigned long extent_base, size_t extent_size, uid_t uid, i
 	r.rw = rw;
 	printf("\n\n Inside StoragePool::Protect : line 125");
 	printf("\n Making a syscall 313...");
-	printf("\n Size : %lld, Base : %016llX, page_prot : %d\n", e.size, e.base, r.rw);
+	printf("\n Size : %lu, Base : %016lX, page_prot : %d\n", e.size, e.base, r.rw);
 	// convention: syscall 313 returns 1 on success
 	if (syscall(313, (void*) &e, (void*) &r, 1) != 1) {
 		printf("\n syscall 313 failed...");

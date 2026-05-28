@@ -29,6 +29,7 @@ public:
 			uint64_t idx = pos_ / sizeof(char);
 			int      offset = pos_ & (sizeof(char) - 1); // pos % sizeof(char);
 			set_bit(idx, offset, value);
+			return *this;
 		}
 
 		operator bool() {

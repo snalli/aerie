@@ -14,6 +14,7 @@ Transaction::Init()
 {
 	nesting_ = 0;
 	rset_.set_empty_key(0);
+	return 0;
 }
 
 

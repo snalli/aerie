@@ -54,7 +54,7 @@ DirInode::return_dentry(::client::Session* session, void * inode_list_head)
 
         }
         ((struct list_item *)inode_list_head)->data = (void *)tail;
-
+        return 0;
 }
 
 int 

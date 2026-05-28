@@ -30,8 +30,8 @@ public:
 	int Lookup(Session* session, const char* name, int flags, Inode** inode);
 	int xLookup(Session* session, const char* name, int flags, Inode** inode) { return 0; }
 	int Link(Session* session, const char* name, Inode* inode, bool overwrite);
-	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); }
-	int Unlink(client::Session* session, const char* name) { assert(0); }
+	int Link(client::Session* session, const char* name, uint64_t ino, bool overwrite) { assert(0); return 0; }
+	int Unlink(client::Session* session, const char* name) { assert(0); return 0; }
 	int Sync(::client::Session* session) { return 0; }
 	
 	int nlink() { return 0; }

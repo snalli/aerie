@@ -88,7 +88,7 @@ void Lock::PrintQueues()
 	printf("WAITING LIST: \n");
 	for (itr = waiting_list_.begin(); itr != waiting_list_.end(); itr++) {
 		ClientRecord cr = *itr;
-		printf("Client: %lu\n", cr.id());
+		printf("Client: %d\n", cr.id());
 	}
 }
 

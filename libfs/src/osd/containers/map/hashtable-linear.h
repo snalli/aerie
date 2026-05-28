@@ -652,6 +652,7 @@ Page<Session>::return_dentry(void *head_addr)
                 }
         }
         ((struct dentry *)(head_addr))->val = (uint64_t)curr_ptr;
+        return 0;
 }
 
 
@@ -829,8 +830,8 @@ Bucket<Session>::return_dentry(void *head_addr)
 
         for (page=&page_; page != 0x0; page=page->Next()) {
                 page->return_dentry(head_addr);
-        }    
-
+        }
+        return 0;
 }
 
 
@@ -1060,11 +1061,7 @@ HashTable<Session>::return_dentry(void *head_addr)
                 bucket = &buckets_[i];
                 bucket->return_dentry(head_addr);
         }
-
-
-
-
-
+        return 0;
 }
 
 

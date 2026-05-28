@@ -34,10 +34,12 @@ public:
 	// of containers at the server. We need a more elegant way to reuse container common.h
 	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::ContainerOperationHeader& header) {
 		assert(0); // do not use this interface at server side.
+		return journal;
     }
-	
+
 	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::LogicalOperationHeader& header) {
 		assert(0); // do not use this interface at server side.
+		return journal;
     }
 
 	int mode() { return mode_; }

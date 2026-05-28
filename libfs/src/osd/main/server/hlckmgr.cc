@@ -40,6 +40,7 @@ HLockManager::Init()
 		ipc_->reg(lock_protocol::release, this, &HLockManager::Release);
 		ipc_->reg(lock_protocol::convert, this, &HLockManager::Convert);
 	}
+	return 0;
 }
 
 
