@@ -19,7 +19,7 @@ namespace client {
 // must do a separate call, which breaks encapsulation. 
 
 int
-DirInode::return_dentry(::client::Session* session, void * inode_list_head)
+DirInode::return_dentry(::client::Session* /*session*/, void * inode_list_head)
 {
 
 	struct dentry dentry_head;
