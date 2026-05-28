@@ -92,8 +92,8 @@ ut_barrier_wait(register ut_barrier_t *bp)
 }  
   
   
-static int  
-ut_barrier_destroy(ut_barrier_t *bp) {  
+static inline int
+ut_barrier_destroy(ut_barrier_t *bp) {
 	int r;  
 	int i;  
   

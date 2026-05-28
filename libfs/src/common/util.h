@@ -28,7 +28,7 @@ inline int RoundUpSize(size_t size, size_t multiple_size)
 }
 
 
-static size_t
+static inline size_t
 StringToSize(const char* cstr)
 {
 	size_t factor = 1;
