@@ -58,7 +58,7 @@ DirInode::return_dentry(::client::Session* session, void * inode_list_head)
 }
 
 int 
-DirInode::Lookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
+DirInode::Lookup(::client::Session* session, const char* name, int /*flags*/, ::client::Inode** ipp)
 {
 	PROFILER_PREAMBLE
 	int                   ret;
@@ -105,7 +105,7 @@ done:
 
 
 int 
-DirInode::xLookup(::client::Session* session, const char* name, int flags, ::client::Inode** ipp) 
+DirInode::xLookup(::client::Session* session, const char* name, int /*flags*/, ::client::Inode** ipp)
 {
 	int                   ret;
 	::client::Inode*      ip;
@@ -136,8 +136,8 @@ done:
 
 
 int 
-DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip, 
-               bool overwrite)
+DirInode::Link(::client::Session* session, const char* name, ::client::Inode* ip,
+               bool /*overwrite*/)
 {
 	int ret; 
 
@@ -279,7 +279,7 @@ DirInode::Unlock(::client::Session* session)
  
 
 int 
-DirInode::xOpenRO(::client::Session* session)
+DirInode::xOpenRO(::client::Session* /*session*/)
 {
 	rw_ref()->proxy()->xOpenRO();
 	return E_SUCCESS;
