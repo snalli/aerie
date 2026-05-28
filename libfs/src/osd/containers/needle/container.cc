@@ -37,19 +37,8 @@ NeedleContainer::VersionManager::vUpdate(OsdSession* session)
 
 
 int 
-NeedleContainer::VersionManager::Read(OsdSession* session, char* dst, 
-                                    uint64_t off, uint64_t n)
-{
-	dbg_log (DBG_CRITICAL, "Don't use this. Remember it's a needle. You should go directly through the persistent interface.\n");
-	return 0;
-}
-
-
-int 
-NeedleContainer::VersionManager::Write(OsdSession* session, 
-                                     char* src, 
-                                     uint64_t off, 
-                                     uint64_t n)
+NeedleContainer::VersionManager::Read(OsdSession* /*session*/, char* /*dst*/,
+                                    uint64_t /*off*/, uint64_t /*n*/)
 {
 	dbg_log (DBG_CRITICAL, "Don't use this. Remember it's a needle. You should go directly through the persistent interface.\n");
 	return 0;
@@ -57,7 +46,18 @@ NeedleContainer::VersionManager::Write(OsdSession* session,
 
 
 int
-NeedleContainer::VersionManager::Size(OsdSession* session)
+NeedleContainer::VersionManager::Write(OsdSession* /*session*/,
+                                     char* /*src*/,
+                                     uint64_t /*off*/,
+                                     uint64_t /*n*/)
+{
+	dbg_log (DBG_CRITICAL, "Don't use this. Remember it's a needle. You should go directly through the persistent interface.\n");
+	return 0;
+}
+
+
+int
+NeedleContainer::VersionManager::Size(OsdSession* /*session*/)
 {
 	return size_;
 }

@@ -18,7 +18,7 @@ SuperContainer::VersionManager::vOpen()
 
 
 int 
-SuperContainer::VersionManager::vUpdate(OsdSession* session)
+SuperContainer::VersionManager::vUpdate(OsdSession* /*session*/)
 {
 	return 0;
 }
