@@ -2,8 +2,7 @@
 # OSD – Object Storage Device layer
 # ---------------------------------------------------------------------------
 
-# ---------- osdclt ----------------------------------------------------------
-add_library(osdclt SHARED
+add_library(osdclt OBJECT
     main/client/journal.cc
     main/client/hlckmgr.cc
     main/client/lckmgr.cc
@@ -19,8 +18,7 @@ add_library(osdclt SHARED
 )
 target_link_libraries(osdclt PUBLIC aerie_includes)
 
-# ---------- osdsrv ----------------------------------------------------------
-add_library(osdsrv SHARED
+add_library(osdsrv OBJECT
     main/server/journal.cc
     main/server/hlckmgr.cc
     main/server/lckmgr.cc

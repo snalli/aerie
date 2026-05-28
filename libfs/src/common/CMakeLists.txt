@@ -1,4 +1,4 @@
-add_library(common SHARED
+add_library(common OBJECT
     hash.c
     interval_tree.cc
 )

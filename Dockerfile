@@ -39,21 +39,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libboost-system1.74.0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Binaries
-COPY --from=builder /aerie/libfs/build/src/scm/tool/pool/pool_tool  /usr/local/bin/pool_tool
-COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_server          /usr/local/bin/pxfs_server
-COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_mkfs            /usr/local/bin/pxfs_mkfs
-COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_client          /usr/local/bin/pxfs_client
-COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_server          /usr/local/bin/kvfs_server
-COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_mkfs            /usr/local/bin/kvfs_mkfs
-COPY --from=builder /aerie/libfs/build/src/cfs/cfs_server            /usr/local/bin/cfs_server
-COPY --from=builder /aerie/libfs/build/src/cfs/cfs_mkfs              /usr/local/bin/cfs_mkfs
-COPY --from=builder /aerie/libfs/build/bench/ubench/ubench_pxfs      /usr/local/bin/ubench_pxfs
-COPY --from=builder /aerie/libfs/build/bench/ubench/ubench_vfs       /usr/local/bin/ubench_vfs
+# Single unified shared library
+COPY --from=builder /aerie/libfs/build/src/libfs.so  /usr/local/lib/libfs.so
+RUN ldconfig
 
-# Shared libraries
-COPY --from=builder /aerie/libfs/build/ /aerie/build/
-RUN find /aerie/build -name "*.so" -exec cp {} /usr/local/lib/ \; && ldconfig
+# Binaries
+COPY --from=builder /aerie/libfs/build/src/pool_tool    /usr/local/bin/pool_tool
+COPY --from=builder /aerie/libfs/build/src/pxfs_server  /usr/local/bin/pxfs_server
+COPY --from=builder /aerie/libfs/build/src/pxfs_mkfs    /usr/local/bin/pxfs_mkfs
+COPY --from=builder /aerie/libfs/build/src/pxfs_client  /usr/local/bin/pxfs_client
+COPY --from=builder /aerie/libfs/build/src/kvfs_server  /usr/local/bin/kvfs_server
+COPY --from=builder /aerie/libfs/build/src/kvfs_mkfs    /usr/local/bin/kvfs_mkfs
+COPY --from=builder /aerie/libfs/build/src/cfs_server   /usr/local/bin/cfs_server
+COPY --from=builder /aerie/libfs/build/src/cfs_mkfs     /usr/local/bin/cfs_mkfs
+COPY --from=builder /aerie/libfs/build/bench/ubench/ubench_pxfs  /usr/local/bin/ubench_pxfs
+COPY --from=builder /aerie/libfs/build/bench/ubench/ubench_vfs   /usr/local/bin/ubench_vfs
 
 # Runtime config
 COPY libfs/libfs.ini /etc/libfs.ini

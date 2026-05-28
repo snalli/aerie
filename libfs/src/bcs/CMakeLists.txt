@@ -1,15 +1,8 @@
 # ---------------------------------------------------------------------------
 # BCS – Basic Communication Services
-#
-# Layer order:
-#   rpcnet / rpcfast        raw RPC transports
-#   bcs_common (OBJECT)     shared debug/config objects compiled once
-#   bcsclt                  client-side IPC
-#   bcssrv                  server-side IPC
 # ---------------------------------------------------------------------------
 
-# ---------- rpc-net ---------------------------------------------------------
-add_library(rpcnet SHARED
+add_library(rpcnet OBJECT
     backend/rpc-net/rpc.cc
     backend/rpc-net/connection.cc
     backend/rpc-net/pollmgr.cc
@@ -18,13 +11,11 @@ add_library(rpcnet SHARED
 )
 target_link_libraries(rpcnet PUBLIC aerie_includes Threads::Threads)
 
-# ---------- rpc-fast --------------------------------------------------------
-add_library(rpcfast SHARED
+add_library(rpcfast OBJECT
     backend/rpc-fast/rpc.cc
 )
 target_link_libraries(rpcfast PUBLIC aerie_includes Threads::Threads)
 
-# ---------- bcs common (compiled once, linked into both clt and srv) --------
 add_library(bcs_common OBJECT
     main/common/rtconfig.cc
     main/common/debug.cc
@@ -33,22 +24,18 @@ add_library(bcs_common OBJECT
 )
 target_link_libraries(bcs_common PUBLIC aerie_includes)
 
-# ---------- bcsclt ----------------------------------------------------------
-add_library(bcsclt SHARED
+add_library(bcsclt OBJECT
     main/client/ipc.cc
     main/client/shbuf.cc
-    $<TARGET_OBJECTS:bcs_common>
 )
-target_link_libraries(bcsclt PUBLIC aerie_includes rpcnet rpcfast)
+target_link_libraries(bcsclt PUBLIC aerie_includes)
 
-# ---------- bcssrv ----------------------------------------------------------
-add_library(bcssrv SHARED
+add_library(bcssrv OBJECT
     main/server/cltdsc.cc
     main/server/ipc.cc
     main/server/sessionmgr.cc
     main/server/session.cc
     main/server/shbuf.cc
     main/server/shbufmgr.cc
-    $<TARGET_OBJECTS:bcs_common>
 )
-target_link_libraries(bcssrv PUBLIC aerie_includes rpcnet rpcfast)
+target_link_libraries(bcssrv PUBLIC aerie_includes)
