@@ -177,7 +177,7 @@ PXFS_FRONTAPI(open) (const char* pathname, int flags)
 
 
 int 
-PXFS_FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
+PXFS_FRONTAPI(open2) (const char* pathname, int flags, mode_t /*mode*/)
 {
 	int ret;
 

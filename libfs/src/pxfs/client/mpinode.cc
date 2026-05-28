@@ -10,7 +10,7 @@
 namespace client {
 
 int 
-MPInode::return_dentry(::client::Session*, void *)
+MPInode::return_dentry(::client::Session*, void* /*unused*/)
 {
 	return 0;
 }
@@ -30,7 +30,7 @@ MPInode::return_pxfs_inode()
         return ret;
 }
 
-int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inodep)
+int MPInode::Lookup(Session* /*session*/, const char* name, int /*flags*/, Inode** inodep)
 {
 	//printf("\n Sanketh : Inside MPInode::Lookup. Nailed it ! \n");
 	HRTIME_DEFINITIONS
@@ -66,7 +66,7 @@ int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inode
 // Assumes the caller has checked that the mounted file system does not 
 // contain the name
 int 
-MPInode::Link(Session* session, const char* name, Inode* inode, bool overwrite)
+MPInode::Link(Session* /*session*/, const char* name, Inode* inode, bool /*overwrite*/)
 {
 	int    i;
 	int    empty = entries_count_;
@@ -89,7 +89,7 @@ MPInode::Link(Session* session, const char* name, Inode* inode, bool overwrite)
 }
 
 int 
-MPInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mode mode)
+MPInode::Lock(::client::Session* /*session*/, Inode* /*parent_inode*/, lock_protocol::Mode /*mode*/)
 {
 	printf("\n MPInode::Lock");
 	return E_SUCCESS;
@@ -97,14 +97,14 @@ MPInode::Lock(::client::Session* session, Inode* parent_inode, lock_protocol::Mo
 
 
 int 
-MPInode::Lock(::client::Session* session, lock_protocol::Mode mode)
+MPInode::Lock(::client::Session* /*session*/, lock_protocol::Mode /*mode*/)
 {
 	return E_SUCCESS;
 }
 
 
 int 
-MPInode::Unlock(::client::Session* session)
+MPInode::Unlock(::client::Session* /*session*/)
 {
 	return E_SUCCESS;
 }

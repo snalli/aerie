@@ -18,7 +18,7 @@ class Object: public osd::cc::common::Object {
 	typedef osd::containers::common::ByteContainer::Object<Session>  ByteContainer;
 
 public:
-	static Object* Make(Session* session, volatile char* b) {
+	static Object* Make(Session* /*session*/, volatile char* b) {
 		//TODO: Initialize
 		return new ((void*) b) Object();
 	}
@@ -48,7 +48,7 @@ private:
 template<typename T>
 template<typename Session>
 int 
-ArrayContainer<T>::Object<Session>::Read(Session* session, int index, T* val)
+ArrayContainer<T>::Object<Session>::Read(Session* /*session*/, int index, T* val)
 {
 	*val = array_[index];
 
@@ -59,7 +59,7 @@ ArrayContainer<T>::Object<Session>::Read(Session* session, int index, T* val)
 template<typename T>
 template<typename Session>
 int 
-ArrayContainer<T>::Object<Session>::Write(Session* session, int index, T val)
+ArrayContainer<T>::Object<Session>::Write(Session* /*session*/, int index, T val)
 {
 	array_[index] = val;
 	return E_SUCCESS;

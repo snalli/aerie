@@ -36,7 +36,7 @@ FileSystem::Init()
 
 
 int 
-FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flags) 
+FileSystem::Make(const char* target, size_t /*nblocks*/, size_t /*block_size*/, int flags)
 {
 	int ret;
 
@@ -75,8 +75,8 @@ FileSystem::Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** 
 
 
 int 
-FileSystem::Mount(int clt, const char* source, const char* target, 
-                  unsigned int flags, FileSystemProtocol::MountReply& rep) 
+FileSystem::Mount(int clt, const char* source, const char* /*target*/,
+                  unsigned int flags, FileSystemProtocol::MountReply& rep)
 {
 	int                               ret;
 	StorageSystemProtocol::MountReply ssrep;

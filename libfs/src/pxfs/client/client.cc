@@ -461,7 +461,7 @@ Client::Duplicate(int oldfd)
 
 
 int
-Client::Duplicate(int oldfd, int newfd)
+Client::Duplicate(int oldfd, int /*newfd*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -606,7 +606,7 @@ Client::SetCurWrkDir(const char* path)
 
 
 int
-Client::GetCurWrkDir(const char* path, size_t size)
+Client::GetCurWrkDir(const char* path, size_t /*size*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
         s_log("[%ld] %s %s",s_tid, __func__, path);
@@ -673,7 +673,7 @@ Client::Sync()
 
 // current pxfs synchronously writes data and metadata
 int 
-Client::Sync(int fd)
+Client::Sync(int /*fd*/)
 {
 	return E_SUCCESS;
 }

@@ -21,8 +21,8 @@ main(int argc, char *argv[])
 	int          debug_level = 0;
 	char         operation[16];
 	char         ch = 0;
-	char*        xdst;
-	unsigned int nblocks;
+	char*        xdst = NULL;
+	unsigned int nblocks = 0;
 
 	while ((ch = getopt(argc, argv, "d:h:li:o:n:"))!=-1) {
 		switch (ch) {
@@ -50,6 +50,7 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
+	(void)xdst; (void)nblocks; (void)operation;
 	libfs_init(argc, argv);
 
 	libfs_shutdown();

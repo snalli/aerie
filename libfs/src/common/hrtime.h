@@ -46,10 +46,10 @@ static inline unsigned long long hrtime_cycles(void)
 #endif
 
 
-#define HRTIME_DEFINITIONS                   \
-	hrtime_t      start = hrtime_cycles();   \
-	hrtime_t      stop;                      \
-	int           startln = __LINE__; 
+#define HRTIME_DEFINITIONS                                        \
+	hrtime_t      start __attribute__((unused)) = hrtime_cycles(); \
+	hrtime_t      stop __attribute__((unused));                    \
+	int           startln __attribute__((unused)) = __LINE__;
 
 #define HRTIME_START          \
 	start = hrtime_cycles();  \
