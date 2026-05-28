@@ -24,7 +24,7 @@ set(LIBHOARD          "" CACHE PATH "Path to libhoard directory (optional)")
 # ---------------------------------------------------------------------------
 # Compiler flags
 # ---------------------------------------------------------------------------
-add_compile_options(-O2 -Wno-unused-result)
+add_compile_options(-O2)
 add_compile_definitions(__STDC_FORMAT_MACROS)
 
 # RPC mode

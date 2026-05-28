@@ -42,7 +42,7 @@ __ubench_fs_append(const char* root, int numops, int warmup_ops, size_t size)
 	fs_close(fd);
 	fs_fsync(fd);
 	fs_sync();
-	(void)system("echo 3 >> /proc/sys/vm/drop_caches");
+	ret = system("echo 3 >> /proc/sys/vm/drop_caches");
 
 	exp_nr_writes = twogig/size;
 	printf("file creation %s is done\n", ss.str().c_str());
