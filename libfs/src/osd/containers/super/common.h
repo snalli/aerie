@@ -75,23 +75,23 @@ private:
 
 template<typename Session>
 osd::common::ObjectId 
-SuperContainer::Object<Session>::root(Session* session)
+SuperContainer::Object<Session>::root(Session* /*session*/)
 {
 	return root_;
 }
 
 
 template<typename Session>
-void 
-SuperContainer::Object<Session>::set_root(Session* session, osd::common::ObjectId oid)
+void
+SuperContainer::Object<Session>::set_root(Session* /*session*/, osd::common::ObjectId oid)
 {
 	root_ = oid;
 }
 
 
 template<typename Session>
-osd::common::ObjectId 
-SuperContainer::Object<Session>::freelist(Session* session)
+osd::common::ObjectId
+SuperContainer::Object<Session>::freelist(Session* /*session*/)
 {
 	return freelist_;
 }
@@ -99,7 +99,7 @@ SuperContainer::Object<Session>::freelist(Session* session)
 
 template<typename Session>
 void
-SuperContainer::Object<Session>::set_freelist(Session* session, osd::common::ObjectId oid)
+SuperContainer::Object<Session>::set_freelist(Session* /*session*/, osd::common::ObjectId oid)
 {
 	freelist_ = oid;
 }

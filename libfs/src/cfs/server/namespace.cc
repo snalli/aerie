@@ -79,7 +79,7 @@ NameSpace::Namex(Session* session, const char *cpath,
 	char*       path = const_cast<char*>(cpath);
 	DirInode    dinode;
 	FileInode   finode;
-	Inode*      ip;
+	Inode*      ip = NULL;
 	DirInode*   dp;
 	InodeNumber next_ino;
 	int         ret;

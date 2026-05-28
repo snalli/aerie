@@ -834,7 +834,7 @@ void* rpcs::rpc_server_kernel(void* arg) {
  	curr != rpc_reg.rpc_queue.end();
 	curr++, myturn++) {
    
-      if( myturn % NUMTHREADS != tid )
+      if( (unsigned)myturn % NUMTHREADS != tid )
 	continue;
       
       s_ce = *curr;

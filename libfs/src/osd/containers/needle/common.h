@@ -32,7 +32,7 @@ class Object: public osd::cc::common::Object {
 		kNeedleSize = (64+16)*1024 // be careful to not overflow (sizeof(enum) = sizeof(int))
 	};
 public:
-	static Object* Make(Session* /*session*/, osd::common::AclIdentifier acl_id = 0) {
+	static Object* Make(Session* session, osd::common::AclIdentifier acl_id = 0) {
 		osd::common::ObjectId oid;
 		
 		if (session->salloc()->AllocateContainer(session, acl_id, T_NEEDLE_CONTAINER, &oid) < 0) {
@@ -77,7 +77,7 @@ NeedleContainer::Object<Session>::Object()
 
 template<typename Session>
 int 
-NeedleContainer::Object<Session>::Write(Session* session, const char* src, uint64_t off, uint64_t n)
+NeedleContainer::Object<Session>::Write(Session* /*session*/, const char* src, uint64_t /*off*/, uint64_t n)
 {
 	ScmMemCopy(byte_, src, n);
 	size_ = n;
@@ -86,8 +86,8 @@ NeedleContainer::Object<Session>::Write(Session* session, const char* src, uint6
 
 
 template<typename Session>
-int 
-NeedleContainer::Object<Session>::Read(Session* session, char* dst, uint64_t off, uint64_t n)
+int
+NeedleContainer::Object<Session>::Read(Session* /*session*/, char* dst, uint64_t /*off*/, uint64_t n)
 {
 	ScmMemCopy(dst, byte_, n);
 	return n;

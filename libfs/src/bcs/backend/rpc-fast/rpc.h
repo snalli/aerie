@@ -164,7 +164,7 @@ class fast_rpc {
     if(unbind)
       sig = 2;
 
-    while(!__sync_bool_compare_and_swap(&(rpc_sig->signal), 0, sig));
+    while(!__sync_bool_compare_and_swap(&(rpc_sig->signal), 0, sig)) {} // spin
 
     //send rpc register request to server
     DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got the lock!\n");
@@ -177,7 +177,7 @@ class fast_rpc {
       return 0; //client done! bye!
     }
 
-    while(rpc_msg->signal!=1);
+    while(rpc_msg->signal!=1) {} // spin
 
     DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got reply from server!\n");
 
@@ -263,7 +263,7 @@ class fast_rpc {
     DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "SENT! %d\n", myticket);
 
     //FIXME: change it with xchg based wait...
-    while(mybuff->signal != 2); //spin on the signal
+    while(mybuff->signal != 2) {} // spin on the signal
 
     DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "%d: got the response!\n", myticket);
 
