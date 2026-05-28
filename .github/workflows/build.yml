@@ -44,12 +44,11 @@ jobs:
         with:
           name: aerie-binaries
           path: |
-            libfs/build/src/libfs.so
-            libfs/build/src/pxfs_server
-            libfs/build/src/pxfs_mkfs
-            libfs/build/src/kvfs_server
-            libfs/build/src/kvfs_mkfs
-            libfs/build/src/cfs_server
-            libfs/build/src/pool_tool
+            libfs/build/src/pxfs/pxfs_server
+            libfs/build/src/pxfs/pxfs_mkfs
+            libfs/build/src/kvfs/kvfs_server
+            libfs/build/src/kvfs/kvfs_mkfs
+            libfs/build/src/cfs/cfs_server
+            libfs/build/src/scm/tool/pool/pool_tool
             libfs/build/bench/ubench/ubench_pxfs
           retention-days: 7
