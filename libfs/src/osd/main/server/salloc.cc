@@ -311,7 +311,7 @@ StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
 
 // OBSOLETE
 int
-StorageAllocator::Alloc(OsdSession* session, size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(OsdSession* /*session*/, size_t /*nbytes*/, std::type_info const& /*typid*/, void** /*ptr*/)
 {
 	assert(0);
 	return 0;
@@ -320,7 +320,7 @@ StorageAllocator::Alloc(OsdSession* session, size_t nbytes, std::type_info const
 
 // this interface is for use by the server 
 int 
-StorageAllocator::AllocateExtent(OsdSession* session, size_t size, int flags, void** ptr)
+StorageAllocator::AllocateExtent(OsdSession* /*session*/, size_t size, int /*flags*/, void** ptr)
 {
 	int ret;
 
@@ -343,7 +343,7 @@ done:
 
 
 int
-StorageAllocator::FreeExtent(OsdSession* session, osd::common::ExtentId eid)
+StorageAllocator::FreeExtent(OsdSession* /*session*/, osd::common::ExtentId eid)
 {
 	int ret;
 
@@ -423,7 +423,7 @@ done:
 
 // not thread safe
 int
-StorageAllocator::CreateObjectIdSet(OsdSession* session, osd::common::AclIdentifier acl_id, 
+StorageAllocator::CreateObjectIdSet(OsdSession* session, osd::common::AclIdentifier /*acl_id*/,
                                     ObjectIdSet** obj_set)
 {
 	char*   buffer;
@@ -522,7 +522,7 @@ StorageAllocator::AllocateContainer(OsdSession* session,
 	
 
 int
-StorageAllocator::FreeContainer(OsdSession* session, osd::common::ObjectId oid)
+StorageAllocator::FreeContainer(OsdSession* /*session*/, osd::common::ObjectId oid)
 {
 	int type = oid.type();
 	assert(type < 16);
@@ -693,8 +693,8 @@ StorageAllocator::IpcHandlers::AllocateObjectIdSet(int clt, osd::common::AclIden
 // set_capability is an index into the table of container sets allocates to the client
 // new containers will be allocated into the set pointed by the set_capability
 int 
-StorageAllocator::IpcHandlers::AllocateContainerIntoSet(int clt, int set_capability, int type, int num, 
-                                                        int& reply)
+StorageAllocator::IpcHandlers::AllocateContainerIntoSet(int clt, int set_capability, int type, int num,
+                                                        int& /*reply*/)
 {
 	int                    ret;
 	::server::BaseSession* session;
@@ -722,8 +722,8 @@ StorageAllocator::IpcHandlers::AllocateContainerIntoSet(int clt, int set_capabil
 // set_capability is an index into the table of container sets allocates to the client
 // new containers will be allocated into the set pointed by the set_capability
 int 
-StorageAllocator::IpcHandlers::AllocateExtentIntoSet(int clt, int set_capability, int size, int num, 
-                                                     int& reply)
+StorageAllocator::IpcHandlers::AllocateExtentIntoSet(int clt, int set_capability, int size, int num,
+                                                     int& /*reply*/)
 {
 	int                    ret;
 	::server::BaseSession* session;
