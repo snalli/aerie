@@ -1,0 +1,8 @@
+add_subdirectory(bcs)
+add_subdirectory(scm)
+add_subdirectory(common)
+add_subdirectory(osd)
+add_subdirectory(pxfs)
+add_subdirectory(cfs)
+add_subdirectory(rxfs)
+add_subdirectory(kvfs)
