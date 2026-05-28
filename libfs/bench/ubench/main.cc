@@ -69,7 +69,6 @@ main(int argc, char *argv[])
 	const char*        xdst="10000";
 	extern int         opterr;
 	extern char*       optarg;
-	std::string        unused;
 	struct ubench_desc ubench[16];
 
 
