@@ -128,9 +128,8 @@ int
 LockManager::Init(bool register_handler)
 {
 	pthread_t th;
-	int       r;
 
-	DBG_LOG(DBG_INFO, DBG_MODULE(server_lckmgr), 
+	DBG_LOG(DBG_INFO, DBG_MODULE(server_lckmgr),
 	        "Initializing Base Lock Manager\n");
 
 	if (!mutex_) {
@@ -140,10 +139,8 @@ LockManager::Init(bool register_handler)
 	pthread_cond_init(&revoke_cv_, NULL);
 	pthread_cond_init(&available_cv_, NULL);
 	locks_.set_empty_key(-1);
-	r = pthread_create(&th, NULL, &revokethread, (void *) this);
-	assert (r == 0);
-	r = pthread_create(&th, NULL, &retrythread, (void *) this);
-	assert (r == 0);
+	assert(pthread_create(&th, NULL, &revokethread, (void *) this) == 0);
+	assert(pthread_create(&th, NULL, &retrythread, (void *) this) == 0);
 	
 	if (register_handler && ipc_) {
 		ipc_->reg(lock_protocol::stat, this, &LockManager::Stat);

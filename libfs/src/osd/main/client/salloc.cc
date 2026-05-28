@@ -266,7 +266,6 @@ done:
 int 
 StorageAllocator::AllocateContainerVector(OsdSession* session)
 {
-	int                                                    ret;
 	std::vector< ::osd::StorageProtocol::ContainerRequest> container_req_vec;
 	std::vector<int>                                       rv;
 	std::vector<int>::iterator                             rvi;
@@ -277,7 +276,7 @@ StorageAllocator::AllocateContainerVector(OsdSession* session)
 
 	container_req_vec.push_back(req);
 
-	ret = ipc_->call(osd::StorageProtocol::kAllocateContainerVector, 
+	(void)ipc_->call(osd::StorageProtocol::kAllocateContainerVector,
 	                 ipc_->id(), container_req_vec, rv);
 
 	for (rvi = rv.begin(); rvi != rv.end(); rvi++) {

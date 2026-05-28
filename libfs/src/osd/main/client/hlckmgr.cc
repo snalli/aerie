@@ -500,7 +500,7 @@ HLockManager::AttachPublicLockChainUp(HLock* hlock, lock_protocol::Mode mode, in
 		pthread_mutex_lock(&hl->mutex_);
 		pthread_mutex_unlock(&old_hl->mutex_);
 	}
-	hl_public = hl; // the hlock having a public lock attached.
+	hl_public = hl; (void)hl_public; // only read in assert; suppress unused warning in release
 	assert(hl->lock_->public_mode_ == lock_protocol::Mode::XR ||
 	       hl->lock_->public_mode_ == lock_protocol::Mode::SR);
 	pthread_mutex_unlock(&hl->mutex_);
@@ -633,7 +633,7 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 {
 	lock_protocol::status r = lock_protocol::NOENT;
 	lock_protocol::Mode   mode_granted;
-	LockId                lid = hlock->lid_;
+	LockId                lid = hlock->lid_; (void)lid;
 	int depth;
 	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
@@ -921,11 +921,11 @@ lock_protocol::status
 HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 {
 	lock_protocol::status r = lock_protocol::OK;
-	LockId                lid = hlock->lid_;
+	LockId                lid = hlock->lid_; (void)lid;
 	int depth;
 
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
-	        "[%d:%lu] Releasing hierarchical lock %s\n", id(), tid, lid.c_str()); 
+	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr),
+	        "[%d:%lu] Releasing hierarchical lock %s\n", id(), tid, lid.c_str());
 
 
 	if (hlock->owner_ == tid) {

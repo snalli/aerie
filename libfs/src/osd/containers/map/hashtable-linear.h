@@ -283,7 +283,6 @@ Page<Session>::Insert(Session* session, const char* key, int key_size,
 	int              payload_size = key_size + val_size;
 	int              i;
 	int              step;
-	uint64_t         uval;
 
 	for (i=0; i < PAGE_SIZE - (int) sizeof(next_); i+=step)
 	{
@@ -524,17 +523,17 @@ Page<Session>::Split(Session* session, Page* splitover_page, const SplitPredicat
 		size = entry->get_size();
 		if (!entry->IsFree())
 		{
-			if (i+size < PAGE_SIZE - sizeof(next_)) {
-				next_entry = entry->NextEntry();
-			} else {
-				next_entry = NULL;
-			}
 			key = entry->get_key();
 			keysize = entry->get_keysize();
 			if (split_predicate(key, keysize)) {
+				if (i+size < PAGE_SIZE - sizeof(next_)) {
+					next_entry = entry->NextEntry();
+				} else {
+					next_entry = NULL;
+				}
 				//FIXME: when journaling, we need to be careful about ordering and overlap
-				//of inserts and deletes as reads are not bypassed through buffered 
-				//writes. 
+				//of inserts and deletes as reads are not bypassed through buffered
+				//writes.
 				val = *((uint64_t*) entry->get_val());
 				if ((ret = splitover_page->Insert(session, key, keysize, val)) != 0) {
 					return ret;
@@ -543,9 +542,10 @@ Page<Session>::Split(Session* session, Page* splitover_page, const SplitPredicat
 				// of follow up entries are untouched
 				assert(Delete(session, entry, prev_entry, next_entry) == 0);
 			}
-		}	
+		}
 		prev_entry = entry;
 	}
+	(void)prev_entry;
 
 	return 0;
 }

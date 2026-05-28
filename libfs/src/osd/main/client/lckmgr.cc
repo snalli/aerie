@@ -120,8 +120,6 @@ LockManager::LockManager(::client::Ipc* ipc)
 int
 LockManager::Init() 
 {
-	int r;
-
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_lckmgr), "[%d] Initialize LockManager\n", id());
 
 	pthread_mutex_init(&mutex_, NULL);
@@ -141,8 +139,7 @@ LockManager::Init()
 	// register client's lock manager RPC handlers with srv2cl_
 	ipc_->reg(rlock_protocol::revoke, this, &LockManager::revoke);
 	ipc_->reg(rlock_protocol::retry, this, &LockManager::retry);
-	r = pthread_create(&releasethread_th_, NULL, &releasethread, (void *) this);
-	assert (r == 0);
+	assert(pthread_create(&releasethread_th_, NULL, &releasethread, (void *) this) == 0);
 
 	return E_SUCCESS;
 }
@@ -440,7 +437,7 @@ LockManager::AcquireInternal(unsigned long tid,
                              lock_protocol::Mode& mode_granted)
 {
 	lock_protocol::status r = lock_protocol::OK;
-	LockId                lid = l->lid_;
+	LockId                lid = l->lid_; (void)lid;
 	ThreadRecord*         tr;
 	lock_protocol::Mode   mode;
 

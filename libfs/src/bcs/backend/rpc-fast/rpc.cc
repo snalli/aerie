@@ -584,34 +584,16 @@ void rpcs::handle_send_q(server_lock_t* rpc_serv, unsigned tid) {
   vector<send_queue_t*>::iterator curr;
   for(curr = (rpc_serv->sendq.begin()); curr != rpc_serv->sendq.end() ; curr++) {
     send_queue_t* currqe = *curr;
-    int ret;
-
     if(currqe->rpc_request->signal != 1) {
-      //TODO: make sure if tstamp is what u think it is
-/*       if( MAX_TIME  < ABS(rpc_serv->gtstamp - currqe->tstamp) ) { */
-/* 	//your taking too much time! */
-/* 	//erase from rpc_serv->sendq */
-/* #ifdef DEBUG */
-/* 	printf("Got removed!!! WTF!! x-( \n"); */
-/* #endif */
-/* 	// */
-/* 	//remove = 1; */
-/* 	//ret = -2; */
-/* 	//assert( 0 && "NYI"); */
-/* 	continue; */
-/*       } */
-/*       else */
       continue; //not yet signalled by client
     }
 
     //check checksum
     if(chkChksum(currqe->rpc_request->data, currqe->rpc_request->sizeInChar, currqe->rpc_request->checksum)) {
-      ret = 10;
       DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Got a valid send req: %s..\n", currqe->rpc_request->data);
     }
     else {
       DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "error with checksum\n");
-	ret = -1; //remove
     }
 
     DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Server: Serving... %u\n", currqe->client_ticket);

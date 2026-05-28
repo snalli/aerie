@@ -249,7 +249,6 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 	uint64_t                m;
 	uint64_t                fbn; // first block number
 	uint64_t                bn;
-	uint64_t                base_bn;
 	ByteContainer::Iterator start;
 	ByteContainer::Iterator iter;
 	int                     ret;
@@ -258,6 +257,7 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 	uint64_t                size;
 	char*                   ptr;
 	ByteInterval*           interval;
+
 
 	dbg_log (DBG_DEBUG, "Immutable range = [%" PRIu64 ", %" PRIu64 ") n=%" PRIu64 ", size=%" PRIu64 "\n", off, off+n, n, size_);
 
@@ -283,7 +283,6 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 	     !iter.terminate() && tot < n; // insight : n is the number of bytes to be read
 	     iter++, tot+=m, off+=m, bn++) // insight : m is the number of bytes read at a time. I want to see how this maps to the SCM ???
 	{
-		base_bn = (*iter).get_base_bn();
 		bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
 		size = bcount * kBlockSize;
 		m = min(n - tot, size - f); // insight : Either you read 'size' bytes or whatever is left of 'n' bytes.

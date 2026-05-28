@@ -721,7 +721,6 @@ ByteContainer::Object<Session>::ReadImmutable(Session* session,
 	uint64_t                m;
 	uint64_t                fbn; // first block number
 	uint64_t                bn;
-	uint64_t                base_bn;
 	ByteContainer::Iterator<Session> start;
 	ByteContainer::Iterator<Session> iter;
 	int                     ret;
@@ -757,15 +756,14 @@ ByteContainer::Object<Session>::ReadImmutable(Session* session,
 	     !iter.terminate() && tot < n; 
 	     iter++, tot+=m, off+=m, bn++) 
 	{
-		base_bn = (*iter).get_base_bn();
 		bcount = 1 << (((*iter).slot_height_ - 1)*RADIX_TREE_MAP_SHIFT);
 		size = bcount * kBlockSize;
 		m = min(n - tot, size - f);
 
 		ptr = (char*) (*iter).slot_base_[(*iter).slot_offset_];
 
-		//printf("bn=%" PRIu64 " , base_bn = %" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n", 
-		//       bn, base_bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
+		//printf("bn=%" PRIu64 " , block=%p R[%d, %" PRIu64 "] A[%" PRIu64 " , %" PRIu64 " ] size=%" PRIu64 "  (%" PRIu64 "  blocks)\n",
+		//       bn, ptr, f, f+m-1, off, off+m-1, size, bcount);
 
 		if (!ptr) {
 			memset(&dst[tot], 0, m);

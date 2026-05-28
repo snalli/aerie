@@ -18,9 +18,7 @@ namespace server {
 Registry::Registry(::server::Ipc* ipc)
 	: ipc_(ipc)
 {
-	int ret; 
-	ret = pthread_mutex_init(&mutex_, NULL);
-	assert(ret == 0);
+	assert(pthread_mutex_init(&mutex_, NULL) == 0);
 }
 
 

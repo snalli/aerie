@@ -131,8 +131,7 @@ NameContainer::VersionManager::Insert(OsdSession* session,
 	
 	entry = Shadow(true, oid, ip); 
 	psv_entries_count_++;
-	std::pair<ShadowCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, Shadow>(name, entry));
-	assert(ret_pair.second == true);
+	assert(entries_.insert(std::pair<std::string, Shadow>(name, entry)).second == true);
 //printf("\n @ Inside NameContainer::VersionManager::Insert");
 	return E_SUCCESS;
 }
@@ -172,9 +171,8 @@ NameContainer::VersionManager::Erase(OsdSession* session, const char* name)
 	// add a negative directory entry indicating absence when removing a 
 	// directory entry from the persistent data structure
 	entry = Shadow(false, oid, NULL);
-	std::pair<ShadowCache::iterator, bool> ret_pair = entries_.insert(std::pair<std::string, Shadow>(name, entry));
+	assert(entries_.insert(std::pair<std::string, Shadow>(name, entry)).second == true);
 	ngv_entries_count_++;
-	assert(ret_pair.second == true);
 
 	return E_SUCCESS;
 }

@@ -38,25 +38,21 @@ public:
 	}
 	
 	void Close(OsdSession* session, ObjectId oid, bool update) {
-		ObjectProxy<Subject, VersionManager>* obj_proxy;
-		osd::client::ObjectProxy*             obj2_proxy = NULL;
+		osd::client::ObjectProxy* obj2_proxy = NULL;
 		assert(oid2obj_map_.Lookup(oid, &obj2_proxy) == E_SUCCESS);
-		obj_proxy = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2_proxy);
-		assert(obj_proxy->vClose(session, update) == E_SUCCESS);
+		assert(static_cast<ObjectProxy<Subject, VersionManager>*>(obj2_proxy)->vClose(session, update) == E_SUCCESS);
 	}
-	
-	void CloseAll(OsdSession* session, bool update, bool flush = false) 
+
+	void CloseAll(OsdSession* session, bool update, bool flush = false)
 	{
-		ObjectProxy<Subject, VersionManager>* obj_proxy;
-		osd::client::ObjectProxy*             obj2_proxy;
-		ObjectMap::iterator                   itr;
+		osd::client::ObjectProxy* obj2_proxy;
+		ObjectMap::iterator       itr;
 
 		for (itr = oid2obj_map_.begin(); itr != oid2obj_map_.end(); itr++) {
 			obj2_proxy = itr->second;
-			DBG_LOG(DBG_DEBUG, DBG_MODULE(client_omgr), "Close object: %lx\n", 
+			DBG_LOG(DBG_DEBUG, DBG_MODULE(client_omgr), "Close object: %lx\n",
 			        obj2_proxy->object()->oid().u64());
-			obj_proxy = static_cast<ObjectProxy<Subject, VersionManager>* >(obj2_proxy);
-			assert(obj_proxy->vClose(session, update, flush) == E_SUCCESS);
+			assert(static_cast<ObjectProxy<Subject, VersionManager>*>(obj2_proxy)->vClose(session, update, flush) == E_SUCCESS);
 		}
 	}
 };
