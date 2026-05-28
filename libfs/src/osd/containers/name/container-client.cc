@@ -57,10 +57,10 @@ NameContainer::VersionManager::vUpdate(OsdSession* session)
 
 
 int
-NameContainer::VersionManager::Find(OsdSession* session, 
-                                    const char* name, 
+NameContainer::VersionManager::Find(OsdSession* session,
+                                    const char* name,
                                     osd::common::ObjectId* oidp,
-					void  *ip)
+					void* /*ip*/)
 {
 	int                   ret;
 	osd::common::ObjectId tmp_oid;
@@ -70,7 +70,6 @@ NameContainer::VersionManager::Find(OsdSession* session,
 	if ((entries_.empty() == false) && ((it = entries_.find(name)) != entries_.end())) {
 		if (it->second.present == true) {
 			tmp_oid = it->second.oid;
-			ip = it->second.ip;
                         s_log("[%ld] NameContainer::VersionMangager::%s(S1) name=%s",s_tid,__func__, name);
 
 		} else {
