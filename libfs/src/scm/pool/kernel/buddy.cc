@@ -107,7 +107,7 @@ const char *poolInit(void *startAddress, size_t bytes, int minBits,
 static int memAll(void *p, size_t bytes)
 {
     char *pp = (char *)p;
-    if (bytes <= 0)
+    if (bytes == 0)
         return 1;
     if (*pp != (char)0xff)
     {
@@ -193,7 +193,7 @@ static const char *clearCheck(struct PoolInfo *pi, size_t firstBit,
 static int memAny(void *p, size_t bytes)
 {
     char *pp = (char *)p;
-    if (bytes <= 0)
+    if (bytes == 0)
 	return 0;
     if (*pp)
 	return 1;
@@ -299,7 +299,7 @@ static void toFree(struct PoolInfo *pi, size_t firstBlock,
     size_t pastBlock, int zap)
 {
     size_t i;
-    size_t tryBits = 0;
+    int tryBits = 0;
     size_t tryLen = 1;
     for(i = firstBlock; i < pastBlock;)
     {
@@ -363,8 +363,8 @@ const char *poolRelease(struct PoolInfo *pi, size_t startBlock,
 {
     size_t pastBlockOff;
     const char *ret;
-    if (startBlock < 0 || startBlock >= pi->poolBlocks ||
-	blocks < 0 || startBlock + blocks > pi->poolBlocks)
+    if (startBlock >= pi->poolBlocks ||
+	startBlock + blocks > pi->poolBlocks)
 	return "bad parms";
     pastBlockOff = startBlock + blocks;
     ret = clearCheck(pi, startBlock, pastBlockOff);
@@ -418,7 +418,7 @@ static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
 	return NO_STORE;
     }
     offset = pi->freeList[retBits];
-    if (offset < 0 || offset >= pi->poolBlocks)
+    if (offset >= pi->poolBlocks)
 	return "corrupted free list";
     ptr = (size_t *)(pi->poolStart + (offset << pi->minBits));
     if (ptr[OFF_MAGIC] != MAGIC)
@@ -449,7 +449,7 @@ static const char *poolBuddyMalloc(struct PoolInfo *pi, int bits,
     nextOffset = ptr[OFF_NEXT];
     if (nextOffset != OURNULL)
     {
-	if (nextOffset < 0 || nextOffset >= pi->poolBlocks)
+	if (nextOffset >= pi->poolBlocks)
 	    return "corrupted free list";
 	nextPtr = (size_t *)(pi->poolStart + (nextOffset << pi->minBits));
 	if (nextPtr[OFF_MAGIC] != MAGIC ||
@@ -536,8 +536,6 @@ const char *poolRealloc(struct PoolInfo *pi, void *ptrv, size_t size,
     size_t newBlocks;
     int lg2Bytes;
     char *ptr = (char *)ptrv;
-    if (size < 0)
-	return "-ve size to poolRealloc";
     if (size == 0)
     {
 	return poolFree(pi, ptr);
@@ -620,8 +618,6 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
 	int trueBits;
 	size_t buddy = blockOff ^ (1UL << bits);
 	/* Could buddy be out of range? */
-	if (buddy < 0)
-	    break;
 	if (buddy + (1UL << bits) > pi->poolBlocks)
 	    break;
 	if (BITTEST(pi, buddy + (1UL << bits) - 1))
@@ -648,7 +644,7 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
 	    nextOffset = buddyPtr[OFF_NEXT];
 	    if (nextOffset != OURNULL)
 	    {
-		if (nextOffset < 0 || nextOffset >= pi->poolBlocks)
+		if (nextOffset >= pi->poolBlocks)
 		    return "corruption 3.1 in free store";
 		nextPtr = (size_t *)(pi->poolStart +
 		    (nextOffset << pi->minBits));
@@ -663,7 +659,7 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
 	else
 	{
 	    size_t nextOffset;
-	    if (prevOffset < 0 || prevOffset >= pi->poolBlocks)
+	    if (prevOffset >= pi->poolBlocks)
 		return "corruption 5.1 in free store";
 	    prevPtr = (size_t *)(pi->poolStart +
 		(prevOffset << pi->minBits));
@@ -674,7 +670,7 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
 	    nextOffset = buddyPtr[OFF_NEXT];
 	    if (nextOffset != OURNULL)
 	    {
-		if (nextOffset < 0 || nextOffset >= pi->poolBlocks)
+		if (nextOffset >= pi->poolBlocks)
 		    return "corruption 7.1 in free store";
 		nextPtr = (size_t *)(pi->poolStart +
 		    (nextOffset << pi->minBits));
@@ -702,7 +698,7 @@ const char *poolFree(struct PoolInfo *pi, void *storage2)
     nextOffset = pi->freeList[bits];
     if (nextOffset != OURNULL)
     {
-	if (nextOffset < 0 || nextOffset >= pi->poolBlocks)
+	if (nextOffset >= pi->poolBlocks)
 	    return "corruption 9.1 in free store";
 	nextPtr = (size_t *)(pi->poolStart +
 	    (nextOffset << pi->minBits));
@@ -751,7 +747,7 @@ const char *poolCheck(struct PoolInfo *pi, size_t *counts)
 	for (offset = pi->freeList[size];
 	     offset != OURNULL && blocksSeen < maxBlocks; blocksSeen++)
 	{
-	    if (offset < 0 || offset >= pi->poolBlocks)
+	    if (offset >= pi->poolBlocks)
 		return "bad pointer";
 	    if (testAny(pi, offset,
 		offset + (1UL << size)))
