@@ -150,8 +150,8 @@ StorageSystemT<Session>::Init()
 
 template<typename Session>
 int
-StorageSystemT<Session>::Load(::server::Ipc* ipc, const char* source, 
-                              unsigned int flags, StorageSystemT** storage_system_ptr)
+StorageSystemT<Session>::Load(::server::Ipc* ipc, const char* source,
+                              unsigned int /*flags*/, StorageSystemT** storage_system_ptr)
 {
 	int                ret;
 	void*              b;
@@ -195,7 +195,7 @@ StorageSystemT<Session>::Load(::server::Ipc* ipc, const char* source,
  */
 template<typename Session>
 int 
-StorageSystemT<Session>::Make(const char* target, unsigned int flags, 
+StorageSystemT<Session>::Make(const char* target, unsigned int /*flags*/,
                               int root_obj_size, void** super_objp, void** root_obj)
 {
 	osd::containers::server::SuperContainer::Object*                      super_obj;
@@ -254,7 +254,7 @@ StorageSystemT<Session>::Make(const char* target, unsigned int flags,
  */
 template<typename Session>
 int 
-StorageSystemT<Session>::Make(const char* target, unsigned int flags)
+StorageSystemT<Session>::Make(const char* target, unsigned int /*flags*/)
 {
 	osd::containers::server::SuperContainer::Object*                      super_obj;
 	osd::containers::server::NameContainer::Object*                       root_obj;
@@ -338,7 +338,7 @@ StorageSystemT<Session>::~StorageSystemT()
 
 template<typename Session>
 int 
-StorageSystemT<Session>::Mount(int clt, const char* source, unsigned int flags, 
+StorageSystemT<Session>::Mount(int clt, const char* /*source*/, unsigned int /*flags*/,
                                StorageSystemProtocol::MountReply& rep) 
 {
 	int                 ret;

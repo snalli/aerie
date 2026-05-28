@@ -39,8 +39,10 @@ public:
 	
 	void Close(OsdSession* session, ObjectId oid, bool update) {
 		osd::client::ObjectProxy* obj2_proxy = NULL;
-		assert(oid2obj_map_.Lookup(oid, &obj2_proxy) == E_SUCCESS);
-		assert((static_cast<ObjectProxy<Subject, VersionManager>*>(obj2_proxy)->vClose(session, update) == E_SUCCESS));
+		int r1 = oid2obj_map_.Lookup(oid, &obj2_proxy);
+		assert(r1 == E_SUCCESS); (void)r1;
+		int r2 = static_cast<ObjectProxy<Subject, VersionManager>*>(obj2_proxy)->vClose(session, update);
+		assert(r2 == E_SUCCESS); (void)r2;
 	}
 
 	void CloseAll(OsdSession* session, bool update, bool flush = false)
@@ -52,7 +54,8 @@ public:
 			obj2_proxy = itr->second;
 			DBG_LOG(DBG_DEBUG, DBG_MODULE(client_omgr), "Close object: %lx\n",
 			        obj2_proxy->object()->oid().u64());
-			assert((static_cast<ObjectProxy<Subject, VersionManager>*>(obj2_proxy)->vClose(session, update, flush) == E_SUCCESS));
+			int r = static_cast<ObjectProxy<Subject, VersionManager>*>(obj2_proxy)->vClose(session, update, flush);
+			assert(r == E_SUCCESS); (void)r;
 		}
 	}
 };
