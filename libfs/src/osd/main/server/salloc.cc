@@ -302,7 +302,7 @@ StorageAllocator::GetDescriptorPool(OsdSession* session, osd::common::AclIdentif
 
 // OBSOLETE
 int
-StorageAllocator::Alloc(size_t nbytes, std::type_info const& typid, void** ptr)
+StorageAllocator::Alloc(size_t /*nbytes*/, std::type_info const& /*typid*/, void** /*ptr*/)
 {
 	assert(0);
 	return 0;
@@ -617,7 +617,7 @@ done:
 
 // Allocate Container: called by the publisher/validator to allocate container from a set
 int
-StorageAllocator::AllocateContainerFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ObjectId oid, int index_hint)
+StorageAllocator::AllocateContainerFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ObjectId /*oid*/, int index_hint)
 {
 	ObjectIdSet* obj_set;
 
@@ -636,7 +636,7 @@ StorageAllocator::AllocateContainerFromSet(OsdSession* session, osd::common::Obj
 
 // Allocate Extent: called by the publisher/validator to allocate extent from a set
 int
-StorageAllocator::AllocateExtentFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ExtentId eid, int index_hint)
+StorageAllocator::AllocateExtentFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ExtentId /*eid*/, int index_hint)
 {
 	ObjectIdSet* obj_set;
 
@@ -750,7 +750,7 @@ StorageAllocator::IpcHandlers::AllocateExtentIntoSet(int clt, int set_capability
 
 
 int 
-StorageAllocator::IpcHandlers::AllocateContainerVector(int clt,
+StorageAllocator::IpcHandlers::AllocateContainerVector(int /*clt*/,
                                                        std::vector< ::osd::StorageProtocol::ContainerRequest> container_req_vec, 
                                                        std::vector<int>& result)
 {
