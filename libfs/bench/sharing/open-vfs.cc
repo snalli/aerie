@@ -27,7 +27,7 @@ Writer(int /*debug_level*/, const char* /*xdst*/, int numops, int /*size*/)
 	MEASURE_TIME_START
 	MEASURE_CYCLES_START
 	for (int i=0; i<numops; i++) {
-		pwrite(fd, buf, 4096, 0);
+		if (pwrite(fd, buf, 4096, 0) < 0) assert(0);
 	}
 	MEASURE_CYCLES_STOP
 	ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
@@ -57,7 +57,7 @@ Reader(int /*debug_level*/, const char* /*xdst*/, int numops, int /*size*/)
 	MEASURE_TIME_START
 	MEASURE_CYCLES_START
 	for (int i=0; i<numops; i++) {
-		pread(fd, buf, 4096, 0);
+		if (pread(fd, buf, 4096, 0) < 0) assert(0);
 	}
 	MEASURE_CYCLES_STOP
 	ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
