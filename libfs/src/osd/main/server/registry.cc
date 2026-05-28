@@ -94,7 +94,7 @@ Registry::IpcHandlers::Register(Registry* registry)
 
 
 int
-Registry::IpcHandlers::Lookup(unsigned int clt, const std::string name, 
+Registry::IpcHandlers::Lookup(unsigned int /*clt*/, const std::string name,
                               ::osd::common::ObjectId &r)
 {
     int                     ret;
@@ -109,8 +109,8 @@ Registry::IpcHandlers::Lookup(unsigned int clt, const std::string name,
 
 
 int
-Registry::IpcHandlers::Add(unsigned int clt, const std::string name, 
-                           ::osd::common::ObjectId oid, int &r)
+Registry::IpcHandlers::Add(unsigned int /*clt*/, const std::string name,
+                           ::osd::common::ObjectId oid, int &/*r*/)
 {
     int ret;
 
@@ -122,7 +122,7 @@ Registry::IpcHandlers::Add(unsigned int clt, const std::string name,
 
 
 int
-Registry::IpcHandlers::Remove(unsigned int clt, const std::string name, int &r)
+Registry::IpcHandlers::Remove(unsigned int /*clt*/, const std::string name, int &/*r*/)
 {
     int ret;
 

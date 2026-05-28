@@ -122,8 +122,8 @@ done:
 
 
 int
-Publisher::AllocContainer(::osd::server::OsdSession* session, char* buf, 
-                          ::osd::Publisher::Message::BaseMessage* next)
+Publisher::AllocContainer(::osd::server::OsdSession* session, char* buf,
+                          ::osd::Publisher::Message::BaseMessage* /*next*/)
 {
 	osd::common::ObjectId set_oid;
 
@@ -150,7 +150,7 @@ Publisher::IpcHandlers::Register(Publisher* publisher)
 
 
 int
-Publisher::IpcHandlers::Publish(int clt, int& unused)
+Publisher::IpcHandlers::Publish(int clt, int& /*unused*/)
 {
 	int                    ret;
 	::server::BaseSession* session;
