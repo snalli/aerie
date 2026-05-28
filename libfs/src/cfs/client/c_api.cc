@@ -40,10 +40,11 @@ FRONTAPI(mount) (const char* source,
 }
 
 
-int 
+int
 FRONTAPI(umount) (const char* target)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	return -E_ERROR;
 }
  
 

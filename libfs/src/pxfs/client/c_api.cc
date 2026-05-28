@@ -72,7 +72,7 @@ int
 PXFS_FRONTAPI(umount) (const char* target)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-	return -E_NOTYET;
+	return -E_ERROR;
 }
  
 

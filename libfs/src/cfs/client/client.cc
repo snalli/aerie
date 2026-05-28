@@ -332,6 +332,7 @@ Client::SetCurWrkDir(const char* path)
 {
 	//FIXME: save the path to cwd. we pass it to the server when we need a name resolution.
 	//return global_namespace->SetCurWrkDir(session, path);
+	return E_SUCCESS;
 }
 
 

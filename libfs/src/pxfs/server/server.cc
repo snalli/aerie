@@ -43,7 +43,7 @@ void
 Server::Start()
 {
 	char wd[128];
-	getcwd(wd,128);
+	(void)getcwd(wd,128);
 	printf("[%ld] Server::%s cur dir : %s", s_tid, __func__, wd);
 	while (1) {
 		sleep(1);
