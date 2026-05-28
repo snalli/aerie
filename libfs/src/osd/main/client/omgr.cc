@@ -131,10 +131,10 @@ done:
  * Otherwise it initializes the obj_ref to point to the object. 
  */
 int
-ObjectManager::GetObjectInternal(OsdSession* session,
-                                 ObjectId oid, 
-                                 osd::common::ObjectProxyReference** objproxy_refp, 
-                                 bool use_exist_obj_ref)
+ObjectManager::GetObjectInternal(OsdSession* /*session*/,
+                                 ObjectId oid,
+                                 osd::common::ObjectProxyReference** objproxy_refp,
+                                 bool /*use_exist_obj_ref*/)
 {
 	int                                ret = E_SUCCESS;
 	ObjectManagerOfType*               mgr;
@@ -266,7 +266,7 @@ ObjectManager::GetObject(OsdSession* session,
 
 
 int
-ObjectManager::PutObject(OsdSession* session, 
+ObjectManager::PutObject(OsdSession* /*session*/,
                          osd::common::ObjectProxyReference& obj_ref)
 {
 	int                  ret = E_SUCCESS;

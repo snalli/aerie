@@ -117,8 +117,8 @@ DescriptorPool::AllocateContainer(::client::Ipc* ipc, OsdSession* session, int t
 // the api allows multiple size extents.
 // currently the implementation provides only 4K size extents
 int
-DescriptorPool::AllocateExtent(::client::Ipc* ipc, OsdSession* session, 
-                               size_t nbytes, osd::common::ExtentId* eid)
+DescriptorPool::AllocateExtent(::client::Ipc* ipc, OsdSession* session,
+                               size_t /*nbytes*/, osd::common::ExtentId* eid)
 {
 	int ret;
 	int r;
@@ -262,7 +262,7 @@ done:
 
 
 int 
-StorageAllocator::AllocateContainerVector(OsdSession* session)
+StorageAllocator::AllocateContainerVector(OsdSession* /*session*/)
 {
 	std::vector< ::osd::StorageProtocol::ContainerRequest> container_req_vec;
 	std::vector<int>                                       rv;
