@@ -124,7 +124,7 @@ public:
 	bool IsFree() {
 		return (tag_[0] & 0x80 ? false : true);
 	}
-	void set_free(Session* session) {
+	void set_free(Session* /*session*/) {
 		tag_[0] &= 0x7F;
 	}
 	void set_free(Session* session, int payload_size) {
@@ -138,15 +138,15 @@ public:
 	int get_payload_size() { 
 		return tag_[0] & 0x7F; 
 	}
-	void set_size(Session* session, int size) { 
+	void set_size(Session* /*session*/, int size) { 
 		assert(size-TAG_SIZE < (TAG_SIZE << 7)); 
 		tag_[0] = (tag_[0] & 0x80) | (size-TAG_SIZE); 
 	}
-	void set_payload_size(Session* session, int size) { 
+	void set_payload_size(Session* /*session*/, int size) { 
 		assert(size < (TAG_SIZE << 7)); 
 		tag_[0] = (tag_[0] & 0x80) | size; 
 	}
-	int set_kv(Session* session, const char* key, int key_size, const char* val, int val_size) {
+	int set_kv(Session* /*session*/, const char* key, int key_size, const char* val, int val_size) {
 		int payload_size = key_size + val_size;
 		int max_payload_size = get_payload_size();
 		
@@ -324,7 +324,7 @@ Page<Session>::Insert(Session* session, const char* key, int key_size, uint64_t 
 
 template<typename Session>
 int 
-Page<Session>::Search(Session* session, const char *key, int key_size, char** valp, 
+Page<Session>::Search(Session* /*session*/, const char *key, int key_size, char** valp,
                       int* val_sizep)
 {
 	unsigned int    i;
@@ -874,7 +874,7 @@ public:
 	int Search(Session* session, const char* key, int key_size, uint64_t* val);
 	int Delete(Session* session, const char* key, int key_size);
 	void Print();
-	int Size(Session* session) { return ncount_; }
+	int Size(Session* /*session*/) { return ncount_; }
 	 int return_dentry(void *);
 
 
@@ -932,7 +932,7 @@ HashTable<Session>::Init()
 
 template<typename Session>
 uint32_t 
-HashTable<Session>::Index(Session* session, const char* key, int key_size)
+HashTable<Session>::Index(Session* /*session*/, const char* key, int key_size)
 {
 	uint32_t idx;
 	uint32_t fh;
