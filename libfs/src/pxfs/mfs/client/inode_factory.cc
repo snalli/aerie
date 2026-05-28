@@ -188,7 +188,7 @@ InodeFactory::LoadFileInode(::client::Session* session,
 	pthread_rwlock_unlock(&rwlock_);
 	*ipp = fip;
 */
-	return ret;
+	return E_SUCCESS;
 }
 
 
