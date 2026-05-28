@@ -325,9 +325,9 @@ LockManager::AcquireInternal(int clt, int seq, Lock* l,
 
 
 lock_protocol::status
-LockManager::Acquire(int clt, int seq, lock_protocol::LockId lid, 
-                     int mode_set, int flags, 
-                     unsigned long long arg, int& mode_granted)
+LockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
+                     int mode_set, int flags,
+                     unsigned long long /*arg*/, int& mode_granted)
 {
 	lock_protocol::status r;
 	Lock*                 lock;
@@ -344,9 +344,9 @@ LockManager::Acquire(int clt, int seq, lock_protocol::LockId lid,
 
 // convert does not block to avoid any deadlocks.
 lock_protocol::status
-LockManager::ConvertInternal(int clt, int seq, Lock* l, 
-                             lock_protocol::Mode new_mode, 
-                             int flags, int& unused)
+LockManager::ConvertInternal(int clt, int seq, Lock* l,
+                             lock_protocol::Mode new_mode,
+                             int /*flags*/, int& /*unused*/)
 {
 	std::map<int, ClientRecord>::iterator itr_icr;
 	lock_protocol::status                 r = lock_protocol::NOENT;
