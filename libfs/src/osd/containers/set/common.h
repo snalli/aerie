@@ -62,10 +62,8 @@ template<typename Session>
 int 
 SetContainer<T>::Object<Session>::Read(Session* session, int pos, T* val)
 {
-	char c[8];
+	char c[sizeof(T)];
 	int ret = byte_container_.Read(session, c, pos*sizeof(T), sizeof(T));
-	//return byte_container_.Read(session, (char*)val, pos*sizeof(T), sizeof(T));
-	
 	memcpy(val, c, sizeof(T));
 	return ret;
 }

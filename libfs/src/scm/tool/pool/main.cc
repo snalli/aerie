@@ -30,6 +30,7 @@ usage(const char *prog_name)
 		const char* description = command_table[i].description;
 	    fprintf(stderr, "       %s   %s\t%s\n", WHITESPACE(strlen(prog_name)), name, description);
 	}
+	return 1;
 }
 
 

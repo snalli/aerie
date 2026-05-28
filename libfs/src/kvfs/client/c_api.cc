@@ -36,10 +36,11 @@ FRONTAPI(mount) (const char* source, uint32_t flags)
 }
 
 
-int 
+int
 FRONTAPI(umount) ()
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	return -E_ERROR;
 }
  
 

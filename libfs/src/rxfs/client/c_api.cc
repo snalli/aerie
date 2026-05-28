@@ -46,10 +46,11 @@ RXFS_FRONTAPI(mount) (const char* source, const char* target,
 }
 
 
-int 
+int
 RXFS_FRONTAPI(umount) (const char* target)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");	
+	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
+	return -E_ERROR;
 }
  
 
