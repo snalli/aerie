@@ -270,7 +270,7 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 
 
 int
-NameSpace::Unmount(Session* session, char* name)
+NameSpace::Unmount(Session* /*session*/, char* /*name*/)
 {
 	return 0;
 }
@@ -365,15 +365,13 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 //in "name" and repeat this procedure.
 //
 int
-NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_mode, 
+NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_mode,
                  bool nameiparent, char* name, Inode** inodep)
 {
 	char*       path;
 	Inode*      inode;
 	Inode*      inode_next;
 	int         ret;
-	char*       old_name;
-	int lcount = 0;
 	bool smart_lookup;
 
 retry_namex:
@@ -604,7 +602,6 @@ resume_normal:
 		#ifdef CONFIG_CACHE
 			Insert(dup_path, inode_next, inode);
 		#endif
-		old_name = name; 
 		path = SkipElem(path, name);
 			//	s_log("[%ld] NameSpace::%s chk_pt 01 path=%s name=%s",s_tid, __func__, path, name);
 
@@ -689,8 +686,6 @@ NameSpace::namex_sans_locks(Session* session, const char *cpath, lock_protocol::
 	Inode*      inode;
 	Inode*      inode_next;
 	int         ret;
-	char*       old_name;
-	int lcount = 0;
 	bool smart_lookup;
 
 retry_namex:
@@ -892,7 +887,6 @@ resume_normal:
 		#ifdef CONFIG_CACHE
 			Insert(dup_path, inode_next, inode);
 		#endif
-		old_name = name; 
 		path = SkipElem(path, name);
 		#ifdef CONFIG_CACHE
 			strcat(dup_path,"/");
@@ -1128,11 +1122,13 @@ NameSpace::Unlink(Session* session, const char *pathname)
 {
         s_log("[%ld] NameSpace::%s %s",s_tid, __func__, pathname);
 
-	char          name[128],dup_name[128];
-	char 	      *d_name,  *b_name;
+	char          name[128];
 	Inode*        dp = NULL;
 	Inode*        ip = NULL;
+#ifdef CONFIG_CACHE
+	char          dup_name[128];
 	Inode*        gp;
+#endif
 //	mfs::client::FileInode* fip;
 	int           ret;
 
