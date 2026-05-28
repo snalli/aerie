@@ -723,7 +723,6 @@ ByteContainer::Object<Session>::ReadImmutable(Session* session,
 	uint64_t                bn;
 	ByteContainer::Iterator<Session> start;
 	ByteContainer::Iterator<Session> iter;
-	int                     ret;
 	int                     f;
 	uint64_t                bcount;
 	uint64_t                size;

@@ -140,8 +140,6 @@ ObjectManager::GetObjectInternal(OsdSession* session,
 	ObjectManagerOfType*               mgr;
 	ObjectProxy*                       objproxy;
 	osd::common::ObjectProxyReference* objproxy_ref;
-	bool                               rwlock = false;
-	int i = 0 ;
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_omgr), 
 	        "[%d] Object: oid=%lx, type=%d\n", id(), oid.u64(), oid.type());\
 

@@ -125,7 +125,6 @@ int
 Publisher::AllocContainer(::osd::server::OsdSession* session, char* buf, 
                           ::osd::Publisher::Message::BaseMessage* next)
 {
-	int                   ret = E_SUCCESS;
 	osd::common::ObjectId set_oid;
 
 	::osd::Publisher::Message::LogicalOperation::AllocContainer* lgc_op = LoadLogicalOperation< ::osd::Publisher::Message::LogicalOperation::AllocContainer>(session, buf);

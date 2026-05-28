@@ -634,7 +634,6 @@ HLockManager::AcquireInternal(pthread_t tid, HLock* hlock, HLock* phlock,
 	lock_protocol::status r = lock_protocol::NOENT;
 	lock_protocol::Mode   mode_granted;
 	LockId                lid = hlock->lid_; (void)lid;
-	int depth;
 	
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr), 
 	        "[%d:%lu] Acquiring hierarchical lock %s (%s) under %s\n", id(), 
@@ -922,7 +921,6 @@ HLockManager::ReleaseInternal(pthread_t tid, HLock* hlock, bool force)
 {
 	lock_protocol::status r = lock_protocol::OK;
 	LockId                lid = hlock->lid_; (void)lid;
-	int depth;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(client_hlckmgr),
 	        "[%d:%lu] Releasing hierarchical lock %s\n", id(), tid, lid.c_str());
@@ -1005,8 +1003,7 @@ HLockManager::DowngradePublicLockRecursive(HLock* hlock,
 	hlock->BeginConverting(true);
 	if (!hlock->lock_) {
 		for (itr = hlock->children_.begin(); itr != hlock->children_.end(); hlock->children_.erase(itr++)) {
-			HLock* hl = *itr;
-			assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
+			assert(DowngradePublicLockRecursive(*itr, lock_protocol::Mode::NL, release_set) == 0);
 		}
 		release_set->push_back(HLockPtrLockModePair(hlock, lock_protocol::Mode::NL));
 	} else {
@@ -1034,8 +1031,7 @@ HLockManager::DowngradePublicLockRecursive(HLock* hlock,
 					// cannot propagate recursive lock down the tree as we would 
 					// violate the hierarchy rule: drop children subtrees
 					for (itr = hlock->children_.begin(); itr != hlock->children_.end(); hlock->children_.erase(itr++)) {
-						HLock* hl = *itr;
-						assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
+						assert(DowngradePublicLockRecursive(*itr, lock_protocol::Mode::NL, release_set) == 0);
 					}
 				}
 			}	
@@ -1045,8 +1041,7 @@ HLockManager::DowngradePublicLockRecursive(HLock* hlock,
 			// we release the lock and every descendant of the lock 
 			release_set->push_back(HLockPtrLockModePair(hlock, lock_protocol::Mode::NL));
 			for (itr = hlock->children_.begin(); itr != hlock->children_.end(); hlock->children_.erase(itr++)) {
-				HLock* hl = *itr;
-				assert(DowngradePublicLockRecursive(hl, lock_protocol::Mode::NL, release_set) == 0);
+				assert(DowngradePublicLockRecursive(*itr, lock_protocol::Mode::NL, release_set) == 0);
 			}
 		}
 	}

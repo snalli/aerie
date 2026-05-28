@@ -994,9 +994,7 @@ int
 LockManager::stat(LockId lid)
 {
 	int r;
-	int ret = ipc_->call(lock_protocol::stat, id(), lid.marshall(), r);
-	
-	assert (ret == lock_protocol::OK);
+	assert(ipc_->call(lock_protocol::stat, id(), lid.marshall(), r) == lock_protocol::OK);
 	return r;
 }
 

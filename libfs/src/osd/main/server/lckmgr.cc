@@ -353,7 +353,7 @@ LockManager::ConvertInternal(int clt, int seq, Lock* l,
 
 	if (locks_.find(l->lid_) != locks_.end() && locks_[l->lid_]->gtque_.Exists(clt))
 	{
-		ClientRecord* cr = l->gtque_.Find(clt);
+		ClientRecord* cr = l->gtque_.Find(clt); (void)cr;
 		DBG_LOG(DBG_INFO, DBG_MODULE(server_lckmgr), 
 		        "clt %d convert lck %s at seq %d (%s --> %s)\n", 
 		        clt, LockId(l->lid_).c_str(), seq, cr->mode().String().c_str(), 

@@ -22,10 +22,8 @@ InodeFactory::LoadDirInode(::client::Session* session,
                            ::osd::common::ObjectId oid, 
                            ::client::Inode** ipp)
 {
-	int                                ret = E_SUCCESS;
 	osd::common::ObjectProxyReference* ref;
 	DirInode*                          dip;
-	bool                               wrlock = false;
 
 	while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS) { }
 
@@ -103,10 +101,8 @@ InodeFactory::LoadFileInode(::client::Session* session,
                             ::osd::common::ObjectId oid, 
                             ::client::Inode** ipp)
 {
-	int                                ret = E_SUCCESS;
 	osd::common::ObjectProxyReference* ref;
 	FileInode*                         fip;
-	bool                               wrlock = false;
 
 //printf("\nInside InodeFactory::LoadFileInode...");
 
@@ -230,7 +226,6 @@ InodeFactory::DestroyFileInode(::client::Session* session, ::client::Inode* ip)
 {
 	int                                ret = E_SUCCESS;
 	osd::common::ObjectProxyReference* ref;
-	FileInode*                         fip;
 
 	pthread_rwlock_wrlock(&rwlock_);
 	ref = ip->ref_;

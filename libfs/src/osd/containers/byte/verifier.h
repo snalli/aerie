@@ -21,7 +21,6 @@ typedef struct {
 static inline int
 Protect(unsigned long extent_base, size_t extent_size, uid_t uid, int rw)
 {
-	int              ret;
 	KernelExtent     e;
 	user_file_rights r;
 

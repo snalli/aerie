@@ -29,7 +29,6 @@ DescriptorPool::Load(OsdSession* session)
 {
 	osd::common::ObjectId   oid;
 	osd::common::ExtentId   eid;
-	osd::common::Object*    obj;
 
 	extent_list_.clear();
 	for (int i = 0; i < 16; i++) {
@@ -69,10 +68,9 @@ DescriptorPool::Create(OsdSession* session,
 }
 
 
-int 
+int
 DescriptorPool::AllocateContainer(OsdSession* session, StorageAllocator* salloc, int type, osd::common::ObjectId* oid)
 {
-	int r;
 	int ret;
 
 	if (container_list_[type].empty()) {
@@ -96,11 +94,10 @@ DescriptorPool::AllocateContainer(OsdSession* session, StorageAllocator* salloc,
 // the api allows multiple size extents.
 // currently the implementation provides only 4K size extents
 int
-DescriptorPool::AllocateExtent(OsdSession* session, StorageAllocator* salloc, 
+DescriptorPool::AllocateExtent(OsdSession* session, StorageAllocator* salloc,
                                size_t nbytes, osd::common::ExtentId* eid)
 {
 	int ret;
-	int r;
 
 	if (extent_list_.empty()) {
 		if ((ret = salloc->AllocateExtentIntoSet(session, set_obj_, nbytes, 1024)) < 0) {
@@ -619,15 +616,10 @@ done:
 
 
 // Allocate Container: called by the publisher/validator to allocate container from a set
-int 
+int
 StorageAllocator::AllocateContainerFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ObjectId oid, int index_hint)
 {
-	int                     ret;
-	char*                   buffer;
-	size_t                  static_size;
-	size_t                  extent_size;
-	::osd::common::Object*  obj;
-	ObjectIdSet*            obj_set;
+	ObjectIdSet* obj_set;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "[%d] Allocate container %p from set %p (hint=%d)\n", session->clt(), 
@@ -643,15 +635,10 @@ StorageAllocator::AllocateContainerFromSet(OsdSession* session, osd::common::Obj
 
 
 // Allocate Extent: called by the publisher/validator to allocate extent from a set
-int 
+int
 StorageAllocator::AllocateExtentFromSet(OsdSession* session, osd::common::ObjectId set_oid, osd::common::ExtentId eid, int index_hint)
 {
-	int                     ret;
-	char*                   buffer;
-	size_t                  static_size;
-	size_t                  extent_size;
-	::osd::common::Object*  obj;
-	ObjectIdSet*            obj_set;
+	ObjectIdSet* obj_set;
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_salloc), 
 	        "[%d] Allocate extent %p from set %p (hint=%d)\n", session->clt(), 

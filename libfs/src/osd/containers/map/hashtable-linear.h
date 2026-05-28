@@ -631,7 +631,6 @@ Page<Session>::return_dentry(void *head_addr)
         struct dentry   *curr_ptr;
         curr_ptr = (struct dentry *)((struct dentry *)(head_addr))->val;
      
-        struct dentry *a = NULL, *b;
         Entry<Session>* entry;
 
         for (i=0; (size_t)i < PAGE_SIZE - sizeof(next_); i+=size)
@@ -864,9 +863,6 @@ public:
 	
 	static HashTable* Make(Session* session, void* buf)
 	{
-		HashTable* ht;
-		void*      ptr;
-
 		return new(buf) HashTable();
 	}
 
@@ -1054,7 +1050,6 @@ int
 HashTable<Session>::return_dentry(void *head_addr)
 {
         int              i;
-        uint32_t         idx;
         Bucket<Session>* bucket;
 
         for (i=0; (uint32_t)i<(1<<size_log2_)+split_idx_; i++) {

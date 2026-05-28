@@ -48,7 +48,6 @@ int
 NameContainer::VersionManager::vUpdate(OsdSession* session)
 {
 	ShadowCache::iterator  it;
-	int                   ret;
 
 	osd::vm::client::VersionManager<NameContainer::Object>::vUpdate(session);
 
@@ -102,7 +101,6 @@ NameContainer::VersionManager::Insert(OsdSession* session,
 {
 //	printf("\nNameContainer::VersionManager::Insert <name : %s, ip : %p>",name, ip);
 	ShadowCache::iterator  it;
-	int                    ret;
 	osd::common::ObjectId  tmp_oid;
 	Shadow                 entry;
 

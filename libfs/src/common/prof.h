@@ -3,10 +3,10 @@
 
 #include "common/hrtime.h"
 
-#define PROFILER_PREAMBLE                          \
-	hrtime_t      __start = hrtime_cycles();   \
-	hrtime_t      __stop;                      \
-	int           __startln = __LINE__; 
+#define PROFILER_PREAMBLE                                              \
+	hrtime_t      __start __attribute__((unused)) = hrtime_cycles();   \
+	hrtime_t      __stop  __attribute__((unused));                     \
+	int           __startln __attribute__((unused)) = __LINE__;
 
 #define __PROFILER_SAMPLE        \
 	hrtime_barrier();             \

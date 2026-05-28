@@ -20,7 +20,6 @@ DescriptorPool::Load(OsdSession* session)
 {
 	osd::common::ObjectId   oid;
 	osd::common::ExtentId   eid;
-	osd::common::Object*    obj;
 
 	extent_list_.clear();
 	for (int i = 0; i < 16; i++) {
@@ -45,7 +44,6 @@ DescriptorPool::LoadFromLast(OsdSession* session)
 {
 	osd::common::ObjectId   oid;
 	osd::common::ExtentId   eid;
-	osd::common::Object*    obj;
 
 	for (int i = last_offset_; i < set_obj_->Size(); i++) {
 		set_obj_->Read(session, i, &oid);

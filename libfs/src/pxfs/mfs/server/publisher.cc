@@ -162,7 +162,6 @@ Publisher::Unlink(::osd::server::OsdSession* osdsession, char* buf,
 	int                   ret;
 	osd::common::ObjectId oid;
 	DirInode              dinode;
-	InodeNumber           child_ino;
 	Session*              session = static_cast<Session*>(osdsession);
 	
 	::Publisher::Message::LogicalOperation::Unlink* lgc_op = LoadLogicalOperation< ::Publisher::Message::LogicalOperation::Unlink>(session, buf);
