@@ -144,10 +144,10 @@ public:
 	}
 
 
-	int Init(Session* session,
-	         Object<Session>* bcobj, 
-	         void** slot_base, 
-	         int slot_offset, 
+	int Init(Session* /*session*/,
+	         Object<Session>* bcobj,
+	         void** slot_base,
+	         int slot_offset,
 	         int slot_height)
 	{
 		bcobj_ = bcobj;

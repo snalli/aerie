@@ -545,6 +545,7 @@ Page<Session>::Split(Session* session, Page* splitover_page, const SplitPredicat
 		prev_entry = entry;
 	}
 	(void)prev_entry;
+	(void)next_entry;
 
 	return 0;
 }
@@ -860,7 +861,7 @@ public:
 		return new(ptr) HashTable();
 	}
 	
-	static HashTable* Make(Session* session, void* buf)
+	static HashTable* Make(Session* /*session*/, void* buf)
 	{
 		return new(buf) HashTable();
 	}
