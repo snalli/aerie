@@ -306,8 +306,9 @@ ByteContainer::VersionManager::ReadImmutable(OsdSession* session,
 				// return zeros
 				memset(&dst[tot], 0, m);
 			} else {
-				if ((ret = interval->Read(session, &dst[tot], off, m)) < m) {
-					return ((ret < 0) ? ( (tot>0)? tot: ret)  
+				ret = interval->Read(session, &dst[tot], off, m);
+				if (ret < 0 || (uint64_t)ret < m) {
+					return ((ret < 0) ? ( (tot>0)? tot: ret)
 					                  : tot + ret);
 				}
 			}
@@ -390,7 +391,7 @@ ByteContainer::VersionManager::Read(OsdSession* session, char* dst,
 		// then we should short circuit and return because POSIX
 		// semantics require us to return the number of contiguous
 		// bytes read. Is this true?
-		if (ret1 < n - mn) {
+		if (ret1 < 0 || (uint64_t)ret1 < n - mn) {
 			return ret1;
 		}
 		ret2 = ReadMutable(session, &dst[n-mn], immmaxsize, mn);
@@ -569,7 +570,7 @@ ByteContainer::VersionManager::Write(OsdSession* session,
 		// then we should short circuit and return because POSIX
 		// semantics require us to return the number of contiguous
 		// bytes written. Is this true?
-		if (ret1 < n - mn) {
+		if (ret1 < 0 || (uint64_t)ret1 < n - mn) {
 			return ret1;
 		}
 		ret2 = WriteMutable(session, &src[n-mn], immmaxsize, mn);

@@ -559,7 +559,7 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 
 	//FIXME: use storage from local pool. currently we keep this in a list but we
 	//should really have a local pool based on DescriptorPool
-	if (container_list_[type].size() > count) {
+	if (container_list_[type].size() > (size_t)count) {
 		for (int i = 0; i<count; i++) {
 			oid = container_list_[type].front();
 			container_list_[type].pop_front();

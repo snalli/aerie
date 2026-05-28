@@ -634,7 +634,7 @@ Page<Session>::return_dentry(void *head_addr)
         struct dentry *a = NULL, *b;
         Entry<Session>* entry;
 
-        for (i=0; i < PAGE_SIZE - sizeof(next_); i+=size)
+        for (i=0; (size_t)i < PAGE_SIZE - sizeof(next_); i+=size)
         {    
                 entry = GetEntry(i);
                 size = entry->get_size();
@@ -1057,7 +1057,7 @@ HashTable<Session>::return_dentry(void *head_addr)
         uint32_t         idx;
         Bucket<Session>* bucket;
 
-        for (i=0; i<(1<<size_log2_)+split_idx_; i++) {
+        for (i=0; (uint32_t)i<(1<<size_log2_)+split_idx_; i++) {
                 bucket = &buckets_[i];
                 bucket->return_dentry(head_addr);
         }

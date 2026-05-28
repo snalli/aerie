@@ -400,7 +400,7 @@ public:
 			//       slot does not point to another indirect block
 			assert(current_.slot_height_ > 0);
 			bcount = 1 << ((current_.slot_height_-1)*RADIX_TREE_MAP_SHIFT);
-			if ( (current_.slot_offset_+1 < RADIX_TREE_MAP_SIZE-1) /* case 1 */ &&
+			if ( (current_.slot_offset_+1 < (int)(RADIX_TREE_MAP_SIZE)-1) /* case 1 */ &&
 			     ( (current_.slot_height_ == 1) /* case 2i */ ||
 			       ((current_.slot_height_ > 1) && 
 					(current_.slot_base_[current_.slot_offset_+1] == NULL))) ) /* case 2ii */ 
@@ -474,7 +474,7 @@ int __Write(Session* session, T* obj, char* src, uint64_t off, uint64_t n)
 		f = off % kBlockSize;
 		m = min(n - tot, kBlockSize - f);
 		ret = obj->WriteBlock(session, &src[tot], bn, f, m);
-		if (ret < 0 || ret < m) { // ret could be negative but comparing against unsigned
+		if (ret < 0 || (uint64_t)ret < m) {
 #ifdef DURABLE_DATA
 			// wait for the writes to be performed to SCM
 			ScmFence(); // insight : ScmFence calls emulate_latency
@@ -545,7 +545,7 @@ ByteContainer::Object<Session>::Free(Session* session, osd::common::ObjectId oid
 	
 	start.Init(session, obj, 0);
 	
-	for (iter = start, n = 0; !iter.terminate() && n < obj->size_; iter++, n+=kBlockSize) 
+	for (iter = start, n = 0; !iter.terminate() && (uint64_t)n < obj->size_; iter++, n+=kBlockSize)
 	{
 		uint64_t extent_u64 = (uint64_t) (*iter).slot_base_[(*iter).slot_offset_];
 		if (extent_u64 != 0) {

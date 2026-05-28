@@ -68,7 +68,7 @@ Verifier::Parse(::osd::server::OsdSession* session,
 			break;
 		}
 		if (shbuf->Read(&buf[sizeof(*msg)], sizeof(*header) - sizeof(*msg)) <
-		    (sizeof(*header) - sizeof(*msg))) {
+		    (int)(sizeof(*header) - sizeof(*msg))) {
 			return -1;
 		}
 		header = osd::Publisher::Message::ContainerOperationHeader::Load(buf);
