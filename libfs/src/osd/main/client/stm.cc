@@ -19,7 +19,7 @@ Transaction::Init()
 
 
 int 
-Transaction::Start(JmpBuf* jmpbuf, uint32_t abort_flags)
+Transaction::Start(JmpBuf* /*jmpbuf*/, uint32_t abort_flags)
 {
 	if (abort_flags == ABORT_EXPLICIT) {
 		return -1;

@@ -6,7 +6,7 @@ namespace osd {
 namespace server {
 
 int
-Journal::TransactionBegin(int id)
+Journal::TransactionBegin(int /*id*/)
 {
 	return E_SUCCESS;
 }

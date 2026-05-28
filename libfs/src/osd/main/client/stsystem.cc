@@ -54,7 +54,7 @@ StorageSystem::Init()
 
 
 int 
-StorageSystem::Open(const char* source, unsigned int flags)
+StorageSystem::Open(const char* source, unsigned int /*flags*/)
 {
 	int ret;
 
@@ -69,7 +69,7 @@ StorageSystem::Open(const char* source, unsigned int flags)
 
 
 int 
-StorageSystem::Mount(const char* source, const char* target, unsigned int flags,
+StorageSystem::Mount(const char* source, const char* /*target*/, unsigned int flags,
                      StorageSystemDescriptor& desc)
 {
 	int ret;
