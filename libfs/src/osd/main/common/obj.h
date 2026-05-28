@@ -43,6 +43,8 @@ public:
 		: u64_(oid.u64_)
 	{ }
 
+	ObjectId& operator=(const ObjectId&) = default;
+
 	ObjectId(ObjectType type, void* addr) {
 		Init(type, reinterpret_cast<uint64_t>(addr));
 	}

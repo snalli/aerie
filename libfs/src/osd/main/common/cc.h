@@ -25,6 +25,8 @@ public:
 		: u64_(lid.u64_)
 	{ }
 
+	LockId& operator=(const LockId&) = default;
+
 	LockId(LockType type_id, uint64_t num) {
 		Init(type_id, num);
 	}
