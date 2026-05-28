@@ -16,14 +16,10 @@ void* lock_cont(void *ptr)
 		printf("hello");
 	return libfs_lock_cont();
 }
-int main(int argc, char *argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
 	const char *xdst = "10000";
 	const char *name = "Sanketh";
-	char dst[10];
-	char filename[]="/pxfs/a/bb/cc/dd/ee/ff/gg/file.txt";
-	char buf[128];
-	char wait;
 	int fd;
 	int count = 0;
 	libfs_init3(xdst,0);

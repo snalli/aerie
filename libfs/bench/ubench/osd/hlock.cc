@@ -14,8 +14,8 @@ usage()
 }
 
 
-static int 
-__ubench_hlock_create(osd::client::OsdSession* session, int numops, bool cache)
+static int
+__ubench_hlock_create(osd::client::OsdSession* /*session*/, int numops, bool /*cache*/)
 {
 	MEASURE_TIME_PREAMBLE
 	int                      ret = E_SUCCESS;
@@ -41,8 +41,8 @@ __ubench_hlock_create(osd::client::OsdSession* session, int numops, bool cache)
 }
 
 
-static int 
-__ubench_hlock(osd::client::OsdSession* session, int numops, bool cache)
+static int
+__ubench_hlock(osd::client::OsdSession* /*session*/, int numops, bool cache)
 {
 	MEASURE_TIME_PREAMBLE
 	int                     ret = E_SUCCESS;
@@ -88,8 +88,8 @@ __ubench_hlock(osd::client::OsdSession* session, int numops, bool cache)
 }
 
 
-static int 
-__ubench_hlock_object(osd::client::OsdSession* session, int numops, bool cache)
+static int
+__ubench_hlock_object(osd::client::OsdSession* /*session*/, int numops, bool cache)
 {
 	MEASURE_TIME_PREAMBLE
 	int                      ret = E_SUCCESS;
@@ -148,10 +148,9 @@ ubench_hlock(int argc, char* argv[])
 	extern int opterr;
 	char       ch;
 	int        numops = 0;
-	int        objtype = 2;
 	bool       cache = false;
 	bool       object = false;
-	
+
 	opterr=0;
 	optind=0;
 	while ((ch = getopt(argc, argv, "ocn:"))!=-1) {
@@ -186,9 +185,8 @@ ubench_hlock_create(int argc, char* argv[])
 	extern int opterr;
 	char       ch;
 	int        numops = 0;
-	int        objtype = 2;
 	bool       cache = false;
-	
+
 	opterr=0;
 	optind=0;
 	while ((ch = getopt(argc, argv, "cn:"))!=-1) {

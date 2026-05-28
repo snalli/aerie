@@ -65,7 +65,6 @@ main(int argc, char *argv[])
 	pthread_attr_t     attr;
 	int                ret = -1;
 	int                debug_level = -1;
-	uid_t              principal_id;
 	char               ch = 0;
 	const char*        xdst="10000";
 	extern int         opterr;
@@ -76,8 +75,6 @@ main(int argc, char *argv[])
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
-
-	principal_id = getuid();
 
 	RegisterUbench();
 	//printf("\n Sanketh : Return from ubench RegisterUbench() : %d \n", RegisterUbench());
@@ -91,7 +88,7 @@ main(int argc, char *argv[])
 			last_ubench_loc = i;
 			ubench[ubench_cnt].argv = &argv[i];
 			ubench[ubench_cnt].name = &argv[i][1];
-			for (int j=0; j < ubench_table.size(); j++) {
+			for (int j=0; j < (int)ubench_table.size(); j++) {
 				if (strcmp(ubench_table[j].ubench_name.c_str(), ubench[ubench_cnt].name) == 0) {
 					ubench[ubench_cnt].function = ubench_table[j].ubench_function;
 					break;

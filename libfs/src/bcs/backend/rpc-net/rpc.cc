@@ -321,7 +321,7 @@ rpcc::get_refconn(connection **ch)
 //
 //this function keeps no reference for connection *c 
 bool
-rpcc::got_pdu(connection *c, char *b, int sz)
+rpcc::got_pdu(connection* /*c*/, char *b, int sz)
 {
 	unmarshall rep(b, sz);
 	reply_header h;
@@ -694,8 +694,8 @@ rpcs::checkduplicate_and_update(unsigned int clt_nonce, unsigned int xid,
 }
 
 //rpc handler
-int 
-rpcs::rpcbind(int a, int &r)
+int
+rpcs::rpcbind(int /*a*/, int &r)
 {
 	jsl_log(JSL_DBG_2, "rpcs::rpcbind called return nonce %u\n", nonce_);
 	r = nonce_;

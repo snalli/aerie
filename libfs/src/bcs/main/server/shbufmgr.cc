@@ -56,7 +56,7 @@ SharedBufferManager::CreateSharedBuffer(const char* buffertypeid,
 
 
 int
-SharedBufferManager::Consume(BcsSession* session, int id, int& r) 
+SharedBufferManager::Consume(BcsSession* session, int id, int& /*r*/)
 {
 	assert(session->shbuf_vec_[id] != NULL);
 	session->shbuf_vec_[id]->Consume(session);

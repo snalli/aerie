@@ -41,7 +41,7 @@ FRONTAPI(mount) (const char* source,
 
 
 int
-FRONTAPI(umount) (const char* target)
+FRONTAPI(umount) (const char* /*target*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return -E_ERROR;
@@ -115,7 +115,7 @@ FRONTAPI(open) (const char* pathname, int flags)
 
 
 int 
-FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
+FRONTAPI(open2) (const char* pathname, int flags, mode_t /*mode*/)
 {
 	return Client::Open(pathname, flags, 0);
 }
@@ -129,65 +129,55 @@ int FRONTAPI(close) (int fd)
 
 int FRONTAPI(dup) (int oldfd)
 {
-	int ret;
-
 	return Client::Duplicate(oldfd);
 }
 
 
 int FRONTAPI(dup2) (int oldfd, int newfd)
 {
-	int ret;
-
 	return Client::Duplicate(oldfd, newfd);
 }
 
 
-ssize_t 
+ssize_t
 FRONTAPI(write) (int fd, const void *buf, size_t count)
 {
-	int   ret;
 	const char* src = reinterpret_cast<const char*>(buf);
 
 	return Client::Write(fd, src, count);
 }
 
 
-ssize_t 
+ssize_t
 FRONTAPI(read) (int fd, void *buf, size_t count)
 {
-	int   ret;
 	char* dst = reinterpret_cast<char*>(buf);
 
 	return Client::Read(fd, dst, count);
 }
 
 
-ssize_t 
+ssize_t
 FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
 {
-	int   ret;
 	const char* src = reinterpret_cast<const char*>(buf);
 
 	return Client::WriteOffset(fd, src, count, offset);
 }
 
 
-ssize_t 
+ssize_t
 FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
 {
-	int   ret;
 	char* dst = reinterpret_cast<char*>(buf);
 
 	return Client::ReadOffset(fd, dst, count, offset);
 }
 
 
-off_t 
+off_t
 FRONTAPI(lseek) (int fd, off_t offset, int whence)
 {
-	int   ret;
-
 	return Client::Seek(fd, offset, whence);
 }
 

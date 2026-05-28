@@ -158,8 +158,6 @@ class fast_rpc {
 
     rpc_msg_t* rpc_msg = (rpc_msg_t*) &rpc_sig[1];
 
-    volatile unsigned* sh_chan = &(rpc_sig->signal);
-
     DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Registration: Going to spin ...\n");
 
     //simple spin lock

@@ -47,15 +47,6 @@ enum dbg_code {
 	DBG_DEBUG    = 5, // Debugging
 };
 
-static char* dbg_code2str[] = {
-	(char*) "Off",
-	(char*) "CRITICAL",
-	(char*) "ERROR",
-	(char*) "WARNING",
-	(char*) "INFO",
-	(char*) "DEBUG",
-};
-
 const int dbg_terminate_level = DBG_ERROR;
 const int dbg_stderr_level = DBG_WARNING;
 
@@ -67,6 +58,15 @@ extern const char* dbg_identifier;
 
 
 #ifdef _STAMNOS_EXPAND_DEBUG
+
+static char* dbg_code2str[] = {
+	(char*) "Off",
+	(char*) "CRITICAL",
+	(char*) "ERROR",
+	(char*) "WARNING",
+	(char*) "INFO",
+	(char*) "DEBUG",
+};
 
 #define dbg_log(level, format, ...)                                            \
   do {                                                                         \

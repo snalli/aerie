@@ -45,7 +45,7 @@ enum {
 #define __ERRNO_STRING(name, str) str,
 
 
-static const char* 
+static inline const char*
 ErrorToString(int err) {
 	static const char* errstr[] = {
 		__DEFINE_ERRNO(__ERRNO_STRING)

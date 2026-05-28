@@ -204,8 +204,8 @@ rpcs::dispatch(char* buf, unsigned int& sz /*return buffer is the same*/)
 
 
 //rpc handler
-int 
-rpcs::rpcbind(int a, int &r)
+int
+rpcs::rpcbind(int /*a*/, int &r)
 {
   //UNUSED!!
   r = 0;
@@ -548,7 +548,7 @@ void rpcs::handle_comm_q(server_lock_t* rpc_serv) {
 
 }
 
-void rpcs::mt_log_service(unsigned id, timespec start) {
+void rpcs::mt_log_service(unsigned /*id*/, timespec /*start*/) {
 #if 0
   timespec endtime, tdiff;
   char tmp[128];
@@ -584,9 +584,7 @@ void rpcs::handle_send_q(server_lock_t* rpc_serv, unsigned tid) {
   vector<send_queue_t*>::iterator curr;
   for(curr = (rpc_serv->sendq.begin()); curr != rpc_serv->sendq.end() ; curr++) {
     send_queue_t* currqe = *curr;
-    //rpc_resp_t response;
-    char resp[MAX_BUFF_SIZE];
-    int ret, remove = 0, respSize;
+    int ret;
 
     if(currqe->rpc_request->signal != 1) {
       //TODO: make sure if tstamp is what u think it is
@@ -703,14 +701,9 @@ void* rpcs::map_shared_file_server(string filename, int * fdret, int type) {
 }
 
 void rpcs::sanity_check() {
-  rpc_msg_t msg;
-  rpc_resp_t resp;
-  rpc_sync_t rpc_lock;
-  rpc_signal_wait_t rpc_sig;
-
   //FIXME: uncomment and assure they are same
-  assert(sizeof(rpc_lock) == sizeof(rpc_sig));
-  assert(sizeof(msg.data) == sizeof(resp)); //should be the same!
+  assert(sizeof(rpc_sync_t) == sizeof(rpc_signal_wait_t));
+  assert(sizeof(rpc_msg_t::data) == sizeof(rpc_resp_t)); //should be the same!
 }
 
 void rpcs::init_rpc_registry(const char* sh_file) {
@@ -829,8 +822,6 @@ void* rpcs::rpc_server_kernel(void* arg) {
   server_lock_t* s_ce;
   sthr_args_t *targ = (sthr_args_t*) arg;
   unsigned tid = targ->tid;
-  unsigned len = MAX_LOG_FILE_SIZE_PT*tid ; //+ 0 -- it is the start of the log area
-  char tmp[32];
 
   assert(pin_to_core(targ->core) == 0);
 

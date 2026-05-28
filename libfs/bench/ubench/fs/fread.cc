@@ -33,11 +33,8 @@ __ubench_fs_fread(void* arg)
 	const char*            root = ((Args*) arg)->root;
 	int                    numops = ((Args*) arg)->numops;
 	size_t                 size = ((Args*) arg)->size;
-	int                    ret = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles = 0;
-	unsigned long long     sync_runtime;
-	hrtime_t               sync_runtime_cycles;
 	RFile*                 fp;
 	std::string**          path = new std::string*[numops];
 	void*                  buf = new char[size];
@@ -63,7 +60,7 @@ __ubench_fs_fread(void* arg)
 		fp = fs_fopen(path[i]->c_str(), O_RDWR);
 		assert(fp != NULL);
     	MEASURE_CYCLES_START
-		ret = fs_fread(fp, buf, size);
+		fs_fread(fp, buf, size);
     	MEASURE_CYCLES_STOP
 		ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 		fs_fclose(fp);
@@ -86,7 +83,6 @@ ubench_fs_fread(int argc, char* argv[])
 	extern int  opterr;
 	char        ch;
 	int         numops = 0;
-	char*       objtype;
 	const char* root_path = NULL;
 	size_t      size = 0;
 	

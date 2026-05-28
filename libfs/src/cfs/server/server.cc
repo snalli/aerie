@@ -31,7 +31,9 @@ Server::Init(const char* pathname, int flags, int port)
 	ipc_layer_ = new ::server::Ipc(port);
 	ipc_layer_->Init();
 
-	assert(FileSystem::Load(ipc_layer_, pathname, flags, &fs_) == E_SUCCESS);
+	int r = FileSystem::Load(ipc_layer_, pathname, flags, &fs_);
+	assert(r == E_SUCCESS);
+	(void)r;
 }
 
 void 

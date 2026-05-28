@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-static pthread_t
+static inline pthread_t
 method_thread_parent(void *(*fn)(void *), void *arg, bool detach)
 {
 	pthread_t th;
@@ -40,9 +40,10 @@ method_thread_child()
 {
 	// defer pthread_cancel() by default. check explicitly by
 	// enabling then pthread_testcancel().
-	int oldstate, oldtype;
+	int oldstate = 0, oldtype = 0;
 	assert(pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldstate) == 0);
 	assert(pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldtype) == 0);
+	(void)oldstate; (void)oldtype;
 }
 
 template <class C> pthread_t 

@@ -25,8 +25,6 @@ __ubench_fs_rename(const char* root, int numops, size_t size)
 	int                    ret = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles;
-	unsigned long long     sync_runtime;
-	hrtime_t               sync_runtime_cycles;
 	int                    fd;
 	std::string**          path = new std::string*[numops];
 	std::string**          tpath = new std::string*[numops];
@@ -88,7 +86,6 @@ ubench_fs_rename(int argc, char* argv[])
 	extern int  opterr;
 	char        ch;
 	int         numops = 0;
-	char*       objtype;
 	const char* root_path = NULL;
 	size_t      size = 0;
 	

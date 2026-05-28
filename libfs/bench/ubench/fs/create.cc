@@ -30,7 +30,6 @@ __ubench_fs_create(const char* root, int numops, size_t size)
 	hrtime_t               sync_runtime_cycles;
 	int                    fd;
 	std::string**          path = new std::string*[numops];
-	void*                  buf = new char[size];
 	std::stringstream      ss_root;
 	char*                  token;
 	char                   buf2[1024];
@@ -88,7 +87,6 @@ ubench_fs_create(int argc, char* argv[])
 	extern int  opterr;
 	char        ch;
 	int         numops = 0;
-	char*       objtype;
 	const char* root_path = NULL;
 	size_t      size = 0;
 	

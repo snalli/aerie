@@ -8,7 +8,7 @@
 #include <string.h>
 //std::vector<UbenchDescriptor> ubench_table;
 
-int main(int argc, char *argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
 	char chr = 'a';
 	char path[] = "/home/sanketh/ext4/0";

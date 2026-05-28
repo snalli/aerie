@@ -105,7 +105,6 @@ Client::Mount(const char* source,
               uint32_t flags)
 {
 	int                            ret;
-	char*                          path = const_cast<char*>(target);
 	FileSystemProtocol::MountReply mntrep;
 
 	dbg_log (DBG_INFO, "Mount file system %s of type %s to %s\n", source, fstype, target);
@@ -138,7 +137,6 @@ Client::Mount(const char* source,
 static inline int
 create(const char* path, int mode, int type, InodeNumber* inop)
 {
-	char                              name[128];
 	int                               ret;
 	FileSystemProtocol::InodeNumber   ino;
 
@@ -230,7 +228,7 @@ Client::Duplicate(int oldfd)
 
 
 int
-Client::Duplicate(int oldfd, int newfd)
+Client::Duplicate(int /*oldfd*/, int /*newfd*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -328,7 +326,7 @@ Client::DeleteDir(const char* pathname)
 
 
 int
-Client::SetCurWrkDir(const char* path)
+Client::SetCurWrkDir(const char* /*path*/)
 {
 	//FIXME: save the path to cwd. we pass it to the server when we need a name resolution.
 	//return global_namespace->SetCurWrkDir(session, path);
@@ -337,15 +335,15 @@ Client::SetCurWrkDir(const char* path)
 
 
 int
-Client::GetCurWrkDir(const char* path, size_t size)
+Client::GetCurWrkDir(const char* /*path*/, size_t /*size*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
 }
 
 
-int 
-Client::Rename(const char* oldpath, const char* newpath)
+int
+Client::Rename(const char* /*oldpath*/, const char* /*newpath*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;
@@ -388,22 +386,20 @@ Client::Unlink(const char* path)
 }
 
 
-int 
-Client::Stat(const char *path, struct stat *buf)
+int
+Client::Stat(const char *path, struct stat* /*buf*/)
 {
 	int                             ret;
 	FileSystemProtocol::InodeNumber protocol_ino;
-	InodeNumber                     ino;
 
-	if ((ret = global_ipc_layer->call(FileSystemProtocol::kNamei, 
-									  global_ipc_layer->id(), std::string(path), protocol_ino)) < 0) 
+	if ((ret = global_ipc_layer->call(FileSystemProtocol::kNamei,
+									  global_ipc_layer->id(), std::string(path), protocol_ino)) < 0)
 	{
 		return -E_IPC;
 	}
 	if (ret > 0) {
 		return -ret;
 	}
-	ino = protocol_ino;
 
 	return ret;
 }
@@ -422,8 +418,8 @@ Client::Sync()
 
 // current cfs synchronously writes data and metadata when doing 
 // the call to the server
-int 
-Client::Sync(int fd)
+int
+Client::Sync(int /*fd*/)
 {
 	return E_SUCCESS;
 }

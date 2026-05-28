@@ -20,18 +20,18 @@ Ipc::Init()
 {
 	
 	int                         r;
-	struct sockaddr_in          dst; //server's ip address
 	int                         rport;
 	std::ostringstream          host;
 	std::ostringstream          ss;
 	const char*                 hname;
 	IpcProtocol::SubscribeReply rep;
 	std::string                 idstr;
-	
-//	printf("\nInitializing IPC Layer...");	
+
+//	printf("\nInitializing IPC Layer...");
 
 // setup RPC for making calls to the server
 #ifdef _CLT2SVR_RPCNET
+	struct sockaddr_in dst; //server's ip address
 	rpcnet::make_sockaddr(xdst_.c_str(), &dst);
 	rpcc_ = new rpcnet::rpcc(dst);
 	assert (rpcc_->bind() == 0);

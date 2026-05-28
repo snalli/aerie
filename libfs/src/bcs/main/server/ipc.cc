@@ -67,7 +67,7 @@ Ipc::Client(int clt)
 
 
 int
-Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
+Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& /*rep*/)
 {
 #ifdef _SVR2CLT_RPCNET
 	int                  ret;
@@ -113,8 +113,8 @@ Ipc::Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep)
 }
 
 
-int 
-Ipc::Alive(const unsigned int principal_id, int& r)
+int
+Ipc::Alive(const unsigned int /*principal_id*/, int& r)
 {
 	r = 0;
 

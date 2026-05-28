@@ -20,12 +20,12 @@ public:
 
 namespace rpcfast {
 
-inline marshall& operator<<(marshall &m, IpcProtocol::SubscribeReply& val) {
+inline marshall& operator<<(marshall &m, IpcProtocol::SubscribeReply& /*val*/) {
 	return m;
 }
 
 
-inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& val) {
+inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& /*val*/) {
 	return u;
 }
 
@@ -33,12 +33,12 @@ inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& val) {
 
 namespace rpcnet {
 
-inline marshall& operator<<(marshall &m, IpcProtocol::SubscribeReply& val) {
+inline marshall& operator<<(marshall &m, IpcProtocol::SubscribeReply& /*val*/) {
 	return m;
 }
 
 
-inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& val) {
+inline unmarshall& operator>>(unmarshall &u, IpcProtocol::SubscribeReply& /*val*/) {
 	return u;
 }
 

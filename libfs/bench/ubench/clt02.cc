@@ -8,15 +8,14 @@
 
 std::vector<UbenchDescriptor> ubench_table;
 
-int main(int argc, char *argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
 	const char *xdst = "10000";
 /*	const char *name = "Sanketh";
 	char dst[10];
 	char filename[]="/pxfs/a/bb/cc/dd/ee/ff/gg/file.txt";
 	char buf[128];
-*/	char wait;
-	int fd;
+*/
 	libfs_init3(xdst,0);
 	libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
 	char chr = 'a';

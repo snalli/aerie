@@ -81,12 +81,8 @@ NameSpace::Namex(Session* session, const char *cpath,
 	FileInode   finode;
 	Inode*      ip;
 	DirInode*   dp;
-	DirInode*   dpn;
-	FileInode*  fp;
-	FileInode*  fpn;
 	InodeNumber next_ino;
 	int         ret;
-	char*       old_name;
 
 	dbg_log (DBG_INFO, "Namex: %s\n", path);
 	

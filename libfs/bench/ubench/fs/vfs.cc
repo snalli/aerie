@@ -62,8 +62,8 @@ int (*fs_fclose)(RFile* fp);
 
 
 
-int 
-Init(int debug_level, const char* xdst)
+int
+Init(int /*debug_level*/, const char* /*xdst*/)
 {
 	return 0;
 }

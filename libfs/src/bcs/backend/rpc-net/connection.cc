@@ -149,11 +149,10 @@ connection::send(char *b, int sz)
 
 //fd_ is ready to be written
 void
-connection::write_cb(int s)
+connection::write_cb(int /*s*/)
 {
 	ScopedLock ml(&m_);
 	assert(!dead_);
-	assert(fd_ == s);
 	if (wpdu_.sz == 0) {
 		PollMgr::Instance()->del_callback(fd_,CB_WRONLY);
 		return;
@@ -172,10 +171,9 @@ connection::write_cb(int s)
 
 //fd_ is ready to be read
 void
-connection::read_cb(int s)
+connection::read_cb(int /*s*/)
 {
 	ScopedLock ml(&m_);
-	assert(fd_ == s);
 	if (dead_)  {
 		return;
 	}
@@ -248,9 +246,10 @@ connection::readpdu()
 		sz = ntohl(sz1);
 
 		if (sz > MAX_PDU) {
-			char *tmpb = (char *)&sz1;
-			jsl_log(JSL_DBG_2, "connection::readpdu read pdu TOO BIG %d network order=%x %x %x %x %x\n", sz, 
+			unsigned char *tmpb = (unsigned char *)&sz1;
+			jsl_log(JSL_DBG_2, "connection::readpdu read pdu TOO BIG %d network order=%x %x %x %x %x\n", sz,
 					sz1, tmpb[0],tmpb[1],tmpb[2],tmpb[3]);
+			(void)tmpb;
 			return false;
 		}
 

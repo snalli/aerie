@@ -164,6 +164,7 @@ SelectAIO::watch_fd(int fd, poll_flag flag)
 
 	char tmp = 1;
 	assert(write(pipefd_[1], &tmp, sizeof(tmp))==1);
+	(void)tmp;
 }
 
 bool
@@ -210,6 +211,7 @@ SelectAIO::unwatch_fd(int fd, poll_flag flag)
 	if (flag == CB_RDWR) {
 		char tmp = 1;
 		assert(write(pipefd_[1], &tmp, sizeof(tmp))==1);
+		(void)tmp;
 	}
 	return (!FD_ISSET(fd, &rfds_) && !FD_ISSET(fd, &wfds_));
 }
@@ -242,9 +244,10 @@ SelectAIO::wait_ready(std::vector<int> *readable, std::vector<int> *writable)
 
 	for (int fd = 0; fd <= high; fd++) {
 		if (fd == pipefd_[0] && FD_ISSET(fd, &trfds)) {
-			char tmp;
+			char tmp = 0;
 			assert (read(pipefd_[0],&tmp,sizeof(tmp))==1);
 			assert(tmp==1);
+			(void)tmp;
 		}else {
 			if (FD_ISSET(fd, &twfds)) {
 				writable->push_back(fd);
@@ -308,6 +311,7 @@ EPollAIO::watch_fd(int fd, poll_flag flag)
 	}
 
 	assert(epoll_ctl(pollfd_, op, fd, &ev) == 0);
+	(void)op;
 }
 
 bool 

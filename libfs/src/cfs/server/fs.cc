@@ -40,8 +40,8 @@ FileSystem::Init()
 }
 
 
-int 
-FileSystem::Make(const char* target, size_t nblocks, size_t block_size, int flags) 
+int
+FileSystem::Make(const char* target, size_t /*nblocks*/, size_t /*block_size*/, int flags)
 {
 	int ret;
 
@@ -75,8 +75,8 @@ FileSystem::Load(Ipc* ipc, const char* source, unsigned int flags, FileSystem** 
 
 
 int
-FileSystem::MakeDir(Session* session, const char* path, 
-                    unsigned int mode,
+FileSystem::MakeDir(Session* session, const char* path,
+                    unsigned int /*mode*/,
                     FileSystemProtocol::InodeNumber& ino)
 {
 	int         ret;
@@ -84,7 +84,6 @@ FileSystem::MakeDir(Session* session, const char* path,
 	DirInode    dinode1;
 	DirInode    dinode2;
 	InodeNumber parino;
-	InodeNumber childino;
 
 	dbg_log (DBG_INFO, "Create directory %s\n", path);
 	
@@ -106,17 +105,15 @@ FileSystem::MakeDir(Session* session, const char* path,
 
 
 int
-FileSystem::MakeFile(Session* session, const char* path, 
-                     unsigned int flags, unsigned int mode,
+FileSystem::MakeFile(Session* session, const char* path,
+                     unsigned int /*flags*/, unsigned int /*mode*/,
                      FileSystemProtocol::InodeNumber& ino)
 {
 	int         ret;
 	char        name[128];
 	DirInode    dinode1;
-	DirInode    dinode2;
 	FileInode   finode;
 	InodeNumber parino;
-	InodeNumber childino;
 	
 	dbg_log (DBG_INFO, "Create file %s\n", path);
 	if ((ret = session->namespace_->Nameiparent(session, path, name, &parino)) < 0) {
@@ -135,16 +132,14 @@ FileSystem::MakeFile(Session* session, const char* path,
 
 
 int
-FileSystem::Read(Session* session, FileSystemProtocol::InodeNumber ino, 
+FileSystem::Read(Session* session, FileSystemProtocol::InodeNumber ino,
                  void* buf, int count, int offset, int& n)
 {
-	int         ret;
-	char        name[128];
 	FileInode   finode;
 	InodeNumber fino = ino;
-	
+
 	dbg_log (DBG_INFO, "Read file inode %lx\n", fino);
-	
+
 	FileInode* fp = FileInode::Load(session, fino, &finode);
 	n = fp->Read(session, buf, count, offset);
 	return E_SUCCESS;
@@ -152,11 +147,9 @@ FileSystem::Read(Session* session, FileSystemProtocol::InodeNumber ino,
 
 
 int
-FileSystem::Write(Session* session, FileSystemProtocol::InodeNumber ino, 
+FileSystem::Write(Session* session, FileSystemProtocol::InodeNumber ino,
                   void* buf, int count, int offset, int& n)
 {
-	int         ret;
-	char        name[128];
 	FileInode   finode;
 	InodeNumber fino = ino;
 	
@@ -221,9 +214,8 @@ int
 FileSystem::Namei(Session* session, const char* path, FileSystemProtocol::InodeNumber& ino)
 {
 	int         ret;
-	char        name[128];
 	InodeNumber target_ino;
-	
+
 	dbg_log (DBG_INFO, "Path name to inode number %s\n", path);
 	
 	if ((ret = session->namespace_->Namei(session, path, &target_ino)) < 0) {
@@ -236,8 +228,8 @@ FileSystem::Namei(Session* session, const char* path, FileSystemProtocol::InodeN
 
 
 int 
-FileSystem::Mount(int clt, const char* source, const char* target, 
-                  unsigned int flags, FileSystemProtocol::MountReply& rep) 
+FileSystem::Mount(int clt, const char* source, const char* /*target*/,
+                  unsigned int flags, FileSystemProtocol::MountReply& rep)
 {
 	int                               ret;
 	StorageSystemProtocol::MountReply ssrep;
@@ -370,7 +362,7 @@ FileSystem::IpcHandlers::Write(unsigned int clt, FileSystemProtocol::InodeNumber
 
 
 int
-FileSystem::IpcHandlers::Link(unsigned int clt, std::string oldpath, std::string newpath, int& r)
+FileSystem::IpcHandlers::Link(unsigned int clt, std::string oldpath, std::string newpath, int& /*r*/)
 {
 	int                    ret;
 	::server::BaseSession* basesession;
@@ -389,7 +381,7 @@ FileSystem::IpcHandlers::Link(unsigned int clt, std::string oldpath, std::string
 
 
 int
-FileSystem::IpcHandlers::Unlink(unsigned int clt, std::string path, int& r)
+FileSystem::IpcHandlers::Unlink(unsigned int clt, std::string path, int& /*r*/)
 {
 	int                    ret;
 	::server::BaseSession* basesession;

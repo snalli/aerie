@@ -33,7 +33,6 @@ private:
 inline int 
 SharedRegion::Init(int oflag)
 {
-	int               ret;
 	int               fd;
 	const char*       root = "/shreg_";
 	std::stringstream ss;
@@ -51,7 +50,7 @@ SharedRegion::Init(int oflag)
 		return -E_NOMEM;
 	}
 	if (oflag & O_CREAT) {
-		ret = ftruncate(fd, size_);
+		ftruncate(fd, size_);
 	}
 	if ((base_ = mmap(0, size_, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) == NULL) {
 		return -E_NOMEM;

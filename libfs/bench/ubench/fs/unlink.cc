@@ -23,7 +23,6 @@ __ubench_fs_unlink(const char* root, int numops)
 {
 	MEASURE_TIME_PREAMBLE
 	int                    ret = 0;
-	int                    fd = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles;
 	unsigned long long     sync_runtime;
@@ -70,7 +69,6 @@ ubench_fs_unlink(int argc, char* argv[])
 	extern int  opterr;
 	char        ch;
 	int         numops = 0;
-	char*       objtype;
 	const char* root_path = NULL;
 	
 	opterr=0;
@@ -79,6 +77,7 @@ ubench_fs_unlink(int argc, char* argv[])
 		switch (ch) {
 			case 'p': // root path
 				root_path = optarg;
+				/* fall through */
 			case 'n':
 				numops = atoi(optarg);
 				break;

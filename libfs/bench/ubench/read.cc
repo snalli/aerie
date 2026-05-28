@@ -5,7 +5,7 @@
 
 std::vector<UbenchDescriptor> ubench_table;
 
-int main(int argc, char *argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
 	const char *xdst = "10000";
 	char dst[10];

@@ -18,19 +18,17 @@ usage()
 }
 
 
-static int 
-__ubench_fs_append(const char* root, int numops, int warmup_ops, size_t size)
+static int
+__ubench_fs_append(const char* root, int /*numops*/, int /*warmup_ops*/, size_t size)
 {
 	MEASURE_TIME_PREAMBLE
 	int                    ret = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles = 0;
-	unsigned long long     sync_runtime;
-	hrtime_t               sync_runtime_cycles;
 	int                    fd;
 	void*                  buf = new char[size];
-	unsigned long		totalsize=0, twogig = 2UL*1024UL*1024UL*1024UL;
-	unsigned long		exp_nr_writes = 0, nr_writes = 0;
+	unsigned long		twogig = 2UL*1024UL*1024UL*1024UL;
+	unsigned long		exp_nr_writes = 0;
 
 	std::stringstream  ss;
         ss << std::string(root);
@@ -49,8 +47,7 @@ __ubench_fs_append(const char* root, int numops, int warmup_ops, size_t size)
 
 	MEASURE_TIME_START
 
-	for (int i=0; i<exp_nr_writes; i++) {
-		totalsize = 0;
+	for (unsigned long i=0; i<exp_nr_writes; i++) {
 		fd = fs_open(ss.str().c_str(), O_RDWR | O_APPEND);
 		assert(fd>0);
     	MEASURE_CYCLES_START
@@ -79,7 +76,6 @@ ubench_fs_append(int argc, char* argv[])
 	extern int  opterr;
 	char        ch;
 	int         numops = 0;
-	char*       objtype;
 	const char* root_path = NULL;
 	size_t      size = 0;
 	int         warmup_ops = 0;

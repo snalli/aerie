@@ -11,13 +11,12 @@
 #include "bench/sharing/barrier.h"
 
 
-int 
-Writer(int debug_level, const char* xdst, int numops, int size)
+int
+Writer(int /*debug_level*/, const char* /*xdst*/, int numops, int /*size*/)
 {
 	MEASURE_TIME_PREAMBLE
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles = 0;
-	int ret;
 	int fd;
 	char* buf = (char*) malloc(4096*1024);
 
@@ -28,7 +27,7 @@ Writer(int debug_level, const char* xdst, int numops, int size)
 	MEASURE_TIME_START
 	MEASURE_CYCLES_START
 	for (int i=0; i<numops; i++) {
-		ret = pwrite(fd, buf, 4096, 0);
+		pwrite(fd, buf, 4096, 0);
 	}
 	MEASURE_CYCLES_STOP
 	ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
@@ -41,11 +40,10 @@ Writer(int debug_level, const char* xdst, int numops, int size)
 }
 
 
-int 
-Reader(int debug_level, const char* xdst, int numops, int size)
+int
+Reader(int /*debug_level*/, const char* /*xdst*/, int numops, int /*size*/)
 {
 	MEASURE_TIME_PREAMBLE
-	int ret;
 	int fd;
 	char* buf = (char*) malloc(4096*1024);
 	unsigned long long     runtime;
@@ -59,7 +57,7 @@ Reader(int debug_level, const char* xdst, int numops, int size)
 	MEASURE_TIME_START
 	MEASURE_CYCLES_START
 	for (int i=0; i<numops; i++) {
-		ret = pread(fd, buf, 4096, 0);
+		pread(fd, buf, 4096, 0);
 	}
 	MEASURE_CYCLES_STOP
 	ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)

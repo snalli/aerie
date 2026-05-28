@@ -138,7 +138,6 @@ File::Read(char* dst, uint64_t n, uint64_t offset)
 uint64_t
 File::Seek(uint64_t offset, int whence)
 {
-	uint64_t size;
 	switch(whence) {
 		case SEEK_SET:
 			off_ = offset;

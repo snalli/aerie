@@ -63,7 +63,6 @@ ubench_fs_open(int argc, char* argv[])
 	extern int  opterr;
 	char        ch;
 	int         numops = 0;
-	char*       objtype;
 	const char* root_path = NULL;
 	
 	opterr=0;
@@ -72,6 +71,7 @@ ubench_fs_open(int argc, char* argv[])
 		switch (ch) {
 			case 'p': // root path
 				root_path = optarg;
+				/* fall through */
 			case 'n':
 				numops = atoi(optarg);
 				break;

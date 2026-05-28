@@ -2,7 +2,7 @@
 #include "rxfs/client/libfs.h"
 #include "ubench/fs/rxfs.h"
 
-int dummy(const char*f, const char *t)
+int dummy(const char* /*f*/, const char* /*t*/)
 {
 	return 0;
 }
@@ -26,11 +26,9 @@ ssize_t (*fs_fpread)(RFile* fp, void* buf, size_t count, off_t offset) = rxfs_fp
 int (*fs_fclose)(RFile* fp) = rxfs_fclose;
 
 
-int 
+int
 Init(int debug_level, const char* xdst)
 {
-	int ret;
-
 	rxfs_init3(xdst, debug_level);
 	rxfs_mount("/tmp/stamnos_pool", "/rxfs", "rxfs", 0);
 	return 0;

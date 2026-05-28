@@ -12,8 +12,8 @@
 namespace server {
 
 
-int 
-DirInode::Link(Session* session, const char* name, uint64_t ino)
+int
+DirInode::Link(Session* /*session*/, const char* /*name*/, uint64_t ino)
 {
 	if (Inode::type(ino) != kFileInode) {
 		return -1;

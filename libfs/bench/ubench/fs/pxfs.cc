@@ -22,11 +22,9 @@ ssize_t (*fs_fpread)(RFile* fp, void* buf, size_t count, off_t offset) = NULL;
 int (*fs_fclose)(RFile* fp) = NULL;
 
 
-int 
+int
 Init(int debug_level, const char* xdst)
 {
-	int ret;
-
 	libfs_init3(xdst, debug_level);
 	libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
 	libfs_chdir("/pxfs");

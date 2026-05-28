@@ -14,8 +14,8 @@ usage()
 }
 
 
-static int 
-__ubench_open(osd::client::OsdSession* session, int objtype, int numops)
+static int
+__ubench_open(osd::client::OsdSession* session, int /*objtype*/, int numops)
 {
 	MEASURE_TIME_PREAMBLE
 	int                                              ret = E_SUCCESS;

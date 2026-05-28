@@ -194,11 +194,12 @@ uint32_t        initval)         /* the previous hash, or an arbitrary value */
 
   /*------------------------------------------- handle the last 3 uint32_t's */
   switch(length)                     /* all the case statements fall through */
-  { 
-  case 3 : c+=k[2];
-  case 2 : b+=k[1];
+  {
+  case 3 : c+=k[2]; /* fall through */
+  case 2 : b+=k[1]; /* fall through */
   case 1 : a+=k[0];
     final(a,b,c);
+    /* fall through */
   case 0:     /* case 0: nothing left to add */
     break;
   }
@@ -240,11 +241,12 @@ uint32_t       *pb)               /* IN: more seed OUT: secondary hash value */
 
   /*------------------------------------------- handle the last 3 uint32_t's */
   switch(length)                     /* all the case statements fall through */
-  { 
-  case 3 : c+=k[2];
-  case 2 : b+=k[1];
+  {
+  case 3 : c+=k[2]; /* fall through */
+  case 2 : b+=k[1]; /* fall through */
   case 1 : a+=k[0];
     final(a,b,c);
+    /* fall through */
   case 0:     /* case 0: nothing left to add */
     break;
   }
@@ -291,7 +293,6 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
   u.ptr = key;
   if (HASH_LITTLE_ENDIAN && ((u.i & 0x3) == 0)) {
     const uint32_t *k = (const uint32_t *)key;         /* read 32-bit chunks */
-    const uint8_t  *k8;
 
     /*------ all but last block: aligned reads and affect 32 bits of (a,b,c) */
     while (length > 12)
@@ -334,6 +335,7 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
     }
 
 #else /* make valgrind happy */
+    const uint8_t  *k8;
 
     k8 = (const uint8_t *)k;
     switch(length)
@@ -428,17 +430,17 @@ uint32_t hashlittle( const void *key, size_t length, uint32_t initval)
     /*-------------------------------- last block: affect all 32 bits of (c) */
     switch(length)                   /* all the case statements fall through */
     {
-    case 12: c+=((uint32_t)k[11])<<24;
-    case 11: c+=((uint32_t)k[10])<<16;
-    case 10: c+=((uint32_t)k[9])<<8;
-    case 9 : c+=k[8];
-    case 8 : b+=((uint32_t)k[7])<<24;
-    case 7 : b+=((uint32_t)k[6])<<16;
-    case 6 : b+=((uint32_t)k[5])<<8;
-    case 5 : b+=k[4];
-    case 4 : a+=((uint32_t)k[3])<<24;
-    case 3 : a+=((uint32_t)k[2])<<16;
-    case 2 : a+=((uint32_t)k[1])<<8;
+    case 12: c+=((uint32_t)k[11])<<24; /* fall through */
+    case 11: c+=((uint32_t)k[10])<<16; /* fall through */
+    case 10: c+=((uint32_t)k[9])<<8;   /* fall through */
+    case 9 : c+=k[8];                  /* fall through */
+    case 8 : b+=((uint32_t)k[7])<<24;  /* fall through */
+    case 7 : b+=((uint32_t)k[6])<<16;  /* fall through */
+    case 6 : b+=((uint32_t)k[5])<<8;   /* fall through */
+    case 5 : b+=k[4];                  /* fall through */
+    case 4 : a+=((uint32_t)k[3])<<24;  /* fall through */
+    case 3 : a+=((uint32_t)k[2])<<16;  /* fall through */
+    case 2 : a+=((uint32_t)k[1])<<8;   /* fall through */
     case 1 : a+=k[0];
              break;
     case 0 : return c;
@@ -476,7 +478,6 @@ void hashlittle2(
   u.ptr = key;
   if (HASH_LITTLE_ENDIAN && ((u.i & 0x3) == 0)) {
     const uint32_t *k = (const uint32_t *)key;         /* read 32-bit chunks */
-    const uint8_t  *k8;
 
     /*------ all but last block: aligned reads and affect 32 bits of (a,b,c) */
     while (length > 12)
@@ -519,6 +520,7 @@ void hashlittle2(
     }
 
 #else /* make valgrind happy */
+    const uint8_t  *k8;
 
     k8 = (const uint8_t *)k;
     switch(length)
@@ -653,7 +655,6 @@ uint32_t hashbig( const void *key, size_t length, uint32_t initval)
   u.ptr = key;
   if (HASH_BIG_ENDIAN && ((u.i & 0x3) == 0)) {
     const uint32_t *k = (const uint32_t *)key;         /* read 32-bit chunks */
-    const uint8_t  *k8;
 
     /*------ all but last block: aligned reads and affect 32 bits of (a,b,c) */
     while (length > 12)

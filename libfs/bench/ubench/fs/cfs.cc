@@ -2,7 +2,7 @@
 #include "cfs/client/libfs.h"
 #include "ubench/fs/cfs.h"
 
-int dummy(const char*f, const char *t)
+int dummy(const char* /*f*/, const char* /*t*/)
 {
 	return 0;
 }
@@ -27,8 +27,8 @@ int (*fs_fclose)(RFile* fp);
 
 
 
-int 
-Init(int debug_level, const char* xdst)
+int
+Init(int /*debug_level*/, const char* xdst)
 {
 	cfs_init2(xdst);
 	cfs_mount("/tmp/stamnos_pool", "/", "cfs", 0);

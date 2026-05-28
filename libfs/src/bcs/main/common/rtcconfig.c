@@ -92,10 +92,10 @@ __cconfig_lookup_bool(config_t *cfg, const char *name, int *value)
 
 
 int
-__cconfig_lookup_valid_bool(config_t *cfg, 
-                     const char *name, 
-                     int *value, 
-                     int validity_check, ...)
+__cconfig_lookup_valid_bool(config_t *cfg,
+                     const char *name,
+                     int *value,
+                     int /*validity_check*/, ...)
 {
 	return __cconfig_lookup_bool(cfg, name, value);
 }

@@ -27,7 +27,9 @@ ThrPool::ThrPool(int sz, bool blocking)
 
 	for (int i = 0; i < sz; i++) {
 		pthread_t t;
-		assert(pthread_create(&t, &attr_, do_worker, (void *)this) ==0);
+		int r = pthread_create(&t, &attr_, do_worker, (void *)this);
+		assert(r == 0);
+		(void)r;
 		th_.push_back(t);
 	}
 }
