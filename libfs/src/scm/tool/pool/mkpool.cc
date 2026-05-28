@@ -11,6 +11,7 @@ static int
 usage(const char *name)
 {
     fprintf(stderr, "usage: %s   %s\n", name                    , "");
+    return 1;
 }
 
 

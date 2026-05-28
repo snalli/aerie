@@ -52,7 +52,7 @@ __ubench_fs_randread(const char* root, int numops, int warmup_ops, size_t size)
 	fs_fsync(fd);
 	fs_sync();
 	exp_nr_reads = totalsize/size;
-	system("echo 3 >> /proc/sys/vm/drop_caches");
+	(void)system("echo 3 >> /proc/sys/vm/drop_caches");
 
 	printf("file creation %s is done\n", ss.str().c_str());
 	srand(time(NULL));

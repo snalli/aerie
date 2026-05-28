@@ -82,7 +82,7 @@ NameSpace::NameSpace(const char* namespace_name)
 */	
 	 for(int n_cache = 0;n_cache < N_CACHE; ++n_cache)
         {
-                cache_arr[n_cache] = new osd::common::Cache::Cache(n_cache);
+                cache_arr[n_cache] = new osd::common::Cache(n_cache);
         }
 
 	#endif

@@ -49,7 +49,7 @@ __ubench_fs_seqread(const char* root, int numops, int warmup_ops, size_t size)
 	fs_close(fd);
 	fs_fsync(fd);
 	fs_sync();
-	system("echo 3 >> /proc/sys/vm/drop_caches");
+	(void)system("echo 3 >> /proc/sys/vm/drop_caches");
 	exp_nr_reads = totalsize/size;
 	printf("file creation %s is done\n", ss.str().c_str());
 

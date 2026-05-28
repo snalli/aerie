@@ -24,7 +24,7 @@ else()                          # kernel (default)
 endif()
 
 add_library(scm SHARED ${scm_core_sources} ${pool_sources})
-target_link_libraries(scm PUBLIC aerie_includes Threads::Threads)
+target_link_libraries(scm PUBLIC aerie_includes Threads::Threads bcs_common)
 
 # ---------------------------------------------------------------------------
 # pool_tool – offline storage-pool creation/inspection utility

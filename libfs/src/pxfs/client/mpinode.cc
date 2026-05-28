@@ -27,7 +27,7 @@ MPInode::return_pxfs_inode()
                         return ret;
                 }
         }
-
+        return ret;
 }
 
 int MPInode::Lookup(Session* session, const char* name, int flags, Inode** inodep)
