@@ -120,14 +120,15 @@ LockManager::LockManager(::server::Ipc* ipc, bool register_handler, pthread_mute
 	: mutex_(mutex),
 	  ipc_(ipc)
 {
-	assert(Init(register_handler) == 0);
+	int ir = Init(register_handler);
+	assert(ir == 0); (void)ir;
 }
 
 
 int
 LockManager::Init(bool register_handler)
 {
-	pthread_t th;
+	pthread_t th __attribute__((unused));
 
 	DBG_LOG(DBG_INFO, DBG_MODULE(server_lckmgr),
 	        "Initializing Base Lock Manager\n");
@@ -139,8 +140,10 @@ LockManager::Init(bool register_handler)
 	pthread_cond_init(&revoke_cv_, NULL);
 	pthread_cond_init(&available_cv_, NULL);
 	locks_.set_empty_key(-1);
-	assert(pthread_create(&th, NULL, &revokethread, (void *) this) == 0);
-	assert(pthread_create(&th, NULL, &retrythread, (void *) this) == 0);
+	int cr1 = pthread_create(&th, NULL, &revokethread, (void *) this);
+	assert(cr1 == 0); (void)cr1;
+	int cr2 = pthread_create(&th, NULL, &retrythread, (void *) this);
+	assert(cr2 == 0); (void)cr2;
 	
 	if (register_handler && ipc_) {
 		ipc_->reg(lock_protocol::stat, this, &LockManager::Stat);
@@ -350,6 +353,7 @@ LockManager::ConvertInternal(int clt, int seq, Lock* l,
 {
 	std::map<int, ClientRecord>::iterator itr_icr;
 	lock_protocol::status                 r = lock_protocol::NOENT;
+	(void)seq; // only used in assert which disappears in release builds
 
 	if (locks_.find(l->lid_) != locks_.end() && locks_[l->lid_]->gtque_.Exists(clt))
 	{
@@ -436,7 +440,7 @@ LockManager::Release(int clt, int seq, lock_protocol::LockId lid, int flags, int
 
 
 lock_protocol::status
-LockManager::Stat(lock_protocol::LockId lid, int& r)
+LockManager::Stat(lock_protocol::LockId /*lid*/, int& r)
 {
 	lock_protocol::status ret = lock_protocol::OK;
 	r = 0;
