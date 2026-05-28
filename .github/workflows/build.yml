@@ -54,7 +54,7 @@ jobs:
             libfs/build/src/kvfs/kvfs_server
             libfs/build/src/kvfs/kvfs_mkfs
             libfs/build/src/cfs/cfs_server
-            libfs/build/src/scm/tool/pool/pool_tool
+            libfs/build/src/scm/pool_tool
             libfs/build/bench/ubench/ubench_pxfs
           retention-days: 7
 

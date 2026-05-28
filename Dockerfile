@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Binaries
-COPY --from=builder /aerie/libfs/build/src/scm/tool/pool/pool_tool  /usr/local/bin/pool_tool
+COPY --from=builder /aerie/libfs/build/src/scm/pool_tool            /usr/local/bin/pool_tool
 COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_server          /usr/local/bin/pxfs_server
 COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_mkfs            /usr/local/bin/pxfs_mkfs
 COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_client          /usr/local/bin/pxfs_client
