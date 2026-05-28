@@ -43,7 +43,7 @@ lock_protocol::Mode::Set::PartialOrder(lock_protocol::Mode mode,
 {
 	int      r;
 	bool     init_po = false;
-	int      po;
+	int      po = 0;
 	Iterator itr;
 
 	for (itr = mode_set.begin(); itr != mode_set.end(); itr++) {

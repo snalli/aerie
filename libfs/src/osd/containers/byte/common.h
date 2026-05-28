@@ -242,7 +242,8 @@ public:
 		  radixtree_(copy.radixtree_)
 	{ }
 
-	Region(Session* session, Object<Session>* bcobj, uint64_t base_bn) 
+	Region(Session* session, Object<Session>* bcobj, uint64_t base_bn)
+		: maxbcount_(0), base_bn_(0), size_(0)
 	{
 		assert(Init(session, bcobj, base_bn) == 0);
 	}
