@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(aerie LANGUAGES C CXX)
 
-# Use uppercase <PACKAGENAME>_ROOT variables (CMake 3.27+)
-cmake_policy(SET CMP0144 NEW)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
