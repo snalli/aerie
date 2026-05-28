@@ -96,10 +96,10 @@ class Cache {
 		printf("\n***************************************************\n");
 	        printf("\nCache # : %d", id);
                 printf("\nPID : %d",getpid());
-        //        printf("\nTID : %d \nInitializing NameSpace...\
-                        \nCache Hits : %lu \
-                        \nCache Miss : %lu \
-                        \nCache Accs : %lu \n",s_tid, cacheHit, cacheMiss, cacheLookup);
+        //        printf("\nTID : %d \nInitializing NameSpace..."
+        //               "\nCache Hits : %lu "
+        //               "\nCache Miss : %lu "
+        //               "\nCache Accs : %lu \n",s_tid, cacheHit, cacheMiss, cacheLookup);
         //        printf("Cache Inst : %lu\n", succEntry);
                 #ifdef RW_LOCK
                 printf("\n* Using reader-writer locks to guard cache");
