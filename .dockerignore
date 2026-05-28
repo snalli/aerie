@@ -1,0 +1,27 @@
+# Git
+.git/
+.gitignore
+
+# Existing build artifacts
+libfs/build/
+libfs/bench/stat/
+bench/
+
+# Large vendored kernel source trees (not needed for userspace build)
+kernelmode/linux-3.2.2/
+kernelmode/linux-3.2.2-sankar-patch/
+kernelmode/linux-3.9/
+
+# Vendored benchmark dependencies
+bench/kyotocabinet-1.2.76/
+bench/sysbench-0.4.12/
+
+# Compiled objects / libraries (in case a partial build exists)
+**/*.o
+**/*.a
+**/*.so
+**/*.so.*
+
+# SCons artifacts
+**/.sconsign.dblite
+**/build-setup.conf
