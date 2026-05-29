@@ -243,15 +243,17 @@ public:
 	{ }
 
 	Region(Session* session, Object<Session>* bcobj, uint64_t base_bn)
-		: maxbcount_(0), base_bn_(0), size_(0)
+		: base_bn_(0), maxbcount_(0), size_(0)
 	{
-		assert(Init(session, bcobj, base_bn) == 0);
+		int r = Init(session, bcobj, base_bn);
+		assert(r == 0); (void)r;
 	}
 
 	Region(Session* session, Slot<Session>& slot)
 		: slot_(slot)
 	{
-		assert(InitAtSlot(session) == 0);
+		int r = InitAtSlot(session);
+		assert(r == 0); (void)r;
 	}
 
 	Region(Session* session, uint64_t base_bn, uint64_t maxbcount)

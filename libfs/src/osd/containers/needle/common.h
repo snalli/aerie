@@ -41,7 +41,7 @@ public:
 		return Load(oid);
 	}
 
-	static Object* Make(Session* session, volatile char* ptr) {
+	static Object* Make(Session* /*session*/, volatile char* ptr) {
 		return new((void*) ptr) Object();
 	}
 

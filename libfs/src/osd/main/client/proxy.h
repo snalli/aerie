@@ -263,10 +263,10 @@ public:
 	 * path. We could use biased mutexes to avoid the overhead of locking on the 
 	 * common case.
 	 */
-	int vClose(OsdSession* session, bool update, bool flush = false) 
+	int vClose(OsdSession* session, bool update, bool flush = false)
 	{
 		int ret = E_SUCCESS;
-		
+		(void)flush; // only used under CONFIG_CACHE + CONFIG_CALLBACK
 		#ifdef CONFIG_CACHE
 		#ifdef CONFIG_CALLBACK
 		osd::common::ObjectProxy::invalidate_self_in_cache(flush);
