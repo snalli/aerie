@@ -47,7 +47,7 @@ RXFS_FRONTAPI(mount) (const char* source, const char* target,
 
 
 int
-RXFS_FRONTAPI(umount) (const char* target)
+RXFS_FRONTAPI(umount) (const char* /*target*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return -E_ERROR;
@@ -117,7 +117,7 @@ RXFS_FRONTAPI(open) (const char* pathname, int flags)
 
 
 int 
-RXFS_FRONTAPI(open2) (const char* pathname, int flags, mode_t mode)
+RXFS_FRONTAPI(open2) (const char* pathname, int flags, mode_t /*mode*/)
 {
 	return Client::Open(pathname, flags, 0);
 }

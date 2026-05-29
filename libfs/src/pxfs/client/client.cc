@@ -101,7 +101,6 @@ int
 Client::Init(int argc, char* argv[])
 {
 	int          ch;
-	int          ret;
 	int          debug_level = -1;
 	const char*  xdst = NULL;
 
@@ -235,7 +234,7 @@ Client::lock_cont(){
 //
 // returns with the inode ipp referenced (get) and locked
 static inline int
-create(::client::Session* session, const char* path, Inode** ipp, int mode, int type)
+create(::client::Session* session, const char* path, Inode** ipp, int /*mode*/, int type)
 {
 
 	//printf("\nInside create...");
@@ -356,11 +355,11 @@ Client::Open(const char* path, int flags, int mode)
 
 /***********************************/
 #ifdef CONFIG_CACHE
- Inode*   parent;
- Inode*   grandparent;
+ Inode*   parent; (void)parent;
+ Inode*   grandparent; (void)grandparent;
  char dirc[128],*dname, *dup_path;
  strcpy(dirc,path);
- dname = dirname(dirc);
+ dname = dirname(dirc); (void)dname;
  dup_path = dirc;
  strcpy(dup_path,path);
 #endif
@@ -606,10 +605,9 @@ Client::SetCurWrkDir(const char* path)
 
 
 int
-Client::GetCurWrkDir(const char* path, size_t /*size*/)
+Client::GetCurWrkDir(const char* /*path*/, size_t /*size*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-        s_log("[%ld] %s %s",s_tid, __func__, path);
 
 	return E_SUCCESS;
 }
@@ -642,7 +640,7 @@ Client::Unlink(const char* pathname)
 
 
 int 
-Client::Stat(const char *path, struct stat *buf)
+Client::Stat(const char *path, struct stat * /*buf*/)
 {
 	int                 ret;
 	lock_protocol::Mode lock_mode = lock_protocol::Mode::XL; 

@@ -39,7 +39,7 @@ FileSystemObjectManager::Register(SuperBlockFactory* sb_factory,
 
 
 void 
-FileSystemObjectManager::Unregister(int type_id)
+FileSystemObjectManager::Unregister(int /*type_id*/)
 {
 	// TODO
 	return;

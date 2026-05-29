@@ -43,7 +43,7 @@ StoragePool::StoragePool(Header* header)
 
 
 int 
-StoragePool::Allocate(const char* path, size_t size)
+StoragePool::Allocate(const char* /*path*/, size_t size)
 {
 	
 	unsigned long v_addr;
@@ -113,7 +113,7 @@ StoragePool::Create(const char* path, size_t size, int /*flags*/)
 int
 StoragePool::Protect(unsigned long extent_base, size_t extent_size, uid_t uid, int rw)
 {
-	int              ret;
+	int              ret; (void)ret;
 	KernelExtent     e;
 	user_file_rights r;
 
@@ -196,7 +196,7 @@ StoragePool::FreeExtent(void* ptr)
 
 
 int 
-StoragePool::Close(StoragePool* pool)
+StoragePool::Close(StoragePool* /*pool*/)
 {
 	return E_SUCCESS;
 }

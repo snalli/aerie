@@ -173,7 +173,7 @@ NameSpace::Insert(const char* name, void* ip, void *dip)
 
 }
 int
-NameSpace::Erase(const char* name, void* ip, void* dip)
+NameSpace::Erase(const char* name, void* /*ip*/, void* /*dip*/)
 {
   int index = strlen(name)%N_CACHE;
 
@@ -186,8 +186,8 @@ NameSpace::Prefetch(Session *session)
 	s_log("[%ld] NameSpace::%s Start",s_tid, __func__);
 	printf("[%ld] NameSpace::%s Prefetching...\n",s_tid, __func__);
         Inode *inode;
-        Inode *tmp_inode;
-        Inode *ip;
+        Inode *tmp_inode; (void)tmp_inode;
+        Inode *ip; (void)ip;
 
         inode = (Inode *)(root_->return_pxfs_inode());
         struct list_item inode_list_head;
@@ -284,6 +284,7 @@ NameSpace::Unmount(Session* /*session*/, char* /*name*/)
 int
 NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode lock_mode)
 {
+	(void)lock_mode; // used only in assert() which disappears in Release builds
 	std::vector<Inode*> inode_chain;   // treated as a stack
 	std::vector<Inode*> locked_inodes; 
 	Inode*              tmp_inode;
@@ -391,14 +392,14 @@ retry_namex:
 	char	    dup_path[128], residue[128], tmp[128], tmp01[128];
 	char *dirc, *basec, *bname, *dname;
 	Inode*      parent;
-int itr = 0;
+int itr = 0; (void)itr;
 	strcpy(dup_path, "/");
 		dirc = strdup(path);
 		basec = strdup(path);
 		dname = dirname(dirc);
 		bname = basename(basec);
 	smart_lookup = false;
-	char look_for[128], *helper;
+	char look_for[128], *helper; (void)helper;
 	strcpy(residue,"/");
 
 	if (nameiparent) {
@@ -613,7 +614,7 @@ resume_normal:
 
 
 		if (nameiparent && path != 0 && *path == '\0') {
-			if (str_is_dot(old_name) == 2) {
+			if (str_is_dot(name) == 2) {
 				// encountered a ..
 				inode->Unlock(session);
 				assert(inode_next->Lock(session, lock_mode) == E_SUCCESS);
@@ -629,7 +630,7 @@ resume_normal:
 			//	s_log("[%ld] NameSpace::%s chk_pt 05",s_tid, __func__);
 			goto done;
 		} else {
-			if (str_is_dot(old_name) == 2) {
+			if (str_is_dot(name) == 2) {
 				// encountered a ..
 				// Cannot do hierarchical locking on the reverse order (i.e. acquire 
 				// parent under child) so we try to acquire the cached lock on .. 
@@ -687,8 +688,7 @@ NameSpace::namex_sans_locks(Session* session, const char *cpath, lock_protocol::
 	Inode*      inode_next;
 	int         ret;
 	bool smart_lookup = false;
-
-retry_namex:
+	(void)lock_mode; // used inside CONFIG_CACHE block only
 	path = const_cast<char*>(cpath);
 	if (!path) {
 		return -E_INVAL;
@@ -704,14 +704,14 @@ retry_namex:
 	char	    dup_path[128], residue[128], tmp[128], tmp01[128];
 	char *dirc, *basec, *bname, *dname;
 	Inode*      parent;
-int itr = 0;
+int itr = 0; (void)itr;
 	strcpy(dup_path, "/");
 		dirc = strdup(path);
 		basec = strdup(path);
 		dname = dirname(dirc);
 		bname = basename(basec);
 	smart_lookup = false;
-	char look_for[128], *helper;
+	char look_for[128], *helper; (void)helper;
 	strcpy(residue,"/");
 
 	if (nameiparent) {
@@ -906,7 +906,7 @@ resume_normal:
 
 /*
 		if (nameiparent && path != 0 && *path == '\0') {
-			if (str_is_dot(old_name) == 2) {
+			if (str_is_dot(name) == 2) {
 				// encountered a ..
 				inode->Unlock(session);
 				assert(inode_next->Lock(session, lock_mode) == E_SUCCESS);
@@ -919,7 +919,7 @@ resume_normal:
 			inode = inode_next;
 			goto done;
 		} else {
-			if (str_is_dot(old_name) == 2) {
+			if (str_is_dot(name) == 2) {
 				// encountered a ..
 				// Cannot do hierarchical locking on the reverse order (i.e. acquire 
 				// parent under child) so we try to acquire the cached lock on .. 
@@ -1127,7 +1127,7 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	Inode*        ip = NULL;
 #ifdef CONFIG_CACHE
 	char          dup_name[128];
-	Inode*        gp;
+	Inode*        gp = NULL; (void)gp;
 #endif
 //	mfs::client::FileInode* fip;
 	int           ret;

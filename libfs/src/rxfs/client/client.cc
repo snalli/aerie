@@ -70,7 +70,6 @@ int
 Client::Init(int argc, char* argv[])
 {
 	int          ch;
-	int          ret;
 	int          debug_level = -1;
 	const char*  xdst = NULL;
 
@@ -118,9 +117,9 @@ Client::Mount(const char* source,
               const char* fstype, 
               uint32_t flags)
 {
-	InodeNumber                    root_ino;
+	InodeNumber                    root_ino; (void)root_ino;
 	int                            ret;
-	char*                          path = const_cast<char*>(target);
+	char*                          path = const_cast<char*>(target); (void)path;
 	FileSystemProtocol::MountReply mntrep;
 	Session*                       session = CurrentSession();
 	SuperBlock                     sb;
@@ -150,7 +149,7 @@ Client::Mount(const char* source,
 
 
 int 
-Client::Open(const char* path, int flags, int mode, File** file)
+Client::Open(const char* path, int flags, int /*mode*/, File** file)
 {
 	PROFILER_PREAMBLE
 	int         ret;

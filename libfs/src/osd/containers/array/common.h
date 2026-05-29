@@ -76,7 +76,7 @@ ArrayContainer<T>::Object<Session>::Size()
 
 
 // Dan Bernstein's hash function
-static unsigned long 
+static unsigned long __attribute__((unused))
 ArrayHash(const char *str)
 {
 	unsigned long hash = 5381;
