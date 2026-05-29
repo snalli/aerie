@@ -31,6 +31,7 @@ main(int argc, char *argv[])
 				break;
 		}
 	}
+	(void)operation;
 
 	pthread_attr_init(&attr);
 	// set stack size to 32K, so we don't run out of memory
