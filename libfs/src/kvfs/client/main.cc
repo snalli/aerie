@@ -18,8 +18,8 @@ main(int argc, char *argv[])
 	int          debug_level = 0;
 	char         operation[16];
 	char         ch = 0;
-	char*        xdst;
-	unsigned int nblocks;
+	char*        xdst = NULL;
+	unsigned int nblocks = 0;
 
 	while ((ch = getopt(argc, argv, "d:h:li:o:n:"))!=-1) {
 		switch (ch) {
@@ -33,7 +33,7 @@ main(int argc, char *argv[])
 				assert(setenv("RPC_LOSSY", "5", 1) == 0);
 				break;
 			case 'o':
-				strcpy(operation, optarg); 
+				strcpy(operation, optarg);
 				break;
 			case 'n':
 				nblocks = atoi(optarg);
@@ -42,6 +42,7 @@ main(int argc, char *argv[])
 				break;
 		}
 	}
+	(void)debug_level; (void)operation; (void)xdst; (void)nblocks;
 
 	pthread_attr_init(&attr);
 	// set stack size to 32K, so we don't run out of memory
