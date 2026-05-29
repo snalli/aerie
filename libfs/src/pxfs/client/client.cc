@@ -460,7 +460,7 @@ Client::Duplicate(int oldfd)
 
 
 int
-Client::Duplicate(int oldfd, int /*newfd*/)
+Client::Duplicate(int /*oldfd*/, int /*newfd*/)
 {
 	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
 	return E_SUCCESS;

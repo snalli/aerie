@@ -50,7 +50,7 @@ main(int argc, char *argv[])
 	// set stack size to 32K, so we don't run out of memory
 	pthread_attr_setstacksize(&attr, 32*1024);
 	
-	(void)xdst; (void)nblocks; (void)operation;
+	(void)debug_level; (void)xdst; (void)nblocks; (void)operation;
 	libfs_init(argc, argv);
 
 	libfs_shutdown();

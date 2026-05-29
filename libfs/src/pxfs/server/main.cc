@@ -20,7 +20,7 @@
 int                    port;
 pthread_attr_t         attr;
 
-void sig_handler(int signal)
+void sig_handler(int /*signal*/)
 {
         exit(0);
 }

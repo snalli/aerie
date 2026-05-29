@@ -28,7 +28,7 @@ Server::Instance()
 
 
 void 
-Server::Init(const char* pathname, int flags, int port)
+Server::Init(const char* /*pathname*/, int /*flags*/, int port)
 {
 	port_ = port;
 
