@@ -29,7 +29,7 @@ StoragePool::StoragePool(PersistentRegion* pregion, Header* header)
 // RAW SPACE: size
 // METADATA : sizeof(bitset to track each page of RAW space)
 int
-StoragePool::Create(const char* path, size_t size, int flags)
+StoragePool::Create(const char* path, size_t size, int /*flags*/)
 {
 	int               ret;
 	int               region_flags;
@@ -75,7 +75,7 @@ int
 StoragePool::AllocateExtent(uint64_t size, void** ptr)
 {
 	bool       found = false;
-	int        start;
+	uint64_t   start = 0;
 	uint64_t   nblocks = NumOfBlocks(size, kBlockSize);
 
 	assert(pregion_->Lock() == E_SUCCESS);
