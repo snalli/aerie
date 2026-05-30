@@ -59,7 +59,7 @@ jobs:
           retention-days: 7
 
   bench:
-    name: ubench (pxfs smoke + latency)
+    name: ubench (all filesystems smoke test)
     runs-on: ubuntu-latest
     needs: cmake
 
@@ -82,29 +82,33 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug -DRPC=net -DSCMPOOL=user -DBUILD_BENCH=ON
           cmake --build libfs/build --parallel $(nproc)
 
-      - name: Create pool and format filesystem
-        run: |
-          libfs/build/src/scm/pool_tool  create -p /tmp/stamnos_pool -s 128M
-          libfs/build/src/pxfs/pxfs_mkfs create -p /tmp/stamnos_pool -s 128M -t mfs
+      - name: Create storage pool
+        run: libfs/build/src/scm/pool_tool create -p /tmp/stamnos_pool -s 128M
 
-      - name: Start pxfs server
+      - name: VFS baseline (no server)
         run: |
+          mkdir -p /tmp/vfsbench
+          echo "### VFS (Linux kernel baseline)" >> $GITHUB_STEP_SUMMARY
+          result=$(libfs/build/bench/ubench/ubench_vfs \
+            +fs_create -n 1 -p /tmp/vfsbench \
+            +fs_open   -n 1 -p /tmp/vfsbench \
+            +fs_read   -n 1 -p /tmp/vfsbench 2>&1)
+          echo "$result"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$result" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: PXFS benchmark (pxfs_server)
+        run: |
+          libfs/build/src/pxfs/pxfs_mkfs create -p /tmp/stamnos_pool -s 128M -t mfs
           rm -f /tmp/shbuf_*
           libfs/build/src/pxfs/pxfs_server -p 10000 -d 0 -s /tmp/stamnos_pool &
           echo $! > /tmp/pxfs_server.pid
-          for i in $(seq 1 30); do
-            ss -ltn | grep -q ':10000' && break
-            sleep 1
-          done
-          ss -ltn | grep -q ':10000' || { echo "Server failed to start"; exit 1; }
-          echo "Server is up — warming up 3s"
+          for i in $(seq 1 30); do ss -ltn | grep -q ':10000' && break; sleep 1; done
+          ss -ltn | grep -q ':10000' || { echo "pxfs_server failed"; exit 1; }
           sleep 3
-
-      - name: Run ubench
-        run: |
-          B=libfs/build/bench/ubench/ubench_pxfs
-          echo "### ubench results" >> $GITHUB_STEP_SUMMARY
-          result=$($B -h 10000 \
+          echo "### PXFS" >> $GITHUB_STEP_SUMMARY
+          result=$(libfs/build/bench/ubench/ubench_pxfs -h 10000 \
             +fs_create   -n 1 -p /pxfs \
             +fs_open     -n 1 -p /pxfs \
             +fs_read     -n 1 -p /pxfs \
@@ -115,10 +119,54 @@ jobs:
           echo "$result" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-      - name: Stop server
+      - name: RXFS benchmark (read-only client, same pxfs_server)
+        run: |
+          echo "### RXFS (read-only client)" >> $GITHUB_STEP_SUMMARY
+          result=$(libfs/build/bench/ubench/ubench_rxfs -h 10000 \
+            +fs_open -n 1 -p /rxfs \
+            +fs_read -n 1 -p /rxfs 2>&1)
+          echo "$result"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$result" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: OSD benchmark (raw object layer, same pxfs_server)
+        run: |
+          echo "### OSD (raw object storage layer)" >> $GITHUB_STEP_SUMMARY
+          result=$(libfs/build/bench/ubench/ubench_osd -h 10000 \
+            +create -n 1 \
+            +open   -n 1 2>&1)
+          echo "$result"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$result" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Stop pxfs server
         if: always()
         run: |
           [ -f /tmp/pxfs_server.pid ] && kill $(cat /tmp/pxfs_server.pid) || true
+          rm -f /tmp/shbuf_*
+
+      - name: CFS benchmark (cfs_server, separate pool)
+        run: |
+          rm -f /tmp/stamnos_pool
+          libfs/build/src/scm/pool_tool create -p /tmp/stamnos_pool -s 128M
+          libfs/build/src/cfs/cfs_mkfs  create -p /tmp/stamnos_pool -s 128M -t cfs
+          libfs/build/src/cfs/cfs_server -p 10001 -d 0 -s /tmp/stamnos_pool &
+          echo $! > /tmp/cfs_server.pid
+          for i in $(seq 1 30); do ss -ltn | grep -q ':10001' && break; sleep 1; done
+          ss -ltn | grep -q ':10001' || { echo "cfs_server failed"; exit 1; }
+          sleep 3
+          echo "### CFS (cache filesystem)" >> $GITHUB_STEP_SUMMARY
+          result=$(libfs/build/bench/ubench/ubench_cfs -h 10001 \
+            +fs_create -n 1 -p /pxfs \
+            +fs_open   -n 1 -p /pxfs \
+            +fs_read   -n 1 -p /pxfs 2>&1)
+          echo "$result"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$result" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          kill $(cat /tmp/cfs_server.pid) || true
 
   docker:
     name: Build & push Docker image
