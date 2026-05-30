@@ -1,14 +1,28 @@
 # ---------------------------------------------------------------------------
 # pxfs – POSIX-compliant filesystem
 #
+# Library architecture:
+#
+#   Metadata Layer:
+#     mfsclt (client) / mfssrv (server)
+#
+#   PXFS Filesystem Layer:
+#     pxfsc (client library - PUBLIC API)
+#     pxfss (server library - PUBLIC API)
+#
+#   Executables:
+#     pxfs_server / pxfs_client / pxfs_mkfs
+#
 # Dependency graph (bottom → top):
-#   mfsclt / mfssrv   metadata filesystem backend
-#   fsc               client library
-#   fss               server library
-#   pxfs_server / pxfs_client / pxfs_mkfs   executables
+#   pxfsc / pxfss → [mfsclt/mfssrv, osd*, bcs*, scm, common]
+#   pxfs_* executables → [pxfsc/pxfss, ...]
 # ---------------------------------------------------------------------------
 
-# ---------- mfsclt ----------------------------------------------------------
+# ============================================================================
+# LAYER 1: Metadata Filesystem (Internal)
+# ============================================================================
+
+# ---------- mfsclt (metadata filesystem client) ----------------------------
 add_library(mfsclt SHARED
     mfs/client/dir_inode.cc
     mfs/client/file_inode.cc
@@ -18,7 +32,7 @@ add_library(mfsclt SHARED
 )
 target_link_libraries(mfsclt PUBLIC aerie_includes)
 
-# ---------- mfssrv ----------------------------------------------------------
+# ---------- mfssrv (metadata filesystem server) ----------------------------
 add_library(mfssrv SHARED
     mfs/server/dir_inode.cc
     mfs/server/mfs.cc
@@ -26,8 +40,20 @@ add_library(mfssrv SHARED
 )
 target_link_libraries(mfssrv PUBLIC aerie_includes)
 
-# ---------- fsc (pxfs client library) ---------------------------------------
-add_library(fsc SHARED
+# ============================================================================
+# LAYER 2: PXFS Public Libraries
+# ============================================================================
+
+# ---------- pxfsc (PXFS client library) -----------------------------------
+# PUBLIC API: Applications link against this for PXFS client functionality
+#
+# Public headers:
+#   - c_api.h: C API for filesystem operations
+#
+# Implementation-only headers (not for external use):
+#   - client.h, file.h, inode.h, etc.
+#
+add_library(pxfsc SHARED
     client/c_api.cc
     client/client.cc
     client/file.cc
@@ -36,27 +62,57 @@ add_library(fsc SHARED
     client/mpinode.cc
     client/namespace.cc
 )
-target_link_libraries(fsc PUBLIC aerie_includes mfsclt osdclt bcsclt scm common)
 
-# ---------- fss (pxfs server library) ---------------------------------------
-add_library(fss SHARED
+# Public interface
+target_include_directories(pxfsc PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/client>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(pxfsc PUBLIC aerie_includes)
+
+# Private implementation dependencies (not exposed to users)
+target_link_libraries(pxfsc PRIVATE mfsclt osdclt bcsclt scm common)
+
+# ---------- pxfss (PXFS server library) -----------------------------------
+# PUBLIC API: Applications link against this for PXFS server functionality
+#
+# Public headers:
+#   - fs.h: Server filesystem interface
+#
+# Implementation-only headers (not for external use):
+#   - server.h, session.h, etc.
+#
+add_library(pxfss SHARED
     server/fs.cc
     server/server.cc
     server/session.cc
 )
-target_link_libraries(fss PUBLIC aerie_includes osdsrv bcssrv mfssrv scm common)
 
-# ---------- pxfs_server -----------------------------------------------------
+# Public interface
+target_include_directories(pxfss PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/server>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(pxfss PUBLIC aerie_includes)
+
+# Private implementation dependencies (not exposed to users)
+target_link_libraries(pxfss PRIVATE osdsrv bcssrv mfssrv scm common)
+
+# ============================================================================
+# LAYER 3: PXFS Executables
+# ============================================================================
+
+# ---------- pxfs_server (PXFS server executable) ---------------------------
 add_executable(pxfs_server server/main.cc)
-target_link_libraries(pxfs_server PRIVATE fss bcssrv osdsrv mfssrv scm common Threads::Threads ${RT_LIB})
+target_link_libraries(pxfs_server PRIVATE pxfss bcssrv osdsrv mfssrv scm common Threads::Threads ${RT_LIB})
 
-# ---------- pxfs_client (debug/test client) ---------------------------------
+# ---------- pxfs_client (PXFS debug/test client) --------------------------
 add_executable(pxfs_client client/main.cc)
-target_link_libraries(pxfs_client PRIVATE fsc mfsclt bcsclt osdclt scm common Threads::Threads ${RT_LIB})
+target_link_libraries(pxfs_client PRIVATE pxfsc mfsclt bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 
-# ---------- pxfs_mkfs (filesystem formatting tool) --------------------------
+# ---------- pxfs_mkfs (PXFS filesystem formatting tool) -------------------
 add_executable(pxfs_mkfs
     tool/main.cc
     tool/mkfs.cc
 )
-target_link_libraries(pxfs_mkfs PRIVATE fss bcssrv osdsrv mfssrv scm common Threads::Threads ${RT_LIB})
+target_link_libraries(pxfs_mkfs PRIVATE pxfss bcssrv osdsrv mfssrv scm common Threads::Threads ${RT_LIB})

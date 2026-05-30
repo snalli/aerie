@@ -9,8 +9,8 @@ set(bench_incdirs
 )
 
 # Per-filesystem client dependency sets
-set(osd_libs   mfsclt fsc bcsclt osdclt scm common Threads::Threads ${RT_LIB})
-set(pxfs_libs  mfsclt fsc bcsclt osdclt scm common Threads::Threads ${RT_LIB})
+set(osd_libs   mfsclt pxfsc bcsclt osdclt scm common Threads::Threads ${RT_LIB})
+set(pxfs_libs  mfsclt pxfsc bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 set(cfs_libs   cfsc       bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 set(rxfs_libs  rxfsc      bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 set(kvfs_libs  kvfsc      bcsclt osdclt scm common Threads::Threads ${RT_LIB})
