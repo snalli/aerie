@@ -27,11 +27,14 @@ __ubench_fs_seqwrite(const char* root, int numops, int /*warmup_ops*/, size_t si
 	hrtime_t               runtime_cycles = 0;
 	int                    fd;
 	size_t                 block_size = 4096;
-	void*                  buf = new char[block_size];
+	char*                  buf = new char[block_size];
 	unsigned long          totalsize = 0;
 	/* size parameter is total file size; default to 16KB if not specified */
 	unsigned long          filesize = (size > 0) ? size : 16*1024;
 	unsigned long          exp_nr_writes = 0;
+
+	/* Fill the buffer with a known pattern so the final read-back can be validated. */
+	for (size_t b = 0; b < block_size; b++) buf[b] = (char)(b & 0xFF);
 
 	std::stringstream  ss;
         ss << std::string(root);

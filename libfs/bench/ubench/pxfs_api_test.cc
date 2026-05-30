@@ -60,9 +60,10 @@ static int test_write_read()
     int  fd         = libfs_open2("/pxfs/t_rw.dat", O_CREAT|O_RDWR|O_TRUNC, 0644);
     CHECK(fd > 0);
     CHECK(libfs_write(fd, msg, strlen(msg)) == (ssize_t)strlen(msg));
+    CHECK(libfs_fsync(fd) == 0);   /* flush transaction so read-back sees the data */
     CHECK(libfs_lseek(fd, 0, SEEK_SET) == 0);
     CHECK(libfs_read(fd, buf, strlen(msg)) == (ssize_t)strlen(msg));
-    CHECK(memcmp(buf, msg, strlen(msg)) == 0);
+    CHECK(memcmp(buf, msg, strlen(msg)) == 0);  /* content validation */
     CHECK(libfs_close(fd) == 0);
     return 0;
 }
@@ -75,6 +76,7 @@ static int test_pread_pwrite()
     CHECK(fd > 0);
     CHECK(libfs_pwrite(fd, a, 4, 0) == 4);
     CHECK(libfs_pwrite(fd, b, 4, 4) == 4);
+    CHECK(libfs_fsync(fd) == 0);   /* flush before read-back */
     CHECK(libfs_pread(fd, buf,   4, 0) == 4);
     CHECK(memcmp(buf, a, 4) == 0);
     CHECK(libfs_pread(fd, buf,   4, 4) == 4);

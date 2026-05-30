@@ -98,6 +98,13 @@ ntmemcpy_noinline(void *dst, const void *src, size_t n)
 		size-=sizeof(uint64_t);
 	}
 
+	/* Copy the trailing 1-7 bytes that don't fill a full 64-bit word.
+	 * Without this, any write whose length is not a multiple of 8 silently
+	 * loses its tail bytes (e.g. an 11-byte write only persists 8 bytes). */
+	if (size > 0) {
+		memcpy((void *) daddr, (const void *) saddr, size);
+	}
+
 	/* Now make sure data is flushed out */
 	asm_mfence();
 

@@ -27,11 +27,15 @@ __ubench_fs_seqread(const char* root, int numops, int /*warmup_ops*/, size_t siz
 	hrtime_t               runtime_cycles = 0;
 	int                    fd;
 	size_t                 block_size = 4096;
-	void*                  buf = new char[block_size];
+	char*                  buf = new char[block_size];
+	char*                  wbuf = new char[block_size];
 	unsigned long          totalsize = 0;
 	/* size parameter is total file size; default to 16KB if not specified */
 	unsigned long          filesize = (size > 0) ? size : 16*1024;
 	unsigned long          exp_nr_reads = 0, nr_reads = 0;
+
+	/* Fill the write buffer with a known pattern so reads can be validated. */
+	for (size_t b = 0; b < block_size; b++) wbuf[b] = (char)(b & 0xFF);
 
 	std::stringstream  ss;
         ss << std::string(root);
@@ -41,7 +45,7 @@ __ubench_fs_seqread(const char* root, int numops, int /*warmup_ops*/, size_t siz
         assert(fd>0);
 	while(totalsize < filesize)
 	{
-        	ret = fs_write(fd, buf, block_size);
+        	ret = fs_write(fd, wbuf, block_size);
 		assert((size_t)ret == block_size);
 		totalsize += block_size;
 	}
@@ -59,7 +63,11 @@ __ubench_fs_seqread(const char* root, int numops, int /*warmup_ops*/, size_t siz
 		fd = fs_open(ss.str().c_str(), O_RDWR);
 		assert(fd>0);
     	MEASURE_CYCLES_START
-		while((ret = fs_read(fd, buf, block_size)) > 0) nr_reads++;
+		while((ret = fs_read(fd, buf, block_size)) > 0) {
+			/* content validation: each block must match the written pattern */
+			assert(memcmp(buf, wbuf, block_size) == 0);
+			nr_reads++;
+		}
     	MEASURE_CYCLES_STOP
 		assert(nr_reads==exp_nr_reads);
 		ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
