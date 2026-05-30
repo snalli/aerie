@@ -170,7 +170,7 @@ static int test_concurrent_delete(int thread_id)
 
 static int test_cross_thread_read(int thread_id)
 {
-	char key[64], buf[64];
+	char key[64], val[64], buf[64];
 	int i, j;
 
 	/* Each thread reads keys written by all other threads */
@@ -179,12 +179,77 @@ static int test_cross_thread_read(int thread_id)
 
 		for (i = 0; i < NUM_KEYS_PER_THREAD; i++) {
 			snprintf(key, sizeof(key), "thread%d_key_%d", j, i);
+			snprintf(val, sizeof(val), "thread%d_val_%d", j, i);
 			memset(buf, 0, sizeof(buf));
 
 			ssize_t ret = kvfs_get(key, buf);
 			if (ret <= 0) {
 				fprintf(stderr, "[T%d] Failed to read key from thread %d: %s\n",
 						thread_id, j, key);
+				return -1;
+			}
+
+			/* CRITICAL FIX: Verify content matches what was written */
+			if (ret != (ssize_t)strlen(val)) {
+				fprintf(stderr, "[T%d] Size mismatch for key from thread %d: expected %zu, got %zd\n",
+						thread_id, j, strlen(val), ret);
+				return -1;
+			}
+
+			if (memcmp(buf, val, strlen(val)) != 0) {
+				fprintf(stderr, "[T%d] Content mismatch for key from thread %d: %s\n",
+						thread_id, j, key);
+				return -1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+static int test_concurrent_same_key(int thread_id)
+{
+	char key[64], val[64], buf[64];
+	int i;
+
+	/* All threads write to the same key with their own values */
+	snprintf(key, sizeof(key), "shared_key");
+
+	for (i = 0; i < NUM_KEYS_PER_THREAD / 2; i++) {
+		snprintf(val, sizeof(val), "thread%d_value_%d", thread_id, i);
+		memset(buf, 0, sizeof(buf));
+
+		/* Write shared key */
+		if (kvfs_put(key, val, strlen(val)) != (ssize_t)strlen(val)) {
+			fprintf(stderr, "[T%d] Put failed for shared key\n", thread_id);
+			return -1;
+		}
+
+		/* Immediately read back */
+		ssize_t ret = kvfs_get(key, buf);
+		if (ret <= 0) {
+			fprintf(stderr, "[T%d] Get failed for shared key\n", thread_id);
+			return -1;
+		}
+
+		/* Verify we got back what we just wrote (or another thread's write) */
+		/* Since multiple threads write the same key, we just verify the read succeeded */
+		if (ret != (ssize_t)strlen(val) && memcmp(buf, val, strlen(val)) != 0) {
+			/* It's OK if we read another thread's value, but we should read SOMETHING valid */
+			int valid = 0;
+			for (int t = 0; t < g_num_threads; t++) {
+				for (int v = 0; v < NUM_KEYS_PER_THREAD / 2; v++) {
+					char expected[64];
+					snprintf(expected, sizeof(expected), "thread%d_value_%d", t, v);
+					if (ret == (ssize_t)strlen(expected) && memcmp(buf, expected, strlen(expected)) == 0) {
+						valid = 1;
+						break;
+					}
+				}
+				if (valid) break;
+			}
+			if (!valid) {
+				fprintf(stderr, "[T%d] Invalid content read from shared key\n", thread_id);
 				return -1;
 			}
 		}
@@ -217,7 +282,12 @@ static void* thread_worker(void* arg)
 	REPORT(thread_id, "concurrent_delete", rc);
 	if (rc != 0) return NULL;
 
-	/* Test 4: Cross-thread reads */
+	/* Test 4: Concurrent access to same key */
+	rc = test_concurrent_same_key(thread_id);
+	REPORT(thread_id, "concurrent_same_key", rc);
+	if (rc != 0) return NULL;
+
+	/* Test 5: Cross-thread reads (with content verification) */
 	sleep(1); /* Wait for all threads to complete their writes */
 	rc = test_cross_thread_read(thread_id);
 	REPORT(thread_id, "cross_thread_read", rc);
