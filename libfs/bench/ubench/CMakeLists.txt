@@ -33,7 +33,12 @@ add_executable(ubench_osd main.cc ${osd_sources})
 target_include_directories(ubench_osd PRIVATE ${bench_incdirs})
 target_link_libraries(ubench_osd PRIVATE ${osd_libs})
 
-
+# ---------------------------------------------------------------------------
+# ubench_vfs  (plain POSIX, no libfs)
+# ---------------------------------------------------------------------------
+add_executable(ubench_vfs main.cc ${fs_common} fs/vfs.cc)
+target_include_directories(ubench_vfs PRIVATE ${bench_incdirs})
+target_link_libraries(ubench_vfs PRIVATE Threads::Threads ${RT_LIB})
 
 # ---------------------------------------------------------------------------
 # ubench_pxfs
