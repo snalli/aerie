@@ -170,12 +170,16 @@ ObjectManager::GetObjectInternal(OsdSession* /*session*/,
 			goto lock;
 		}
 */
-		if ((objproxy = mgr->Load(cb_session_, oid)) == NULL) {
-		// insight : Checkout osd/main/client/rwproxy.h for Load
-			ret = -E_NOMEM;
-			goto done;
+		// Reuse a cached proxy if one already exists; otherwise create and
+		// cache one. Creating unconditionally and relying on Insert() to
+		// dedup leaked a fresh ObjectProxy on every repeat lookup.
+		if (mgr->oid2obj_map_.Lookup(oid, &objproxy) != E_SUCCESS) {
+			if ((objproxy = mgr->Load(cb_session_, oid)) == NULL) {
+				ret = -E_NOMEM;
+				goto done;
+			}
+			assert(mgr->oid2obj_map_.Insert(&objproxy) == E_SUCCESS);
 		}
-		assert(mgr->oid2obj_map_.Insert(&objproxy) == E_SUCCESS); 
 
 	        objproxy->lock();
                 objproxy_ref = objproxy->HeadReference();

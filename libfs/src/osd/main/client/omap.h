@@ -74,6 +74,7 @@ public:
 	        it = oid2obj_map_.find(oid);
 
         	if (it == oid2obj_map_.end()) {
+                	pthread_spin_unlock(&(omap_lock));
                 	return -E_EXIST;
 	        }
         	*obj = it->second;
