@@ -91,6 +91,13 @@ target_include_directories(kvfs_resilience_test PRIVATE ${bench_incdirs})
 target_link_libraries(kvfs_resilience_test PRIVATE ${kvfs_libs})
 
 # ---------------------------------------------------------------------------
+# kvfs_crash_test — crash recovery tests
+# ---------------------------------------------------------------------------
+add_executable(kvfs_crash_test kvfs_crash_test.cc)
+target_include_directories(kvfs_crash_test PRIVATE ${bench_incdirs})
+target_link_libraries(kvfs_crash_test PRIVATE ${kvfs_libs})
+
+# ---------------------------------------------------------------------------
 # ubench_cfs
 # ---------------------------------------------------------------------------
 add_executable(ubench_cfs main.cc ${fs_common} fs/cfs.cc)
