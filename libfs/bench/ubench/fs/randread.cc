@@ -23,7 +23,7 @@ static int
 __ubench_fs_randread(const char* root, int numops, int /*warmup_ops*/, size_t size)
 {
 	MEASURE_TIME_PREAMBLE
-	int                    ret = 0;
+	ssize_t                ret = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles = 0;
 	int                    fd;
@@ -41,9 +41,9 @@ __ubench_fs_randread(const char* root, int numops, int /*warmup_ops*/, size_t si
         assert(fd>0);
 	/* populate the file with one gig of data */
 	while(totalsize < onegig)
-	{	
+	{
         	ret = fs_write(fd, buf, size);
-		assert(ret == size);
+		assert(ret == (ssize_t)size);
 		totalsize += size;
 	}
 	fs_close(fd);
@@ -62,7 +62,7 @@ __ubench_fs_randread(const char* root, int numops, int /*warmup_ops*/, size_t si
 		rand_block = rand() % (exp_nr_reads-1);
     	MEASURE_CYCLES_START
 		ret = fs_pread(fd, buf, size, rand_block*size);
-		assert(ret==size);
+		assert(ret==(ssize_t)size);
     	MEASURE_CYCLES_STOP
 		ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 		//printf("read %d done\n", i);

@@ -706,7 +706,7 @@ StorageAllocator::IpcHandlers::AllocateContainerIntoSet(int clt, int set_capabil
 		return -ret;
 	}
 	osdsession = static_cast<OsdSession*>(session);
-	assert(set_capability < osdsession->sets_.size());
+	assert((size_t)set_capability < osdsession->sets_.size());
 	oid = osdsession->sets_[set_capability];
 
 	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(oid)) == NULL) {
@@ -735,7 +735,7 @@ StorageAllocator::IpcHandlers::AllocateExtentIntoSet(int clt, int set_capability
 		return -ret;
 	}
 	osdsession = static_cast<OsdSession*>(session);
-	assert(set_capability < osdsession->sets_.size());
+	assert((size_t)set_capability < osdsession->sets_.size());
 	oid = osdsession->sets_[set_capability];
 
 	if ((obj_set = osd::containers::server::SetContainer<osd::common::ObjectId>::Object::Load(oid)) == NULL) {

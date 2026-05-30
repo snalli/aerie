@@ -22,7 +22,7 @@ static int
 __ubench_fs_append(const char* root, int /*numops*/, int /*warmup_ops*/, size_t size)
 {
 	MEASURE_TIME_PREAMBLE
-	int                    ret = 0;
+	ssize_t                ret = 0;
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles = 0;
 	int                    fd;
@@ -52,7 +52,7 @@ __ubench_fs_append(const char* root, int /*numops*/, int /*warmup_ops*/, size_t 
 		assert(fd>0);
     	MEASURE_CYCLES_START
         	ret = fs_write(fd, buf, size);
-		assert(ret == size);
+		assert(ret == (ssize_t)size);
     	MEASURE_CYCLES_STOP
 		ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)
 		fs_close(fd);
