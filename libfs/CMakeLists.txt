@@ -10,6 +10,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Build options  (override on command line: cmake -DRPC=fast -B build)
 # ---------------------------------------------------------------------------
 option(BUILD_BENCH "Build benchmark programs" ON)
+option(COVERAGE   "Build with gcov code-coverage instrumentation" OFF)
 
 set(RPC "net" CACHE STRING "RPC backend: net | fast | fast-two")
 set_property(CACHE RPC PROPERTY STRINGS net fast fast-two)
@@ -25,6 +26,12 @@ set(LIBHOARD          "" CACHE PATH "Path to libhoard directory (optional)")
 # Compiler flags
 # ---------------------------------------------------------------------------
 add_compile_options(-O2 -Wall -Wextra)
+
+# Code-coverage instrumentation (gcov/lcov). Enable with -DCOVERAGE=ON.
+if(COVERAGE)
+    add_compile_options(--coverage -O0 -g)
+    add_link_options(--coverage)
+endif()
 add_compile_definitions(__STDC_FORMAT_MACROS)
 
 # RPC mode

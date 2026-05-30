@@ -43,12 +43,15 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 PKGS="build-essential cmake libconfig++-dev libboost-dev libsparsehash-dev iproute2"
 [ "${MODE}" = "leak" ] && PKGS="${PKGS} valgrind"
+[ "${MODE}" = "coverage" ] && PKGS="${PKGS} lcov"
 apt-get install -y --no-install-recommends ${PKGS} >/dev/null 2>&1
 
 # ---- configure + build ------------------------------------------------------
 echo "=== Building (${BUILD_TYPE}, RPC=net, SCMPOOL=user) ==="
+COV_FLAG=""
+[ "${MODE}" = "coverage" ] && COV_FLAG="-DCOVERAGE=ON"
 cmake -S /aerie/libfs -B /tmp/build \
-  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DRPC=net -DSCMPOOL=user -DBUILD_BENCH=ON \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DRPC=net -DSCMPOOL=user -DBUILD_BENCH=ON ${COV_FLAG} \
   2>&1 | tail -1
 cmake --build /tmp/build --parallel "$(nproc)" 2>&1 \
   | grep -E "error:|Built target ubench_pxfs|Built target pxfs_api_test" || true
@@ -103,10 +106,33 @@ run_leak() {
   stop_pxfs
 }
 
+run_coverage() {
+  # /tmp/build is a read-write volume; gcov .gcda files land next to objects
+  lcov --zerocounters --directory /tmp/build >/dev/null 2>&1 || true
+  start_pxfs
+  echo ""
+  echo "=== exercising code for coverage ==="
+  "${B}/pxfs_api_test" -h 10000 | tail -2
+  "${B}/ubench_pxfs" -h 10000 \
+    +fs_create -n 50 -p /pxfs +fs_open -n 50 -p /pxfs +fs_read -n 50 -p /pxfs \
+    +fs_seqwrite -n 1 -p /pxfs +fs_seqread -n 1 -p /pxfs >/dev/null 2>&1 || true
+  stop_pxfs
+  echo ""
+  echo "=== coverage summary (libfs/src) ==="
+  lcov --capture --directory /tmp/build --output-file /tmp/cov.info \
+       --rc lcov_branch_coverage=0 >/dev/null 2>&1
+  # keep only the project sources, drop system headers / boost / sparsehash
+  lcov --extract /tmp/cov.info "/aerie/libfs/src/*" \
+       --output-file /tmp/cov.src.info >/dev/null 2>&1
+  lcov --list /tmp/cov.src.info 2>/dev/null | tail -40
+  lcov --summary /tmp/cov.src.info 2>&1 | grep -E "lines|functions" || true
+}
+
 case "${MODE}" in
   api)        run_api ;;
   bench)      run_bench ;;
   leak)       run_leak ;;
+  coverage)   run_coverage ;;
   all)        run_api; run_bench ;;
   default|*)  run_api; run_bench ;;
 esac
