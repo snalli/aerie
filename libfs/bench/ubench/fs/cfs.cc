@@ -30,9 +30,19 @@ int (*fs_fclose)(RFile* fp);
 int
 Init(int /*debug_level*/, const char* xdst)
 {
-	cfs_init2(xdst);
-	cfs_mount("/tmp/stamnos_pool", "/", "cfs", 0);
-	cfs_mkdir("/pxfs/", 0);
+	int ret;
+	if ((ret = cfs_init2(xdst)) < 0) {
+		fprintf(stderr, "cfs_init2 failed: %d\n", ret);
+		return ret;
+	}
+	if ((ret = cfs_mount("/tmp/stamnos_pool", "/", "cfs", 0)) < 0) {
+		fprintf(stderr, "cfs_mount failed: %d\n", ret);
+		return ret;
+	}
+	if ((ret = cfs_mkdir("/pxfs/", 0)) < 0 && ret != -17 /* EEXIST */) {
+		fprintf(stderr, "cfs_mkdir failed: %d\n", ret);
+		return ret;
+	}
 	return 0;
 }
 

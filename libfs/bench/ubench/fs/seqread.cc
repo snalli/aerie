@@ -26,29 +26,30 @@ __ubench_fs_seqread(const char* root, int numops, int /*warmup_ops*/, size_t siz
 	unsigned long long     runtime;
 	hrtime_t               runtime_cycles = 0;
 	int                    fd;
-	void*                  buf = new char[size];
-	unsigned long		totalsize=0, onegig = 1024*1024*1024;
-	unsigned long		exp_nr_reads = 0, nr_reads = 0;
+	size_t                 block_size = 4096;
+	void*                  buf = new char[block_size];
+	unsigned long          totalsize = 0;
+	/* size parameter is total file size; default to 16KB if not specified */
+	unsigned long          filesize = (size > 0) ? size : 16*1024;
+	unsigned long          exp_nr_reads = 0, nr_reads = 0;
 
 	std::stringstream  ss;
         ss << std::string(root);
         ss << "/test.dat";
 
-	/* file creation */
 	fd = fs_open2(ss.str().c_str(), O_CREAT|O_TRUNC|O_RDWR, S_IRWXU);
         assert(fd>0);
-	/* populate the file with one gig of data */
-	while(totalsize < onegig)
-	{	
-        	ret = fs_write(fd, buf, size);
-		assert(ret == size);
-		totalsize += size;
+	while(totalsize < filesize)
+	{
+        	ret = fs_write(fd, buf, block_size);
+		assert((size_t)ret == block_size);
+		totalsize += block_size;
 	}
 	fs_close(fd);
 	fs_fsync(fd);
 	fs_sync();
 	ret = system("echo 3 >> /proc/sys/vm/drop_caches");
-	exp_nr_reads = totalsize/size;
+	exp_nr_reads = totalsize/block_size;
 	printf("file creation %s is done\n", ss.str().c_str());
 
 	MEASURE_TIME_START
@@ -58,7 +59,7 @@ __ubench_fs_seqread(const char* root, int numops, int /*warmup_ops*/, size_t siz
 		fd = fs_open(ss.str().c_str(), O_RDWR);
 		assert(fd>0);
     	MEASURE_CYCLES_START
-		while((ret = fs_read(fd, buf, size)) > 0) nr_reads++;
+		while((ret = fs_read(fd, buf, block_size)) > 0) nr_reads++;
     	MEASURE_CYCLES_STOP
 		assert(nr_reads==exp_nr_reads);
 		ADD_MEASURE_TIME_DIFF_CYCLES(runtime_cycles)

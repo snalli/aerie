@@ -78,11 +78,11 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 	uint64_t   start = 0;
 	uint64_t   nblocks = NumOfBlocks(size, kBlockSize);
 
-	assert(pregion_->Lock() == E_SUCCESS);
+	ASSERT_OK(pregion_->Lock());
 	for (uint64_t i=0; i < bitset_->Size(); i++) {
 		if (i + nblocks > bitset_->Size()) {
 			// overflow; no way to found empty space
-			assert(pregion_->Unlock() == E_SUCCESS);
+			ASSERT_OK(pregion_->Unlock());
 			return -E_NOMEM;
 		}
 		// look for contiguous blocks
@@ -105,7 +105,7 @@ StoragePool::AllocateExtent(uint64_t size, void** ptr)
 		return -E_NOMEM;
 	}
 	*ptr = (void*) (extents_base_ + start*kBlockSize);
-	assert(pregion_->Unlock() == E_SUCCESS);
+	ASSERT_OK(pregion_->Unlock());
 	return E_SUCCESS;
 }
 

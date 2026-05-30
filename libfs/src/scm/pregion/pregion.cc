@@ -152,9 +152,20 @@ PersistentRegion::Open(const char* pathname, size_t size, int flags,
 		mmap_flags |= MAP_FIXED;
 		mmap_addr = header.base_addr();
 	}
-	
-	if ((base_addr = mmap((void*) mmap_addr, header.length(), PROT_WRITE | PROT_READ, 
-	                       mmap_flags, fd, header.gap())) == (void *) -1) {
+
+	base_addr = mmap((void*) mmap_addr, header.length(), PROT_WRITE | PROT_READ,
+	                  mmap_flags, fd, header.gap());
+	/* MAP_FIXED can fail on standard kernels if the saved address is already
+	 * occupied (e.g. by a shared library). Fall back to a hint-only mapping so
+	 * the server can run without a patched NVM kernel. Pointer stability across
+	 * restarts is not guaranteed in this case, but a fresh pool is always
+	 * consistent within a single run. */
+	if (base_addr == MAP_FAILED && (mmap_flags & MAP_FIXED)) {
+		mmap_flags &= ~MAP_FIXED;
+		base_addr = mmap((void*) mmap_addr, header.length(), PROT_WRITE | PROT_READ,
+		                  mmap_flags, fd, header.gap());
+	}
+	if (base_addr == MAP_FAILED) {
 		ret = -E_ERRNO;
 		goto done;
 	}

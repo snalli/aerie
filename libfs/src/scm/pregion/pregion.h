@@ -6,17 +6,17 @@
 
 /**
  * We reserve a hole for persistent regions.
- * We must be careful with choosing the hole boundaries. The hole must not 
- * overlap with any other regions mapped with mmap such as dynamically loaded 
- * shared libraries. 
+ * We must be careful with choosing the hole boundaries. The hole must not
+ * overlap with any other regions mapped with mmap such as dynamically loaded
+ * shared libraries.
  *
- * Based on our experience the following hole seems to be not causing any 
- * overlapping problems:
- *
- * [0x0000100000000000LLU, 0x0000100000000000LLU + 0x0000010000000000LLU)
- *
+ * Original NVM kernel hole: 0x0000100000000000 (16 TB) — not reachable in
+ * standard Docker/emulation environments.  We use a much lower hint
+ * (0x40000000 = 1 GB) which is safely above the heap but below shared libs.
+ * The actual address is always updated in the region header after the first
+ * successful mmap, so subsequent opens remap to the same base.
  */
-const uint64_t  kPersistentHoleLowBound = 0x0000100000000000LLU;
+const uint64_t  kPersistentHoleLowBound = 0x0000000040000000LLU; /* 1 GB hint */
 const uint64_t  kPersistentHoleSize     = 0x0000010000000000LLU; /* 1 TB */
 
 class PersistentRegion {

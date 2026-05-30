@@ -1,4 +1,5 @@
 #include "rxfs/client/file.h"
+#include "common/util.h"
 #include <iostream>
 #include "rxfs/client/client.h"
 #include "rxfs/client/session.h"
@@ -167,7 +168,7 @@ FileManager::AllocFd(int start)
 	}
 	
 	fd = first_bit_zero;
-	assert(fdset_[fd] == 0);
+	assert((fdset_[fd]) == 0);
 	fdset_[fd] = 1;
 
 	return fdmin_ + fd;
@@ -185,7 +186,7 @@ FileManager::AllocFd(File* fp)
 		pthread_mutex_unlock(&mutex_);
 		return -1;
 	}
-	assert(ftable_[fd-fdmin_] ==0);
+	assert((ftable_[fd-fdmin_]) == 0);
 	ftable_[fd-fdmin_] = fp;
 	pthread_mutex_unlock(&mutex_);
 	return fd;
@@ -249,7 +250,7 @@ FileManager::Get(int fd, File** fpp)
 		pthread_mutex_unlock(&mutex_);
 		return -1;
 	}
-	assert(ftable_[newfd-fdmin_] == 0);
+	assert((ftable_[newfd-fdmin_]) == 0);
 	ftable_[newfd-fdmin_] = fp;
 	fp->ref_++;
 	pthread_mutex_unlock(&mutex_);

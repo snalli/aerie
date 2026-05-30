@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "common/util.h"
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
@@ -53,7 +54,7 @@ main(int argc, char *argv[])
 				port = atoi(optarg);
 				break;
 			case 'l':
-				assert(setenv("RPC_LOSSY", "5", 1) == 0);
+				assert((setenv("RPC_LOSSY", "5", 1)) == 0);
 				break;
 			default:
 				break;

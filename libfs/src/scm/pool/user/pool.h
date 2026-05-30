@@ -17,6 +17,8 @@ public:
 	uint64_t Identity() { return identity_; }
 
 	int AllocateExtent(uint64_t size, void** ptr);
+	int FreeExtent(void* /*ptr*/) { return 0; } // user pool: no-op free
+	void PrintStats() {}                    // user pool: no stats
 
 	void set_root(void* root);
 	void* root();

@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include "common/util.h"
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +33,7 @@ main(int argc, char *argv[])
 				xdst = optarg;
 				break;
 			case 'l':
-				assert(setenv("RPC_LOSSY", "5", 1) == 0);
+				assert((setenv("RPC_LOSSY", "5", 1)) == 0);
 				break;
 			case 'o':
 				strcpy(operation, optarg);

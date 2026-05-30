@@ -245,7 +245,7 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 				// reached end of path -- mount superblock
 				Inode* root_inode = sb->RootInode();
 				//printf("\n Sanketh 1 : Calling MPInode::Link...\n");
-				assert(inode->Link(session, name, root_inode, false) == 0);	
+				ASSERT_OK(inode->Link(session, name, root_inode, false));	
 				if (root_inode->Link(session, "..", inode, false) != 0) {
 					return -1; // superblock already mounted
 				}
@@ -254,11 +254,11 @@ NameSpace::Mount(Session* session, const char* const_path, SuperBlock* sb)
 				// create mount point component
 				inode_next = new MPInode();
 				//printf("\n Sanketh 2 : Calling MPInode::Link...\n");
-				assert(inode->Link(session, name, inode_next, false) == 0);	
+				ASSERT_OK(inode->Link(session, name, inode_next, false));	
 				//printf("\n Sanketh 3 : Calling MPInode::Link...\n");
-				assert(inode_next->Link(session, ".", inode_next, false) == 0);	
+				ASSERT_OK(inode_next->Link(session, ".", inode_next, false));	
 				//printf("\n Sanketh 4 : Calling MPInode::Link...\n");
-				assert(inode_next->Link(session, "..", inode, false) == 0);	
+				ASSERT_OK(inode_next->Link(session, "..", inode, false));	
 			}
 		}
 		inode = inode_next;
@@ -327,16 +327,16 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 		{
 			if (*it == inode) {
 				if (parent_inode) {
-					assert((*it)->Lock(session, parent_inode, lock_mode) == 0);
+					ASSERT_OK((*it)->Lock(session, parent_inode, lock_mode));
 				} else {
 					assert(*it == root_);
-					assert((*it)->Lock(session, lock_mode) == 0);
+					ASSERT_OK((*it)->Lock(session, lock_mode));
 				}
 			} else {
 				if (parent_inode) {
-					assert((*it)->Lock(session, parent_inode, lock_protocol::Mode::IX) == 0);
+					ASSERT_OK((*it)->Lock(session, parent_inode, lock_protocol::Mode::IX));
 				} else {
-					assert((*it)->Lock(session, lock_protocol::Mode::IX) == 0);
+					ASSERT_OK((*it)->Lock(session, lock_protocol::Mode::IX));
 				}
 			}
 			parent_inode = *it;
@@ -617,11 +617,11 @@ resume_normal:
 			if (str_is_dot(name) == 2) {
 				// encountered a ..
 				inode->Unlock(session);
-				assert(inode_next->Lock(session, lock_mode) == E_SUCCESS);
+				ASSERT_OK(inode_next->Lock(session, lock_mode));
 			//	s_log("[%ld] NameSpace::%s chk_pt 03",s_tid, __func__);
 			} else {
 				// spider locking
-				assert(inode_next->Lock(session, inode, lock_mode) == E_SUCCESS); 
+				ASSERT_OK(inode_next->Lock(session, inode, lock_mode)); 
 				inode->Unlock(session);
 			//	s_log("[%ld] NameSpace::%s chk_pt 04",s_tid, __func__);
 			}
@@ -909,10 +909,10 @@ resume_normal:
 			if (str_is_dot(name) == 2) {
 				// encountered a ..
 				inode->Unlock(session);
-				assert(inode_next->Lock(session, lock_mode) == E_SUCCESS);
+				ASSERT_OK(inode_next->Lock(session, lock_mode));
 			} else {
 				// spider locking
-				assert(inode_next->Lock(session, inode, lock_mode) == E_SUCCESS); 
+				ASSERT_OK(inode_next->Lock(session, inode, lock_mode)); 
 				inode->Unlock(session);
 			}
 			inode->Put();
@@ -1057,8 +1057,8 @@ grab_locks:
 	}
 	session->journal()->TransactionBegin();
 	
-	assert(dp_new->Link(session, name_new, ip, false) == 0);
-	assert(dp_old->Unlink(session, name_old) == 0);
+	ASSERT_OK(dp_new->Link(session, name_new, ip, false));
+	ASSERT_OK(dp_old->Unlink(session, name_old));
 
 	session->journal() << Publisher::Message::LogicalOperation::Link(dp_new->ino(), name_new, ip->ino());
 	session->journal() << Publisher::Message::LogicalOperation::Unlink(dp_old->ino(), name_old);
@@ -1096,7 +1096,7 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 		return -E_INVAL;
 	}
 
-	assert(ip->set_nlink(ip->nlink() + 1) == 0);
+	ASSERT_OK(ip->set_nlink(ip->nlink() + 1));
 	ip->Unlock(session);
 	
 	if ((ret = global_namespace->Nameiparent(session, newpath, lock_protocol::Mode::XL, 
@@ -1105,14 +1105,14 @@ NameSpace::Link(Session* session, const char *oldpath, const char* newpath)
 		goto bad;
 	}
 
-	assert(dp->Link(session, name, ip, false) == 0);
+	ASSERT_OK(dp->Link(session, name, ip, false));
 
 	session->journal() << Publisher::Message::LogicalOperation::Link(dp->ino(), name, ip->ino());
 	return 0;
 
 bad:
 	//FIXME: re-lock
-	assert(ip->set_nlink(ip->nlink() - 1) == 0);
+	ASSERT_OK(ip->set_nlink(ip->nlink() - 1));
 	return ret;
 }
 
@@ -1183,7 +1183,7 @@ NameSpace::Unlink(Session* session, const char *pathname)
 
 	if (ip->type() == kDirInode) {
 		bool isempty = false;
-		assert(ip->ioctl(session, 1, &isempty) == E_SUCCESS);
+		ASSERT_OK(ip->ioctl(session, 1, &isempty));
 		if (!isempty) {
 			ip->Put();
 			ip->Unlock(session);
@@ -1200,12 +1200,12 @@ NameSpace::Unlink(Session* session, const char *pathname)
 	session->journal()->TransactionBegin();
 	session->journal() << Publisher::Message::LogicalOperation::Unlink(dp->ino(), name);
 	
-	assert(dp->Unlink(session, name) == E_SUCCESS);
+	ASSERT_OK(dp->Unlink(session, name));
 	//FIXME: inode's link/unlink should take care of the nlink
 	if (ip->type() == kDirInode) {
-		assert(dp->set_nlink(dp->nlink() - 1) == 0); // for child's backlink ..
+		ASSERT_OK(dp->set_nlink(dp->nlink() - 1)); // for child's backlink ..
 	}
-	assert(ip->set_nlink(ip->nlink() - 1) == 0); // for parent's forward link
+	ASSERT_OK(ip->set_nlink(ip->nlink() - 1)); // for parent's forward link
 	
 	session->journal()->TransactionCommit();
 

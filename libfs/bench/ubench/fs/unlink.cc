@@ -10,6 +10,7 @@
 #include <errno.h>
 #include "ubench/fs/fs.h"
 #include "ubench/time.h"
+#include "common/util.h"
 
 static int
 usage() 
@@ -41,7 +42,7 @@ __ubench_fs_unlink(const char* root, int numops)
 
 	for (int i=0; i<numops; i++) {
 		ret = fs_unlink(path[i]->c_str());
-		assert(ret == 0);
+		assert((ret) == 0);
 	}
 
 	MEASURE_TIME_STOP

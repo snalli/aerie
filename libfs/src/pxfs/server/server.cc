@@ -1,4 +1,5 @@
 #include "pxfs/server/server.h"
+#include "common/util.h"
 #include "bcs/main/server/bcs.h"
 #include "osd/main/server/osd.h"
 #include "pxfs/mfs/server/mfs.h"
@@ -27,15 +28,16 @@ Server::Instance()
 }
 
 
-void 
-Server::Init(const char* /*pathname*/, int /*flags*/, int port)
+void
+Server::Init(const char* pathname, int flags, int port)
 {
 	port_ = port;
 
 	ipc_layer_ = new ::server::Ipc(port);
 	ipc_layer_->Init();
 
-	assert(FileSystem::Load(ipc_layer_, pathname, flags, &fs_) == E_SUCCESS);
+	int ret = FileSystem::Load(ipc_layer_, pathname, flags, &fs_);
+	ASSERT_OK(ret); (void)ret;
 }
 
 

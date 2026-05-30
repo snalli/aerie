@@ -1,5 +1,6 @@
 #include "slock.h"
 #include "thr_pool.h"
+#include "common/util.h"
 #include <stdlib.h>
 #include <errno.h>
 
@@ -28,7 +29,7 @@ ThrPool::ThrPool(int sz, bool blocking)
 	for (int i = 0; i < sz; i++) {
 		pthread_t t;
 		int r = pthread_create(&t, &attr_, do_worker, (void *)this);
-		assert(r == 0);
+		assert((r) == 0);
 		(void)r;
 		th_.push_back(t);
 	}
@@ -46,10 +47,10 @@ ThrPool::~ThrPool()
 	}
 
 	for (int i = 0; i < nthreads_; i++) {
-		assert(pthread_join(th_[i], NULL)==0);
+		assert((pthread_join(th_[i], NULL)) == 0);
 	}
 
-	assert(pthread_attr_destroy(&attr_)==0);
+	assert((pthread_attr_destroy(&attr_)) == 0);
 }
 
 bool 

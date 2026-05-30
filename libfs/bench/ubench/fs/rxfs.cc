@@ -29,8 +29,15 @@ int (*fs_fclose)(RFile* fp) = rxfs_fclose;
 int
 Init(int debug_level, const char* xdst)
 {
-	rxfs_init3(xdst, debug_level);
-	rxfs_mount("/tmp/stamnos_pool", "/rxfs", "rxfs", 0);
+	int ret;
+	if ((ret = rxfs_init3(xdst, debug_level)) < 0) {
+		fprintf(stderr, "rxfs_init3 failed: %d\n", ret);
+		return ret;
+	}
+	if ((ret = rxfs_mount("/tmp/stamnos_pool", "/rxfs", "rxfs", 0)) < 0) {
+		fprintf(stderr, "rxfs_mount failed: %d\n", ret);
+		return ret;
+	}
 	return 0;
 }
 

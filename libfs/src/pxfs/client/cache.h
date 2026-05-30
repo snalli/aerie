@@ -93,20 +93,18 @@ class Cache {
                 DENTRY_SIZE = 1000;
                 pthread_rwlock_init(&rwlock, NULL);
                 pthread_spin_init(&spinlock, pshared);
+		/* cache init diagnostics suppressed — enable with -DCACHE_VERBOSE */
+                #ifdef CACHE_VERBOSE
 		printf("\n***************************************************\n");
 	        printf("\nCache # : %d", id);
                 printf("\nPID : %d",getpid());
-        //        printf("\nTID : %d \nInitializing NameSpace..."
-        //               "\nCache Hits : %lu "
-        //               "\nCache Miss : %lu "
-        //               "\nCache Accs : %lu \n",s_tid, cacheHit, cacheMiss, cacheLookup);
-        //        printf("Cache Inst : %lu\n", succEntry);
                 #ifdef RW_LOCK
                 printf("\n* Using reader-writer locks to guard cache");
                 #else
                 printf("\n* Using spin-locks to guard cache");
                 #endif
                 printf("\n***************************************************\n");
+                #endif
 
 	}
 

@@ -68,13 +68,27 @@ str_is_dot(const char* str)
 }
 
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 
 #ifdef __cplusplus
 }
+#endif
+
+/**
+ * ASSERT_OK(expr) — always evaluates expr (unlike assert which disappears in
+ * Release/NDEBUG builds).  In Debug builds the return value is checked == 0;
+ * in Release builds the call still happens but the check is skipped.
+ *
+ * Use instead of assert(f() == 0) whenever the expression has side-effects
+ * that must execute in production (e.g. Lock(), Link(), Load()).
+ */
+#include <assert.h>
+#include <stdint.h>
+#ifndef ASSERT_OK
+#define ASSERT_OK(expr) do { intptr_t _aok_r = (intptr_t)(expr); assert(_aok_r == 0); (void)_aok_r; } while (0)
 #endif
 
 #endif // __STAMNOS_COMMON_UTIL_H

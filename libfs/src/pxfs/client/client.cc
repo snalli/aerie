@@ -1,6 +1,7 @@
 #define  __CACHE_GUARD__
 
 #include "pxfs/client/client_i.h"
+#include "common/util.h"
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -319,11 +320,11 @@ create(::client::Session* session, const char* path, Inode** ipp, int /*mode*/, 
 	PROFILER_SAMPLE
 	ip->set_nlink(1);
 	if (type == kDirInode) {
-		assert(dp->set_nlink(dp->nlink() + 1) == 0); // for child's ..
+		ASSERT_OK(dp->set_nlink(dp->nlink() + 1)); // for child's ..
 		assert(ip->Link(session, ".", ip, false) == 0 );
-		assert(ip->Link(session, "..", dp, false) == 0);
+		ASSERT_OK(ip->Link(session, "..", dp, false));
 	}
-	assert(dp->Link(session, name, ip, false) == 0); //insight : <name,oid> are inserted here !
+	ASSERT_OK(dp->Link(session, name, ip, false)); //insight : <name,oid> are inserted here !
 	PROFILER_SAMPLE
 	session->journal()->TransactionCommit();
 	// DONE : Insert in dentry here !
@@ -571,8 +572,8 @@ Client::CreateDir(const char* path, int mode)
 	if ((ret = create(session, path, &ip, mode, kDirInode)) < 0) {
 		return ret;
 	}
-	assert(ip->Put() == E_SUCCESS);
-	assert(ip->Unlock(session) == E_SUCCESS);
+	ASSERT_OK(ip->Put());
+	ASSERT_OK(ip->Unlock(session));
 	return 0;
 }
 

@@ -25,9 +25,20 @@ int (*fs_fclose)(RFile* fp) = NULL;
 int
 Init(int debug_level, const char* xdst)
 {
-	libfs_init3(xdst, debug_level);
-	libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0);
-	libfs_chdir("/pxfs");
+	int ret;
+
+	if ((ret = libfs_init3(xdst, debug_level)) < 0) {
+		fprintf(stderr, "libfs_init3 failed: %d\n", ret);
+		return ret;
+	}
+	if ((ret = libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0)) < 0) {
+		fprintf(stderr, "libfs_mount failed: %d\n", ret);
+		return ret;
+	}
+	if ((ret = libfs_chdir("/pxfs")) < 0) {
+		fprintf(stderr, "libfs_chdir failed: %d\n", ret);
+		return ret;
+	}
 	return 0;
 }
 
