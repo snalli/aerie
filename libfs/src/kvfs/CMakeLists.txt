@@ -22,11 +22,11 @@
 # ---------- kvfsc (KVFS client library) ----------------------------------
 # PUBLIC API: Applications link against this for KVFS client functionality
 #
-# Public headers:
-#   - c_api.h: C API for key-value operations (put, get, delete)
+# Public headers (via include/kvfs/):
+#   - include/kvfs/c_api.h: C API for key-value operations (put, get, delete)
 #
 # Implementation-only headers (not for external use):
-#   - client.h, table.h, sb.h, etc.
+#   - client/client.h, client/table.h, client/sb.h, etc.
 #
 add_library(kvfsc SHARED
     client/c_api.cc
@@ -35,8 +35,9 @@ add_library(kvfsc SHARED
     client/table.cc
 )
 
-# Public interface
+# Public interface: expose public headers via include/ directory
 target_include_directories(kvfsc PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/client>
     $<INSTALL_INTERFACE:include>
 )
@@ -48,11 +49,11 @@ target_link_libraries(kvfsc PRIVATE osdclt bcsclt scm common)
 # ---------- kvfss (KVFS server library) ----------------------------------
 # PUBLIC API: Applications link against this for KVFS server functionality
 #
-# Public headers:
-#   - fs.h: Server filesystem interface
+# Public headers (via include/kvfs/):
+#   - include/kvfs/fs.h: Server filesystem interface
 #
 # Implementation-only headers (not for external use):
-#   - server.h, session.h, subtable.h, etc.
+#   - server/server.h, server/session.h, server/subtable.h, etc.
 #
 add_library(kvfss SHARED
     server/fs.cc
@@ -62,8 +63,9 @@ add_library(kvfss SHARED
     server/subtable.cc
 )
 
-# Public interface
+# Public interface: expose public headers via include/ directory
 target_include_directories(kvfss PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/server>
     $<INSTALL_INTERFACE:include>
 )

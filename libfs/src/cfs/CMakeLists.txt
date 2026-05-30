@@ -22,11 +22,11 @@
 # ---------- cfsc (CFS client library) -----------------------------------
 # PUBLIC API: Applications link against this for CFS client functionality
 #
-# Public headers:
-#   - c_api.h: C API for filesystem operations
+# Public headers (via include/cfs/):
+#   - include/cfs/c_api.h: C API for filesystem operations
 #
 # Implementation-only headers (not for external use):
-#   - client.h, file.h, etc.
+#   - client/client.h, client/file.h, etc.
 #
 add_library(cfsc SHARED
     client/c_api.cc
@@ -34,8 +34,9 @@ add_library(cfsc SHARED
     client/file.cc
 )
 
-# Public interface
+# Public interface: expose public headers via include/ directory
 target_include_directories(cfsc PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/client>
     $<INSTALL_INTERFACE:include>
 )
@@ -47,11 +48,11 @@ target_link_libraries(cfsc PRIVATE osdclt bcsclt scm common)
 # ---------- cfss (CFS server library) -----------------------------------
 # PUBLIC API: Applications link against this for CFS server functionality
 #
-# Public headers:
-#   - fs.h: Server filesystem interface
+# Public headers (via include/cfs/):
+#   - include/cfs/fs.h: Server filesystem interface
 #
 # Implementation-only headers (not for external use):
-#   - server.h, session.h, namespace.h, etc.
+#   - server/server.h, server/session.h, server/namespace.h, etc.
 #
 add_library(cfss SHARED
     server/dir_inode.cc
@@ -61,8 +62,9 @@ add_library(cfss SHARED
     server/session.cc
 )
 
-# Public interface
+# Public interface: expose public headers via include/ directory
 target_include_directories(cfss PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/server>
     $<INSTALL_INTERFACE:include>
 )

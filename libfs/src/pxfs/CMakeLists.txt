@@ -47,11 +47,11 @@ target_link_libraries(mfssrv PUBLIC aerie_includes)
 # ---------- pxfsc (PXFS client library) -----------------------------------
 # PUBLIC API: Applications link against this for PXFS client functionality
 #
-# Public headers:
-#   - c_api.h: C API for filesystem operations
+# Public headers (via include/pxfs/):
+#   - include/pxfs/c_api.h: C API for filesystem operations
 #
 # Implementation-only headers (not for external use):
-#   - client.h, file.h, inode.h, etc.
+#   - client/client.h, client/file.h, client/inode.h, etc.
 #
 add_library(pxfsc SHARED
     client/c_api.cc
@@ -63,8 +63,9 @@ add_library(pxfsc SHARED
     client/namespace.cc
 )
 
-# Public interface
+# Public interface: expose public headers via include/ directory
 target_include_directories(pxfsc PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/client>
     $<INSTALL_INTERFACE:include>
 )
@@ -76,11 +77,11 @@ target_link_libraries(pxfsc PRIVATE mfsclt osdclt bcsclt scm common)
 # ---------- pxfss (PXFS server library) -----------------------------------
 # PUBLIC API: Applications link against this for PXFS server functionality
 #
-# Public headers:
-#   - fs.h: Server filesystem interface
+# Public headers (via include/pxfs/):
+#   - include/pxfs/fs.h: Server filesystem interface
 #
 # Implementation-only headers (not for external use):
-#   - server.h, session.h, etc.
+#   - server/server.h, server/session.h, etc.
 #
 add_library(pxfss SHARED
     server/fs.cc
@@ -88,8 +89,9 @@ add_library(pxfss SHARED
     server/session.cc
 )
 
-# Public interface
+# Public interface: expose public headers via include/ directory
 target_include_directories(pxfss PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/server>
     $<INSTALL_INTERFACE:include>
 )
