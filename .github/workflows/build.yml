@@ -63,6 +63,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: cmake
 
+    env:
+      LIBFS_CONFIG: ${{ github.workspace }}/libfs/libfs.ini
+
     steps:
       - uses: actions/checkout@v4
 
@@ -70,48 +73,47 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential cmake libconfig++-dev libboost-dev libsparsehash-dev
+            build-essential cmake libconfig++-dev libboost-dev libsparsehash-dev \
+            iproute2
 
       - name: Build
         run: |
           cmake -S libfs -B libfs/build \
-            -DCMAKE_BUILD_TYPE=Release -DRPC=fast -DSCMPOOL=kernel -DBUILD_BENCH=ON
+            -DCMAKE_BUILD_TYPE=Debug -DRPC=net -DSCMPOOL=user -DBUILD_BENCH=ON
           cmake --build libfs/build --parallel $(nproc)
-
-      - name: Disable ASLR
-        run: sudo sysctl -w kernel.randomize_va_space=0
 
       - name: Create pool and format filesystem
         run: |
-          libfs/build/src/scm/pool_tool   create -p /tmp/stamnos_pool -s 256M
-          libfs/build/src/pxfs/pxfs_mkfs  create -p /tmp/stamnos_pool -s 256M -t mfs
+          libfs/build/src/scm/pool_tool  create -p /tmp/stamnos_pool -s 128M
+          libfs/build/src/pxfs/pxfs_mkfs create -p /tmp/stamnos_pool -s 128M -t mfs
 
       - name: Start pxfs server
         run: |
           rm -f /tmp/shbuf_*
           libfs/build/src/pxfs/pxfs_server -p 10000 -d 0 -s /tmp/stamnos_pool &
           echo $! > /tmp/pxfs_server.pid
-          # wait until the server is listening
           for i in $(seq 1 30); do
             ss -ltn | grep -q ':10000' && break
             sleep 1
           done
           ss -ltn | grep -q ':10000' || { echo "Server failed to start"; exit 1; }
-          echo "Server is up"
+          echo "Server is up — warming up 3s"
+          sleep 3
 
       - name: Run ubench
         run: |
           B=libfs/build/bench/ubench/ubench_pxfs
           echo "### ubench results" >> $GITHUB_STEP_SUMMARY
-          for op in fs_create fs_open fs_read fs_seqwrite fs_seqread; do
-            echo "---- +${op} ----"
-            echo "#### +${op}" >> $GITHUB_STEP_SUMMARY
-            result=$($B -h 10000 +${op} -n 1000 2>&1)
-            echo "$result"
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "$result" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          done
+          result=$($B -h 10000 \
+            +fs_create   -n 1 -p /pxfs \
+            +fs_open     -n 1 -p /pxfs \
+            +fs_read     -n 1 -p /pxfs \
+            +fs_seqwrite -n 1 -p /pxfs \
+            +fs_seqread  -n 1 -p /pxfs 2>&1)
+          echo "$result"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$result" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Stop server
         if: always()
