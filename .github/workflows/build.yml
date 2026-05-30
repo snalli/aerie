@@ -85,6 +85,19 @@ jobs:
       - name: Create storage pool
         run: libfs/build/src/scm/pool_tool create -p /tmp/stamnos_pool -s 128M
 
+      - name: VFS baseline (no server)
+        run: |
+          mkdir -p /tmp/vfsbench
+          echo "### VFS (Linux kernel baseline)" >> $GITHUB_STEP_SUMMARY
+          result=$(libfs/build/bench/ubench/ubench_vfs \
+            +fs_create -n 1 -p /tmp/vfsbench \
+            +fs_open   -n 1 -p /tmp/vfsbench \
+            +fs_read   -n 1 -p /tmp/vfsbench 2>&1)
+          echo "$result"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "$result" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
       - name: PXFS benchmark (pxfs_server)
         run: |
           libfs/build/src/pxfs/pxfs_mkfs create -p /tmp/stamnos_pool -s 128M -t mfs
