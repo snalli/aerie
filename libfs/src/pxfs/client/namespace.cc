@@ -374,6 +374,7 @@ NameSpace::Namex(Session* session, const char *cpath, lock_protocol::Mode lock_m
 	Inode*      inode_next;
 	int         ret;
 	bool smart_lookup = false;
+	char *dirc_orig = NULL, *basec_orig = NULL;  // Track allocations for cleanup (CONFIG_CACHE)
 
 retry_namex:
 	path = const_cast<char*>(cpath);
@@ -386,7 +387,7 @@ retry_namex:
 /*******************************************************************************
  * Sanketh's code starts here !
  * This section looks up the cache
- */	
+ */
 #ifdef CONFIG_CACHE
 
 	char	    dup_path[128], residue[128], tmp[128], tmp01[128];
@@ -394,8 +395,8 @@ retry_namex:
 	Inode*      parent;
 int itr = 0; (void)itr;
 	strcpy(dup_path, "/");
-		dirc = strdup(path);
-		basec = strdup(path);
+		dirc_orig = dirc = strdup(path);
+		basec_orig = basec = strdup(path);
 		dname = dirname(dirc);
 		bname = basename(basec);
 	smart_lookup = false;
@@ -417,8 +418,9 @@ int itr = 0; (void)itr;
 				goto done;
 			} else {
 				smart_lookup = true;
-				dirc = strdup(dname);
-				basec = strdup(dname);
+				free(dirc_orig); free(basec_orig);
+				dirc_orig = dirc = strdup(dname);
+				basec_orig = basec = strdup(dname);
 				strcat(residue, strrev(bname));
 				strcat(residue,"/");
 				strcpy(look_for, dirname(dirc));
@@ -441,8 +443,9 @@ int itr = 0; (void)itr;
 				goto done;
 			} else {
 				smart_lookup = true;
-				dirc = strdup(path);
-				basec = strdup(path);
+				free(dirc_orig); free(basec_orig);
+				dirc_orig = dirc = strdup(path);
+				basec_orig = basec = strdup(path);
 				strcpy(look_for, dirname(dirc));
 				strcpy(tmp, basename(basec));
 				strcat(residue, strrev(tmp));
@@ -675,7 +678,8 @@ resume_normal:
 done:
 			//	s_log("[%ld] NameSpace::%s chk_pt 16",s_tid, __func__);
 	*inodep = inode; // insight : If the path name is "/a/b/c/" do you return with the inode of "b" ????
-			// insight : Yes, we return the inode of b 
+			// insight : Yes, we return the inode of b
+	free(dirc_orig); free(basec_orig);
 	return 0;
 }
 
@@ -689,6 +693,7 @@ NameSpace::namex_sans_locks(Session* session, const char *cpath, lock_protocol::
 	int         ret;
 	bool smart_lookup = false;
 	(void)lock_mode; // used inside CONFIG_CACHE block only
+	char *dirc_orig = NULL, *basec_orig = NULL;  // Track allocations for cleanup (CONFIG_CACHE)
 	path = const_cast<char*>(cpath);
 	if (!path) {
 		return -E_INVAL;
@@ -706,8 +711,8 @@ NameSpace::namex_sans_locks(Session* session, const char *cpath, lock_protocol::
 	Inode*      parent;
 int itr = 0; (void)itr;
 	strcpy(dup_path, "/");
-		dirc = strdup(path);
-		basec = strdup(path);
+		dirc_orig = dirc = strdup(path);
+		basec_orig = basec = strdup(path);
 		dname = dirname(dirc);
 		bname = basename(basec);
 	smart_lookup = false;
@@ -727,8 +732,9 @@ int itr = 0; (void)itr;
 				goto done;
 			} else {
 				smart_lookup = true;
-				dirc = strdup(dname);
-				basec = strdup(dname);
+				free(dirc_orig); free(basec_orig);
+				dirc_orig = dirc = strdup(dname);
+				basec_orig = basec = strdup(dname);
 				strcat(residue, strrev(bname));
 				strcat(residue,"/");
 				strcpy(look_for, dirname(dirc));
@@ -747,8 +753,9 @@ int itr = 0; (void)itr;
 				goto done;
 			} else {
 				smart_lookup = true;
-				dirc = strdup(path);
-				basec = strdup(path);
+				free(dirc_orig); free(basec_orig);
+				dirc_orig = dirc = strdup(path);
+				basec_orig = basec = strdup(path);
 				strcpy(look_for, dirname(dirc));
 				strcpy(tmp, basename(basec));
 				strcat(residue, strrev(tmp));
@@ -955,7 +962,8 @@ resume_normal:
 */
 done:
 	*inodep = inode; // insight : If the path name is "/a/b/c/" do you return with the inode of "b" ????
-			// insight : Yes, we return the inode of b 
+			// insight : Yes, we return the inode of b
+	free(dirc_orig); free(basec_orig);
 	return 0;
 }
 
