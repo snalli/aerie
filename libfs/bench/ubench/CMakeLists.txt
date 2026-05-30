@@ -63,6 +63,13 @@ target_include_directories(kvfs_api_test PRIVATE ${bench_incdirs})
 target_link_libraries(kvfs_api_test PRIVATE ${kvfs_libs})
 
 # ---------------------------------------------------------------------------
+# kvfs_multithread_test — multi-threaded unit tests for kvfs
+# ---------------------------------------------------------------------------
+add_executable(kvfs_multithread_test kvfs_multithread_test.cc)
+target_include_directories(kvfs_multithread_test PRIVATE ${bench_incdirs})
+target_link_libraries(kvfs_multithread_test PRIVATE ${kvfs_libs})
+
+# ---------------------------------------------------------------------------
 # ubench_cfs
 # ---------------------------------------------------------------------------
 add_executable(ubench_cfs main.cc ${fs_common} fs/cfs.cc)
