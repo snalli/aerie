@@ -77,6 +77,13 @@ target_include_directories(kvfs_space_test PRIVATE ${bench_incdirs})
 target_link_libraries(kvfs_space_test PRIVATE ${kvfs_libs})
 
 # ---------------------------------------------------------------------------
+# kvfs_durability_test — data persistence and restart test
+# ---------------------------------------------------------------------------
+add_executable(kvfs_durability_test kvfs_durability_test.cc)
+target_include_directories(kvfs_durability_test PRIVATE ${bench_incdirs})
+target_link_libraries(kvfs_durability_test PRIVATE ${kvfs_libs})
+
+# ---------------------------------------------------------------------------
 # ubench_cfs
 # ---------------------------------------------------------------------------
 add_executable(ubench_cfs main.cc ${fs_common} fs/cfs.cc)
