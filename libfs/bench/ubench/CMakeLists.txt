@@ -13,6 +13,7 @@ set(osd_libs   mfsclt fsc bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 set(pxfs_libs  mfsclt fsc bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 set(cfs_libs   cfsc       bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 set(rxfs_libs  rxfsc      bcsclt osdclt scm common Threads::Threads ${RT_LIB})
+set(kvfs_libs  kvfsc      bcsclt osdclt scm common Threads::Threads ${RT_LIB})
 
 # FS benchmark common sources (shared across all FS flavours)
 set(fs_common
@@ -46,6 +47,20 @@ target_link_libraries(ubench_vfs PRIVATE Threads::Threads ${RT_LIB})
 add_executable(ubench_pxfs main.cc ${fs_common} fs/pxfs.cc)
 target_include_directories(ubench_pxfs PRIVATE ${bench_incdirs})
 target_link_libraries(ubench_pxfs PRIVATE ${pxfs_libs})
+
+# ---------------------------------------------------------------------------
+# pxfs_api_test  — correctness unit tests for every libfs_* API
+# ---------------------------------------------------------------------------
+add_executable(pxfs_api_test pxfs_api_test.cc)
+target_include_directories(pxfs_api_test PRIVATE ${bench_incdirs})
+target_link_libraries(pxfs_api_test PRIVATE ${pxfs_libs})
+
+# ---------------------------------------------------------------------------
+# kvfs_api_test  — correctness unit tests for every kvfs_* API
+# ---------------------------------------------------------------------------
+add_executable(kvfs_api_test kvfs_api_test.cc)
+target_include_directories(kvfs_api_test PRIVATE ${bench_incdirs})
+target_link_libraries(kvfs_api_test PRIVATE ${kvfs_libs})
 
 # ---------------------------------------------------------------------------
 # ubench_cfs
