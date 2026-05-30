@@ -4,14 +4,15 @@
 #
 # Usage:
 #   ./run-tests.sh                 # build + run pxfs api test + ubench
-#   ./run-tests.sh api             # just the pxfs/kvfs API correctness tests
+#   ./run-tests.sh api             # just the pxfs API correctness tests
 #   ./run-tests.sh bench           # just the ubench micro-benchmarks
-#   ./run-tests.sh all             # api + bench for every filesystem variant
+#   ./run-tests.sh all             # api + bench
+#   ./run-tests.sh leak            # run API tests under valgrind leak-check
 #   ./run-tests.sh shell           # drop into a shell in the build container
 #
 # Environment:
-#   POOL_SIZE   storage pool size           (default: 128M)
-#   BUILD_TYPE  Debug | Release             (default: Debug)
+#   POOL_SIZE   storage pool size   (default: 128M)
+#   BUILD_TYPE  Debug | Release     (default: Debug)
 #
 # Requirements: Docker Desktop running (linux/amd64; Rosetta on Apple Silicon)
 # ---------------------------------------------------------------------------
@@ -25,7 +26,7 @@ BUILD_TYPE="${BUILD_TYPE:-Debug}"
 # Stop any leftover containers from previous runs (they hold the TCP port)
 docker ps -q --filter "ancestor=ubuntu:22.04" | xargs -r docker stop >/dev/null 2>&1 || true
 
-docker run --rm -it \
+docker run --rm -i \
   --platform linux/amd64 \
   -v "${REPO}:/aerie:ro" \
   -v "aerie-build-cache:/tmp/build" \
@@ -38,26 +39,26 @@ docker run --rm -it \
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
-# ---- dependencies (cached layer would be nicer, but image is vanilla) -------
+# ---- dependencies -----------------------------------------------------------
 apt-get update -qq
-apt-get install -y --no-install-recommends \
-  build-essential cmake libconfig++-dev libboost-dev libsparsehash-dev \
-  iproute2 >/dev/null 2>&1
+PKGS="build-essential cmake libconfig++-dev libboost-dev libsparsehash-dev iproute2"
+[ "${MODE}" = "leak" ] && PKGS="${PKGS} valgrind"
+apt-get install -y --no-install-recommends ${PKGS} >/dev/null 2>&1
 
 # ---- configure + build ------------------------------------------------------
 echo "=== Building (${BUILD_TYPE}, RPC=net, SCMPOOL=user) ==="
 cmake -S /aerie/libfs -B /tmp/build \
   -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DRPC=net -DSCMPOOL=user -DBUILD_BENCH=ON \
   2>&1 | tail -1
-cmake --build /tmp/build --parallel "$(nproc)" 2>&1 | grep -E "error:|Built target ubench_pxfs|Built target pxfs_api_test" || true
+cmake --build /tmp/build --parallel "$(nproc)" 2>&1 \
+  | grep -E "error:|Built target ubench_pxfs|Built target pxfs_api_test" || true
 echo "=== Build done ==="
 
-if [ "${MODE}" = "shell" ]; then exec bash; fi
+[ "${MODE}" = "shell" ] && exec bash
 
 POOL=/tmp/stamnos_pool
 B=/tmp/build/bench/ubench
 
-# ---- helper: start pxfs server, wait for it, run a command, stop it ---------
 start_pxfs() {
   /tmp/build/src/scm/pool_tool  create -p "${POOL}" -s "${POOL_SIZE}" 2>&1 | tail -1
   /tmp/build/src/pxfs/pxfs_mkfs create -p "${POOL}" -s "${POOL_SIZE}" -t mfs 2>&1 | tail -1
@@ -91,11 +92,23 @@ run_bench() {
   stop_pxfs
 }
 
+run_leak() {
+  start_pxfs
+  echo ""
+  echo "=== valgrind leak-check: pxfs_api_test ==="
+  valgrind --leak-check=full --show-leak-kinds=definite,indirect \
+           --errors-for-leak-kinds=definite --error-exitcode=99 \
+           "${B}/pxfs_api_test" -h 10000
+  echo "valgrind exit: $?"
+  stop_pxfs
+}
+
 case "${MODE}" in
-  api)            run_api ;;
-  bench)          run_bench ;;
-  all)            run_api; run_bench ;;
-  default|*)      run_api; run_bench ;;
+  api)        run_api ;;
+  bench)      run_bench ;;
+  leak)       run_leak ;;
+  all)        run_api; run_bench ;;
+  default|*)  run_api; run_bench ;;
 esac
 
 echo ""

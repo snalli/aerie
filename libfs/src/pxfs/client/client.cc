@@ -4,6 +4,7 @@
 #include "common/util.h"
 #include <sys/resource.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <arpa/inet.h>
 #include <getopt.h>
 #include <iostream>
@@ -640,13 +641,14 @@ Client::Unlink(const char* pathname)
 
 
 
-int 
-Client::Stat(const char *path, struct stat * /*buf*/)
+int
+Client::Stat(const char *path, struct stat *buf)
 {
 	int                 ret;
-	lock_protocol::Mode lock_mode = lock_protocol::Mode::XL; 
+	lock_protocol::Mode lock_mode = lock_protocol::Mode::XL;
 	Session*            session = CurrentSession();
 	Inode*              ip;
+	uint64_t            size = 0;
 
         s_log("[%ld] %s %s",s_tid, __func__, path);
 
@@ -654,6 +656,16 @@ Client::Stat(const char *path, struct stat * /*buf*/)
 		return ret;
 	}
 //	++statFile;
+	if (buf != NULL) {
+		memset(buf, 0, sizeof(*buf));
+		ip->ioctl(session, Inode::kSize, (void*) &size);
+		buf->st_size    = (off_t) size;
+		buf->st_ino     = (ino_t) ip->ino();
+		buf->st_nlink   = 1;
+		buf->st_mode    = S_IFREG | 0644;
+		buf->st_blksize = 4096;
+		buf->st_blocks  = (size + 511) / 512;
+	}
 	ip->Put();
 	ip->Unlock(session);
 
