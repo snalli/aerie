@@ -50,7 +50,9 @@ SharedRegion::Init(int oflag)
 		return -E_NOMEM;
 	}
 	if (oflag & O_CREAT) {
-		ftruncate(fd, size_);
+		if (ftruncate(fd, size_) < 0) {
+			return -E_NOMEM;
+		}
 	}
 	if ((base_ = mmap(0, size_, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) == NULL) {
 		return -E_NOMEM;

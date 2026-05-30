@@ -286,11 +286,11 @@ NameSpace::LockInodeReverse(Session* session, Inode* inode, lock_protocol::Mode 
 {
 	(void)lock_mode; // used only in assert() which disappears in Release builds
 	std::vector<Inode*> inode_chain;   // treated as a stack
-	std::vector<Inode*> locked_inodes; 
+	std::vector<Inode*> locked_inodes;
 	Inode*              tmp_inode;
 	Inode*              parent_inode;
 	int                 ret;
-	int                 retries = 0;
+	volatile int        retries = 0;
 
 	STM_BEGIN()
 		// the transaction does not automatically release any acquired locks 
