@@ -584,7 +584,11 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 		for (int i = 0; i<count; i++) {
 			if ((ret = pool_->AllocateExtent(4096, (void**) &buffer)) < 0) {
 				pool_->PrintStats();
-				assert(0 && "CONTAINER: OUT OF STORAGE: PANIC!");
+				// Return proper error instead of crashing with assertion
+				DBG_LOG(DBG_CRITICAL, DBG_MODULE(server_salloc),
+						"[%d] OUT OF STORAGE: Cannot allocate %zu bytes\n", clt, (size_t)4096);
+				ret = -E_NOMEM;
+				goto done;
 			}
 			for (size_t s=0; s<4096; s+=static_size) {
 				char* b = (char*) buffer + s;
@@ -594,7 +598,7 @@ StorageAllocator::AllocateContainerIntoSet(OsdSession* session, ObjectIdSet* set
 				}
 				set->Insert(session, obj->oid());
 			}
-		}	
+		}
 		ret = E_SUCCESS;
 		goto done;
 	}

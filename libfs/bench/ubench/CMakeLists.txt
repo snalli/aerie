@@ -70,6 +70,13 @@ target_include_directories(kvfs_multithread_test PRIVATE ${bench_incdirs})
 target_link_libraries(kvfs_multithread_test PRIVATE ${kvfs_libs})
 
 # ---------------------------------------------------------------------------
+# kvfs_space_test — space exhaustion test for kvfs
+# ---------------------------------------------------------------------------
+add_executable(kvfs_space_test kvfs_space_test.cc)
+target_include_directories(kvfs_space_test PRIVATE ${bench_incdirs})
+target_link_libraries(kvfs_space_test PRIVATE ${kvfs_libs})
+
+# ---------------------------------------------------------------------------
 # ubench_cfs
 # ---------------------------------------------------------------------------
 add_executable(ubench_cfs main.cc ${fs_common} fs/cfs.cc)
