@@ -2,6 +2,7 @@
 #define connection_h 1
 
 #include <arpa/inet.h>
+#include <cstddef>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
