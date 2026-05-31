@@ -8,7 +8,7 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 
-# Install base dependencies
+# Install base dependencies (matching build.yml)
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     gnupg \
     lsb-release \
+    libconfig++-dev \
+    libboost-dev \
+    libsparsehash-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install clang-format 22 from LLVM repositories
@@ -28,9 +31,11 @@ RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
     && update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 100 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install cppcheck
+# Install cppcheck and gcov (for coverage)
 RUN apt-get update && apt-get install -y \
     cppcheck \
+    gcovr \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Verify installations
