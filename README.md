@@ -12,11 +12,11 @@ with a local server process over RPC.
 ```
 ┌─────────────────────────────────────────┐
 │  Application                            │
-│  (links libfsc / libkvfsc / libc_api)   │
+│  (links libpxfsc / libkvfsc / libcfsc)  │
 └────────────────┬────────────────────────┘
                  │ TCP RPC (rpcnet) or shared-memory RPC (rpcfast)
 ┌────────────────▼────────────────────────┐
-│  pxfs_server  /  cfs_server  / kvfs_server │
+│  pxfs_server / cfs_server / kvfs_server │
 │  ├── OSD layer  (locking, journaling)   │
 │  ├── MFS backend (directory/file inodes)│
 │  └── SCM pool   (mmap'd persistent file)│
@@ -27,21 +27,38 @@ The storage pool is a regular file memory-mapped into the process address space.
 No kernel module or special hardware is required; SCM write latency can be
 emulated in userspace via `movnti` + busy-spin.
 
+> **Platform:** x86-64 Linux only — the codebase uses `rdtsc`, SSE `movnti`,
+> and x86 inline assembly. It will not compile on ARM or other architectures.
+
 ## Filesystem variants
 
 | Name | Server | Client API | Description |
 |------|--------|-----------|-------------|
 | **pxfs** | `pxfs_server` | `libfs_*` | Full POSIX-compatible filesystem — primary variant |
-| **rxfs** | `pxfs_server` | `rxfs_*` | Read-only replica client of pxfs |
-| **cfs**  | `cfs_server`  | `cfs_*`  | Cache filesystem — aggressive client-side caching |
-| **kvfs** | `kvfs_server` | `kvfs_*` | Key-value store (`put`/`get`/`del`) on the same OSD stack |
+| **rxfs** | `pxfs_server` | `rxfs_*`  | Read-only replica client of pxfs |
+| **cfs**  | `cfs_server`  | `cfs_*`   | Cache filesystem — aggressive client-side caching |
+| **kvfs** | `kvfs_server` | `kvfs_*`  | Key-value store (`put`/`get`/`del`) on the same OSD stack |
 
 ### OSD layer
 
 All filesystem variants are built on the **Object Storage Device (OSD)** layer
 which provides: distributed lock management (hierarchical + flat), journaling,
-versioned object management, and extent/container allocation.  `ubench_osd`
+versioned object management, and extent/container allocation. `ubench_osd`
 benchmarks the raw OSD layer without any filesystem on top.
+
+## Libraries built
+
+| Library | Description |
+|---------|-------------|
+| `librpcnet` / `librpcfast` | RPC transports (TCP / shared memory) |
+| `libbcsclt` / `libbcssrv` | Basic Communication Services client/server |
+| `libcommon` / `libscm` | Shared utilities and SCM pool abstraction |
+| `libosdclt` / `libosdsrv` | OSD client/server |
+| `libmfsclt` / `libmfssrv` | Metadata filesystem client/server |
+| `libpxfsc` / `libpxfss` | PXFS client/server |
+| `libcfsc` / `libcfss` | CFS client/server |
+| `librxfsc` | RXFS read-only client |
+| `libkvfsc` / `libkvfss` | KVFS client/server |
 
 ## pxfs API (`libfs_*`)
 
@@ -96,121 +113,167 @@ int     kvfs_sync();
 
 ### Requirements
 
-- Linux x86-64 (uses `rdtsc`, SSE `movnti`, `cpu_set_t`)
+- Linux x86-64
 - CMake ≥ 3.16
 - GCC with C++11 support
-- `libconfig++` (`libconfig++-dev` on Ubuntu)
-- Boost headers (`libboost-dev`)
-- Google Sparsehash (`libsparsehash-dev`)
+- `libconfig++-dev`
+- `libboost-dev`
+- `libsparsehash-dev`
 
 ### Quick build
 
 ```bash
-cmake -S libfs -B libfs/build -DRPC=net -DSCMPOOL=user
+cmake -S libfs -B libfs/build
 cmake --build libfs/build --parallel $(nproc)
 ```
 
-**Build options:**
+**Build options** (defaults shown):
 
 | Option | Values | Default | Description |
 |--------|--------|---------|-------------|
 | `RPC` | `net`, `fast`, `fast-two` | `net` | RPC transport (`net` = TCP; `fast` = shared-memory) |
-| `SCMPOOL` | `kernel`, `user` | `kernel` | Pool allocator (`user` works without patched kernel) |
+| `SCMPOOL` | `user`, `kernel` | `user` | Pool allocator (`user` works without patched kernel) |
 | `BUILD_BENCH` | `ON`, `OFF` | `ON` | Build benchmark and test programs |
 
-> **NVM kernel note:** `SCMPOOL=kernel` uses custom Linux syscalls (312/313)
-> for NVM memory protection and is only available on the patched Aerie kernel.
-> Use `SCMPOOL=user` for standard Linux.
+> **`SCMPOOL=kernel`** requires custom Linux syscalls (312/313) for NVM memory
+> protection, only available on the patched Aerie kernel. Use `SCMPOOL=user`
+> (the default) for standard Linux.
 
-### Local Docker build (recommended for development)
+### Local development with Docker (Apple Silicon / any OS)
 
-Reproduces the exact CI environment without installing anything:
-
-```bash
-./build-local.sh                           # build only
-./build-local.sh 2>&1 | grep -E "warning:|error:"  # check for warnings
-```
-
-The script uses `ubuntu:22.04` on `linux/amd64` with the same flags as CI and
-caches the build directory in a Docker volume for fast incremental rebuilds.
-
-### Docker Compose (server + bench)
+The Docker image pins to `linux/amd64` (via QEMU on Apple Silicon) and exactly
+matches the CI environment (Ubuntu 22.04, same compiler, same deps):
 
 ```bash
-# Build image and start pxfs server
-docker compose up --build
+# Interactive shell
+bash scripts/docker-ci-run.sh bash
 
-# Run micro-benchmark against the running server
-docker compose --profile bench run --rm bench
+# Build
+bash scripts/docker-ci-run.sh build
+
+# Format check / fix
+bash scripts/docker-ci-run.sh format-code
+bash scripts/docker-ci-run.sh format-fix
+
+# Full CI pipeline
+bash scripts/docker-ci-run.sh ci-full
 ```
+
+> **Note:** `pxfs_server` and other server processes require ASLR to be
+> disabled (`kernel.randomize_va_space=0`) because the SCM pool uses `MAP_FIXED`
+> to remap at its original address. Docker Desktop on Mac cannot set this sysctl,
+> so server-dependent tests only run reliably in CI on real x86-64 Linux.
+> VFS baseline tests run fine locally.
 
 ## Running manually
 
 ```bash
 BUILD=libfs/build
+export LIBFS_CONFIG=$PWD/libfs/libfs.ini
 
-# 1. Create storage pool (user-space allocator, no patched kernel needed)
+# 1. Create storage pool
 $BUILD/src/scm/pool_tool create -p /tmp/stamnos_pool -s 128M
 
 # 2. Format the filesystem
 $BUILD/src/pxfs/pxfs_mkfs create -p /tmp/stamnos_pool -s 128M -t mfs
 
 # 3. Start the server
-export LIBFS_CONFIG=$PWD/libfs/libfs.ini
-$BUILD/src/pxfs/pxfs_server -p 10000 -d 0 -s /tmp/stamnos_pool &
+$BUILD/src/pxfs/pxfs_server -p 10000 -s /tmp/stamnos_pool &
 
 # 4. Run API unit tests
 $BUILD/bench/ubench/pxfs_api_test -h 10000
 
-# 5. Run micro-benchmarks (all ops in one process invocation)
+# 5. Run micro-benchmarks
 $BUILD/bench/ubench/ubench_pxfs -h 10000 \
   +fs_create -n 100 -p /pxfs \
   +fs_open   -n 100 -p /pxfs \
   +fs_read   -n 100 -p /pxfs
 ```
 
-Configuration is read from `libfs/libfs.ini` (override with `$LIBFS_CONFIG`).
+## Command-line flags
+
+### Servers (`pxfs_server`, `kvfs_server`, `cfs_server`)
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-p <port>` | Listen port | `20000 + (pid % 10000)` |
+| `-s <path>` | Storage pool path | _(required)_ |
+| `-d <level>` | Debug level (overrides `libfs.ini`) | from config |
+| `-l` | Enable lossy RPC for fault testing | off |
+
+### Clients / benchmarks
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-h <host:port>` | Server address | `10000` |
+| `-d <level>` | Debug level | `0` |
+| `-l` | Enable lossy RPC | off |
+
+## Configuration (`libfs/libfs.ini`)
+
+```ini
+debug:
+{
+    level = 0;              # 0 = silent, higher = more verbose
+    module: { all = False; /* per-subsystem flags */ };
+};
+
+ipc:
+{
+    sharedbuffer: { size = "1M"; };   # client↔server shared ring buffer
+};
+
+scmmodel:
+{
+    latency = 0;    # emulated SCM write latency in nanoseconds
+};
+```
+
+**Every config key can be overridden via environment variable** by uppercasing
+and replacing `.` with `_`:
+
+```bash
+LIBFS_CONFIG=/path/to/libfs.ini      # use a different config file
+DEBUG_LEVEL=0                         # debug.level
+IPC_SHAREDBUFFER_SIZE=4M             # ipc.sharedbuffer.size
+SCMMODEL_LATENCY=100                 # 100 ns write latency emulation
+RPC_LOSSY=5                          # % packet drop (fault injection)
+```
 
 ## Benchmarks & tests
 
 ### Micro-benchmarks (`ubench`)
-
-Each binary runs identical operations against its filesystem backend:
 
 | Binary | Filesystem | Server needed |
 |--------|-----------|--------------|
 | `ubench_pxfs` | pxfs | `pxfs_server` |
 | `ubench_rxfs` | rxfs (read-only) | `pxfs_server` |
 | `ubench_cfs`  | cfs  | `cfs_server` |
-| `ubench_vfs`  | Linux VFS (baseline) | none |
 | `ubench_osd`  | OSD layer | `pxfs_server` |
+| `ubench_vfs`  | Linux VFS (baseline) | none |
 
 Available operations: `+fs_create`, `+fs_open`, `+fs_read`, `+fs_seqwrite`,
 `+fs_seqread`, `+fs_randread`, `+fs_randwrite`, `+fs_append`, `+fs_rename`,
 `+fs_unlink`, `+fs_delete`, `+fs_fread`
 
-Options: `-n <ops>` `-p <root_path>` `-s <size>`
+Options per operation: `-n <count>` `-p <root_path>` `-s <size>`
 
 ### API correctness tests
 
 ```bash
-# pxfs — tests open/close/read/write/pread/pwrite/lseek/mkdir/rmdir/
-#         rename/link/unlink/stat/dup/chdir/sync/fsync
-pxfs_api_test -h 10000
-
-# kvfs — tests put/get/del/overwrite/binary values/large values/sync
-kvfs_api_test -h 10000
+pxfs_api_test -h 10000   # open/read/write/pread/pwrite/lseek/mkdir/stat/...
+kvfs_api_test -h 10000   # put/get/del/overwrite/binary/large-value/sync
 ```
 
 ## CI
 
-Every push runs three jobs:
+Every push to master runs three jobs (Ubuntu 22.04, x86-64):
 
-| Job | What it does |
-|-----|-------------|
-| **CMake build** | Release build with `-Wall -Wextra` (must be warning-free) |
-| **ubench** | Smoke-tests pxfs/rxfs/osd/cfs/vfs with 1 op each; results in step summary |
-| **Docker** | Builds the runtime image; pushes to GHCR on version tags |
+| Job | Flags | What it does |
+|-----|-------|-------------|
+| **CMake build** | `-DRPC=fast -DSCMPOOL=kernel` | Release build, must be warning-free |
+| **ubench** | `-DRPC=net -DSCMPOOL=user` | Smoke-tests all filesystem variants; results posted to step summary |
+| **Docker** | — | Builds runtime image; pushes to GHCR on `v*` tags |
 
 ## Repository layout
 
@@ -222,14 +285,13 @@ libfs/
     osd/       Object Storage Device layer (locking, journaling, versioning)
     pxfs/      POSIX filesystem (server + client + mkfs)
     cfs/       Cache filesystem variant
-    rxfs/       Read-only client variant
+    rxfs/      Read-only client variant
     kvfs/      Key-value store variant
-    common/    Shared utilities, ASSERT_OK macro
+    common/    Shared utilities, timing (hrtime), errno
   bench/
-    ubench/    Micro-benchmarks + API unit tests (pxfs_api_test, kvfs_api_test)
-  scripts/     Docker entrypoint scripts
-  libfs.ini    Runtime configuration (debug levels, module flags)
-  build-local.sh  Reproduce CI build locally via Docker
+    ubench/    Micro-benchmarks + API unit tests
+  scripts/     CI and Docker helper scripts
+  libfs.ini    Runtime configuration
 kernelmode/
   scmdisk/     Optional kernel block device emulating SCM latency
 ```
