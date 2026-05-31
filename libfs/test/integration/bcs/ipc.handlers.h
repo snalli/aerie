@@ -3,13 +3,13 @@
 
 #include "bcs/bcs.h"
 
-class IpcTestHandlers {
-public:
+class IpcTestHandlers
+{
+  public:
+    static int Register(server::Ipc* ipc);
 
-	static int Register(server::Ipc* ipc);
-
-	int TestAdd(int a, int b, int& r);
-	int TestEcho(std::string s, std::string& r);
+    int TestAdd(int a, int b, int& r);
+    int TestEcho(std::string s, std::string& r);
 };
 
 #endif // __STAMNOS_TEST_IPC_HANDLERS_H

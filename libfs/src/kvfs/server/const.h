@@ -3,10 +3,9 @@
 
 #include "kvfs/common/const.h"
 
-namespace server {
-
+namespace server
+{
 
 } // namespace server
-
 
 #endif // __STAMNOS_KVFS_SERVER_CONST_H

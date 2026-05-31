@@ -4,16 +4,18 @@
 #include "osd/main/client/osd-opaque.h"
 #include "osd/main/client/session.h"
 
-namespace rxfs {
-namespace client {
+namespace rxfs
+{
+namespace client
+{
 
-class Session: public osd::client::OsdSession {
-public:
-	Session(osd::client::StorageSystem* stsystem)
-		: OsdSession(stsystem)
-	{ }
+class Session : public osd::client::OsdSession
+{
+  public:
+    Session(osd::client::StorageSystem* stsystem) : OsdSession(stsystem)
+    {
+    }
 };
-
 
 } // namespace client
 } // namespace rxfs

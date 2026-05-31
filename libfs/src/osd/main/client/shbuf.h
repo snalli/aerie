@@ -4,17 +4,18 @@
 #include "bcs/main/client/bcs-opaque.h"
 #include "bcs/main/client/shbuf.h"
 
-namespace osd {
-namespace client {
+namespace osd
+{
+namespace client
+{
 
-
-class OsdSharedBuffer: public ::client::SharedBuffer {
-public:
-	OsdSharedBuffer(::client::Ipc* ipc, ::SharedBuffer::Descriptor& dsc)
-		: SharedBuffer(ipc, dsc)
-	{ }
+class OsdSharedBuffer : public ::client::SharedBuffer
+{
+  public:
+    OsdSharedBuffer(::client::Ipc* ipc, ::SharedBuffer::Descriptor& dsc) : SharedBuffer(ipc, dsc)
+    {
+    }
 };
-
 
 } // namespace client
 } // namespace osd

@@ -9,44 +9,52 @@
  *       Our prototype does not implement recovery.
  */
 
-namespace osd {
-namespace server {
+namespace osd
+{
+namespace server
+{
 
-class Journal {
-public:
-	Journal()
-	  : mode_(osd::common::Journal::Server)
-	{ }
-
-	int TransactionBegin(int id = 0);
-	int TransactionCommit();
-	int TransactionAbort();
-
-	template<typename T>
-	void Store(volatile T* /*addr*/, T /*val*/)
-	{
-		//*addr = val;
-	}
-	
-	// FIXME: This is the Client Journal API that Server Journal does not 
-	// support (doesn't make sense to log publishing at Server side).
-	// Unfortunately we need these dummy functions to avoid getting compilation problems 
-	// of containers at the server. We need a more elegant way to reuse container common.h
-	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::ContainerOperationHeader& /*header*/) {
-		assert(0); // do not use this interface at server side.
-		return journal;
+class Journal
+{
+  public:
+    Journal() : mode_(osd::common::Journal::Server)
+    {
     }
 
-	inline friend Journal* operator<< (Journal* journal, const osd::Publisher::Message::LogicalOperationHeader& /*header*/) {
-		assert(0); // do not use this interface at server side.
-		return journal;
+    int TransactionBegin(int id = 0);
+    int TransactionCommit();
+    int TransactionAbort();
+
+    template <typename T> void Store(volatile T* /*addr*/, T /*val*/)
+    {
     }
 
-	int mode() { return mode_; }
-private:
-	int mode_;
+    // FIXME: This is the Client Journal API that Server Journal does not
+    // Unfortunately we need these dummy functions to avoid getting compilation problems
+    // of containers at the server. We need a more elegant way to reuse container common.h
+    inline friend Journal*
+    operator<<(Journal* journal,
+               const osd::Publisher::Message::ContainerOperationHeader& /*header*/)
+    {
+        assert(0); // do not use this interface at server side.
+        return journal;
+    }
+
+    inline friend Journal*
+    operator<<(Journal* journal, const osd::Publisher::Message::LogicalOperationHeader& /*header*/)
+    {
+        assert(0); // do not use this interface at server side.
+        return journal;
+    }
+
+    int mode()
+    {
+        return mode_;
+    }
+
+  private:
+    int mode_;
 };
-
 
 } // namespace server
 } // namespace osd

@@ -3,53 +3,55 @@
 
 #include <stdint.h>
 
-namespace osd {
-namespace server {
+namespace osd
+{
+namespace server
+{
 
-// this class is a Singleton because we need register a signal handler that 
+// this class is a Singleton because we need register a signal handler that
 
-#define STATISTICS_EVENTS(ACTION)                                                           \
-   ACTION(publish, "Publish events", NULL)                                                  \
-   ACTION(publish_time, "Cycles spent in publish", NULL)                                    \
-   ACTION(txcommits, "Transactions committed", NULL)                                        \
-   ACTION(clflushes, "Cachelines flushed", NULL)                                            
-//   ACTION(txclflushes, "Cachelines flushed per transaction", Average(clflushes, txcommits))
-
+#define STATISTICS_EVENTS(ACTION)                                                                  \
+    ACTION(publish, "Publish events", NULL)                                                        \
+    ACTION(publish_time, "Cycles spent in publish", NULL)                                          \
+    ACTION(txcommits, "Transactions committed", NULL)                                              \
+    ACTION(clflushes, "Cachelines flushed", NULL)
 
 #ifdef _STAMNOS_EXPAND_STATISTICS
-# define STATISTICS_INC(event) Statistics::instance()->Increment(Statistics::event, 1);
-# define STATISTICS_INC_BY(event, val) Statistics::instance()->Increment(Statistics::event, val);
+#define STATISTICS_INC(event) Statistics::instance()->Increment(Statistics::event, 1);
+#define STATISTICS_INC_BY(event, val) Statistics::instance()->Increment(Statistics::event, val);
 #else
-# define STATISTICS_INC(event)
-# define STATISTICS_INC_BY(event, val)
+#define STATISTICS_INC(event)
+#define STATISTICS_INC_BY(event, val)
 #endif
 
+class Statistics
+{
+  public:
+#define ENUMERATE_EVENTS(event, description, computefunction) event,
+    enum
+    {
+        kNullEvent = -1,
+        STATISTICS_EVENTS(ENUMERATE_EVENTS) kEventsCount
+    };
+#undef ENUMERATE_EVENTS
 
-class Statistics {
-public:
-	#define ENUMERATE_EVENTS(event, description, computefunction) event, 
-	enum {
-		kNullEvent = -1,
-		STATISTICS_EVENTS(ENUMERATE_EVENTS)
-		kEventsCount
-	};
-	#undef ENUMERATE_EVENTS
-	
-	Statistics();
+    Statistics();
 
-	static int Create();
-	static void SignalHandler(int signo);
-	static Statistics* instance();
-	int Init();
-	void Report();
-	void Increment(int event, uint64_t val) {
-		event_counts_[event]+=val;
-	}
-private:
-	uint64_t Average(int event1, int event2);
+    static int Create();
+    static void SignalHandler(int signo);
+    static Statistics* instance();
+    int Init();
+    void Report();
+    void Increment(int event, uint64_t val)
+    {
+        event_counts_[event] += val;
+    }
 
-	uint64_t           event_counts_[kEventsCount];
-	static Statistics* instance_;
+  private:
+    uint64_t Average(int event1, int event2);
+
+    uint64_t event_counts_[kEventsCount];
+    static Statistics* instance_;
 };
 
 } // namespace server

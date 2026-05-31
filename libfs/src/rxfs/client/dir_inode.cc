@@ -1,18 +1,18 @@
 #include "rxfs/client/dir_inode.h"
-#include "rxfs/client/file_inode.h"
-#include "rxfs/client/session.h"
-#include "rxfs/client/const.h"
-#include "osd/main/common/obj.h"
 #include "common/errno.h"
 #include "common/util.h"
+#include "osd/main/common/obj.h"
+#include "rxfs/client/const.h"
+#include "rxfs/client/file_inode.h"
+#include "rxfs/client/session.h"
 #include <stdio.h>
 
-namespace rxfs {
-namespace client {
+namespace rxfs
+{
+namespace client
+{
 
-
-int 
-DirInode::Link(Session* /*session*/, const char* /*name*/, uint64_t /*ino*/)
+int DirInode::Link(Session* /*session*/, const char* /*name*/, uint64_t /*ino*/)
 {
 #if 0
 	if (Inode::type(ino) != kFileInode) {
@@ -22,12 +22,10 @@ DirInode::Link(Session* /*session*/, const char* /*name*/, uint64_t /*ino*/)
 	// assign parent of underlying object
 	// set link count
 #endif
-	return E_SUCCESS;
+    return E_SUCCESS;
 }
 
-
-int 
-DirInode::Link(Session* /*session*/, const char* /*name*/, DirInode* /*child*/)
+int DirInode::Link(Session* /*session*/, const char* /*name*/, DirInode* /*child*/)
 {
 #if 0
 	if ((ret = obj_->Insert(session, name, child->oid())) < 0) {
@@ -46,12 +44,10 @@ DirInode::Link(Session* /*session*/, const char* /*name*/, DirInode* /*child*/)
 			child->obj()->set_nlink(child->obj()->nlink() + 1);
 	}
 #endif
-	return E_SUCCESS;
+    return E_SUCCESS;
 }
 
-
-int 
-DirInode::Link(Session* /*session*/, const char* /*name*/, FileInode* /*child*/)
+int DirInode::Link(Session* /*session*/, const char* /*name*/, FileInode* /*child*/)
 {
 #if 0
 	if (str_is_dot(name) > 0) {
@@ -65,14 +61,12 @@ DirInode::Link(Session* /*session*/, const char* /*name*/, FileInode* /*child*/)
 	child->obj()->set_parent(oid());
 	child->obj()->set_nlink(child->obj()->nlink() + 1);
 #endif
-	return E_SUCCESS;
+    return E_SUCCESS;
 }
 
-
-int 
-DirInode::Unlink(Session* /*session*/, const char* /*name*/)
+int DirInode::Unlink(Session* /*session*/, const char* /*name*/)
 {
-	int         ret = -E_INVAL;
+    int ret = -E_INVAL;
 #if 0
 	int         nlink;
 	FileInode   finode;
@@ -110,7 +104,6 @@ DirInode::Unlink(Session* /*session*/, const char* /*name*/)
 			dp->obj()->set_nlink(nlink - 1); // for forward link
 			obj()->set_nlink(obj()->nlink() - 1); // for child's backward link ..
 			// deallocate inode if unreachable 
-			// (if nlink becomes 1 as the directory still contains .. )
 			if (nlink - 1 == 1) {
 				//TODO
 			}
@@ -118,21 +111,21 @@ DirInode::Unlink(Session* /*session*/, const char* /*name*/)
 			break;
 	}
 #endif
-	return ret;
+    return ret;
 }
 
-
-int 
-DirInode::Lookup(Session* session, const char* name, InodeNumber* ino)
+int DirInode::Lookup(Session* session, const char* name, InodeNumber* ino)
 {
-	int                   ret;
-	osd::common::ObjectId child_oid;
+    int ret;
+    osd::common::ObjectId child_oid;
 
-	if ((ret = obj_->Find(session, name, &child_oid)) < 0) { return ret; }
-	*ino = child_oid.u64();
-	return E_SUCCESS;
+    if ((ret = obj_->Find(session, name, &child_oid)) < 0)
+    {
+        return ret;
+    }
+    *ino = child_oid.u64();
+    return E_SUCCESS;
 }
-
 
 } // namespace client
 } // namespace rxfs

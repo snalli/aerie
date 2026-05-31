@@ -5,48 +5,52 @@
 #include "bcs/main/common/macros.h"
 #include "bcs/main/server/shbuf.h"
 
-namespace server {
+namespace server
+{
 
 #ifdef _SVR2CLT_RPCNET
-struct ClientDescriptor {
-public:
-	ClientDescriptor(int clt, rpcnet::rpcc* rpccl)
-		: rpcc_(rpccl),
-		  clt_(clt)
-	{ }
-	
-	int Init();
-	int clt() { return clt_; }
+struct ClientDescriptor
+{
+  public:
+    ClientDescriptor(int clt, rpcnet::rpcc* rpccl) : rpcc_(rpccl), clt_(clt)
+    {
+    }
 
-	RPCNET_CALL(rpcc_, rpcnet::rpcc::to_max)
+    int Init();
+    int clt()
+    {
+        return clt_;
+    }
 
-protected:
-	rpcnet::rpcc* rpcc_;
-	int           clt_;
+    RPCNET_CALL(rpcc_, rpcnet::rpcc::to_max)
+
+  protected:
+    rpcnet::rpcc* rpcc_;
+    int clt_;
 };
 #endif
-
 
 #ifdef _SVR2CLT_RPCFAST
-struct ClientDescriptor {
-public:
-	ClientDescriptor(int clt, rpcfast::rpcc* rpccl)
-		: rpcc_(rpccl),
-		  clt_(clt)
-	{ }
-	
-	int Init();
-	int clt() { return clt_; }
+struct ClientDescriptor
+{
+  public:
+    ClientDescriptor(int clt, rpcfast::rpcc* rpccl) : rpcc_(rpccl), clt_(clt)
+    {
+    }
 
-	RPCFAST_CALL(rpcc_)
+    int Init();
+    int clt()
+    {
+        return clt_;
+    }
 
-protected:
-	rpcfast::rpcc* rpcc_;
-	int            clt_;
+    RPCFAST_CALL(rpcc_)
+
+  protected:
+    rpcfast::rpcc* rpcc_;
+    int clt_;
 };
 #endif
-
-
 
 } // namespace server
 

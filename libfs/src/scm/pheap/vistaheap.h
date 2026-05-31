@@ -29,46 +29,47 @@
 #ifndef __STAMNOS_SPA_VISTAHEAP_H
 #define __STAMNOS_SPA_VISTAHEAP_H
 
-#include <sys/types.h>
 #include <sys/mman.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-
 #define NBUCKETS 32
-#define BUCKET_MIN 3 /* log base 2 of smallest bucket size */
+#define BUCKET_MIN 3      /* log base 2 of smallest bucket size */
 #define EXTENDSIZE 131072 /* minimum amount that morecore extends the file */
 #define DEFAULT_PROT (PROT_READ | PROT_WRITE)
 #define MMAP_FLAGS (MAP_FILE | MAP_FIXED | MAP_SHARED)
-#define UP_TO_PAGE(x) (x%PAGESIZE==0?x:(x-(x%PAGESIZE)+PAGESIZE))
-#define DOWN_TO_PAGE(x) (x%PAGESIZE==0?x:(x-(x%PAGESIZE)))
-#define MAP_ADDR ((void*)0x20000000000L)
-#define MAP_ADDR2 ((void*)0x21000000000L)
+#define UP_TO_PAGE(x) (x % PAGESIZE == 0 ? x : (x - (x % PAGESIZE) + PAGESIZE))
+#define DOWN_TO_PAGE(x) (x % PAGESIZE == 0 ? x : (x - (x % PAGESIZE)))
+#define MAP_ADDR ((void*) 0x20000000000L)
+#define MAP_ADDR2 ((void*) 0x21000000000L)
 
-typedef struct nugget_s {
-	void*            addr;
-	struct nugget_s* next;
-} nugget;
+    typedef struct nugget_s
+    {
+        void* addr;
+        struct nugget_s* next;
+    } nugget;
 
-typedef struct vistaheap_s {
-	nugget*             bucketlists[NBUCKETS];
-	nugget*             nlist;     /* list of free nuggets for internals */
-	char*               base;
-	char*               limit;
-	char*               hardlimit;
-	volatile void*      key;	   /* can point to a vista_segment (volatile) */
-	int	                fd;        /* Stamnos: deprecated: we don't use this field */
-	struct vistaheap_s* allocator; /* VistaHeap from which to alloc internal data */
-	void*               root;      /* pointer to VistaHeap root */
-} VistaHeap;
+    typedef struct vistaheap_s
+    {
+        nugget* bucketlists[NBUCKETS];
+        nugget* nlist; /* list of free nuggets for internals */
+        char* base;
+        char* limit;
+        char* hardlimit;
+        volatile void* key;            /* can point to a vista_segment (volatile) */
+        int fd;                        /* Stamnos: deprecated: we don't use this field */
+        struct vistaheap_s* allocator; /* VistaHeap from which to alloc internal data */
+        void* root;                    /* pointer to VistaHeap root */
+    } VistaHeap;
 
-extern void* vistaheap_init(VistaHeap*, void*, void*, VistaHeap*);
-extern void* vistaheap_malloc(VistaHeap*, int);
-extern void  vistaheap_free(VistaHeap* h, void* p, int size);
-extern void* morecore(VistaHeap* h, int pages);
-
+    extern void* vistaheap_init(VistaHeap*, void*, void*, VistaHeap*);
+    extern void* vistaheap_malloc(VistaHeap*, int);
+    extern void vistaheap_free(VistaHeap* h, void* p, int size);
+    extern void* morecore(VistaHeap* h, int pages);
 
 #ifdef __cplusplus
 }

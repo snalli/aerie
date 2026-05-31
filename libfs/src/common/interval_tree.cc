@@ -1,11 +1,10 @@
 #include "common/interval_tree.h"
-#include <stdio.h>
-#include <math.h>
 #include "bcs/main/common/cdebug.h"
+#include <math.h>
+#include <stdio.h>
 
 // Author info:
 // http://www.mit.edu/~emin/source_code/cpp_trees/index.html
-
 
 // If the symbol CHECK_INTERVAL_TREE_ASSUMPTIONS is defined then the
 // code does a lot of extra checking to make sure certain assumptions
@@ -15,50 +14,41 @@
 //
 // #define CHECK_INTERVAL_TREE_ASSUMPTIONS 1
 
-
-const int MIN_INT=-MAX_INT;
+const int MIN_INT = -MAX_INT;
 
 // define a function to find the maximum of two objects.
-#define ITMax(a, b) ( (a > b) ? a : b )
+#define ITMax(a, b) ((a > b) ? a : b)
 
-IntervalTreeNode::IntervalTreeNode(){
-};
+IntervalTreeNode::IntervalTreeNode() {};
 
-IntervalTreeNode::IntervalTreeNode(Interval * newInterval) 
-  : storedInterval (newInterval) ,
-    key(newInterval->GetLowPoint()), 
-    high(newInterval->GetHighPoint()) , 
-    maxHigh(high) {
-};
+IntervalTreeNode::IntervalTreeNode(Interval* newInterval)
+    : storedInterval(newInterval), key(newInterval->GetLowPoint()),
+      high(newInterval->GetHighPoint()), maxHigh(high) {};
 
-IntervalTreeNode::~IntervalTreeNode(){
-};
+IntervalTreeNode::~IntervalTreeNode() {};
 
-Interval::Interval(){
-};
+Interval::Interval() {};
 
-Interval::~Interval(){
-};
+Interval::~Interval() {};
 
-void Interval::Print() const {
-	std::cout << "No Print Method defined for instance of Interval" << std::endl;
+void Interval::Print() const
+{
+    std::cout << "No Print Method defined for instance of Interval" << std::endl;
 }
-
 
 IntervalTree::IntervalTree()
 {
-	nil = new IntervalTreeNode;
-	nil->left = nil->right = nil->parent = nil;
-	nil->red = 0;
-	nil->key = nil->high = nil->maxHigh = MIN_INT;
-	nil->storedInterval = NULL;
+    nil = new IntervalTreeNode;
+    nil->left = nil->right = nil->parent = nil;
+    nil->red = 0;
+    nil->key = nil->high = nil->maxHigh = MIN_INT;
+    nil->storedInterval = NULL;
 
-	root = new IntervalTreeNode;
-	root->parent = root->left = root->right = nil;
-	root->key = root->high = root->maxHigh = MAX_INT;
-	root->red=0;
-	root->storedInterval = NULL;
-
+    root = new IntervalTreeNode;
+    root->parent = root->left = root->right = nil;
+    root->key = root->high = root->maxHigh = MAX_INT;
+    root->red = 0;
+    root->storedInterval = NULL;
 }
 
 /***********************************************************************/
@@ -78,50 +68,53 @@ IntervalTree::IntervalTree()
 /*            after rotation. */
 /***********************************************************************/
 
-void IntervalTree::LeftRotate(IntervalTreeNode* x) {
-	IntervalTreeNode* y;
+void IntervalTree::LeftRotate(IntervalTreeNode* x)
+{
+    IntervalTreeNode* y;
 
-	//  I originally wrote this function to use the sentinel for
-	//  nil to avoid checking for nil.  However this introduces a
-	//  very subtle bug because sometimes this function modifies
-	//  the parent pointer of nil.  This can be a problem if a
-	//  function which calls LeftRotate also uses the nil sentinel
-	//  and expects the nil sentinel's parent pointer to be unchanged
-	//  after calling this function.  For example, when DeleteFixUP
-	//  calls LeftRotate it expects the parent pointer of nil to be
-	//  unchanged.
+    //  I originally wrote this function to use the sentinel for
+    //  nil to avoid checking for nil.  However this introduces a
+    //  very subtle bug because sometimes this function modifies
+    //  the parent pointer of nil.  This can be a problem if a
+    //  function which calls LeftRotate also uses the nil sentinel
+    //  and expects the nil sentinel's parent pointer to be unchanged
+    //  after calling this function.  For example, when DeleteFixUP
+    //  calls LeftRotate it expects the parent pointer of nil to be
+    //  unchanged.
 
-	y=x->right;
-	x->right=y->left;
+    y = x->right;
+    x->right = y->left;
 
-	if (y->left != nil) { 
-		y->left->parent=x; // used to use sentinel here
-	}	
-	// and do an unconditional assignment instead of testing for nil
+    if (y->left != nil)
+    {
+        y->left->parent = x; // used to use sentinel here
+    }
+    // and do an unconditional assignment instead of testing for nil
 
-	y->parent=x->parent;   
+    y->parent = x->parent;
 
-	// instead of checking if x->parent is the root as in the book, we
-	// count on the root sentinel to implicitly take care of this case
-	if( x == x->parent->left) {
-		x->parent->left=y;
-	} else {
-		x->parent->right=y;
-	}
-	y->left=x;
-	x->parent=y;
+    // instead of checking if x->parent is the root as in the book, we
+    // count on the root sentinel to implicitly take care of this case
+    if (x == x->parent->left)
+    {
+        x->parent->left = y;
+    }
+    else
+    {
+        x->parent->right = y;
+    }
+    y->left = x;
+    x->parent = y;
 
-	x->maxHigh=ITMax(x->left->maxHigh,ITMax(x->right->maxHigh,x->high));
-	y->maxHigh=ITMax(x->maxHigh,ITMax(y->right->maxHigh,y->high));
+    x->maxHigh = ITMax(x->left->maxHigh, ITMax(x->right->maxHigh, x->high));
+    y->maxHigh = ITMax(x->maxHigh, ITMax(y->right->maxHigh, y->high));
 #ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
-	CheckAssumptions();
+    CheckAssumptions();
 #elif defined(DEBUG_ASSERT)
-	Assert(!nil->red,"nil not red in ITLeftRotate");
-	Assert((nil->maxHigh=MIN_INT),
-	       "nil->maxHigh != MIN_INT in ITLeftRotate");
+    Assert(!nil->red, "nil not red in ITLeftRotate");
+    Assert((nil->maxHigh = MIN_INT), "nil->maxHigh != MIN_INT in ITLeftRotate");
 #endif
 }
-
 
 /***********************************************************************/
 /*  FUNCTION:  RighttRotate */
@@ -140,45 +133,48 @@ void IntervalTree::LeftRotate(IntervalTreeNode* x) {
 /*            after rotation. */
 /***********************************************************************/
 
+void IntervalTree::RightRotate(IntervalTreeNode* y)
+{
+    IntervalTreeNode* x;
 
-void IntervalTree::RightRotate(IntervalTreeNode* y) {
-  IntervalTreeNode* x;
+    /*  I originally wrote this function to use the sentinel for */
+    /*  nil to avoid checking for nil.  However this introduces a */
+    /*  very subtle bug because sometimes this function modifies */
+    /*  the parent pointer of nil.  This can be a problem if a */
+    /*  function which calls LeftRotate also uses the nil sentinel */
+    /*  and expects the nil sentinel's parent pointer to be unchanged */
+    /*  after calling this function.  For example, when DeleteFixUP */
+    /*  calls LeftRotate it expects the parent pointer of nil to be */
+    /*  unchanged. */
 
-  /*  I originally wrote this function to use the sentinel for */
-  /*  nil to avoid checking for nil.  However this introduces a */
-  /*  very subtle bug because sometimes this function modifies */
-  /*  the parent pointer of nil.  This can be a problem if a */
-  /*  function which calls LeftRotate also uses the nil sentinel */
-  /*  and expects the nil sentinel's parent pointer to be unchanged */
-  /*  after calling this function.  For example, when DeleteFixUP */
-  /*  calls LeftRotate it expects the parent pointer of nil to be */
-  /*  unchanged. */
+    x = y->left;
+    y->left = x->right;
 
-  x=y->left;
-  y->left=x->right;
+    if (nil != x->right)
+        x->right->parent = y; /*used to use sentinel here */
+    /* and do an unconditional assignment instead of testing for nil */
 
-  if (nil != x->right)  x->right->parent=y; /*used to use sentinel here */
-  /* and do an unconditional assignment instead of testing for nil */
+    /* instead of checking if x->parent is the root as in the book, we */
+    /* count on the root sentinel to implicitly take care of this case */
+    x->parent = y->parent;
+    if (y == y->parent->left)
+    {
+        y->parent->left = x;
+    }
+    else
+    {
+        y->parent->right = x;
+    }
+    x->right = y;
+    y->parent = x;
 
-  /* instead of checking if x->parent is the root as in the book, we */
-  /* count on the root sentinel to implicitly take care of this case */
-  x->parent=y->parent;
-  if( y == y->parent->left) {
-    y->parent->left=x;
-  } else {
-    y->parent->right=x;
-  }
-  x->right=y;
-  y->parent=x;
-
-  y->maxHigh=ITMax(y->left->maxHigh,ITMax(y->right->maxHigh,y->high));
-  x->maxHigh=ITMax(x->left->maxHigh,ITMax(y->maxHigh,x->high));
+    y->maxHigh = ITMax(y->left->maxHigh, ITMax(y->right->maxHigh, y->high));
+    x->maxHigh = ITMax(x->left->maxHigh, ITMax(y->maxHigh, x->high));
 #ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
-  CheckAssumptions();
+    CheckAssumptions();
 #elif defined(DEBUG_ASSERT)
-  Assert(!nil->red,"nil not red in ITRightRotate");
-  Assert((nil->maxHigh=MIN_INT),
-	 "nil->maxHigh != MIN_INT in ITRightRotate");
+    Assert(!nil->red, "nil not red in ITRightRotate");
+    Assert((nil->maxHigh = MIN_INT), "nil->maxHigh != MIN_INT in ITRightRotate");
 #endif
 }
 
@@ -197,36 +193,42 @@ void IntervalTree::RightRotate(IntervalTreeNode* y) {
 /*            by the InsertTree function and not by the user */
 /***********************************************************************/
 
-void IntervalTree::TreeInsertHelp(IntervalTreeNode* z) {
-	/*  This function should only be called by InsertITTree (see above) */
-	IntervalTreeNode* x;
-	IntervalTreeNode* y;
+void IntervalTree::TreeInsertHelp(IntervalTreeNode* z)
+{
+    /*  This function should only be called by InsertITTree (see above) */
+    IntervalTreeNode* x;
+    IntervalTreeNode* y;
 
-	z->left=z->right=nil;
-	y=root;
-	x=root->left;
-	while( x != nil) {
-		y=x;
-		if ( x->key > z->key) { 
-			x=x->left;
-		} else { /* x->key <= z->key */
-			x=x->right;
-		}
-	}
-	z->parent=y;
-	if ( (y == root) || (y->key > z->key) ) { 
-		y->left=z;
-	} else {
-		y->right=z;
-	}
+    z->left = z->right = nil;
+    y = root;
+    x = root->left;
+    while (x != nil)
+    {
+        y = x;
+        if (x->key > z->key)
+        {
+            x = x->left;
+        }
+        else
+        { /* x->key <= z->key */
+            x = x->right;
+        }
+    }
+    z->parent = y;
+    if ((y == root) || (y->key > z->key))
+    {
+        y->left = z;
+    }
+    else
+    {
+        y->right = z;
+    }
 
 #if defined(DEBUG_ASSERT)
-	Assert(!nil->red,"nil not red in ITTreeInsertHelp");
-	Assert((nil->maxHigh=MIN_INT),
-	       "nil->maxHigh != MIN_INT in ITTreeInsertHelp");
+    Assert(!nil->red, "nil not red in ITTreeInsertHelp");
+    Assert((nil->maxHigh = MIN_INT), "nil->maxHigh != MIN_INT in ITTreeInsertHelp");
 #endif
 }
-
 
 /***********************************************************************/
 /*  FUNCTION:  FixUpMaxHigh  */
@@ -241,13 +243,15 @@ void IntervalTree::TreeInsertHelp(IntervalTreeNode* z) {
 /*            an insertion or deletion */
 /***********************************************************************/
 
-void IntervalTree::FixUpMaxHigh(IntervalTreeNode* x) {
-	while(x != root) {
-		x->maxHigh=ITMax(x->high,ITMax(x->left->maxHigh,x->right->maxHigh));
-		x=x->parent;
-	}
+void IntervalTree::FixUpMaxHigh(IntervalTreeNode* x)
+{
+    while (x != root)
+    {
+        x->maxHigh = ITMax(x->high, ITMax(x->left->maxHigh, x->right->maxHigh));
+        x = x->parent;
+    }
 #ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
-	CheckAssumptions();
+    CheckAssumptions();
 #endif
 }
 
@@ -270,65 +274,76 @@ void IntervalTree::FixUpMaxHigh(IntervalTreeNode* x) {
 /*            info pointers and inserts it into the tree. */
 /***********************************************************************/
 
-IntervalTreeNode * IntervalTree::Insert(Interval * newInterval)
+IntervalTreeNode* IntervalTree::Insert(Interval* newInterval)
 {
-	IntervalTreeNode * y;
-	IntervalTreeNode * x;
-	IntervalTreeNode * newNode;
+    IntervalTreeNode* y;
+    IntervalTreeNode* x;
+    IntervalTreeNode* newNode;
 
-	x = new IntervalTreeNode(newInterval);
-	TreeInsertHelp(x);
-	FixUpMaxHigh(x->parent);
-	newNode = x;
-	x->red=1;
+    x = new IntervalTreeNode(newInterval);
+    TreeInsertHelp(x);
+    FixUpMaxHigh(x->parent);
+    newNode = x;
+    x->red = 1;
 
-	while(x->parent->red) { /* use sentinel instead of checking for root */
-		if (x->parent == x->parent->parent->left) {
-			y=x->parent->parent->right;
-			if (y->red) {
-				x->parent->red=0;
-				y->red=0;
-				x->parent->parent->red=1;
-				x=x->parent->parent;
-			} else {
-				if (x == x->parent->right) {
-					x=x->parent;
-					LeftRotate(x);
-				}
-				x->parent->red=0;
-				x->parent->parent->red=1;
-				RightRotate(x->parent->parent);
-			} 
-		} else { /* case for x->parent == x->parent->parent->right */
-				 /* this part is just like the section above with */
-				 /* left and right interchanged */
-			y=x->parent->parent->left;
-			if (y->red) {
-				x->parent->red=0;
-				y->red=0;
-				x->parent->parent->red=1;
-				x=x->parent->parent;
-			} else {
-				if (x == x->parent->left) {
-					x=x->parent;
-					RightRotate(x);
-				}
-				x->parent->red=0;
-				x->parent->parent->red=1;
-				LeftRotate(x->parent->parent);
-			} 
-		}
-	}
-	root->left->red=0;
-	return(newNode);
+    while (x->parent->red)
+    { /* use sentinel instead of checking for root */
+        if (x->parent == x->parent->parent->left)
+        {
+            y = x->parent->parent->right;
+            if (y->red)
+            {
+                x->parent->red = 0;
+                y->red = 0;
+                x->parent->parent->red = 1;
+                x = x->parent->parent;
+            }
+            else
+            {
+                if (x == x->parent->right)
+                {
+                    x = x->parent;
+                    LeftRotate(x);
+                }
+                x->parent->red = 0;
+                x->parent->parent->red = 1;
+                RightRotate(x->parent->parent);
+            }
+        }
+        else
+        { /* case for x->parent == x->parent->parent->right */
+            /* this part is just like the section above with */
+            /* left and right interchanged */
+            y = x->parent->parent->left;
+            if (y->red)
+            {
+                x->parent->red = 0;
+                y->red = 0;
+                x->parent->parent->red = 1;
+                x = x->parent->parent;
+            }
+            else
+            {
+                if (x == x->parent->left)
+                {
+                    x = x->parent;
+                    RightRotate(x);
+                }
+                x->parent->red = 0;
+                x->parent->parent->red = 1;
+                LeftRotate(x->parent->parent);
+            }
+        }
+    }
+    root->left->red = 0;
+    return (newNode);
 
 #ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
-	CheckAssumptions();
+    CheckAssumptions();
 #elif defined(DEBUG_ASSERT)
-	Assert(!nil->red,"nil not red in ITTreeInsert");
-	Assert(!root->red,"root not red in ITTreeInsert");
-	Assert((nil->maxHigh=MIN_INT),
-	       "nil->maxHigh != MIN_INT in ITTreeInsert");
+    Assert(!nil->red, "nil not red in ITTreeInsert");
+    Assert(!root->red, "root not red in ITTreeInsert");
+    Assert((nil->maxHigh = MIN_INT), "nil->maxHigh != MIN_INT in ITTreeInsert");
 #endif
 }
 
@@ -344,25 +359,31 @@ IntervalTreeNode * IntervalTree::Insert(Interval * newInterval)
 /**/
 /*    Note:  uses the algorithm in _Introduction_To_Algorithms_ */
 /***********************************************************************/
-  
-IntervalTreeNode * IntervalTree::GetSuccessorOf(IntervalTreeNode * x) const
-{ 
-	IntervalTreeNode* y;
 
-	if (nil != (y = x->right)) { // assignment to y is intentional
-		while(y->left != nil) { // returns the minium of the right subtree of x
-			y=y->left;
-		}
-		return(y);
-	} else {
-		y=x->parent;
-		while(x == y->right) { // sentinel used instead of checking for nil
-			x=y;
-			y=y->parent;
-		}
-		if (y == root) return(nil);
-		return(y);
-	}
+IntervalTreeNode* IntervalTree::GetSuccessorOf(IntervalTreeNode* x) const
+{
+    IntervalTreeNode* y;
+
+    if (nil != (y = x->right))
+    { // assignment to y is intentional
+        while (y->left != nil)
+        { // returns the minium of the right subtree of x
+            y = y->left;
+        }
+        return (y);
+    }
+    else
+    {
+        y = x->parent;
+        while (x == y->right)
+        { // sentinel used instead of checking for nil
+            x = y;
+            y = y->parent;
+        }
+        if (y == root)
+            return (nil);
+        return (y);
+    }
 }
 
 /***********************************************************************/
@@ -378,23 +399,30 @@ IntervalTreeNode * IntervalTree::GetSuccessorOf(IntervalTreeNode * x) const
 /*    Note:  uses the algorithm in _Introduction_To_Algorithms_ */
 /***********************************************************************/
 
-IntervalTreeNode * IntervalTree::GetPredecessorOf(IntervalTreeNode * x) const {
-  IntervalTreeNode* y;
+IntervalTreeNode* IntervalTree::GetPredecessorOf(IntervalTreeNode* x) const
+{
+    IntervalTreeNode* y;
 
-  if (nil != (y = x->left)) { /* assignment to y is intentional */
-    while(y->right != nil) { /* returns the maximum of the left subtree of x */
-      y=y->right;
+    if (nil != (y = x->left))
+    { /* assignment to y is intentional */
+        while (y->right != nil)
+        { /* returns the maximum of the left subtree of x */
+            y = y->right;
+        }
+        return (y);
     }
-    return(y);
-  } else {
-    y=x->parent;
-    while(x == y->left) { 
-      if (y == root) return(nil); 
-      x=y;
-      y=y->parent;
+    else
+    {
+        y = x->parent;
+        while (x == y->left)
+        {
+            if (y == root)
+                return (nil);
+            x = y;
+            y = y->parent;
+        }
+        return (y);
     }
-    return(y);
-  }
 }
 
 /***********************************************************************/
@@ -412,59 +440,74 @@ IntervalTreeNode * IntervalTree::GetPredecessorOf(IntervalTreeNode * x) const {
 /*    Note:    This function should only be called from ITTreePrint */
 /***********************************************************************/
 
-void IntervalTreeNode::Print(IntervalTreeNode * nil, 
-                             IntervalTreeNode * root) const 
+void IntervalTreeNode::Print(IntervalTreeNode* nil, IntervalTreeNode* root) const
 {
-	storedInterval->Print();
-	printf(", node=%p, left=%p, right=%p\n", this, left, right);
-	printf(", k=%i, h=%i, mH=%i",key,high,maxHigh);
-	printf("  l->key=");
-	if( left == nil) printf("NULL"); else printf("%i",left->key);
-	printf("  r->key=");
-	if( right == nil) printf("NULL"); else printf("%i",right->key);
-	printf("  p->key=");
-	if( parent == root) printf("NULL"); else printf("%i",parent->key);
-	printf("  red=%i\n",red);
+    storedInterval->Print();
+    printf(", node=%p, left=%p, right=%p\n", this, left, right);
+    printf(", k=%i, h=%i, mH=%i", key, high, maxHigh);
+    printf("  l->key=");
+    if (left == nil)
+        printf("NULL");
+    else
+        printf("%i", left->key);
+    printf("  r->key=");
+    if (right == nil)
+        printf("NULL");
+    else
+        printf("%i", right->key);
+    printf("  p->key=");
+    if (parent == root)
+        printf("NULL");
+    else
+        printf("%i", parent->key);
+    printf("  red=%i\n", red);
 }
 
-void IntervalTree::TreePrintHelper( IntervalTreeNode* x) const 
+void IntervalTree::TreePrintHelper(IntervalTreeNode* x) const
 {
-	if (x != nil) {
-		TreePrintHelper(x->left);
-		x->Print(nil,root);
-		TreePrintHelper(x->right);
-	}
+    if (x != nil)
+    {
+        TreePrintHelper(x->left);
+        x->Print(nil, root);
+        TreePrintHelper(x->right);
+    }
 }
 
-IntervalTree::~IntervalTree() {
-	IntervalTreeNode * x = root->left;
-	TemplateStack<IntervalTreeNode *> stuffToFree;
+IntervalTree::~IntervalTree()
+{
+    IntervalTreeNode* x = root->left;
+    TemplateStack<IntervalTreeNode*> stuffToFree;
 
-	if (x != nil) {
-		if (x->left != nil) {
-			stuffToFree.Push(x->left);
-		}
-		if (x->right != nil) {
-			stuffToFree.Push(x->right);
-		}
-		delete x->storedInterval;
-		delete x;
-		while( stuffToFree.NotEmpty() ) {
-			x = stuffToFree.Pop();
-			if (x->left != nil) {
-				stuffToFree.Push(x->left);
-			}
-			if (x->right != nil) {
-				stuffToFree.Push(x->right);
-			}
-			delete x->storedInterval;
-			delete x;
-		}
-	}
-	delete nil;
-	delete root;
+    if (x != nil)
+    {
+        if (x->left != nil)
+        {
+            stuffToFree.Push(x->left);
+        }
+        if (x->right != nil)
+        {
+            stuffToFree.Push(x->right);
+        }
+        delete x->storedInterval;
+        delete x;
+        while (stuffToFree.NotEmpty())
+        {
+            x = stuffToFree.Pop();
+            if (x->left != nil)
+            {
+                stuffToFree.Push(x->left);
+            }
+            if (x->right != nil)
+            {
+                stuffToFree.Push(x->right);
+            }
+            delete x->storedInterval;
+            delete x;
+        }
+    }
+    delete nil;
+    delete root;
 }
-
 
 /***********************************************************************/
 /*  FUNCTION:  Print */
@@ -480,8 +523,9 @@ IntervalTree::~IntervalTree() {
 /**/
 /***********************************************************************/
 
-void IntervalTree::Print() const {
-  TreePrintHelper(root->left);
+void IntervalTree::Print() const
+{
+    TreePrintHelper(root->left);
 }
 
 /***********************************************************************/
@@ -500,72 +544,85 @@ void IntervalTree::Print() const {
 /*    The algorithm from this function is from _Introduction_To_Algorithms_ */
 /***********************************************************************/
 
-void IntervalTree::DeleteFixUp(IntervalTreeNode* x) {
-	IntervalTreeNode* w;
-	IntervalTreeNode* rootLeft = root->left;
+void IntervalTree::DeleteFixUp(IntervalTreeNode* x)
+{
+    IntervalTreeNode* w;
+    IntervalTreeNode* rootLeft = root->left;
 
-	while( (!x->red) && (rootLeft != x)) {
-		if (x == x->parent->left) {
-			w=x->parent->right;
-			if (w->red) {
-				w->red=0;
-				x->parent->red=1;
-				LeftRotate(x->parent);
-				w=x->parent->right;
-			}
-			if ( (!w->right->red) && (!w->left->red) ) { 
-				w->red=1;
-				x=x->parent;
-			} else {
-				if (!w->right->red) {
-					w->left->red=0;
-					w->red=1;
-					RightRotate(w);
-					w=x->parent->right;
-				}
-				w->red=x->parent->red;
-				x->parent->red=0;
-				w->right->red=0;
-				LeftRotate(x->parent);
-				x=rootLeft; /* this is to exit while loop */
-			}
-		} else { /* the code below is has left and right switched from above */
-			w=x->parent->left;
-			if (w->red) {
-				w->red=0;
-				x->parent->red=1;
-				RightRotate(x->parent);
-				w=x->parent->left;
-			}
-			if ( (!w->right->red) && (!w->left->red) ) { 
-				w->red=1;
-				x=x->parent;
-			} else {
-				if (!w->left->red) {
-					w->right->red=0;
-					w->red=1;
-					LeftRotate(w);
-					w=x->parent->left;
-				}
-				w->red=x->parent->red;
-				x->parent->red=0;
-				w->left->red=0;
-				RightRotate(x->parent);
-				x=rootLeft; /* this is to exit while loop */
-			}
-		}
-	}
-	x->red=0;
+    while ((!x->red) && (rootLeft != x))
+    {
+        if (x == x->parent->left)
+        {
+            w = x->parent->right;
+            if (w->red)
+            {
+                w->red = 0;
+                x->parent->red = 1;
+                LeftRotate(x->parent);
+                w = x->parent->right;
+            }
+            if ((!w->right->red) && (!w->left->red))
+            {
+                w->red = 1;
+                x = x->parent;
+            }
+            else
+            {
+                if (!w->right->red)
+                {
+                    w->left->red = 0;
+                    w->red = 1;
+                    RightRotate(w);
+                    w = x->parent->right;
+                }
+                w->red = x->parent->red;
+                x->parent->red = 0;
+                w->right->red = 0;
+                LeftRotate(x->parent);
+                x = rootLeft; /* this is to exit while loop */
+            }
+        }
+        else
+        { /* the code below is has left and right switched from above */
+            w = x->parent->left;
+            if (w->red)
+            {
+                w->red = 0;
+                x->parent->red = 1;
+                RightRotate(x->parent);
+                w = x->parent->left;
+            }
+            if ((!w->right->red) && (!w->left->red))
+            {
+                w->red = 1;
+                x = x->parent;
+            }
+            else
+            {
+                if (!w->left->red)
+                {
+                    w->right->red = 0;
+                    w->red = 1;
+                    LeftRotate(w);
+                    w = x->parent->left;
+                }
+                w->red = x->parent->red;
+                x->parent->red = 0;
+                w->left->red = 0;
+                RightRotate(x->parent);
+                x = rootLeft; /* this is to exit while loop */
+            }
+        }
+    }
+    x->red = 0;
 
 #ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
-	CheckAssumptions();
+    CheckAssumptions();
 #elif defined(DEBUG_ASSERT)
-	Assert(!nil->red,"nil not black in ITDeleteFixUp");
-	Assert((nil->maxHigh=MIN_INT),
-	       "nil->maxHigh != MIN_INT in ITDeleteFixUp");
+    Assert(!nil->red, "nil not black in ITDeleteFixUp");
+    Assert((nil->maxHigh = MIN_INT), "nil->maxHigh != MIN_INT in ITDeleteFixUp");
 #endif
 }
-
 
 /***********************************************************************/
 /*  FUNCTION:  DeleteNode */
@@ -583,66 +640,81 @@ void IntervalTree::DeleteFixUp(IntervalTreeNode* x) {
 /*    The algorithm from this function is from _Introduction_To_Algorithms_ */
 /***********************************************************************/
 
-Interval * IntervalTree::DeleteNode(IntervalTreeNode * z){
-  IntervalTreeNode* y;
-  IntervalTreeNode* x;
-  Interval * returnValue = z->storedInterval;
+Interval* IntervalTree::DeleteNode(IntervalTreeNode* z)
+{
+    IntervalTreeNode* y;
+    IntervalTreeNode* x;
+    Interval* returnValue = z->storedInterval;
 
-  y= ((z->left == nil) || (z->right == nil)) ? z : GetSuccessorOf(z);
-  x= (y->left == nil) ? y->right : y->left;
-  if (root == (x->parent = y->parent)) { /* assignment of y->p to x->p is intentional */
-    root->left=x;
-  } else {
-    if (y == y->parent->left) {
-      y->parent->left=x;
-    } else {
-      y->parent->right=x;
+    y = ((z->left == nil) || (z->right == nil)) ? z : GetSuccessorOf(z);
+    x = (y->left == nil) ? y->right : y->left;
+    if (root == (x->parent = y->parent))
+    { /* assignment of y->p to x->p is intentional */
+        root->left = x;
     }
-  }
-  if (y != z) { /* y should not be nil in this case */
+    else
+    {
+        if (y == y->parent->left)
+        {
+            y->parent->left = x;
+        }
+        else
+        {
+            y->parent->right = x;
+        }
+    }
+    if (y != z)
+    { /* y should not be nil in this case */
 
 #ifdef DEBUG_ASSERT
-    Assert( (y!=nil),"y is nil in DeleteNode \n");
+        Assert((y != nil), "y is nil in DeleteNode \n");
 #endif
-    /* y is the node to splice out and x is its child */
-  
-    y->maxHigh = MIN_INT;
-    y->left=z->left;
-    y->right=z->right;
-    y->parent=z->parent;
-    z->left->parent=z->right->parent=y;
-    if (z == z->parent->left) {
-      z->parent->left=y; 
-    } else {
-      z->parent->right=y;
-    }
-    FixUpMaxHigh(x->parent); 
-    if (!(y->red)) {
-      y->red = z->red;
-      DeleteFixUp(x);
-    } else
-      y->red = z->red; 
-    delete z;
-#ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
-    CheckAssumptions();
-#elif defined(DEBUG_ASSERT)
-    Assert(!nil->red,"nil not black in ITDelete");
-    Assert((nil->maxHigh=MIN_INT),"nil->maxHigh != MIN_INT in ITDelete");
-#endif
-  } else {
-    FixUpMaxHigh(x->parent);
-    if (!(y->red)) DeleteFixUp(x);
-    delete y;
-#ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
-    CheckAssumptions();
-#elif defined(DEBUG_ASSERT)
-    Assert(!nil->red,"nil not black in ITDelete");
-    Assert((nil->maxHigh=MIN_INT),"nil->maxHigh != MIN_INT in ITDelete");
-#endif
-  }
-  return returnValue;
-}
+        /* y is the node to splice out and x is its child */
 
+        y->maxHigh = MIN_INT;
+        y->left = z->left;
+        y->right = z->right;
+        y->parent = z->parent;
+        z->left->parent = z->right->parent = y;
+        if (z == z->parent->left)
+        {
+            z->parent->left = y;
+        }
+        else
+        {
+            z->parent->right = y;
+        }
+        FixUpMaxHigh(x->parent);
+        if (!(y->red))
+        {
+            y->red = z->red;
+            DeleteFixUp(x);
+        }
+        else
+            y->red = z->red;
+        delete z;
+#ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
+        CheckAssumptions();
+#elif defined(DEBUG_ASSERT)
+        Assert(!nil->red, "nil not black in ITDelete");
+        Assert((nil->maxHigh = MIN_INT), "nil->maxHigh != MIN_INT in ITDelete");
+#endif
+    }
+    else
+    {
+        FixUpMaxHigh(x->parent);
+        if (!(y->red))
+            DeleteFixUp(x);
+        delete y;
+#ifdef CHECK_INTERVAL_TREE_ASSUMPTIONS
+        CheckAssumptions();
+#elif defined(DEBUG_ASSERT)
+        Assert(!nil->red, "nil not black in ITDelete");
+        Assert((nil->maxHigh = MIN_INT), "nil->maxHigh != MIN_INT in ITDelete");
+#endif
+    }
+    return returnValue;
+}
 
 /***********************************************************************/
 /*  FUNCTION:  Overlap */
@@ -657,54 +729,60 @@ Interval * IntervalTree::DeleteNode(IntervalTreeNode * z){
 /*    EFFECT:  returns 1 if the intervals overlap, and 0 otherwise */
 /***********************************************************************/
 
-int Overlap2(int a1, int a2, int b1, int b2) {
-  if (a1 <= b1) {
-    return( (b1 <= a2) );
-  } else {
-    return( (a1 <= b2) );
-  }
-}
-
-
-int IntervalTree::CheckMaxHighFieldsHelper(IntervalTreeNode * y, 
-				    const int currentHigh,
-				    int match) const
+int Overlap2(int a1, int a2, int b1, int b2)
 {
-	if (y != nil) {
-		match = CheckMaxHighFieldsHelper(y->left,currentHigh,match) ? 1 : match;
-		VERIFY(y->high <= currentHigh);
-		if (y->high == currentHigh) {
-			match = 1;
-		}
-		match = CheckMaxHighFieldsHelper(y->right,currentHigh,match) ? 1 : match;
-	}
-	return match;
+    if (a1 <= b1)
+    {
+        return ((b1 <= a2));
+    }
+    else
+    {
+        return ((a1 <= b2));
+    }
 }
 
-	  
+int IntervalTree::CheckMaxHighFieldsHelper(IntervalTreeNode* y, const int currentHigh,
+                                           int match) const
+{
+    if (y != nil)
+    {
+        match = CheckMaxHighFieldsHelper(y->left, currentHigh, match) ? 1 : match;
+        VERIFY(y->high <= currentHigh);
+        if (y->high == currentHigh)
+        {
+            match = 1;
+        }
+        match = CheckMaxHighFieldsHelper(y->right, currentHigh, match) ? 1 : match;
+    }
+    return match;
+}
+
 /* Make sure the maxHigh fields for everything makes sense. *
  * If something is wrong, print a warning and exit */
-void IntervalTree::CheckMaxHighFields(IntervalTreeNode * x) const {
-	if (x != nil) {
-		CheckMaxHighFields(x->left);
-		if(!(CheckMaxHighFieldsHelper(x,x->maxHigh,0) > 0)) {
-			dbg_log (DBG_CRITICAL, "error found in CheckMaxHighFields.\n");
-		}
-		CheckMaxHighFields(x->right);
-	}
+void IntervalTree::CheckMaxHighFields(IntervalTreeNode* x) const
+{
+    if (x != nil)
+    {
+        CheckMaxHighFields(x->left);
+        if (!(CheckMaxHighFieldsHelper(x, x->maxHigh, 0) > 0))
+        {
+            dbg_log(DBG_CRITICAL, "error found in CheckMaxHighFields.\n");
+        }
+        CheckMaxHighFields(x->right);
+    }
 }
 
-
-void IntervalTree::CheckAssumptions() const {
-	VERIFY(nil->key == MIN_INT);
-	VERIFY(nil->high == MIN_INT);
-	VERIFY(nil->maxHigh == MIN_INT);
-	VERIFY(root->key == MAX_INT);
-	VERIFY(root->high == MAX_INT);
-	VERIFY(root->maxHigh == MAX_INT);
-	VERIFY(nil->storedInterval == NULL);
-	VERIFY(root->storedInterval == NULL);
-	VERIFY(nil->red == 0);
-	VERIFY(root->red == 0);
-	CheckMaxHighFields(root->left);
+void IntervalTree::CheckAssumptions() const
+{
+    VERIFY(nil->key == MIN_INT);
+    VERIFY(nil->high == MIN_INT);
+    VERIFY(nil->maxHigh == MIN_INT);
+    VERIFY(root->key == MAX_INT);
+    VERIFY(root->high == MAX_INT);
+    VERIFY(root->maxHigh == MAX_INT);
+    VERIFY(nil->storedInterval == NULL);
+    VERIFY(root->storedInterval == NULL);
+    VERIFY(nil->red == 0);
+    VERIFY(root->red == 0);
+    CheckMaxHighFields(root->left);
 }

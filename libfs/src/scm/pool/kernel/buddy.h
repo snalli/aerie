@@ -38,7 +38,6 @@ requested within the pool starting at an address that is a multiple of
 its blocksize without overlapping some already allocated block.
 */
 
-
 /* Size of header + trailer in a free block, in ints */
 #define HEADER_LEN 3
 #define TRAILER_LEN 1
@@ -46,13 +45,13 @@ its blocksize without overlapping some already allocated block.
 
 struct PoolInfo
 {
-    char *poolStart; /* First byte in the pool */
+    char* poolStart; /* First byte in the pool */
     int poolBlocks;
 
-    int minBits;     /* Minimum block size is 1 << minBits */
-    int numSizes;    /* sizes go up by powers of two */
-    size_t *freeList; /* free lists */
-    char *map;	     /* bit map */
+    int minBits;      /* Minimum block size is 1 << minBits */
+    int numSizes;     /* sizes go up by powers of two */
+    size_t* freeList; /* free lists */
+    char* map;        /* bit map */
     size_t freeBytes;
 };
 
@@ -96,36 +95,36 @@ struct PoolInfo
  * the current block
  */
 
- /* All routines return NULL for success, a static ASCIZ error message
-  * otherwise.
-  */
+/* All routines return NULL for success, a static ASCIZ error message
+ * otherwise.
+ */
 
- /* Initialise a pool, initially with no free store. You will have
-  * to call poolRelease() to say which bytes in the pool you want
-  * to allow to be allocated. This is because all of the offsets
-  * are relative to the start of a block, and you might want to
-  * allocate all of a chunk of 2^n bytes except for some region
-  * at the beginning, and still want to treat the start of that
-  * region as offset 0 when working out what an even block boundary
-  * is.  startAddress is the first byte in the pool. This address
-  * must be a multiple of 1 << minBits.  bytes is
-  * the number of bytes in the pool.  1 << minBits
-  * is the smallest block size. This must be
-  * big enough that the smallest possible block has room for 3 ints.
-  * The block sizes go up in powers of 2. There are numSizes of them
-  * and you can't allocate anything bigger than the biggest block size
-  * freeList is an array of
-  * numSizes ints which is used to hold the head pointers of a free
-  * list for every possible block size. bitMap is a pointer to
-  * an array capable of holding 1 bit for each minimum sized
-  * block in the chunk. So this array has at least
-  * (((bytes >> minBits) + 7) >> 3
-  * bytes in it. pi is a pointer to a struct PoolInfo that is
-  * used to store all the bookkeeping info we need.
-  */
+/* Initialise a pool, initially with no free store. You will have
+ * to call poolRelease() to say which bytes in the pool you want
+ * to allow to be allocated. This is because all of the offsets
+ * are relative to the start of a block, and you might want to
+ * allocate all of a chunk of 2^n bytes except for some region
+ * at the beginning, and still want to treat the start of that
+ * region as offset 0 when working out what an even block boundary
+ * is.  startAddress is the first byte in the pool. This address
+ * must be a multiple of 1 << minBits.  bytes is
+ * the number of bytes in the pool.  1 << minBits
+ * is the smallest block size. This must be
+ * big enough that the smallest possible block has room for 3 ints.
+ * The block sizes go up in powers of 2. There are numSizes of them
+ * and you can't allocate anything bigger than the biggest block size
+ * freeList is an array of
+ * numSizes ints which is used to hold the head pointers of a free
+ * list for every possible block size. bitMap is a pointer to
+ * an array capable of holding 1 bit for each minimum sized
+ * block in the chunk. So this array has at least
+ * (((bytes >> minBits) + 7) >> 3
+ * bytes in it. pi is a pointer to a struct PoolInfo that is
+ * used to store all the bookkeeping info we need.
+ */
 
-const char *poolInit(void *startAddress, size_t bytes, int minBits,
-    int numSizes, size_t *freeList, char *bitMap, struct PoolInfo *pi);
+const char* poolInit(void* startAddress, size_t bytes, int minBits, int numSizes, size_t* freeList,
+                     char* bitMap, struct PoolInfo* pi);
 
 /* Release storage within an initialised pool. This is NOT free -
  * you normally call this a small number of times just after poolInit.
@@ -135,30 +134,28 @@ const char *poolInit(void *startAddress, size_t bytes, int minBits,
  * you want to use in chunks of maximum possible size.
  */
 
-const  char *poolRelease(struct PoolInfo *pi, size_t startBlock,
-     size_t blocks);
+const char* poolRelease(struct PoolInfo* pi, size_t startBlock, size_t blocks);
 
- /* Allocate storage of <bytes> bytes. Notice that the pointer
-  * to allocated storage
-  * is returned as the third parameter, because the return value is
-  * NULL on success
-  */
-const char *poolMalloc(struct PoolInfo *pi, size_t bytes, void **newStore);
+/* Allocate storage of <bytes> bytes. Notice that the pointer
+ * to allocated storage
+ * is returned as the third parameter, because the return value is
+ * NULL on success
+ */
+const char* poolMalloc(struct PoolInfo* pi, size_t bytes, void** newStore);
 
 /* Realloc as with malloc. ptr is old storage, size is required
  * size in bytes. newPtr will be set to any new storage allocated
  */
-const char *poolRealloc(struct PoolInfo *pi, void *ptr, size_t size,
-    void **newPtr);
+const char* poolRealloc(struct PoolInfo* pi, void* ptr, size_t size, void** newPtr);
 
 /* Return if no store */
 #define NO_STORE "no store"
 
 /* Free previously allocated storage */
-const char *poolFree(struct PoolInfo *pi, void *storage);
+const char* poolFree(struct PoolInfo* pi, void* storage);
 
 /* Work out the total number of free bytes */
-const char *poolAvailable(struct PoolInfo *pi, size_t *bytesFree);
+const char* poolAvailable(struct PoolInfo* pi, size_t* bytesFree);
 
 /* Check the pool. This
  * takes time proportional to the amount of available storage.
@@ -166,12 +163,12 @@ const char *poolAvailable(struct PoolInfo *pi, size_t *bytesFree);
  * block size. That int will be set to a count of the number
  * of blocks of that size
  */
-const char *poolCheck(struct PoolInfo *pi, size_t *counts);
+const char* poolCheck(struct PoolInfo* pi, size_t* counts);
 
-
-inline size_t poolBitMapSize(size_t bytes, int minBits) {
-	size_t bits = bytes >> minBits;
-	return (bits + 7) >> 3;
+inline size_t poolBitMapSize(size_t bytes, int minBits)
+{
+    size_t bits = bytes >> minBits;
+    return (bits + 7) >> 3;
 }
 
 #endif

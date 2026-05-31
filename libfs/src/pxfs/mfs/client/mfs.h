@@ -3,8 +3,10 @@
 
 #include "pxfs/client/backend.h"
 
-namespace mfs {
-namespace client {
+namespace mfs
+{
+namespace client
+{
 
 void RegisterBackend(::client::FileSystemObjectManager* fsomgr);
 

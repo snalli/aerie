@@ -4,9 +4,9 @@
 #include "osd/main/server/osd.h"
 #include "pxfs/server/fs.h"
 
-extern const char*                    prog_name;
-extern ::server::FileSystem*          fs;
-extern ::osd::server::StorageSystem*  storage_system;
+extern const char* prog_name;
+extern ::server::FileSystem* fs;
+extern ::osd::server::StorageSystem* storage_system;
 
 extern int main_mkfs(int argc, char* argv[]);
 

@@ -4,35 +4,41 @@
 #include "osd/containers/byte/container.h"
 #include "pxfs/server/inode.h"
 
-namespace server {
+namespace server
+{
 
 class Session; // forward declaration
 
-class FileInode: public InodeT<FileInode> {
-public:
+class FileInode : public InodeT<FileInode>
+{
+  public:
+    FileInode()
+    {
+    }
 
-	FileInode()
-	{ }
+    FileInode(InodeNumber ino) : InodeT<FileInode>(ino, kFileInode)
+    {
+        osd::common::ObjectId oid(ino);
+        obj_ = osd::containers::server::ByteContainer::Object::Load(oid);
+    }
 
-	FileInode(InodeNumber ino)
-		: InodeT<FileInode>(ino, kFileInode)
-	{ 
-		osd::common::ObjectId oid(ino);
-		obj_ = osd::containers::server::ByteContainer::Object::Load(oid);
-	}
+    // mark persistent object for inode ino as allocated and construct inode into ip
+    static FileInode* Make(Session* /*session*/, InodeNumber ino, FileInode* ip)
+    {
+        return new (ip) FileInode(ino);
+    }
 
-	// mark persistent object for inode ino as allocated and construct inode into ip
-	static FileInode* Make(Session* /*session*/, InodeNumber ino, FileInode* ip) {
-		return new(ip) FileInode(ino);
-	}
+    static void Free(Session* session, FileInode* ip)
+    {
+        osd::containers::server::ByteContainer::Object::Free(session, ip->obj_->oid());
+    }
 
-	static void Free(Session* session, FileInode* ip) {
-		osd::containers::server::ByteContainer::Object::Free(session, ip->obj_->oid());
-	}
+    osd::containers::server::ByteContainer::Object* obj()
+    {
+        return obj_;
+    }
 
-	osd::containers::server::ByteContainer::Object* obj() { return obj_; }
-	
-	osd::containers::server::ByteContainer::Object* obj_;
+    osd::containers::server::ByteContainer::Object* obj_;
 };
 
 } // namespace server

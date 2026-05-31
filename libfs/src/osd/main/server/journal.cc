@@ -1,30 +1,27 @@
 #include "osd/main/server/journal.h"
-#include "scm/scm/model.h"
 #include "common/errno.h"
+#include "scm/scm/model.h"
 
-namespace osd {
-namespace server {
-
-int
-Journal::TransactionBegin(int /*id*/)
+namespace osd
 {
-	return E_SUCCESS;
+namespace server
+{
+
+int Journal::TransactionBegin(int /*id*/)
+{
+    return E_SUCCESS;
 }
 
-int
-Journal::TransactionCommit()
+int Journal::TransactionCommit()
 {
-	ScmFence();
-	return E_SUCCESS;
+    ScmFence();
+    return E_SUCCESS;
 }
 
-int
-Journal::TransactionAbort()
+int Journal::TransactionAbort()
 {
-	return E_SUCCESS;
+    return E_SUCCESS;
 }
-
-
 
 } // namespace server
 } // namespace osd

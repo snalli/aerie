@@ -1,80 +1,75 @@
 #ifndef __STAMNOS_RXFS_CLIENT_FILE_H
 #define __STAMNOS_RXFS_CLIENT_FILE_H
 
-#include <stdint.h>
-#include <pthread.h>
-#include <vector>
-#include <boost/dynamic_bitset.hpp>
 #include "rxfs/client/file_inode.h"
 #include "rxfs/client/slab.h"
+#include <boost/dynamic_bitset.hpp>
+#include <pthread.h>
+#include <stdint.h>
+#include <vector>
 
-namespace rxfs {
-namespace client {
+namespace rxfs
+{
+namespace client
+{
 
 class Session;
 class FileManager;
 
-class File {
-friend class FileManager;
-public:
-	File()
-		: ref_(0),
-		  off_(0),
-		  ip_(0),
-		  readable_(false),
-		  writable_(false),
-		  append_(false)
-	{ 
-		pthread_mutex_init(&mutex_, NULL);
-	}
+class File
+{
+    friend class FileManager;
 
-	int Init(InodeNumber ino, int flags);
+  public:
+    File() : ref_(0), off_(0), ip_(0), readable_(false), writable_(false), append_(false)
+    {
+        pthread_mutex_init(&mutex_, NULL);
+    }
 
-	int Write(Session* session, const char* src, uint64_t n);
-	int Read(Session* session, char* dst, uint64_t n);
-	int Write(Session* session, const char* src, uint64_t n, uint64_t offset);
-	int Read(Session* session, char* dst, uint64_t n, uint64_t offset);
-	uint64_t Seek(client::Session* session, uint64_t offset, int whence);
-	int Release();
+    int Init(InodeNumber ino, int flags);
 
-private:
-	pthread_mutex_t mutex_;
-	int             ref_;       // reference count
-	uint64_t        off_;       // file offset
-	FileInode       ip_;        // file inode
-	bool            readable_;
-	bool            writable_;
-	bool            append_;
+    int Write(Session* session, const char* src, uint64_t n);
+    int Read(Session* session, char* dst, uint64_t n);
+    int Write(Session* session, const char* src, uint64_t n, uint64_t offset);
+    int Read(Session* session, char* dst, uint64_t n, uint64_t offset);
+    uint64_t Seek(client::Session* session, uint64_t offset, int whence);
+    int Release();
+
+  private:
+    pthread_mutex_t mutex_;
+    int ref_;      // reference count
+    uint64_t off_; // file offset
+    FileInode ip_; // file inode
+    bool readable_;
+    bool writable_;
+    bool append_;
 };
 
+class FileManager
+{
+  public:
+    FileManager(int fdmin, int fdmax) : fdmin_(fdmin), fdmax_(fdmax - 1), slab_(sizeof(File))
+    {
+    }
 
-class FileManager {
-public:
-	FileManager(int fdmin, int fdmax)
-		: fdmin_(fdmin),
-		  fdmax_(fdmax-1),
-		  slab_(sizeof(File))
-	{}
+    int Init();
+    int AllocFd(File* fp);
+    int AllocFile(Session* session, File** fpp);
+    int ReleaseFile(Session* session, File* fp);
+    int Get(int fd, File** fpp);
+    int Put(Session* session, int fd);
+    int Lookup(int fd, File** fpp);
 
-	int Init();
-	int AllocFd(File* fp);
-	int AllocFile(Session* session, File** fpp);
-	int ReleaseFile(Session* session, File* fp);
-	int Get(int fd, File** fpp);
-	int Put(Session* session, int fd);
-	int	Lookup(int fd, File** fpp);
+  private:
+    int AllocFd(int start);
 
-private:
-	int AllocFd(int start);
-
-	pthread_mutex_t         mutex_;
-	boost::dynamic_bitset<> fdset_;
-	std::vector<File*>      ftable_;
-	int                     fdmin_; // smaller file descriptor manageable by *this
-	int                     fdmax_; // larger file descriptor manageable by *this
-	slab<1024>              slab_;
+    pthread_mutex_t mutex_;
+    boost::dynamic_bitset<> fdset_;
+    std::vector<File*> ftable_;
+    int fdmin_; // smaller file descriptor manageable by *this
+    int fdmax_; // larger file descriptor manageable by *this
+    slab<1024> slab_;
 };
-
 
 } // namespace client
 } // namespace rxfs

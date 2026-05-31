@@ -5,10 +5,11 @@
 
 int TestInit()
 {
-	int ret;
-	if ((ret = IpcTestHandlers::Register(server::Server::Instance()->ipc_layer())) < 0) {
-		return ret;
-	}
+    int ret;
+    if ((ret = IpcTestHandlers::Register(server::Server::Instance()->ipc_layer())) < 0)
+    {
+        return ret;
+    }
 
-	return E_SUCCESS;
+    return E_SUCCESS;
 }

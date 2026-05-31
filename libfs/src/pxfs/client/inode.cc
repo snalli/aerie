@@ -1,37 +1,32 @@
-#define  __CACHE_GUARD__
+#define __CACHE_GUARD__
 
 #include "pxfs/client/inode.h"
-#include "common/errno.h"
 #include "bcs/bcs.h"
+#include "common/errno.h"
 #include "pxfs/client/session.h"
 
-namespace client {
+namespace client
+{
 
-
-
-int 
-Inode::Get() 
-{ 
-	pthread_mutex_lock(&mutex_);
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
-	        "Inode(%p, oid=%lx)::Get %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ + 1);
-	refcnt_++; 
-	pthread_mutex_unlock(&mutex_);
-	return 0; 
+int Inode::Get()
+{
+    pthread_mutex_lock(&mutex_);
+    DBG_LOG(DBG_INFO, DBG_MODULE(client_inode), "Inode(%p, oid=%lx)::Get %d -> %d\n", this,
+            this->oid().u64(), refcnt_, refcnt_ + 1);
+    refcnt_++;
+    pthread_mutex_unlock(&mutex_);
+    return 0;
 }
 
-
-int 
-Inode::Put() 
-{ 
-	pthread_mutex_lock(&mutex_);
-	DBG_LOG(DBG_INFO, DBG_MODULE(client_inode),
-	        "Inode(%p, oid=%lx)::Put %d -> %d\n", this, this->oid().u64(), refcnt_, refcnt_ - 1);
-	assert(refcnt_>0); 
-	refcnt_--; 
-	pthread_mutex_unlock(&mutex_);
-        //s_log("[%ld] %s %d",s_tid, __func__, refcnt_);
-	return 0; 
+int Inode::Put()
+{
+    pthread_mutex_lock(&mutex_);
+    DBG_LOG(DBG_INFO, DBG_MODULE(client_inode), "Inode(%p, oid=%lx)::Put %d -> %d\n", this,
+            this->oid().u64(), refcnt_, refcnt_ - 1);
+    assert(refcnt_ > 0);
+    refcnt_--;
+    pthread_mutex_unlock(&mutex_);
+    return 0;
 }
 
 #if 0

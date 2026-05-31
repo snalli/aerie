@@ -1,76 +1,58 @@
 #include "kvfs/client/c_api.h"
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include "kvfs/client/client.h"
 #include "bcs/main/common/cdebug.h"
+#include "kvfs/client/client.h"
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 using namespace client;
 
-
-int
-FRONTAPI(init) (int argc, char* argv[])
+int FRONTAPI(init)(int argc, char* argv[])
 {
-	return Client::Init(argc, argv);
+    return Client::Init(argc, argv);
 }
 
-
-int
-FRONTAPI(init2) (const char* xdst)
+int FRONTAPI(init2)(const char* xdst)
 {
-	return Client::Init(xdst);
+    return Client::Init(xdst);
 }
 
-
-int
-FRONTAPI(shutdown) ()
+int FRONTAPI(shutdown)()
 {
-	return Client::Shutdown();
+    return Client::Shutdown();
 }
 
-
-int 
-FRONTAPI(mount) (const char* source, uint32_t flags)
+int FRONTAPI(mount)(const char* source, uint32_t flags)
 {
-	return Client::Mount(source, flags);
+    return Client::Mount(source, flags);
 }
 
-
-int
-FRONTAPI(umount) ()
+int FRONTAPI(umount)()
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-	return -E_ERROR;
-}
- 
-
-ssize_t 
-FRONTAPI(put) (const char* key, const void *buf, size_t count)
-{
-	const char* src = reinterpret_cast<const char*>(buf);
-
-	return Client::Put(key, src, count);
+    dbg_log(DBG_CRITICAL, "Unimplemented functionality\n");
+    return -E_ERROR;
 }
 
-
-ssize_t 
-FRONTAPI(get) (const char* key, void *buf)
+ssize_t FRONTAPI(put)(const char* key, const void* buf, size_t count)
 {
-	char* dst = reinterpret_cast<char*>(buf);
+    const char* src = reinterpret_cast<const char*>(buf);
 
-	return Client::Get(key, dst);
+    return Client::Put(key, src, count);
 }
 
-
-int 
-FRONTAPI(del) (const char* key)
+ssize_t FRONTAPI(get)(const char* key, void* buf)
 {
-	return Client::Delete(key);
+    char* dst = reinterpret_cast<char*>(buf);
+
+    return Client::Get(key, dst);
 }
 
-
-int
-FRONTAPI(sync) ()
+int FRONTAPI(del)(const char* key)
 {
-	return Client::Sync();
+    return Client::Delete(key);
+}
+
+int FRONTAPI(sync)()
+{
+    return Client::Sync();
 }

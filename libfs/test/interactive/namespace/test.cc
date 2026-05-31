@@ -1,11 +1,11 @@
+#include "osd/main/client/hlckmgr.h"
+#include "osd/main/common/lock_protocol.h"
+#include "pxfs/client/client_i.h"
+#include "pxfs/client/libfs.h"
+#include "rpc/rpc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "rpc/rpc.h"
-#include "osd/main/common/lock_protocol.h"
-#include "osd/main/client/hlckmgr.h"
-#include "pxfs/client/client_i.h"
-#include "pxfs/client/libfs.h"
 
 using namespace client;
 
@@ -18,39 +18,38 @@ static lock_protocol::LockId e = 6;
 static lock_protocol::LockId f = 7;
 static lock_protocol::LockId g = 8;
 
-
 void test11(const char* tag)
 {
-	printf("%s\n", __FUNCTION__);
-	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
-	libfs_mkdir("/home/hvolos/dir", 0);
-	libfs_mkdir("/home/hvolos/dir/test", 0);
-	//libfs_mkdir("/home/hvolos/dir/../foo", 0);
-	
-	
-	//libfs_open("/etc/hvolos/test", 0);
-	//libfs_open("/home/hvolos/test", 0);
-	//libfs_open("/home/hvolos/dir/test", O_CREATE);
-	//libfs_open("/home/hvolos/file", O_CREATE);
+    printf("%s\n", __FUNCTION__);
+    libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
+    libfs_mkdir("/home/hvolos/dir", 0);
+    libfs_mkdir("/home/hvolos/dir/test", 0);
+    // libfs_mkdir("/home/hvolos/dir/../foo", 0);
 
-	printf("%s: DONE\n", __FUNCTION__);
-	//sleep(1000);
+    // libfs_open("/etc/hvolos/test", 0);
+    // libfs_open("/home/hvolos/test", 0);
+
+    printf("%s: DONE\n", __FUNCTION__);
+    // sleep(1000);
 }
 
 void test12(const char* tag)
 {
-	printf("%s\n", __FUNCTION__);
-	sleep(3);
-	libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
-	assert(libfs_rmdir("/home/hvolos/dir") == 0);
-	printf("%s: DONE\n", __FUNCTION__);
+    printf("%s\n", __FUNCTION__);
+    sleep(3);
+    libfs_mount("/superblock/A", "/home/hvolos", "mfs", 0);
+    assert(libfs_rmdir("/home/hvolos/dir") == 0);
+    printf("%s: DONE\n", __FUNCTION__);
 }
 
-
-void test(const char* tag) {
-	if (strcmp(tag, "C1") == 0) {
-		test11(tag);
-	} else {
-		test12(tag);
-	}
+void test(const char* tag)
+{
+    if (strcmp(tag, "C1") == 0)
+    {
+        test11(tag);
+    }
+    else
+    {
+        test12(tag);
+    }
 }

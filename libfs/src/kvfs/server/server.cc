@@ -1,46 +1,43 @@
 #include "kvfs/server/server.h"
-#include "common/util.h"
 #include "bcs/main/server/bcs.h"
-#include "osd/main/server/osd.h"
+#include "common/util.h"
 #include "kvfs/server/fs.h"
+#include "osd/main/server/osd.h"
 
-
-namespace server {
+namespace server
+{
 
 Server* Server::instance_ = NULL;
 
-
-// this is not thread safe. Must be called at least once while single-threaded 
+// this is not thread safe. Must be called at least once while single-threaded
 // to ensure multiple threads won't race trying to construct the server instance
-Server*
-Server::Instance() 
+Server* Server::Instance()
 {
-	if (!instance_) {
-		instance_ = new Server();
-	}
-	return instance_;
+    if (!instance_)
+    {
+        instance_ = new Server();
+    }
+    return instance_;
 }
 
-
-void
-Server::Init(const char* pathname, int flags, int port)
+void Server::Init(const char* pathname, int flags, int port)
 {
-	port_ = port;
+    port_ = port;
 
-	ipc_layer_ = new ::server::Ipc(port);
-	ipc_layer_->Init();
+    ipc_layer_ = new ::server::Ipc(port);
+    ipc_layer_->Init();
 
-	int ret = FileSystem::Load(ipc_layer_, pathname, flags, &fs_);
-	ASSERT_OK(ret); (void)ret;
+    int ret = FileSystem::Load(ipc_layer_, pathname, flags, &fs_);
+    ASSERT_OK(ret);
+    (void) ret;
 }
 
-
-void 
-Server::Start()
+void Server::Start()
 {
-	while (1) {
-		sleep(1);
-	}
+    while (1)
+    {
+        sleep(1);
+    }
 }
 
 } // namespace server

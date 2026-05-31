@@ -1,103 +1,97 @@
 #include "osd/main/client/stm.h"
 
-namespace osd {
+namespace osd
+{
 
-namespace stm {
+namespace stm
+{
 
-namespace client {
+namespace client
+{
 
 __thread Transaction* transaction_; // per thread transaction descriptor
 
-
-int
-Transaction::Init()
+int Transaction::Init()
 {
-	nesting_ = 0;
-	rset_.set_empty_key(0);
-	return 0;
+    nesting_ = 0;
+    rset_.set_empty_key(0);
+    return 0;
 }
 
-
-int 
-Transaction::Start(JmpBuf* /*jmpbuf*/, uint32_t abort_flags)
+int Transaction::Start(JmpBuf* /*jmpbuf*/, uint32_t abort_flags)
 {
-	if (abort_flags == ABORT_EXPLICIT) {
-		return -1;
-	}
+    if (abort_flags == ABORT_EXPLICIT)
+    {
+        return -1;
+    }
 
-	if (nesting_++ > 0) {
-		return 0;
-	}
+    if (nesting_++ > 0)
+    {
+        return 0;
+    }
 
-	return 0;
+    return 0;
 }
 
-
-int 
-Transaction::Commit()
+int Transaction::Commit()
 {
-	if (Validate() < 0) {
-		Rollback(ABORT_VALIDATE);
-	}
-	return 0;
+    if (Validate() < 0)
+    {
+        Rollback(ABORT_VALIDATE);
+    }
+    return 0;
 }
 
-
-int
-Transaction::OpenRO(::osd::cc::common::Object* obj)
+int Transaction::OpenRO(::osd::cc::common::Object* obj)
 {
-	ReadSet::iterator it;
+    ReadSet::iterator it;
 
-	if ((it = rset_.find(obj)) != rset_.end()) {
-		return 0; 
-	}
+    if ((it = rset_.find(obj)) != rset_.end())
+    {
+        return 0;
+    }
 
-	ReadSetEntry rset_entry;
-	rset_entry.version_ = obj->ccVersion();
-	rset_[obj] = rset_entry;
-	return 0;
+    ReadSetEntry rset_entry;
+    rset_entry.version_ = obj->ccVersion();
+    rset_[obj] = rset_entry;
+    return 0;
 }
 
-
-int 
-Transaction::Validate()
+int Transaction::Validate()
 {
-	ReadSet::iterator          it;
-	::osd::cc::common::Object* obj;
+    ReadSet::iterator it;
+    ::osd::cc::common::Object* obj;
 
-	for (it = rset_.begin(); it != rset_.end(); it++) {
-		obj = it->first;
-		if (obj->ccVersion() > it->second.version_) {
-			return -1;
-		}
-	}
-	return 0;
+    for (it = rset_.begin(); it != rset_.end(); it++)
+    {
+        obj = it->first;
+        if (obj->ccVersion() > it->second.version_)
+        {
+            return -1;
+        }
+    }
+    return 0;
 }
 
-
-void 
-Transaction::AbortIfInvalid()
+void Transaction::AbortIfInvalid()
 {
-	if (Validate() < 0) {
-		Rollback(ABORT_VALIDATE);
-	}
+    if (Validate() < 0)
+    {
+        Rollback(ABORT_VALIDATE);
+    }
 }
 
-
-void 
-Transaction::Abort()
+void Transaction::Abort()
 {
-	Rollback(ABORT_EXPLICIT);
+    Rollback(ABORT_EXPLICIT);
 }
 
-
-void 
-Transaction::Rollback(int flags)
+void Transaction::Rollback(int flags)
 {
-	nesting_ = 0;
-	rset_.clear();
+    nesting_ = 0;
+    rset_.clear();
 
-	siglongjmp(jmpbuf_, flags);
+    siglongjmp(jmpbuf_, flags);
 }
 
 } // namespace client

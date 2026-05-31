@@ -1,15 +1,15 @@
 #ifndef __STAMNOS_UBENCH_CFS_H
 #define __STAMNOS_UBENCH_CFS_H
 
-#include "common/util.h"
 #include "bcs/bcs.h"
 #include "common/util.h"
-#include "ubench/main.h"
 #include "ubench/fs/fs.h"
+#include "ubench/main.h"
 
-namespace client {
-	extern osd::client::StorageSystem* global_storage_system;
-	extern Ipc*                        global_ipc_layer;
-}
+namespace client
+{
+extern osd::client::StorageSystem* global_storage_system;
+extern Ipc* global_ipc_layer;
+} // namespace client
 
 #endif // __STAMNOS_UBENCH_CFS_H

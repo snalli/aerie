@@ -7,32 +7,40 @@
 class PersistentRegion; // forward declaration
 class DynamicBitSet;    // forward declaration
 
-class StoragePool {
-public:
-	
-	static int Create(const char* path, size_t size, int flags);
-	static int Open(const char* path, StoragePool** pool);
-	static int Close(StoragePool* pool);
-	static int Identity(const char* path, uint64_t* identity);
-	uint64_t Identity() { return identity_; }
+class StoragePool
+{
+  public:
+    static int Create(const char* path, size_t size, int flags);
+    static int Open(const char* path, StoragePool** pool);
+    static int Close(StoragePool* pool);
+    static int Identity(const char* path, uint64_t* identity);
+    uint64_t Identity()
+    {
+        return identity_;
+    }
 
-	int AllocateExtent(uint64_t size, void** ptr);
-	int FreeExtent(void* /*ptr*/) { return 0; } // user pool: no-op free
-	void PrintStats() {}                    // user pool: no stats
+    int AllocateExtent(uint64_t size, void** ptr);
+    int FreeExtent(void* /*ptr*/)
+    {
+        return 0;
+    } // user pool: no-op free
+    void PrintStats()
+    {
+    } // user pool: no stats
 
-	void set_root(void* root);
-	void* root();
+    void set_root(void* root);
+    void* root();
 
-private:
-	struct Header;
-	
-	StoragePool(PersistentRegion* pregion, Header* header);
+  private:
+    struct Header;
 
-	PersistentRegion* pregion_;
-	Header*           header_;
-	DynamicBitSet*    bitset_;
-	uint64_t          extents_base_;
-	uint64_t          identity_;
+    StoragePool(PersistentRegion* pregion, Header* header);
+
+    PersistentRegion* pregion_;
+    Header* header_;
+    DynamicBitSet* bitset_;
+    uint64_t extents_base_;
+    uint64_t identity_;
 };
 
 #endif // __STAMNOS_SPA_POOL_USER_H

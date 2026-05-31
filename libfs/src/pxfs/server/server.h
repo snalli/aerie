@@ -1,28 +1,32 @@
 #ifndef __STAMNOS_PXFS_SERVER_H
 #define __STAMNOS_PXFS_SERVER_H
 
-#include "osd/osd-opaque.h"
 #include "bcs/bcs-opaque.h"
+#include "osd/osd-opaque.h"
 
-namespace server {
+namespace server
+{
 
 class FileSystem; // forward declaration
 
-class Server {
-public:
-	static Server* Instance();
-	void Init(const char* pathname, int flags, int port);
-	void Start();
+class Server
+{
+  public:
+    static Server* Instance();
+    void Init(const char* pathname, int flags, int port);
+    void Start();
 
-	Ipc* ipc_layer() { return ipc_layer_; }
+    Ipc* ipc_layer()
+    {
+        return ipc_layer_;
+    }
 
-private:
-	int                          port_;
-	Ipc*                         ipc_layer_;
-	FileSystem*                  fs_;
-	static Server*               instance_;
+  private:
+    int port_;
+    Ipc* ipc_layer_;
+    FileSystem* fs_;
+    static Server* instance_;
 };
-
 
 } // namespace server
 

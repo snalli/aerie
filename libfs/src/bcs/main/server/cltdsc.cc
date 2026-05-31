@@ -1,15 +1,14 @@
 #include "bcs/main/server/cltdsc.h"
-#include <stdio.h>
 #include "bcs/main/server/shbuf.h"
 #include "common/errno.h"
+#include <stdio.h>
 
-namespace server {
-
-int
-ClientDescriptor::Init()
+namespace server
 {
-	return E_SUCCESS;
-}
 
+int ClientDescriptor::Init()
+{
+    return E_SUCCESS;
+}
 
 } // namespace server

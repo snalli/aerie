@@ -1,9 +1,9 @@
 #ifndef __STAMNOS_UBENCH_FS_H
 #define __STAMNOS_UBENCH_FS_H
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 struct RFile;
 

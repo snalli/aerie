@@ -1,4 +1,4 @@
-/** 
+/**
  * \file types.h
  *
  * \brief Contains simple types

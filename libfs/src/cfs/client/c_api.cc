@@ -1,207 +1,160 @@
 #include "cfs/client/c_api.h"
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include "cfs/client/client_i.h"
 #include "bcs/main/common/cdebug.h"
+#include "cfs/client/client_i.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 using namespace client;
 
-
-int
-FRONTAPI(init) (int argc, char* argv[])
+int FRONTAPI(init)(int argc, char* argv[])
 {
-	return Client::Init(argc, argv);
+    return Client::Init(argc, argv);
 }
 
-
-int
-FRONTAPI(init2) (const char* xdst)
+int FRONTAPI(init2)(const char* xdst)
 {
-	return Client::Init(xdst);
+    return Client::Init(xdst);
 }
 
-
-int
-FRONTAPI(shutdown) ()
+int FRONTAPI(shutdown)()
 {
-	return Client::Shutdown();
+    return Client::Shutdown();
 }
 
-
-int 
-FRONTAPI(mount) (const char* source, 
-                 const char* target, 
-                 const char* fstype, 
-                 uint32_t flags)
+int FRONTAPI(mount)(const char* source, const char* target, const char* fstype, uint32_t flags)
 {
-	return Client::Mount(source, target, fstype, flags);
+    return Client::Mount(source, target, fstype, flags);
 }
 
-
-int
-FRONTAPI(umount) (const char* /*target*/)
+int FRONTAPI(umount)(const char* /*target*/)
 {
-	dbg_log (DBG_CRITICAL, "Unimplemented functionality\n");
-	return -E_ERROR;
-}
- 
-
-int 
-FRONTAPI(mkdir) (const char* path, int mode)
-{
-	int ret;
-
-	if ((ret = Client::CreateDir(path, mode)) == -E_KVFS) {
-		return mkdir(path, mode);
-	}
-	return ret;
+    dbg_log(DBG_CRITICAL, "Unimplemented functionality\n");
+    return -E_ERROR;
 }
 
-
-int 
-FRONTAPI(rmdir) (const char* path)
+int FRONTAPI(mkdir)(const char* path, int mode)
 {
-	return Client::DeleteDir(path);
+    int ret;
+
+    if ((ret = Client::CreateDir(path, mode)) == -E_KVFS)
+    {
+        return mkdir(path, mode);
+    }
+    return ret;
 }
 
-
-int 
-FRONTAPI(rename) (const char* oldpath, const char* newpath)
+int FRONTAPI(rmdir)(const char* path)
 {
-	return Client::Rename(oldpath, newpath);
+    return Client::DeleteDir(path);
 }
 
-
-int 
-FRONTAPI(link) (const char* oldpath, const char* newpath)
+int FRONTAPI(rename)(const char* oldpath, const char* newpath)
 {
-	return Client::Link(oldpath, newpath);
+    return Client::Rename(oldpath, newpath);
 }
 
-
-int 
-FRONTAPI(unlink) (const char* pathname)
+int FRONTAPI(link)(const char* oldpath, const char* newpath)
 {
-	return Client::Unlink(pathname);
+    return Client::Link(oldpath, newpath);
 }
 
-
-int 
-FRONTAPI(chdir) (const char* path)
+int FRONTAPI(unlink)(const char* pathname)
 {
-	return Client::SetCurWrkDir(path);
+    return Client::Unlink(pathname);
 }
 
-
-char* 
-FRONTAPI(getcwd) (char* buf, size_t size)
+int FRONTAPI(chdir)(const char* path)
 {
-	int ret;
-
-	if ((ret = Client::GetCurWrkDir(buf, size)) < 0) {
-		return NULL;
-	}
-	return buf;
+    return Client::SetCurWrkDir(path);
 }
 
-
-int 
-FRONTAPI(open) (const char* pathname, int flags)
+char* FRONTAPI(getcwd)(char* buf, size_t size)
 {
-	return Client::Open(pathname, flags, 0);
+    int ret;
+
+    if ((ret = Client::GetCurWrkDir(buf, size)) < 0)
+    {
+        return NULL;
+    }
+    return buf;
 }
 
-
-int 
-FRONTAPI(open2) (const char* pathname, int flags, mode_t /*mode*/)
+int FRONTAPI(open)(const char* pathname, int flags)
 {
-	return Client::Open(pathname, flags, 0);
+    return Client::Open(pathname, flags, 0);
 }
 
-
-int FRONTAPI(close) (int fd)
+int FRONTAPI(open2)(const char* pathname, int flags, mode_t /*mode*/)
 {
-	return Client::Close(fd);
+    return Client::Open(pathname, flags, 0);
 }
 
-
-int FRONTAPI(dup) (int oldfd)
+int FRONTAPI(close)(int fd)
 {
-	return Client::Duplicate(oldfd);
+    return Client::Close(fd);
 }
 
-
-int FRONTAPI(dup2) (int oldfd, int newfd)
+int FRONTAPI(dup)(int oldfd)
 {
-	return Client::Duplicate(oldfd, newfd);
+    return Client::Duplicate(oldfd);
 }
 
-
-ssize_t
-FRONTAPI(write) (int fd, const void *buf, size_t count)
+int FRONTAPI(dup2)(int oldfd, int newfd)
 {
-	const char* src = reinterpret_cast<const char*>(buf);
-
-	return Client::Write(fd, src, count);
+    return Client::Duplicate(oldfd, newfd);
 }
 
-
-ssize_t
-FRONTAPI(read) (int fd, void *buf, size_t count)
+ssize_t FRONTAPI(write)(int fd, const void* buf, size_t count)
 {
-	char* dst = reinterpret_cast<char*>(buf);
+    const char* src = reinterpret_cast<const char*>(buf);
 
-	return Client::Read(fd, dst, count);
+    return Client::Write(fd, src, count);
 }
 
-
-ssize_t
-FRONTAPI(pwrite) (int fd, const void *buf, size_t count, off_t offset)
+ssize_t FRONTAPI(read)(int fd, void* buf, size_t count)
 {
-	const char* src = reinterpret_cast<const char*>(buf);
+    char* dst = reinterpret_cast<char*>(buf);
 
-	return Client::WriteOffset(fd, src, count, offset);
+    return Client::Read(fd, dst, count);
 }
 
-
-ssize_t
-FRONTAPI(pread) (int fd, void *buf, size_t count, off_t offset)
+ssize_t FRONTAPI(pwrite)(int fd, const void* buf, size_t count, off_t offset)
 {
-	char* dst = reinterpret_cast<char*>(buf);
+    const char* src = reinterpret_cast<const char*>(buf);
 
-	return Client::ReadOffset(fd, dst, count, offset);
+    return Client::WriteOffset(fd, src, count, offset);
 }
 
-
-off_t
-FRONTAPI(lseek) (int fd, off_t offset, int whence)
+ssize_t FRONTAPI(pread)(int fd, void* buf, size_t count, off_t offset)
 {
-	return Client::Seek(fd, offset, whence);
+    char* dst = reinterpret_cast<char*>(buf);
+
+    return Client::ReadOffset(fd, dst, count, offset);
 }
 
-
-int 
-FRONTAPI(stat) (const char *path, struct stat *buf)
+off_t FRONTAPI(lseek)(int fd, off_t offset, int whence)
 {
-	int ret;
-	if ((ret = Client::Stat(path, buf)) == -E_KVFS) {
-		return stat(path, buf);
-	}
-	return ret;
+    return Client::Seek(fd, offset, whence);
 }
 
-
-int
-FRONTAPI(sync) ()
+int FRONTAPI(stat)(const char* path, struct stat* buf)
 {
-	return Client::Sync();
+    int ret;
+    if ((ret = Client::Stat(path, buf)) == -E_KVFS)
+    {
+        return stat(path, buf);
+    }
+    return ret;
 }
 
-
-int
-FRONTAPI(fsync) (int fd)
+int FRONTAPI(sync)()
 {
-	return Client::Sync(fd);
+    return Client::Sync();
+}
+
+int FRONTAPI(fsync)(int fd)
+{
+    return Client::Sync(fd);
 }

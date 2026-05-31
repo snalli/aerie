@@ -1,20 +1,23 @@
-#include "osd/containers/name/container.h"
 #include "common/errno.h"
+#include "osd/containers/name/container.h"
 
-namespace osd {
-namespace containers {
-namespace server {
+namespace osd
+{
+namespace containers
+{
+namespace server
+{
 
 /*
 ::osd::common::Object*
 NameContainer::Factory::Make(::osd::server::OsdSession* session, char* b) {
-	return NameContainer::Object::Make(session, b);
+    return NameContainer::Object::Make(session, b);
 }
 
 
-int 
+int
 NameContainer::Factory::StaticSize() {
-	return sizeof(Object);	
+    return sizeof(Object);
 }
 */
 

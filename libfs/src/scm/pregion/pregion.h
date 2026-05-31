@@ -16,96 +16,122 @@
  * The actual address is always updated in the region header after the first
  * successful mmap, so subsequent opens remap to the same base.
  */
-const uint64_t  kPersistentHoleLowBound = 0x0000000040000000LLU; /* 1 GB hint */
-const uint64_t  kPersistentHoleSize     = 0x0000010000000000LLU; /* 1 TB */
+const uint64_t kPersistentHoleLowBound = 0x0000000040000000LLU; /* 1 GB hint */
+const uint64_t kPersistentHoleSize = 0x0000010000000000LLU;     /* 1 TB */
 
-class PersistentRegion {
-public:
-	enum Flags {
-		kCreate = 1,
-		kExclusive = 2
-	};
-	
-	struct Header;
-	
-	static int Create(const char* pathname, size_t size);
-	static int Open(const char* pathname, size_t size, int flags, PersistentRegion** pregion);
-	static int Open(const char* pathname, PersistentRegion** pregion);
-	static int Close(PersistentRegion* pregion);
+class PersistentRegion
+{
+  public:
+    enum Flags
+    {
+        kCreate = 1,
+        kExclusive = 2
+    };
 
-	inline void* Payload();
-	inline size_t PayloadMaxSize();
+    struct Header;
 
-	uint64_t base() { return base_; }
-	uint64_t length() { return length_; }
-	uint64_t Size() { return length_; }
-	int Lock();
-	int Unlock();
+    static int Create(const char* pathname, size_t size);
+    static int Open(const char* pathname, size_t size, int flags, PersistentRegion** pregion);
+    static int Open(const char* pathname, PersistentRegion** pregion);
+    static int Close(PersistentRegion* pregion);
 
-private:
-	static int CreateInternal(const char* pathname, size_t nblocks, size_t block_size, size_t align_size, int flags);
+    inline void* Payload();
+    inline size_t PayloadMaxSize();
 
-	int      fd_;
-	uint64_t base_;
-	uint64_t length_;
-	Header*  header_; // where header is memory mmapped
+    uint64_t base()
+    {
+        return base_;
+    }
+    uint64_t length()
+    {
+        return length_;
+    }
+    uint64_t Size()
+    {
+        return length_;
+    }
+    int Lock();
+    int Unlock();
 
-	// We want all mmaps of persistent regions to fall into the reserved hole.
-	// If mmap is given a base address that overlaps with an already mmaped 
-	// region then mmap's search algorithm searches outside the reserved hole. 
-	// To avoid this problem we keep track the rightmost mmaped address to
-	// continue searching from there.
-	static uint64_t last_mmap_base_addr_;
+  private:
+    static int CreateInternal(const char* pathname, size_t nblocks, size_t block_size,
+                              size_t align_size, int flags);
+
+    int fd_;
+    uint64_t base_;
+    uint64_t length_;
+    Header* header_; // where header is memory mmapped
+
+    // We want all mmaps of persistent regions to fall into the reserved hole.
+    // If mmap is given a base address that overlaps with an already mmaped
+    // region then mmap's search algorithm searches outside the reserved hole.
+    // To avoid this problem we keep track the rightmost mmaped address to
+    static uint64_t last_mmap_base_addr_;
 };
-
 
 // the persistent header kept at the head of the region.
 // contains enough information to reincarnate it.
-struct PersistentRegion::Header {
-public:
-	Header()
-		: initialized_(false),
-		  base_addr_(0),
-		  gap_(0),
-		  length_(0)
-	{ }
+struct PersistentRegion::Header
+{
+  public:
+    Header() : initialized_(false), base_addr_(0), gap_(0), length_(0)
+    {
+    }
 
-	Header(uint64_t gap, uint64_t length)
-		: initialized_(true),
-		  base_addr_(0),
-		  gap_(gap),
-		  length_(length)
-	{ }
+    Header(uint64_t gap, uint64_t length)
+        : initialized_(true), base_addr_(0), gap_(gap), length_(length)
+    {
+    }
 
-	static int Load(int fd, Header* header);
-	static int Store(int fd, Header& header);
-	
-	uint64_t length() { return length_; }
-	uint64_t gap() { return gap_; }
-	uint64_t base_addr() { return base_addr_; }
-	void set_base_addr(uint64_t base_addr) { base_addr_ = base_addr; }
-	bool initialized() { return initialized_; }
-	uint64_t PayloadMaxSize() { return gap_ - sizeof(PersistentRegion::Header); }
-	void* Payload() { return payload_; }
+    static int Load(int fd, Header* header);
+    static int Store(int fd, Header& header);
 
-private:
-	bool     initialized_;
-	uint64_t base_addr_;
-	uint64_t gap_; // length of the space occupied by the header and extra space to properly align the region
-	uint64_t length_;
-	char     payload_[0];
+    uint64_t length()
+    {
+        return length_;
+    }
+    uint64_t gap()
+    {
+        return gap_;
+    }
+    uint64_t base_addr()
+    {
+        return base_addr_;
+    }
+    void set_base_addr(uint64_t base_addr)
+    {
+        base_addr_ = base_addr;
+    }
+    bool initialized()
+    {
+        return initialized_;
+    }
+    uint64_t PayloadMaxSize()
+    {
+        return gap_ - sizeof(PersistentRegion::Header);
+    }
+    void* Payload()
+    {
+        return payload_;
+    }
+
+  private:
+    bool initialized_;
+    uint64_t base_addr_;
+    uint64_t gap_; // length of the space occupied by the header and extra space to properly align
+                   // the region
+    uint64_t length_;
+    char payload_[0];
 };
 
-
-
-inline void* PersistentRegion::Payload() { 
-	return header_->Payload(); 
+inline void* PersistentRegion::Payload()
+{
+    return header_->Payload();
 }
 
-
-inline size_t PersistentRegion::PayloadMaxSize() { 
-	return header_->PayloadMaxSize(); 
+inline size_t PersistentRegion::PayloadMaxSize()
+{
+    return header_->PayloadMaxSize();
 }
-
 
 #endif // __STAMNOS_SPA_PERSISTENT_REGION_H

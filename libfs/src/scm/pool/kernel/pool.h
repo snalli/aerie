@@ -1,47 +1,50 @@
 #ifndef __STAMNOS_SPA_POOL_KERNEL_H
 #define __STAMNOS_SPA_POOL_KERNEL_H
 
-#include <sys/types.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <pthread.h>
 #include <list>
 #include <map>
+#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 class PersistentRegion; // forward declaration
 class DynamicBitSet;    // forward declaration
 
-class StoragePool {
-public:
-	
-	static int Allocate(const char* path, size_t size);
-	static int Protect(unsigned long extent_base, size_t extent_size, uid_t uid, int rw);
-	static int Create(const char* path, size_t size, int flags);
-	static int Open(const char* path, StoragePool** pool);
-	static int Close(StoragePool* pool);
-	static int Identity(const char* path, uint64_t* identity);
-	uint64_t Identity() { return identity_; }
+class StoragePool
+{
+  public:
+    static int Allocate(const char* path, size_t size);
+    static int Protect(unsigned long extent_base, size_t extent_size, uid_t uid, int rw);
+    static int Create(const char* path, size_t size, int flags);
+    static int Open(const char* path, StoragePool** pool);
+    static int Close(StoragePool* pool);
+    static int Identity(const char* path, uint64_t* identity);
+    uint64_t Identity()
+    {
+        return identity_;
+    }
 
-	int AllocateExtent(uint64_t size, void** ptr);
-	int FreeExtent(void* ptr);
+    int AllocateExtent(uint64_t size, void** ptr);
+    int FreeExtent(void* ptr);
 
-	void set_root(void* root);
-	void* root();
+    void set_root(void* root);
+    void* root();
 
-	void PrintStats();
-//private:
-	struct Header;
-	
-	StoragePool(Header* header);
+    void PrintStats();
+    // private:
+    struct Header;
 
-	Header*           header_;
-	uint64_t          identity_;
-	size_t            alloc_size_;
-	size_t            free_size_;
-	pthread_mutex_t   mutex_;
-	std::list<void*>  free_list_;
-	std::map<void*, uint64_t> alloc_map_; // for debugging purposes
+    StoragePool(Header* header);
+
+    Header* header_;
+    uint64_t identity_;
+    size_t alloc_size_;
+    size_t free_size_;
+    pthread_mutex_t mutex_;
+    std::list<void*> free_list_;
+    std::map<void*, uint64_t> alloc_map_; // for debugging purposes
 };
 
 #endif // __STAMNOS_SPA_POOL_KERNEL_H

@@ -1,5 +1,5 @@
-#include <string.h>
 #include "scm/scm/model.h"
+#include <string.h>
 
 #if 0
 // Assumes x86-64: 64B cacheline size and 8B word size
@@ -57,72 +57,77 @@ ntmemcpy(void *dst, const void *src, size_t n)
 }
 #else
 
-void*
-ntmemcpy_noinline(void *dst, const void *src, size_t n)
+void* ntmemcpy_noinline(void* dst, const void* src, size_t n)
 {
-	uintptr_t     saddr = (uintptr_t) src;
-	uintptr_t     daddr = (uintptr_t) dst;
-	uintptr_t     offset;
-	uint64_t*     val;
-	size_t        size = n;
+    uintptr_t saddr = (uintptr_t) src;
+    uintptr_t daddr = (uintptr_t) dst;
+    uintptr_t offset;
+    uint64_t* val;
+    size_t size = n;
 
-	// We need to align stream stores at cacheline boundaries
-	// Start with a non-aligned cacheline write, then proceed with
-	// a bunch of aligned writes, and then do a last non-aligned
-	// cacheline for the remaining data.
+    // We need to align stream stores at cacheline boundaries
+    // Start with a non-aligned cacheline write, then proceed with
+    // a bunch of aligned writes, and then do a last non-aligned
+    // cacheline for the remaining data.
 
-	if (size >= CACHE_LINE_SIZE) {
-		if ((offset = (uintptr_t) CACHE_LINE_OFFSET(daddr)) != 0) {
-			size_t nlivebytes = (CACHE_LINE_SIZE - offset);
-			while (nlivebytes >= sizeof(uint64_t)) {
-				asm_sse_write((uint64_t *) daddr, *((uint64_t *) saddr));
-				saddr+=sizeof(uint64_t);
-				daddr+=sizeof(uint64_t);
-				size-=sizeof(uint64_t);
-				nlivebytes-=sizeof(uint64_t);
-			}
-		}
-		while(size >= CACHE_LINE_SIZE) {
-			val = ((uint64_t *) saddr);
-			asm_sse_write_block64((uintptr_t *) daddr, val);
-			saddr+=CACHE_LINE_SIZE;
-			daddr+=CACHE_LINE_SIZE;
-			size-=CACHE_LINE_SIZE;
-		}
-	}
-	while (size >= sizeof(uint64_t)) {
-		val = ((uint64_t *) saddr);
-		asm_sse_write((uint64_t *) daddr, *((uint64_t *) saddr));
-		saddr+=sizeof(uint64_t);
-		daddr+=sizeof(uint64_t);
-		size-=sizeof(uint64_t);
-	}
+    if (size >= CACHE_LINE_SIZE)
+    {
+        if ((offset = (uintptr_t) CACHE_LINE_OFFSET(daddr)) != 0)
+        {
+            size_t nlivebytes = (CACHE_LINE_SIZE - offset);
+            while (nlivebytes >= sizeof(uint64_t))
+            {
+                asm_sse_write((uint64_t*) daddr, *((uint64_t*) saddr));
+                saddr += sizeof(uint64_t);
+                daddr += sizeof(uint64_t);
+                size -= sizeof(uint64_t);
+                nlivebytes -= sizeof(uint64_t);
+            }
+        }
+        while (size >= CACHE_LINE_SIZE)
+        {
+            val = ((uint64_t*) saddr);
+            asm_sse_write_block64((uintptr_t*) daddr, val);
+            saddr += CACHE_LINE_SIZE;
+            daddr += CACHE_LINE_SIZE;
+            size -= CACHE_LINE_SIZE;
+        }
+    }
+    while (size >= sizeof(uint64_t))
+    {
+        val = ((uint64_t*) saddr);
+        asm_sse_write((uint64_t*) daddr, *((uint64_t*) saddr));
+        saddr += sizeof(uint64_t);
+        daddr += sizeof(uint64_t);
+        size -= sizeof(uint64_t);
+    }
 
-	/* Copy the trailing 1-7 bytes that don't fill a full 64-bit word.
-	 * Without this, any write whose length is not a multiple of 8 silently
-	 * loses its tail bytes (e.g. an 11-byte write only persists 8 bytes). */
-	if (size > 0) {
-		memcpy((void *) daddr, (const void *) saddr, size);
-	}
+    /* Copy the trailing 1-7 bytes that don't fill a full 64-bit word.
+     * Without this, any write whose length is not a multiple of 8 silently
+     * loses its tail bytes (e.g. an 11-byte write only persists 8 bytes). */
+    if (size > 0)
+    {
+        memcpy((void*) daddr, (const void*) saddr, size);
+    }
 
-	/* Now make sure data is flushed out */
-	asm_mfence();
+    /* Now make sure data is flushed out */
+    asm_mfence();
 
-	return dst;
+    return dst;
 }
 
-void* ntmemcpy_noinline(void *dst, const void *src, size_t n);
+void* ntmemcpy_noinline(void* dst, const void* src, size_t n);
 
 // handle some special cases as inline for speed
-void* ntmemcpy(void *dst, const void *src, size_t n)
+void* ntmemcpy(void* dst, const void* src, size_t n)
 {
-	if (n == sizeof(uint64_t)) {
-		uint64_t val = *((uint64_t*) src);
-		asm_sse_write(dst, val);
-		return dst;
-        }
-        return ntmemcpy_noinline(dst, src, n);
+    if (n == sizeof(uint64_t))
+    {
+        uint64_t val = *((uint64_t*) src);
+        asm_sse_write(dst, val);
+        return dst;
+    }
+    return ntmemcpy_noinline(dst, src, n);
 }
-	
-#endif
 
+#endif

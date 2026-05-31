@@ -1,7 +1,6 @@
-#include <stdlib.h>
-#include "pxfs/client/libfs.h"
 #include "ubench/fs/pxfs.h"
-
+#include "pxfs/client/libfs.h"
+#include <stdlib.h>
 
 int (*fs_open)(const char*, int flags) = libfs_open;
 int (*fs_open2)(const char*, int flags, mode_t mode) = libfs_open2;
@@ -21,31 +20,30 @@ ssize_t (*fs_fread)(RFile* fp, void* buf, size_t count) = NULL;
 ssize_t (*fs_fpread)(RFile* fp, void* buf, size_t count, off_t offset) = NULL;
 int (*fs_fclose)(RFile* fp) = NULL;
 
-
-int
-Init(int debug_level, const char* xdst)
+int Init(int debug_level, const char* xdst)
 {
-	int ret;
+    int ret;
 
-	if ((ret = libfs_init3(xdst, debug_level)) < 0) {
-		fprintf(stderr, "libfs_init3 failed: %d\n", ret);
-		return ret;
-	}
-	if ((ret = libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0)) < 0) {
-		fprintf(stderr, "libfs_mount failed: %d\n", ret);
-		return ret;
-	}
-	if ((ret = libfs_chdir("/pxfs")) < 0) {
-		fprintf(stderr, "libfs_chdir failed: %d\n", ret);
-		return ret;
-	}
-	return 0;
+    if ((ret = libfs_init3(xdst, debug_level)) < 0)
+    {
+        fprintf(stderr, "libfs_init3 failed: %d\n", ret);
+        return ret;
+    }
+    if ((ret = libfs_mount("/tmp/stamnos_pool", "/pxfs", "mfs", 0)) < 0)
+    {
+        fprintf(stderr, "libfs_mount failed: %d\n", ret);
+        return ret;
+    }
+    if ((ret = libfs_chdir("/pxfs")) < 0)
+    {
+        fprintf(stderr, "libfs_chdir failed: %d\n", ret);
+        return ret;
+    }
+    return 0;
 }
 
-
-int
-ShutDown()
+int ShutDown()
 {
-	libfs_shutdown();
-	return 0;
+    libfs_shutdown();
+    return 0;
 }

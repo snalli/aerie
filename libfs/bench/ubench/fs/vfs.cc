@@ -1,45 +1,45 @@
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
 #include "ubench/fs/vfs.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 int vfs_open(const char* path, int flags)
 {
-	return open(path, flags);
+    return open(path, flags);
 }
 
 int vfs_open2(const char* path, int flags, mode_t mode)
 {
-	return open(path, flags, mode);
+    return open(path, flags, mode);
 }
 
 int vfs_unlink(const char* path)
 {
-	return unlink(path);
+    return unlink(path);
 }
 
 int vfs_close(int fd)
 {
-	return close(fd);
+    return close(fd);
 }
 
 int vfs_sync()
 {
-	sync();
-	return 0;
+    sync();
+    return 0;
 }
 
 int vfs_mkdir(const char* pathname, int mode)
 {
-	return mkdir(pathname, mode);
+    return mkdir(pathname, mode);
 }
 
-int vfs_rename(const char *from, const char *to)
+int vfs_rename(const char* from, const char* to)
 {
-	return rename(from, to);
+    return rename(from, to);
 }
 
 int (*fs_open)(const char*, int flags) = vfs_open;
@@ -60,17 +60,12 @@ ssize_t (*fs_fread)(RFile* fp, void* buf, size_t count) = NULL;
 ssize_t (*fs_fpread)(RFile* fp, void* buf, size_t count, off_t offset) = NULL;
 int (*fs_fclose)(RFile* fp);
 
-
-
-int
-Init(int /*debug_level*/, const char* /*xdst*/)
+int Init(int /*debug_level*/, const char* /*xdst*/)
 {
-	return 0;
+    return 0;
 }
 
-
-int
-ShutDown()
+int ShutDown()
 {
-	return 0;
+    return 0;
 }

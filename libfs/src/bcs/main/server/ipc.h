@@ -4,59 +4,71 @@
 #ifndef __STAMNOS_BCS_SERVER_IPC_H
 #define __STAMNOS_BCS_SERVER_IPC_H
 
-#include <pthread.h>
 #include "bcs/backend/rpc.h"
+#include "bcs/main/common/ipc_protocol.h"
 #include "bcs/main/common/macros.h"
+#include "bcs/main/server/bcs-opaque.h"
 #include "bcs/main/server/cltdsc.h"
 #include "bcs/main/server/sessionmgr.h"
-#include "bcs/main/server/bcs-opaque.h"
-#include "bcs/main/common/ipc_protocol.h"
+#include <pthread.h>
 
-namespace server {
+namespace server
+{
 
+class Ipc
+{
+  public:
+    Ipc(int port);
+    ~Ipc();
 
-class Ipc {
-public:
-
-	Ipc(int port);
-	~Ipc();
-
-	int Init();
+    int Init();
 #ifdef _CLT2SVR_RPCNET
-	rpcnet::rpcs* rpc() { return rpcs_; }
+    rpcnet::rpcs* rpc()
+    {
+        return rpcs_;
+    }
 #endif
 #ifdef _CLT2SVR_RPCFAST
-	rpcfast::rpcs* rpc() { return rpcs_; }
+    rpcfast::rpcs* rpc()
+    {
+        return rpcs_;
+    }
 #endif
 
-	ClientDescriptor* Client(int clt);
+    ClientDescriptor* Client(int clt);
 
-	int Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep);
-	int Alive(const unsigned int principal_id, int& r);
-	BaseSessionManager* session_manager() { return sessionmgr_; }
-	SharedBufferManager* shbuf_manager() { return shbufmgr_; }
-	RPC_REGISTER_HANDLER(rpcs_)
+    int Subscribe(int clt, std::string id, IpcProtocol::SubscribeReply& rep);
+    int Alive(const unsigned int principal_id, int& r);
+    BaseSessionManager* session_manager()
+    {
+        return sessionmgr_;
+    }
+    SharedBufferManager* shbuf_manager()
+    {
+        return shbufmgr_;
+    }
+    RPC_REGISTER_HANDLER(rpcs_)
 
-	class RuntimeConfig {
-	public:
-		static int Init();
-	};
+    class RuntimeConfig
+    {
+      public:
+        static int Init();
+    };
 
-private:
-	pthread_mutex_t                  mutex_;
-	std::map<int, ClientDescriptor*> clients_;
+  private:
+    pthread_mutex_t mutex_;
+    std::map<int, ClientDescriptor*> clients_;
 #ifdef _CLT2SVR_RPCNET
-	rpcnet::rpcs*                    rpcs_;
+    rpcnet::rpcs* rpcs_;
 #endif
 #ifdef _CLT2SVR_RPCFAST
-	rpcfast::rpcs*                   rpcs_;
+    rpcfast::rpcs* rpcs_;
 #endif
-	int                              port_;
-	BaseSessionManager*              sessionmgr_;
-	SharedBufferManager*             shbufmgr_;
-	RuntimeConfig                    runtime_config_;
+    int port_;
+    BaseSessionManager* sessionmgr_;
+    SharedBufferManager* shbufmgr_;
+    RuntimeConfig runtime_config_;
 };
-	
 
 } // namespace server
 

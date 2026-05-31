@@ -1,35 +1,36 @@
 #ifndef __STAMNOS_BCS_SERVER_SESSION_H
 #define __STAMNOS_BCS_SERVER_SESSION_H
 
-#include <vector>
-#include "bcs/main/server/ipc.h"
-#include "bcs/main/server/cltdsc.h"
 #include "bcs/main/server/bcs-opaque.h"
+#include "bcs/main/server/cltdsc.h"
+#include "bcs/main/server/ipc.h"
+#include <vector>
 
-namespace server {
-
+namespace server
+{
 
 // Implements the base interface as expected by the Base Session Manager.
-class BaseSession {
-
-
+class BaseSession
+{
 };
-
 
 // BCS layer specific session
-class BcsSession: public BaseSession {
-friend class SharedBufferManager;
-public:
+class BcsSession : public BaseSession
+{
+    friend class SharedBufferManager;
 
-	int Init(int clt);
-	int clt() { return cltdsc_->clt(); }
+  public:
+    int Init(int clt);
+    int clt()
+    {
+        return cltdsc_->clt();
+    }
 
-protected:
-	Ipc*                       ipc_;
-	ClientDescriptor*          cltdsc_;
-	std::vector<SharedBuffer*> shbuf_vec_;
+  protected:
+    Ipc* ipc_;
+    ClientDescriptor* cltdsc_;
+    std::vector<SharedBuffer*> shbuf_vec_;
 };
-
 
 } // namespace server
 

@@ -3,17 +3,19 @@
 
 #include "osd/main/common/obj.h"
 
-namespace client {
+namespace client
+{
 
-class Session;     // forward declaration
-class SuperBlock;  // forward declaration
+class Session;    // forward declaration
+class SuperBlock; // forward declaration
 
-class SuperBlockFactory {
-public:
-	virtual int Make(Session* session, SuperBlock** sbp) = 0;
-	virtual int Load(Session* session, osd::common::ObjectId oid, SuperBlock** sbp) = 0;
-	virtual int TypeID() = 0;
-	virtual std::string TypeStr() = 0;
+class SuperBlockFactory
+{
+  public:
+    virtual int Make(Session* session, SuperBlock** sbp) = 0;
+    virtual int Load(Session* session, osd::common::ObjectId oid, SuperBlock** sbp) = 0;
+    virtual int TypeID() = 0;
+    virtual std::string TypeStr() = 0;
 };
 
 } // namespace client

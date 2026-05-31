@@ -2,4 +2,5 @@
 #include <pthread.h>
 
 bool KVFSFixture::initialized = false;
-pthread_mutex_t KVFSFixture::mutex = PTHREAD_MUTEX_INITIALIZER;;
+pthread_mutex_t KVFSFixture::mutex = PTHREAD_MUTEX_INITIALIZER;
+;

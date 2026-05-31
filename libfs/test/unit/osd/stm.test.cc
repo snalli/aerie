@@ -1,11 +1,11 @@
+#include "osd/main/client/stm.h"
+#include "common/errno.h"
+#include "common/types.h"
+#include "tool/testfw/unittest.h"
+#include "unit/fixture/client.fixture.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "tool/testfw/unittest.h"
-#include "common/errno.h"
-#include "common/types.h"
-#include "osd/main/client/stm.h"
-#include "unit/fixture/client.fixture.h"
 
 #if 0
 class TestObject: public dcc::stm::Object {
@@ -89,4 +89,4 @@ SUITE(STM)
 	}
 }
 
-#endif 
+#endif
