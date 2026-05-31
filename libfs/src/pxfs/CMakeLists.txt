@@ -74,6 +74,20 @@ target_link_libraries(pxfsc PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(pxfsc PRIVATE mfsclt osdclt bcsclt scm common)
 
+# Version information
+set_target_properties(pxfsc PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+    COMPILE_FLAGS "-fvisibility=hidden"
+)
+
+# Install rules
+install(TARGETS pxfsc
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_SOURCE_DIR}/include/pxfs/c_api.h DESTINATION include/pxfs)
+
 # ---------- pxfss (PXFS server library) -----------------------------------
 # PUBLIC API: Applications link against this for PXFS server functionality
 #
@@ -99,6 +113,20 @@ target_link_libraries(pxfss PUBLIC aerie_includes)
 
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(pxfss PRIVATE osdsrv bcssrv mfssrv scm common)
+
+# Version information
+set_target_properties(pxfss PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+    COMPILE_FLAGS "-fvisibility=hidden"
+)
+
+# Install rules
+install(TARGETS pxfss
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_SOURCE_DIR}/include/pxfs/fs.h DESTINATION include/pxfs)
 
 # ============================================================================
 # LAYER 3: PXFS Executables

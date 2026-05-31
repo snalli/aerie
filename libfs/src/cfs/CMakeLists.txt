@@ -45,6 +45,20 @@ target_link_libraries(cfsc PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(cfsc PRIVATE osdclt bcsclt scm common)
 
+# Version information
+set_target_properties(cfsc PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+    COMPILE_FLAGS "-fvisibility=hidden"
+)
+
+# Install rules
+install(TARGETS cfsc
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_SOURCE_DIR}/include/cfs/c_api.h DESTINATION include/cfs)
+
 # ---------- cfss (CFS server library) -----------------------------------
 # PUBLIC API: Applications link against this for CFS server functionality
 #
@@ -72,6 +86,20 @@ target_link_libraries(cfss PUBLIC aerie_includes)
 
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(cfss PRIVATE osdsrv bcssrv scm common)
+
+# Version information
+set_target_properties(cfss PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+    COMPILE_FLAGS "-fvisibility=hidden"
+)
+
+# Install rules
+install(TARGETS cfss
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_SOURCE_DIR}/include/cfs/fs.h DESTINATION include/cfs)
 
 # ============================================================================
 # CFS Executables

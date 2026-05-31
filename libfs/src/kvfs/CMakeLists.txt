@@ -46,6 +46,20 @@ target_link_libraries(kvfsc PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(kvfsc PRIVATE osdclt bcsclt scm common)
 
+# Version information
+set_target_properties(kvfsc PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+    COMPILE_FLAGS "-fvisibility=hidden"
+)
+
+# Install rules
+install(TARGETS kvfsc
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_SOURCE_DIR}/include/kvfs/c_api.h DESTINATION include/kvfs)
+
 # ---------- kvfss (KVFS server library) ----------------------------------
 # PUBLIC API: Applications link against this for KVFS server functionality
 #
@@ -73,6 +87,20 @@ target_link_libraries(kvfss PUBLIC aerie_includes)
 
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(kvfss PRIVATE osdsrv bcssrv scm common)
+
+# Version information
+set_target_properties(kvfss PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
+    COMPILE_FLAGS "-fvisibility=hidden"
+)
+
+# Install rules
+install(TARGETS kvfss
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+install(FILES ${CMAKE_SOURCE_DIR}/include/kvfs/fs.h DESTINATION include/kvfs)
 
 # ============================================================================
 # KVFS Executables
