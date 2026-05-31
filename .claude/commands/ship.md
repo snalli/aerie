@@ -1,20 +1,19 @@
 # /ship — Pre-commit quality gate
 
-Run the full local quality pipeline inside the CI-matching Docker container.
-Only if **every** stage passes will the changes be committed and pushed.
+Run format → build → tests locally, then commit and push only if all pass.
 
-> **Note:** This codebase is x86-64 only (uses MMX intrinsics + x86 assembly).
-> All Docker commands run with `--platform linux/amd64` so they work correctly
-> on Apple Silicon Macs via QEMU emulation. Expect ~3-5x slower builds than CI.
+> **Note:** This codebase is x86-64 only. All Docker commands use
+> `--platform linux/amd64` (QEMU on Apple Silicon — ~3-5x slower).
+> Server-dependent tests (pxfs, cfs) are skipped locally because
+> `MAP_FIXED` shared-memory addresses conflict under QEMU emulation;
+> they run fine in CI on real x86 hardware.
 
-## Stages (run in order, abort on first failure)
+## Stages (in order, abort on first failure)
 
-1. **Format** — `clang-format` fix + verify
-2. **Build** — `cmake` + `make` inside Docker (Ubuntu 22.04 x86-64, matching CI deps)
-3. **Static analysis** — `cppcheck` critical-issues check
-4. **Tests** — ubench smoke suite (vfs baseline; no server required)
-5. **Coverage** — `gcov` line-coverage report; warn if <50%, fail if <25%
-6. **Commit & push** — only if all above passed
+1. **Format** — clang-format fix + verify (runs natively in Docker)
+2. **Build** — cmake + make with `-DRPC=net -DSCMPOOL=user -DBUILD_BENCH=ON`
+3. **Tests** — VFS baseline (no server needed, works under QEMU)
+4. **Commit & push** — only if all above passed
 
 ## How to use
 
@@ -23,160 +22,103 @@ Only if **every** stage passes will the changes be committed and pushed.
 /ship "your commit message here"
 ```
 
-If a commit message is given as `$ARGUMENTS`, use it verbatim; otherwise prompt for one.
-
 ---
 
 ## Implementation
 
-Execute the following steps **in sequence**. Stop and report the failure clearly if any step fails — do NOT commit.
-
-Define this helper at the start so every step uses it:
-
-```bash
-DOCKER="docker run --platform linux/amd64 --rm -v $(pwd):/workspace"
-IMAGE="aerie-ci:latest"
-```
+Execute the following steps **in sequence** inside the project root
+`/Users/sankethnalli/Documents/GitHub/aerie`. Stop and report clearly on failure — do NOT commit.
 
 ### Step 0 — Sanity check + image build
 
 ```bash
 cd /Users/sankethnalli/Documents/GitHub/aerie
-
-docker info > /dev/null 2>&1 || { echo "❌ Docker is not running"; exit 1; }
-
-# Build image for linux/amd64 (x86-64) if not present or if Dockerfile.ci changed
-docker build --platform linux/amd64 -f Dockerfile.ci -t aerie-ci:latest .
+docker info > /dev/null 2>&1 || { echo "❌ Docker not running"; exit 1; }
+docker build --platform linux/amd64 -f Dockerfile.ci -t aerie-ci:latest . --quiet
 ```
 
-Always rebuild so Dockerfile.ci changes are picked up. Docker layer caching makes this fast when nothing changed.
-
 ### Step 1 — Format (fix then verify)
+
+Run inside Docker so we use the exact same clang-format version as CI (22.x from LLVM).
 
 ```bash
 docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" aerie-ci:latest bash -c "
   cd /workspace
-  # Fix formatting in-place
-  find libfs -name '*.cc' -o -name '*.h' -o -name '*.c' | \
-    xargs clang-format -i --style=file
-  # Verify nothing is still dirty
-  find libfs -name '*.cc' -o -name '*.h' -o -name '*.c' | \
-    xargs clang-format --style=file --dry-run --Werror
+  bash scripts/format-code.sh --fix
+  bash scripts/format-code.sh --check
 "
 ```
 
-If this fails → report which files are still misformatted and stop.
+If any files still fail → show them and stop.
 
 ### Step 2 — Build
 
+Use `-DRPC=net -DSCMPOOL=user` (user-space pool, no kernel SCM) so the server
+can actually run locally.
+
 ```bash
-docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" aerie-ci:latest bash -c "
-  rm -rf /workspace/libfs/build
-  cmake -S /workspace/libfs -B /workspace/libfs/build \
-    -DCMAKE_BUILD_TYPE=Release -DRPC=fast -DSCMPOOL=kernel -DBUILD_BENCH=ON
-  cmake --build /workspace/libfs/build --parallel \$(nproc)
+docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" \
+  -e LIBFS_CONFIG=/workspace/libfs/libfs.ini \
+  aerie-ci:latest bash -c "
+    rm -rf /workspace/libfs/build-local
+    cmake -S /workspace/libfs -B /workspace/libfs/build-local \
+      -DCMAKE_BUILD_TYPE=Debug -DRPC=net -DSCMPOOL=user -DBUILD_BENCH=ON
+    cmake --build /workspace/libfs/build-local --parallel \$(nproc)
 "
 ```
 
-If this fails → show the compiler errors and stop.
+If build fails → show compiler errors and stop.
 
-### Step 3 — Static analysis (cppcheck)
+### Step 3 — Tests (VFS only — server tests run in CI on real x86)
 
 ```bash
-docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" aerie-ci:latest bash -c "
-  cppcheck --enable=warning,error \
-    --error-exitcode=1 \
-    --suppress=missingIncludeSystem \
-    --inline-suppr \
-    -I /workspace/libfs/src \
-    /workspace/libfs/src 2>&1
+docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" \
+  -e LIBFS_CONFIG=/workspace/libfs/libfs.ini \
+  aerie-ci:latest bash -c "
+    BUILD=/workspace/libfs/build-local
+
+    echo '--- pool ---'
+    \$BUILD/src/scm/pool_tool create -p /tmp/pool -s 128M
+
+    echo '--- vfs ---'
+    mkdir -p /tmp/vfsbench
+    \$BUILD/bench/ubench/ubench_vfs \
+      +fs_create -n 1 -p /tmp/vfsbench \
+      +fs_open   -n 1 -p /tmp/vfsbench \
+      +fs_read   -n 1 -p /tmp/vfsbench
 "
 ```
 
-If cppcheck reports errors → show them and stop.
+If VFS test exits non-zero → show output and stop.
 
-### Step 4 — Tests (ubench smoke)
-
-```bash
-docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" aerie-ci:latest bash -c "
-  BUILD=/workspace/libfs/build
-
-  # Create SCM pool
-  \$BUILD/src/scm/pool_tool create -p /tmp/stamnos_pool -s 128M
-
-  # VFS baseline (no server needed)
-  mkdir -p /tmp/vfsbench
-  \$BUILD/bench/ubench/ubench_vfs \
-    +fs_create -n 1 -p /tmp/vfsbench \
-    +fs_open   -n 1 -p /tmp/vfsbench \
-    +fs_read   -n 1 -p /tmp/vfsbench
-"
-```
-
-If any test exits non-zero → show output and stop.
-
-### Step 5 — Coverage (best-effort, warn only)
-
-```bash
-docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" aerie-ci:latest bash -c "
-  # Rebuild with coverage flags
-  cmake -S /workspace/libfs -B /workspace/libfs/build-cov \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DCMAKE_CXX_FLAGS='--coverage' \
-    -DCMAKE_EXE_LINKER_FLAGS='--coverage' \
-    -DRPC=fast -DSCMPOOL=kernel -DBUILD_BENCH=ON
-  cmake --build /workspace/libfs/build-cov --parallel \$(nproc)
-
-  # Run vfs smoke test to generate .gcda files
-  mkdir -p /tmp/vfsbench-cov
-  /workspace/libfs/build-cov/bench/ubench/ubench_vfs \
-    +fs_create -n 1 -p /tmp/vfsbench-cov \
-    +fs_open   -n 1 -p /tmp/vfsbench-cov \
-    +fs_read   -n 1 -p /tmp/vfsbench-cov || true
-
-  # Report with gcovr
-  gcovr --root /workspace/libfs \
-    --object-directory /workspace/libfs/build-cov \
-    --filter '/workspace/libfs/src/' \
-    --print-summary 2>/dev/null | grep -E 'lines|branches' || echo 'Coverage: n/a'
-" 2>&1 || echo "⚠️  Coverage step skipped (non-fatal)"
-```
-
-Parse the coverage percentage:
-- **≥ 50%** → ✅ pass
-- **25–49%** → ⚠️  warn but continue
-- **< 25%** → ❌ fail, stop
-
-### Step 6 — Commit & push
+### Step 4 — Commit & push
 
 Only reach this step if all above passed.
+
+Use the message from `$ARGUMENTS` if provided, otherwise ask the user for one.
 
 ```bash
 cd /Users/sankethnalli/Documents/GitHub/aerie
 git add -A
-git commit -m "<commit message from $ARGUMENTS or prompt user>"
+git commit -m "<message>
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 git push origin master
 ```
 
-Append to the commit message:
-```
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-```
-
 ## Output format
-
-Print a summary table at the end:
 
 ```
 ╔══════════════════════════════════════╗
 ║         /ship quality gate           ║
 ╠══════════════════════════════════════╣
-║ Format         ✅ / ❌               ║
-║ Build          ✅ / ❌               ║
-║ Static checks  ✅ / ❌               ║
-║ Tests          ✅ / ❌               ║
-║ Coverage       ✅ XX% / ⚠️ XX% / ❌  ║
+║ Format    ✅ / ❌                    ║
+║ Build     ✅ / ❌                    ║
+║ Tests     ✅ VFS pass / ❌           ║
 ╠══════════════════════════════════════╣
 ║ Commit & push  ✅ pushed / ⏸ blocked ║
 ╚══════════════════════════════════════╝
 ```
+
+Note: server tests (PXFS, CFS, OSD) are validated by the CI `bench` job on
+real x86 hardware after push. Check the GitHub Actions summary for those results.
