@@ -1,6 +1,9 @@
 #ifndef _HASH_H_KAL189
 #define _HASH_H_KAL189
 
+#include <cstdint>
+#include <cstddef>
+
 #ifdef __cplusplus
 extern "C"
 {
