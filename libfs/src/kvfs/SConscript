@@ -1,6 +1,0 @@
-kvfscLibrary = SConscript('client/SConscript')
-Export('kvfscLibrary')
-kvfssLibrary = SConscript('server/SConscript')
-Export('kvfssLibrary')
-
-SConscript('tool/SConscript')

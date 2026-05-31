@@ -1,7 +1,0 @@
-cfscLibrary, cfs_lib_objs = SConscript('client/SConscript')
-Export('cfscLibrary')
-Export('cfs_lib_objs')
-cfssLibrary = SConscript('server/SConscript')
-Export('cfssLibrary')
-
-SConscript('tool/SConscript')
