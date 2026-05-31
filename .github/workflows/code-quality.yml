@@ -19,23 +19,19 @@ jobs:
   formatting:
     name: Code Formatting Check
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install clang-format
+      - name: Install clang-format 22
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main"
+          sudo apt-get update
+          sudo apt-get install -y clang-format-22
+          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 100
           echo "clang-format version:"
           clang-format --version
-
-      - name: List .clang-format
-        run: |
-          echo "Checking for .clang-format file:"
-          ls -la .clang-format || echo ".clang-format not found!"
-          pwd
-          ls -la
 
       - name: Check code formatting
         run: bash scripts/format-code.sh --check

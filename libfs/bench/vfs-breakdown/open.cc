@@ -18,15 +18,24 @@ static void usage(const char* name)
 {
     std::cout << "usage: " << name << " -p FILESET_ROOT_PATH [OPTION]" << std::endl;
     std::cout << std::endl;
-    std::cout << "  -p FILESET_ROOT_PATH" << "\tfileset root path" << std::endl;
-    std::cout << "  -f NUM_FILES        " << "\tnumber of files" << std::endl;
-    std::cout << "  -i DIRWIDTH_INNER   " << "\tfiles/dirs per inner directory" << std::endl;
-    std::cout << "  -l DIRWIDTH_LEAF    " << "\tfiles per leaf directory" << std::endl;
-    std::cout << "  -n NUM_OPS          " << "\tnumber of operations" << std::endl;
-    std::cout << "  -r NCOUNT           " << "\tread NCOUNT bytes" << std::endl;
-    std::cout << "  -w NCOUNT           " << "\twrite NCOUNT bytes" << std::endl;
-    std::cout << "  -s                  " << "\tstat (no open)" << std::endl;
-    std::cout << "  -m                  " << "\tenable perf monitoring" << std::endl;
+    std::cout << "  -p FILESET_ROOT_PATH"
+              << "\tfileset root path" << std::endl;
+    std::cout << "  -f NUM_FILES        "
+              << "\tnumber of files" << std::endl;
+    std::cout << "  -i DIRWIDTH_INNER   "
+              << "\tfiles/dirs per inner directory" << std::endl;
+    std::cout << "  -l DIRWIDTH_LEAF    "
+              << "\tfiles per leaf directory" << std::endl;
+    std::cout << "  -n NUM_OPS          "
+              << "\tnumber of operations" << std::endl;
+    std::cout << "  -r NCOUNT           "
+              << "\tread NCOUNT bytes" << std::endl;
+    std::cout << "  -w NCOUNT           "
+              << "\twrite NCOUNT bytes" << std::endl;
+    std::cout << "  -s                  "
+              << "\tstat (no open)" << std::endl;
+    std::cout << "  -m                  "
+              << "\tenable perf monitoring" << std::endl;
     exit(1);
 }
 
