@@ -1,6 +1,8 @@
 #ifndef __STAMNOS_OSD_ARRAY_CONTAINER_COMMON_H
 #define __STAMNOS_OSD_ARRAY_CONTAINER_COMMON_H
 
+#include "osd/containers/byte/common.h"
+#include "osd/containers/containers.h"
 #include "osd/main/common/obj.h"
 
 namespace osd

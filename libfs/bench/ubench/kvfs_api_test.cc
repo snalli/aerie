@@ -8,6 +8,7 @@
 
 #include "common/util.h"
 #include "kvfs/client/c_api.h"
+#include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -126,6 +127,7 @@ static int test_large_value()
     const int size = 4096;
     char* val = (char*) malloc(size);
     char* buf = (char*) malloc(size);
+    int rc = 0;
 
     if (val == NULL || buf == NULL)
     {
@@ -135,8 +137,6 @@ static int test_large_value()
     }
 
     memset(val, 0xAB, size);
-
-    int rc = 0;
     if (kvfs_put(key, val, size) != size)
     {
         rc = -1;

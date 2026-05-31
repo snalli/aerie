@@ -9,6 +9,7 @@
 
 #include "common/util.h"
 #include "pxfs/client/libfs.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -231,6 +232,8 @@ static int test_multiblock()
     const int N = 9000; /* > 2 blocks, not block-aligned */
     char* w = (char*) malloc(N);
     char* r = (char*) malloc(N);
+    int rc = 0;
+    int fd = -1;
 
     if (w == NULL || r == NULL)
     {
@@ -242,9 +245,7 @@ static int test_multiblock()
     for (int i = 0; i < N; i++)
         w[i] = (char) ((i * 31 + 7) & 0xFF);
     memset(r, 0, N);
-
-    int rc = 0;
-    int fd = libfs_open2("/pxfs/t_multi.dat", O_CREAT | O_RDWR | O_TRUNC, 0644);
+    fd = libfs_open2("/pxfs/t_multi.dat", O_CREAT | O_RDWR | O_TRUNC, 0644);
     if (fd <= 0)
     {
         rc = -1;

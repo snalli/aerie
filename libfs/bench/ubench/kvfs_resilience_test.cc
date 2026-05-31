@@ -30,7 +30,7 @@
 #define TEST_VALUE "test_value_data"
 #define EXPECTED_SIZE strlen(TEST_VALUE)
 
-static int g_failures = 0;
+static int g_failures __attribute__((unused)) = 0;
 
 /* ── Test 1: Client Disconnect/Reconnect ───────────────────────────────── */
 

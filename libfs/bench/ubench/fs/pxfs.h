@@ -3,6 +3,7 @@
 
 #include "bcs/bcs.h"
 #include "common/util.h"
+#include "osd/main/client/osd-opaque.h"
 #include "ubench/fs/fs.h"
 #include "ubench/main.h"
 

@@ -1,6 +1,8 @@
 #ifndef AGMPOOL990423
 #define AGMPOOL990423
 
+#include <stddef.h>
+
 /* A.G.McDowell, 2 May 1999
  * This comes WITHOUT WARRANTY - it's really just demo code. You
  * can find a PROPER memory allocator, by Doug Lea, at
