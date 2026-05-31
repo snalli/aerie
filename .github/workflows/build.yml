@@ -18,7 +18,7 @@ env:
 jobs:
   cmake:
     name: CMake build (Linux x86-64)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
 
   bench:
     name: ubench (all filesystems smoke test)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: cmake
 
     env:
@@ -170,7 +170,7 @@ jobs:
 
   docker:
     name: Build & push Docker image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: cmake
     permissions:
       contents: read
