@@ -2,7 +2,9 @@
 # Build: docker build -f Dockerfile.ci -t aerie-ci:latest .
 # Run:   docker run -it -v $(pwd):/workspace aerie-ci:latest bash
 
-FROM ubuntu:22.04
+# This codebase is x86-64 only (MMX intrinsics, x86 asm).
+# Pin to linux/amd64 so this image works correctly on Apple Silicon via QEMU.
+FROM --platform=linux/amd64 ubuntu:22.04
 
 # Set environment
 ENV DEBIAN_FRONTEND=noninteractive
