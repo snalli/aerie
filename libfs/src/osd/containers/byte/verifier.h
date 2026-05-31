@@ -2,6 +2,7 @@
 #define __STAMNOS_OSD_BYTE_CONTAINER_VERIFIER_H
 
 #include "osd/containers/byte/container.h"
+#include "osd/main/server/salloc.h"
 #include "osd/main/server/verifier.h"
 
 namespace server
