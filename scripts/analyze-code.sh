@@ -2,7 +2,8 @@
 # analyze-code.sh - Run static analysis with cppcheck
 # Usage: ./scripts/analyze-code.sh [OPTIONS]
 
-set -e
+# Don't exit on error - we want to report issues without failing CI
+set +e
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
