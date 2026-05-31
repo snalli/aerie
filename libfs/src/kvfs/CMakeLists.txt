@@ -46,12 +46,12 @@ target_link_libraries(kvfsc PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(kvfsc PRIVATE osdclt bcsclt scm common)
 
-# Version information
+# Version information and symbol visibility
 set_target_properties(kvfsc PROPERTIES
     VERSION 1.0.0
     SOVERSION 1
-    COMPILE_FLAGS "-fvisibility=hidden"
 )
+target_compile_options(kvfsc PRIVATE -fvisibility=hidden)
 
 # Install rules
 install(TARGETS kvfsc
@@ -88,12 +88,12 @@ target_link_libraries(kvfss PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(kvfss PRIVATE osdsrv bcssrv scm common)
 
-# Version information
+# Version information and symbol visibility
 set_target_properties(kvfss PROPERTIES
     VERSION 1.0.0
     SOVERSION 1
-    COMPILE_FLAGS "-fvisibility=hidden"
 )
+target_compile_options(kvfss PRIVATE -fvisibility=hidden)
 
 # Install rules
 install(TARGETS kvfss

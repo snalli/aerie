@@ -74,12 +74,12 @@ target_link_libraries(pxfsc PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(pxfsc PRIVATE mfsclt osdclt bcsclt scm common)
 
-# Version information
+# Version information and symbol visibility
 set_target_properties(pxfsc PROPERTIES
     VERSION 1.0.0
     SOVERSION 1
-    COMPILE_FLAGS "-fvisibility=hidden"
 )
+target_compile_options(pxfsc PRIVATE -fvisibility=hidden)
 
 # Install rules
 install(TARGETS pxfsc
@@ -114,12 +114,12 @@ target_link_libraries(pxfss PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(pxfss PRIVATE osdsrv bcssrv mfssrv scm common)
 
-# Version information
+# Version information and symbol visibility
 set_target_properties(pxfss PROPERTIES
     VERSION 1.0.0
     SOVERSION 1
-    COMPILE_FLAGS "-fvisibility=hidden"
 )
+target_compile_options(pxfss PRIVATE -fvisibility=hidden)
 
 # Install rules
 install(TARGETS pxfss

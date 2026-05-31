@@ -45,12 +45,12 @@ target_link_libraries(cfsc PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(cfsc PRIVATE osdclt bcsclt scm common)
 
-# Version information
+# Version information and symbol visibility
 set_target_properties(cfsc PROPERTIES
     VERSION 1.0.0
     SOVERSION 1
-    COMPILE_FLAGS "-fvisibility=hidden"
 )
+target_compile_options(cfsc PRIVATE -fvisibility=hidden)
 
 # Install rules
 install(TARGETS cfsc
@@ -87,12 +87,12 @@ target_link_libraries(cfss PUBLIC aerie_includes)
 # Private implementation dependencies (not exposed to users)
 target_link_libraries(cfss PRIVATE osdsrv bcssrv scm common)
 
-# Version information
+# Version information and symbol visibility
 set_target_properties(cfss PROPERTIES
     VERSION 1.0.0
     SOVERSION 1
-    COMPILE_FLAGS "-fvisibility=hidden"
 )
+target_compile_options(cfss PRIVATE -fvisibility=hidden)
 
 # Install rules
 install(TARGETS cfss
