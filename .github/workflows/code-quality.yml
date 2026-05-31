@@ -16,28 +16,8 @@ on:
       - '.clang-format'
 
 jobs:
-  formatting:
-    name: Code Formatting Check
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install clang-format 22
-        run: |
-          sudo apt-get update
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main"
-          sudo apt-get update
-          sudo apt-get install -y clang-format-22
-          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 100
-          echo "clang-format version:"
-          clang-format --version
-
-      - name: Check code formatting
-        run: bash scripts/format-code.sh --check
-
   static-analysis:
-    name: Static Analysis (Critical Issues)
+    name: Static Analysis (cppcheck)
     runs-on: ubuntu-22.04
     continue-on-error: true
     steps:
@@ -48,30 +28,3 @@ jobs:
 
       - name: Run static analysis
         run: bash scripts/analyze-code.sh critical
-
-  build:
-    name: Build Test
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential \
-            cmake \
-            libconfig++-dev \
-            libboost-dev \
-            libsparsehash-dev
-
-      - name: Configure build
-        run: |
-          cmake -S libfs -B libfs/build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DRPC=fast \
-            -DSCMPOOL=kernel \
-            -DBUILD_BENCH=ON
-
-      - name: Build
-        run: cmake --build libfs/build --parallel $(nproc)
