@@ -231,6 +231,14 @@ static int test_multiblock()
     const int N = 9000; /* > 2 blocks, not block-aligned */
     char* w = (char*) malloc(N);
     char* r = (char*) malloc(N);
+
+    if (w == NULL || r == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        rc = -ENOMEM;
+        goto done;
+    }
+
     for (int i = 0; i < N; i++)
         w[i] = (char) ((i * 31 + 7) & 0xFF);
     memset(r, 0, N);

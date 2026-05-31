@@ -105,7 +105,6 @@ int InodeFactory::LoadFileInode(::client::Session* session, ::osd::common::Objec
     osd::common::ObjectProxyReference* ref;
     FileInode* fip;
 
-
     while (session->omgr_->FindObject(session, oid, &ref) != E_SUCCESS)
     {
     }

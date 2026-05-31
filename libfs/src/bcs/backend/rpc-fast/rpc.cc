@@ -139,7 +139,6 @@ rpcs::rpcs(const char* bind_f) : bind_f_(bind_f)
     DBG_LOG(DBG_INFO, DBG_MODULE(rpc), "created rpcs server object!\n");
 
     // main_service_loop(bind_f);
-
 }
 
 rpcs::~rpcs()
@@ -500,6 +499,13 @@ void rpcs::handle_comm_q(server_lock_t* rpc_serv)
     //&(rpc_serv->head_send_q[now_serv]) - &(rpc_serv->rpc_comm_l); //the offset to the data section
 
     send_queue_t* temp = (send_queue_t*) malloc(sizeof(send_queue_t));
+    if (temp == NULL)
+    {
+        // Memory allocation failed - cannot proceed with request
+        rpc_serv->rpc_comm_sig[now_serv].signal = -1; // Signal error to client
+        return;
+    }
+
     assert(clock_gettime(CLOCK_REALTIME, &(temp->start)) == 0); // record the start time
     // should not be in use! (in use == 1|2)
 
@@ -578,7 +584,6 @@ void rpcs::handle_send_q(server_lock_t* rpc_serv, unsigned tid)
         DBG_LOG(DBG_DEBUG, DBG_MODULE(rpc), "Server: Serving... %u\n", currqe->client_ticket);
 
         dispatch(&currqe->rpc_request->data[0], currqe->rpc_request->sizeInChar);
-
 
         currqe->rpc_request->checksum =
             calcChksum(currqe->rpc_request->data, currqe->rpc_request->sizeInChar);
@@ -735,6 +740,13 @@ void rpcs::check_registry_incoming()
 
         char filename[24];
         new_server_qe = (server_lock_t*) malloc(sizeof(server_lock_t));
+        if (new_server_qe == NULL)
+        {
+            // Memory allocation failed
+            rpc_reg.rpc_reg_reply->signal = -1; // Signal error
+            return;
+        }
+
         new_server_qe->client_id = random();
         sprintf(filename, "/tmp/%d", new_server_qe->client_id);
         sprintf(rpc_reg.rpc_reg_reply->data, "%d", new_server_qe->client_id);
@@ -807,10 +819,8 @@ void* rpcs::rpc_server_kernel(void* arg)
         int myturn;
 #endif
 
-
         if (tid == 0) // dispatched thread
             check_registry_incoming();
-
 
 #ifdef RPCS_VER_2
         // goes to the starting "client queue" based on thread id
@@ -824,17 +834,14 @@ void* rpcs::rpc_server_kernel(void* arg)
 
             s_ce = *curr;
 
-
             // services only one of them and then returns
             handle_comm_q(s_ce);
-
 
             // higher priority -- checks for all of them at once
             handle_send_q(s_ce, tid);
 
             // increment the globaltimestamp for each service-loop
             s_ce->gtstamp++;
-
         }
 
 #else // RPCS_VER_1
@@ -862,7 +869,6 @@ void* rpcs::rpc_server_kernel(void* arg)
 
             // services only one of them and then returns
             handle_comm_q(s_ce);
-
 
             // higher priority -- checks for all of them at once
             handle_send_q(s_ce, tid);

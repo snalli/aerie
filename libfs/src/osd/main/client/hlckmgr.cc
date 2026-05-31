@@ -572,7 +572,6 @@ lock_protocol::status HLockManager::AttachPublicLockToChild(HLock* phlock, HLock
     assert(phlock->status() == HLock::LOCKED_CONVERTING || phlock->status() == HLock::CONVERTING);
     assert(chlock->status() == HLock::LOCKED_CONVERTING || chlock->status() == HLock::CONVERTING);
 
-
     if (chlock->lock_)
     {
         // someone attached a lock from bottom-to-up using the method

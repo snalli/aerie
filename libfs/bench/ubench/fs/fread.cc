@@ -24,8 +24,7 @@ struct Args
     size_t size;
 };
 
-static void*
-__ubench_fs_fread(void* arg)
+static void* __ubench_fs_fread(void* arg)
 {
     MEASURE_TIME_PREAMBLE
     const char* root = ((Args*) arg)->root;

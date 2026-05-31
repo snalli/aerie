@@ -272,7 +272,6 @@ class fast_rpc
 
         assert(sizeInChar <= MAX_BUFF_SIZE);
 
-
         memcpy(mybuff->data, msg, sizeInChar);
         mybuff->sizeInChar = sizeInChar;
         mybuff->checksum = calcChksum(msg, sizeInChar);

@@ -1,7 +1,6 @@
 #ifndef method_thread_h
 #define method_thread_h
 
-
 #include <assert.h>
 #include <pthread.h>
 #include <stdio.h>

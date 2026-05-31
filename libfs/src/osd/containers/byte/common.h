@@ -634,7 +634,6 @@ int ByteContainer::Object<Session>::ReadBlock(Session* session, char* dst, uint6
     int l;
     int rn;
 
-
     l = min(kBlockSize, size_ - bn * kBlockSize);
     if (l < off)
     {
@@ -672,7 +671,6 @@ int ByteContainer::Object<Session>::WriteBlock(Session* session, char* src, uint
                                                int n)
 {
     int ret;
-
 
     Region<Session> region(session, this, bn);
     if ((ret = region.WriteBlock(session, src, bn, off, n)) < 0)
@@ -730,7 +728,6 @@ int ByteContainer::Object<Session>::ReadImmutable(Session* session, char* dst, u
     uint64_t bcount;
     uint64_t size;
     char* ptr;
-
 
     // find out how much is really there to read
     if ((off + n) > Size())
@@ -925,7 +922,6 @@ int ByteContainer::Region<Session>::WriteBlock(Session* session, char* src, uint
 
     assert(off < kBlockSize);
     assert(off + n <= kBlockSize);
-
 
     if ((slot = MapSlot(session, bn, true)) == NULL)
     {

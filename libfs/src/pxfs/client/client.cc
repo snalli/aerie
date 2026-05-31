@@ -501,7 +501,6 @@ int Client::Write(int fd, const char* src, uint64_t n)
 int Client::Read(int fd, char* dst, uint64_t n)
 {
 
-
     int ret;
     File* fp;
 

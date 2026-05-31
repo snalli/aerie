@@ -346,7 +346,6 @@ int ByteContainer::VersionManager::ReadMutable(OsdSession* session, char* dst, u
 {
     int vn;
 
-
     dbg_log(DBG_DEBUG, "Mutable range = [%" PRIu64 " , %" PRIu64 " ]\n", off, off + n - 1);
 
     if (off > size_)
@@ -382,7 +381,6 @@ int ByteContainer::VersionManager::Read(OsdSession* session, char* dst, uint64_t
             "Read range = [%" PRIu64 ", %" PRIu64 "] n=%" PRIu64 " (size=%" PRIu64
             ", immmaxsize=%" PRIu64 ")\n",
             off, off + n - 1, n, size_, immmaxsize);
-
 
     // insight : n is the number of bytes you are going to read
     // insight : off : is the file offset

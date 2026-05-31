@@ -126,6 +126,14 @@ static int test_large_value()
     const int size = 4096;
     char* val = (char*) malloc(size);
     char* buf = (char*) malloc(size);
+
+    if (val == NULL || buf == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        rc = -ENOMEM;
+        goto done;
+    }
+
     memset(val, 0xAB, size);
 
     int rc = 0;

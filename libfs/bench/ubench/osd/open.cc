@@ -19,6 +19,11 @@ static int __ubench_open(osd::client::OsdSession* session, int /*objtype*/, int 
     osd::containers::client::ByteContainer::Object** obj =
         (osd::containers::client::ByteContainer::Object**) malloc(
             sizeof(osd::containers::client::ByteContainer::Object*) * numops);
+    if (obj == NULL)
+    {
+        return -E_NOMEM;
+    }
+
     osd::common::ObjectProxyReference* ref;
     unsigned long long runtime;
     hrtime_t runtime_cycles;

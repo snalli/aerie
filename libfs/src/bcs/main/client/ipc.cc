@@ -26,7 +26,6 @@ int Ipc::Init()
     IpcProtocol::SubscribeReply rep;
     std::string idstr;
 
-
 // setup RPC for making calls to the server
 #ifdef _CLT2SVR_RPCNET
     struct sockaddr_in dst; // server's ip address
