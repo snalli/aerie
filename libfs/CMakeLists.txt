@@ -15,7 +15,7 @@ option(COVERAGE   "Build with gcov code-coverage instrumentation" OFF)
 set(RPC "net" CACHE STRING "RPC backend: net | fast | fast-two")
 set_property(CACHE RPC PROPERTY STRINGS net fast fast-two)
 
-set(SCMPOOL "kernel" CACHE STRING "SCM pool implementation: kernel | user")
+set(SCMPOOL "user" CACHE STRING "SCM pool implementation: kernel | user")
 set_property(CACHE SCMPOOL PROPERTY STRINGS kernel user)
 
 set(GOOGLE_SPARSEHASH "" CACHE PATH "Path to google-sparsehash headers (if not on system include path)")
