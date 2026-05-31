@@ -1,0 +1,39 @@
+# CMake build artifacts
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+*.cmake
+
+# Build directories (recursive)
+**/CMakeFiles/
+**/Makefile
+**/cmake_install.cmake
+
+# Compiled objects
+*.o
+*.a
+*.so
+*.dylib
+
+# IDE and editor
+.vscode/
+.clion/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build outputs
+bin/
+lib/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Temporary files
+*.tmp
+*.bak

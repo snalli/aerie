@@ -1,0 +1,28 @@
+# Aerie Project C++ Code Style
+# Simplified LLVM-based configuration for clang-format 22
+
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Braces
+BreakBeforeBraces: Allman
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Pointers and references
+PointerAlignment: Left
+
+# Spacing
+SpaceAfterCStyleCast: true
+SpaceBeforeCtorInitializerColon: true
+
+# Include ordering
+SortIncludes: true
+
+# Misc
+Standard: c++11
+ColumnLimit: 100
