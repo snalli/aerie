@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  ci:
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    image: aerie-ci:latest
+    container_name: aerie-ci-env
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+    environment:
+      - DEBIAN_FRONTEND=noninteractive

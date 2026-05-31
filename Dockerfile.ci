@@ -1,0 +1,47 @@
+# Dockerfile - Matches GitHub Actions CI environment
+# Build: docker build -f Dockerfile.ci -t aerie-ci:latest .
+# Run:   docker run -it -v $(pwd):/workspace aerie-ci:latest bash
+
+FROM ubuntu:22.04
+
+# Set environment
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+
+# Install base dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    curl \
+    wget \
+    software-properties-common \
+    gnupg \
+    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install clang-format 22 from LLVM repositories
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
+    && add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-22 main" \
+    && apt-get update \
+    && apt-get install -y clang-format-22 \
+    && update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 100 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install cppcheck
+RUN apt-get update && apt-get install -y \
+    cppcheck \
+    && rm -rf /var/lib/apt/lists/*
+
+# Verify installations
+RUN echo "=== Checking installed tools ===" && \
+    clang-format --version && \
+    cppcheck --version && \
+    cmake --version && \
+    make --version
+
+# Set working directory
+WORKDIR /workspace
+
+# Default command
+CMD ["/bin/bash"]
