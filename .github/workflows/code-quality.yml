@@ -26,20 +26,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang-format
+          echo "clang-format version:"
           clang-format --version
 
-      - name: Check code formatting
+      - name: List .clang-format
         run: |
-          cd libfs
-          find . -name "*.cc" -o -name "*.h" | \
-            grep -v ".build\|.generated\|postmark" | \
-            while read file; do
-              if ! clang-format --style=file "$file" | diff -q "$file" - > /dev/null 2>&1; then
-                echo "Format check failed: $file"
-                exit 1
-              fi
-            done
-          echo "All files formatted correctly"
+          echo "Checking for .clang-format file:"
+          ls -la .clang-format || echo ".clang-format not found!"
+          pwd
+          ls -la
+
+      - name: Check code formatting
+        run: bash scripts/format-code.sh --check
 
   static-analysis:
     name: Static Analysis (Critical Issues)
