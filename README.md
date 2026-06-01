@@ -124,9 +124,22 @@ int     kvfs_sync();
 ### Quick build
 
 ```bash
+# From repo root — builds libfs + all tests/benchmark binaries
+cmake -S . -B build
+cmake --build build --parallel $(nproc)
+
+# Or from libfs/ only (same result — top-level delegates here)
 cmake -S libfs -B libfs/build
 cmake --build libfs/build --parallel $(nproc)
 ```
+
+**What gets compiled:**
+- All 18 shared libraries (`librpcnet`, `libpxfsc`, `libkvfsc`, …)
+- All servers and tools (`pxfs_server`, `kvfs_server`, `pool_tool`, `pxfs_mkfs`, …)
+- All benchmark + API test binaries from `tests/benchmark/` (`pxfs_api_test`, `kvfs_api_test`, `ubench_pxfs`, …)
+
+> `tests/unittest/` and `tests/integ/` are **not yet wired into CMake** — they
+> depend on a test framework that needs porting to Google Test or Catch2 (see TODO).
 
 **Build options** (defaults shown):
 
@@ -134,7 +147,8 @@ cmake --build libfs/build --parallel $(nproc)
 |--------|--------|---------|-------------|
 | `RPC` | `net`, `fast`, `fast-two` | `net` | RPC transport (`net` = TCP; `fast` = shared-memory) |
 | `SCMPOOL` | `user`, `kernel` | `user` | Pool allocator (`user` works without patched kernel) |
-| `BUILD_BENCH` | `ON`, `OFF` | `ON` | Build benchmark and test programs |
+| `BUILD_BENCH` | `ON`, `OFF` | `ON` | Build `tests/benchmark/` programs |
+| `COVERAGE` | `ON`, `OFF` | `OFF` | gcov instrumentation |
 
 > **`SCMPOOL=kernel`** requires custom Linux syscalls (312/313) for NVM memory
 > protection, only available on the patched Aerie kernel. Use `SCMPOOL=user`
@@ -261,10 +275,27 @@ Options per operation: `-n <count>` `-p <root_path>` `-s <size>`
 
 ### API correctness tests
 
+Run everything in Docker (handles server lifecycle, ASLR, pool setup):
+
 ```bash
-pxfs_api_test -h 10000   # open/read/write/pread/pwrite/lseek/mkdir/stat/...
-kvfs_api_test -h 10000   # put/get/del/overwrite/binary/large-value/sync
+bash tests/run-tests.sh api        # pxfs: 19 API tests (open/read/write/mkdir/stat/…)
+bash tests/run-tests.sh kvfs       # kvfs:  7 API tests (put/get/del/overwrite/sync/…)
+bash tests/run-tests.sh bench      # pxfs micro-benchmarks
+bash tests/run-tests.sh all        # api + bench
+bash tests/run-tests.sh leak       # pxfs API tests under valgrind leak-check
+bash tests/run-tests.sh kvfs-leak  # kvfs API tests under valgrind leak-check
+bash tests/run-tests.sh shell      # drop into build container shell
 ```
+
+Or manually against a running server:
+```bash
+pxfs_api_test -h 10000
+kvfs_api_test -h 10001
+```
+
+> **Note:** `tests/unittest/` and `tests/integ/` contain unit and integration
+> test sources but are not yet compiled — the test framework needs porting to
+> Google Test or Catch2 (see TODO).
 
 ## CI
 
