@@ -1,4 +1,4 @@
-#include "bench/sharing/barrier.h"
+#include "sharing/barrier.h"
 #include "osd/main/common/lock_protocol.h"
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"

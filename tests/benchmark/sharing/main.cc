@@ -1,4 +1,4 @@
-#include "bench/sharing/barrier.h"
+#include "sharing/barrier.h"
 #include <assert.h>
 #include <getopt.h>
 #include <iostream>
