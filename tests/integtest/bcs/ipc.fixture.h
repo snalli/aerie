@@ -3,7 +3,7 @@
 
 #include "bcs/bcs.h"
 #include "pxfs/client/client_i.h"
-#include "tool/testfw/integrationtest.h"
+#include "testfw/integrationtest.h"
 #include <pthread.h>
 
 extern client::Ipc* client::global_ipc_layer;

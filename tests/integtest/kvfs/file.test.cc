@@ -1,8 +1,8 @@
 #include "kvfs.fixture.h"
 #include "kvfs/client/client.h"
 #include "kvfs/client/libfs.h"
-#include "tool/testfw/integrationtest.h"
-#include "tool/testfw/testfw.h"
+#include "testfw/integrationtest.h"
+#include "testfw/testfw.h"
 #include <map>
 #include <stdio.h>
 #include <stdlib.h>

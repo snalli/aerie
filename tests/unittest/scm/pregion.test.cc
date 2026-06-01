@@ -1,6 +1,6 @@
 #include "scm/pregion/pregion.h"
 #include "common/errno.h"
-#include "tool/testfw/unittest.h"
+#include "testfw/unittest.h"
 
 #include <stdio.h>
 

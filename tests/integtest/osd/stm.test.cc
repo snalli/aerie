@@ -6,8 +6,8 @@
 #include "pxfs/client/libfs.h"
 #include "rpc/rpc.h"
 #include "test/integration/osd/osd.fixture.h"
-#include "tool/testfw/integrationtest.h"
-#include "tool/testfw/testfw.h"
+#include "testfw/integrationtest.h"
+#include "testfw/testfw.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

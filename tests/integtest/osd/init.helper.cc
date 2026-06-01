@@ -1,6 +1,6 @@
 #include "lock.fixture.h"
-#include "tool/testfw/argvmap.h"
-#include "tool/testfw/testfw.h"
+#include "testfw/argvmap.h"
+#include "testfw/testfw.h"
 #include <list>
 #include <stdio.h>
 #include <stdlib.h>

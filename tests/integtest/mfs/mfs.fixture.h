@@ -5,7 +5,7 @@
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "pxfs/client/session.h"
-#include "tool/testfw/integrationtest.h"
+#include "testfw/integrationtest.h"
 #include <pthread.h>
 
 using namespace client;

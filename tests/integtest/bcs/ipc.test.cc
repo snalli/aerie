@@ -1,7 +1,7 @@
 #include "ipc.fixture.h"
 #include "pxfs/client/client_i.h"
 #include "test/integration/bcs/test_protocol.h"
-#include "tool/testfw/integrationtest.h"
+#include "testfw/integrationtest.h"
 #include <stdio.h>
 #include <stdlib.h>
 

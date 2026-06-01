@@ -4,7 +4,7 @@
 #include "cfs/client/client_i.h"
 #include "cfs/client/libfs.h"
 #include "cfs/client/session.h"
-#include "tool/testfw/integrationtest.h"
+#include "testfw/integrationtest.h"
 #include <pthread.h>
 
 using namespace client;

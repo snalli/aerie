@@ -1,8 +1,8 @@
 #ifndef _TESTFW_TESTFW_H_APK199
 #define _TESTFW_TESTFW_H_APK199
 
-#include "tool/testfw/argvmap.h"
-#include "tool/testfw/unittest.h"
+#include "testfw/argvmap.h"
+#include "testfw/unittest.h"
 #include <fstream>
 #include <getopt.h>
 #include <iostream>

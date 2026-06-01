@@ -4,8 +4,8 @@
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "rpc/rpc.h"
-#include "tool/testfw/integrationtest.h"
-#include "tool/testfw/testfw.h"
+#include "testfw/integrationtest.h"
+#include "testfw/testfw.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

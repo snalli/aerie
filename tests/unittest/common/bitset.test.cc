@@ -1,5 +1,5 @@
 #include "common/bitset.h"
-#include "tool/testfw/unittest.h"
+#include "testfw/unittest.h"
 
 // bitpos contains the positions of the bits that are set
 bool CompareBitSet(DynamicBitSet* bset, std::set<int> bitpos)

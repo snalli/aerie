@@ -4,7 +4,7 @@
 #include "kvfs/client/client.h"
 #include "kvfs/client/libfs.h"
 #include "kvfs/client/session.h"
-#include "tool/testfw/integrationtest.h"
+#include "testfw/integrationtest.h"
 #include <pthread.h>
 
 using namespace client;

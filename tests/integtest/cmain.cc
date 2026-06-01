@@ -1,7 +1,7 @@
 #include "bcs/bcs.h"
 #include "pxfs/client/libfs.h"
-#include "tool/testfw/integrationtest.h"
-#include "tool/testfw/testfw.h"
+#include "testfw/integrationtest.h"
+#include "testfw/testfw.h"
 #include <getopt.h>
 #include <iostream>
 #include <list>

@@ -1,5 +1,5 @@
 #include "osd/main/common/lock_protocol.h"
-#include "tool/testfw/unittest.h"
+#include "testfw/unittest.h"
 #include <set>
 
 SUITE(LockProtocolMode)

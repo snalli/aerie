@@ -14,7 +14,7 @@
 
 #if 0 // DEPRECATED
 
-#include "tool/testfw/ut_barrier.h"
+#include "testfw/ut_barrier.h"
 
 #define TEST_THREAD_FIXTURE_DECLARATION(Fixture, TestName, ThreadTestName)                         \
     class Fixture##TestName##Helper;                                                               \

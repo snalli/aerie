@@ -1,8 +1,8 @@
 #include "cfs.fixture.h"
 #include "cfs/client/client_i.h"
 #include "cfs/client/libfs.h"
-#include "tool/testfw/integrationtest.h"
-#include "tool/testfw/testfw.h"
+#include "testfw/integrationtest.h"
+#include "testfw/testfw.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

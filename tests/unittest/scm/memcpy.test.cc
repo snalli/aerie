@@ -1,6 +1,6 @@
 #include "common/errno.h"
 #include "scm/scm/scm.h"
-#include "tool/testfw/unittest.h"
+#include "testfw/unittest.h"
 #include <stdlib.h>
 
 SUITE(SCM)

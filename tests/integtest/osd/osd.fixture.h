@@ -8,7 +8,7 @@
 #include "pxfs/client/fsomgr.h"
 #include "pxfs/mfs/client/mfs.h"
 #include "test/integration/bcs/ipc.fixture.h"
-#include "tool/testfw/integrationtest.h"
+#include "testfw/integrationtest.h"
 #include <fcntl.h>
 #include <pthread.h>
 #include <sstream>
