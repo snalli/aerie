@@ -28,7 +28,9 @@ No kernel module or special hardware is required; SCM write latency can be
 emulated in userspace via `movnti` + busy-spin.
 
 > **Platform:** x86-64 Linux only — the codebase uses `rdtsc`, SSE `movnti`,
-> and x86 inline assembly. It will not compile on ARM or other architectures.
+> and x86 inline assembly. An ARM compiler (targeting ARM) cannot compile it.
+> On Apple Silicon you can build and run via Docker with `--platform linux/amd64`,
+> which runs an x86-64 GCC toolchain under QEMU emulation (~3-5× slower).
 
 ## Filesystem variants
 
@@ -287,10 +289,28 @@ libfs/
     rxfs/      Read-only client variant
     kvfs/      Key-value store variant
     common/    Shared utilities, timing (hrtime), errno
-  bench/
-    ubench/    Micro-benchmarks + API unit tests
   libfs.ini    Runtime configuration
-scripts/       CI, Docker, and dev helper scripts
+tests/
+  unittest/    Unit tests (OSD containers, lock protocol, SCM, client)
+  integtest/   Integration tests (BCS, MFS, OSD, CFS, KVFS)
+  interactive/ Manual/interactive test harnesses
+  bench/
+    ubench/    Micro-benchmarks + API tests (CMake-built)
+    filebench-*/  Filebench workload configs
+    kvzone-*/     KVzone benchmark adapted for Aerie
+    sysbench-*/   Sysbench adapted for Aerie
+    kyotocabinet-*/  KyotoCabinet comparison benchmark
+  tool/        Test framework (testfw), trace analyzer, perf breakdown
+scripts/
+  docker-ci-run.sh   Run CI pipeline locally in Docker
+  build-local.sh     Build in Docker (matches CI environment)
+  run-tests.sh       Build + run servers + API tests in Docker
+  format-code.sh     clang-format check/fix
+  analyze-code.sh    cppcheck static analysis
+  quality-check.sh   format + analyze combined
+  aerie-server.sh    Start pxfs_server with pool init
+  aerie-bench.sh     Run pxfs micro-benchmarks against running server
+docker/        Dockerfile, Dockerfile.ci, docker-compose files
 linux/
   linux-3.9/   Patched Linux 3.9 kernel with SCM syscall support
   scmdisk/     Optional kernel block device emulating SCM latency
