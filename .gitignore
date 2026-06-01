@@ -37,3 +37,14 @@ __pycache__/
 # Temporary files
 *.tmp
 *.bak
+
+# Build directories
+build/
+build-local/
+libfs/build/
+libfs/build-local/
+
+# ELF binaries / compiled executables (no extension, not scripts)
+bench/ubench/a.out
+bench/ubench/open
+bench/ubench/lopen
