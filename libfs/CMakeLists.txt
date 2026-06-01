@@ -97,5 +97,5 @@ target_link_libraries(aerie_includes INTERFACE
 add_subdirectory(src)
 
 if(BUILD_BENCH)
-    add_subdirectory(../tests/bench tests/bench)
+    add_subdirectory(../tests/benchmark tests/benchmark)
 endif()

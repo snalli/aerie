@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 
 set(bench_incdirs
-    ${CMAKE_SOURCE_DIR}/../tests/bench
+    ${CMAKE_SOURCE_DIR}/../tests/benchmark
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/../tests

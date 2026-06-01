@@ -1,5 +1,4 @@
 # Aerie TODO
-# Consolidated from libfs/TODO and libfs/src/TODO
 
 ## Locking
 
@@ -40,7 +39,7 @@ Session manager needed in the IPC layer. Session hierarchy:
 - Generic namemap (parameterized by hash functor) for directory inodes and
   mount-point pseudo-inodes. Extend hashtable interface to accept hash result
   as a hint and verify correctness.
-- readdir support.
+- readdir / opendir / getdents — not yet implemented in pxfs.
 - Journal integration.
 - Port rename to DPO.
 
@@ -69,10 +68,6 @@ Session manager needed in the IPC layer. Session hierarchy:
 ## Storage
 
 - Pregion should be built on top of a sparse storage pool.
-
-## RPC
-
-- Integrate Venkat's fast RPC.
 
 ## SCM model
 
