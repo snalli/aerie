@@ -1,0 +1,80 @@
+# Aerie TODO
+# Consolidated from libfs/TODO and libfs/src/TODO
+
+## Locking
+
+Lock bug — DowngradePublicLock collects all locks to release and releases them
+one by one. When releasing a lock the publish function is called; however it is
+possible that someone else will acquire a recursive lock as soon as a private
+lock is released but before the public lock is released (and before the publish).
+Fix options:
+  - Release all private locks first, then public locks, OR
+  - Publish all outstanding state first, then release locks.
+
+## OSD layer
+
+- Support multiple simultaneous filesystems on the client side.
+  Currently the OSD layer does not support multiple filesystems — lock manager
+  and storage-pool initialization need to happen at open/load time per storage
+  system, not globally.
+
+- DPO: implement protocol for transition between hierarchical and flat locks.
+- DPO: implement read-only transactional concurrency control.
+
+## Session / IPC
+
+Session manager needed in the IPC layer. Session hierarchy:
+
+    IpcSession <- DpoSession <- PxfsSession
+
+  IpcSession: user id, effective ACL (for storage creation)
+  DpoSession: pointers to journal, storage allocator
+
+## Superblock / containers
+
+- Superblock container: filesystem, free bitmaps.
+
+## Namespace
+
+- Concurrent namespace operations: mkdir, rmdir, link, unlink, rename.
+- Generic namemap (parameterized by hash functor) for directory inodes and
+  mount-point pseudo-inodes. Extend hashtable interface to accept hash result
+  as a hint and verify correctness.
+- readdir support.
+- Journal integration.
+- Port rename to DPO.
+
+## Inode cache optimizations
+
+- Immutable inode optimization (e.g. for lookup):
+    - If requested inode is immutable but a mutable copy exists in cache,
+      do not return immutable.
+    - Provide a cheap validity check for immutable inodes under contention.
+    - GetInode: caller provides wrapper for immutable; mutable inodes are
+      ref-counted and freed when refcount drops to 0.
+
+- mfs/client/dir_inode — consider caching persistent entries to avoid the
+  second lookup for entries already resolved. Benefit may be small because
+  cache insertion adds overhead on the lookup fast path.
+
+- client/namespace.cc:
+    - Namex: use LookupFast instead of Lookup; fall back to Lookup only when
+      inode is mutated.
+    - nameiparent: when namex uses immutable for lookup, allow requesting a
+      mutable inode directly.
+
+- InodeMap: use a timestamp counter to signal to clients that an immutable
+  inode mapping may be stale (because a mutable one was inserted).
+
+## Storage
+
+- Pregion should be built on top of a sparse storage pool.
+
+## RPC
+
+- Integrate Venkat's fast RPC.
+
+## SCM model
+
+- Integrate Mnemosyne's PCM model.
+- Integrate Mnemosyne's primitives, including RAWL (log manager needs rewrite).
