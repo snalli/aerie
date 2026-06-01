@@ -8,9 +8,9 @@ add_executable(sharing_vfs
     sharing/barrier.cc
 )
 target_include_directories(sharing_vfs PRIVATE
-    ${CMAKE_SOURCE_DIR}/../tests/benchmark
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/../tests
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${AERIE_LIBFS_SOURCE_DIR}/src
+    ${AERIE_LIBFS_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 target_link_libraries(sharing_vfs PRIVATE Threads::Threads ${RT_LIB})

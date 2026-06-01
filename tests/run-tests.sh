@@ -62,7 +62,7 @@ echo "=== Build done ==="
 [ "${MODE}" = "shell" ] && exec bash
 
 POOL=/tmp/stamnos_pool
-B=/tmp/build/bench/ubench
+B=/tmp/build/tests/benchmark/ubench
 
 start_pxfs() {
   /tmp/build/src/scm/pool_tool  create -p "${POOL}" -s "${POOL_SIZE}" 2>&1 | tail -1

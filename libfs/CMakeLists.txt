@@ -92,10 +92,16 @@ target_link_libraries(aerie_includes INTERFACE
 )
 
 # ---------------------------------------------------------------------------
+# Expose libfs root to subdirectories outside this tree (e.g. tests/benchmark)
+# ---------------------------------------------------------------------------
+set(AERIE_LIBFS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "libfs source root")
+
+# ---------------------------------------------------------------------------
 # Subdirectories
 # ---------------------------------------------------------------------------
 add_subdirectory(src)
 
 if(BUILD_BENCH)
-    add_subdirectory(../tests/benchmark tests/benchmark)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../tests/benchmark
+                     ${CMAKE_CURRENT_BINARY_DIR}/tests/benchmark)
 endif()
