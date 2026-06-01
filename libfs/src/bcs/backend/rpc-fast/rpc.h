@@ -160,13 +160,7 @@ class fast_rpc
 
         // spin on the signal
         while (*sh_chan != 1)
-#if defined(__x86_64__) || defined(__i386__)
-            __asm__ volatile("rep;nop" ::: "memory");
-#elif defined(__aarch64__)
-            __asm__ volatile("yield" ::: "memory");
-#else
-            __asm__ volatile("" ::: "memory"); // compiler barrier
-#endif
+            __asm__ volatile("" ::: "memory"); // compiler barrier — prevent hoisting
     }
 
     int rpc_bind(string binder, char* client_sh_ch, bool unbind = false)

@@ -18,11 +18,8 @@ extern int STAMNOS_SCM_LATENCY_WRITE;
 
 /* Hardware Cache */
 
-#ifdef __x86_64__
-#define CACHE_LINE_SIZE_LOG 6 // 64 bytes
-#else
-#define CACHE_LINE_SIZE_LOG 5 // 32 bytes
-#endif
+// 64-byte cache lines are standard on all modern x86-64 and AArch64 CPUs
+#define CACHE_LINE_SIZE_LOG 6
 
 #define CACHEBLOCK_ADDR(addr) ((scm_word_t*) (((scm_word_t) (addr)) & ~(CACHELINE_SIZE - 1)))
 #define CACHEINDEX_ADDR(addr) ((scm_word_t*) (((scm_word_t) (addr)) & (CACHELINE_SIZE - 1)))
