@@ -292,7 +292,7 @@ libfs/
     ubench/    Micro-benchmarks + API unit tests
   libfs.ini    Runtime configuration
 scripts/       CI, Docker, and dev helper scripts
-kernelmode/
+linux/
   linux-3.9/   Patched Linux 3.9 kernel with SCM syscall support
   scmdisk/     Optional kernel block device emulating SCM latency
   scmmodel/    SCM latency modeling tools
@@ -301,7 +301,7 @@ kernelmode/
 
 ## Kernel module (optional — `SCMPOOL=kernel`)
 
-The `kernelmode/linux-3.9/` tree is a forward-port of Sankar's SCM patch
+The `linux/linux-3.9/` tree is a forward-port of Sankar's SCM patch
 to Linux 3.9. It adds two custom syscalls (312/313) for NVM memory protection.
 You only need this if you want to use `SCMPOOL=kernel`; the default `user` pool
 works on stock Linux.
@@ -309,7 +309,7 @@ works on stock Linux.
 **Compilation requires a native x86-64 Linux environment** (Docker/EC2/VM — not macOS):
 
 ```bash
-cd kernelmode/linux-3.9
+cd linux/linux-3.9
 make mrproper
 make x86_64_defconfig    # or: make menuconfig  (enable CONFIG_SCM=y)
 make -j$(nproc)

@@ -34,7 +34,7 @@ fi
 
 # Always build (layer cache makes this fast when nothing changed)
 echo "📦 Building Docker image for linux/amd64..."
-docker build $PLATFORM -f Dockerfile.ci -t "$IMAGE" . --quiet
+docker build $PLATFORM -f docker/Dockerfile.ci -t "$IMAGE" . --quiet
 echo ""
 
 # Prepare command

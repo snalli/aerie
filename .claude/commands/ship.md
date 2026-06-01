@@ -34,7 +34,7 @@ Execute the following steps **in sequence** inside the project root
 ```bash
 cd /Users/sankethnalli/Documents/GitHub/aerie
 docker info > /dev/null 2>&1 || { echo "❌ Docker not running"; exit 1; }
-docker build --platform linux/amd64 -f Dockerfile.ci -t aerie-ci:latest . --quiet
+docker build --platform linux/amd64 -f docker/Dockerfile.ci -t aerie-ci:latest . --quiet
 ```
 
 ### Step 1 — Format (fix then verify)
