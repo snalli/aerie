@@ -113,12 +113,11 @@ int     kvfs_sync();
 
 ### Requirements
 
-- Linux x86-64
-- CMake ≥ 3.16
-- GCC with C++11 support
+- Linux x86-64, GCC ≥ 4.4 with C++11 support, CMake ≥ 3.16
 - `libconfig++-dev`
-- `libboost-dev`
-- `libsparsehash-dev`
+- `libboost-dev` (`yum install boost-devel.x86_64` or `apt install libboost-dev`)
+- `libsparsehash-dev` ([google-sparsehash](https://github.com/sparsehash/sparsehash) — build with the same compiler)
+- Python 2.6+ with `sysv_ipc` package (`pip install sysv_ipc`; requires `python-devel`)
 
 ### Quick build
 
@@ -342,6 +341,23 @@ Client Process                      Server Process
        ↓                                   ↓
             SCM Pool (persistent mmap'd file)
 ```
+
+## POSIX shared memory
+
+Aerie uses POSIX shared memory for client↔server IPC. Make sure `/dev/shm` is
+mounted (standard on modern Linux; add to `/etc/fstab` if missing):
+
+```
+shm   /dev/shm   tmpfs   nodev,nosuid,noexec   0   0
+```
+
+Stale shared-memory segments from crashed processes accumulate in `/dev/shm` —
+clean them up periodically with `rm -f /dev/shm/shbuf_*`.
+
+## Code style
+
+The codebase follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html).
+Formatting is enforced via `clang-format-12` (run `bash scripts/format-code.sh --fix`).
 
 ## Dependencies
 
