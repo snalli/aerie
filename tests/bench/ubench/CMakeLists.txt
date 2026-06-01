@@ -3,9 +3,10 @@
 # ---------------------------------------------------------------------------
 
 set(bench_incdirs
-    ${CMAKE_SOURCE_DIR}/bench
+    ${CMAKE_SOURCE_DIR}/../tests/bench
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/../tests
 )
 
 # Per-filesystem client dependency sets
