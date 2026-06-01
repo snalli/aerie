@@ -20,7 +20,7 @@
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
-REPO="$(cd "$(dirname "$0")" && pwd)"
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
 MODE="${1:-default}"
 POOL_SIZE="${POOL_SIZE:-128M}"
 BUILD_TYPE="${BUILD_TYPE:-Debug}"
