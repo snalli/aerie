@@ -1,7 +1,7 @@
 #include "bcs/bcs.h"
 #include "pxfs/client/libfs.h"
-#include "testfw/integrationtest.h"
-#include "testfw/testfw.h"
+// TODO: port to modern test framework (was testfw/unittest++)
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <getopt.h>
 #include <iostream>
 #include <list>

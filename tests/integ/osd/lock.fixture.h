@@ -4,7 +4,7 @@
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "test/integration/bcs/ipc.fixture.h"
-#include "testfw/integrationtest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <pthread.h>
 
 using namespace client;

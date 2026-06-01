@@ -8,8 +8,8 @@
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "rpc/rpc.h"
-#include "testfw/integrationtest.h"
-#include "testfw/testfw.h"
+// TODO: port to modern test framework (was testfw/unittest++)
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>

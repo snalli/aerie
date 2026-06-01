@@ -4,7 +4,7 @@
 #include "kvfs/client/client.h"
 #include "kvfs/client/libfs.h"
 #include "kvfs/client/session.h"
-#include "testfw/integrationtest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <pthread.h>
 
 using namespace client;

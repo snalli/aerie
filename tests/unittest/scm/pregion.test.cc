@@ -1,6 +1,6 @@
 #include "scm/pregion/pregion.h"
 #include "common/errno.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 
 #include <stdio.h>
 

@@ -4,7 +4,7 @@
 #include "cfs/client/client_i.h"
 #include "cfs/client/libfs.h"
 #include "cfs/client/session.h"
-#include "testfw/integrationtest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <pthread.h>
 
 using namespace client;

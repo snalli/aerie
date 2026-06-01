@@ -1,6 +1,6 @@
 #include "common/errno.h"
 #include "pxfs/client/file.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -3,7 +3,7 @@
 
 #include "bcs/bcs.h"
 #include "pxfs/client/client_i.h"
-#include "testfw/integrationtest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <pthread.h>
 
 extern client::Ipc* client::global_ipc_layer;

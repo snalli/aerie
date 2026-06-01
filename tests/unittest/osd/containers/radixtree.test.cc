@@ -1,7 +1,7 @@
 #include "osd/containers/byte/radixtree.h"
 #include "common/errno.h"
 #include "test/unit/fixture/session.fixture.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <stdio.h>
 #include <stdlib.h>
 

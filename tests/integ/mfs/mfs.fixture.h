@@ -5,7 +5,7 @@
 #include "pxfs/client/client_i.h"
 #include "pxfs/client/libfs.h"
 #include "pxfs/client/session.h"
-#include "testfw/integrationtest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <pthread.h>
 
 using namespace client;

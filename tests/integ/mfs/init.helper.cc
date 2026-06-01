@@ -1,6 +1,6 @@
 #include "../osd/lock.fixture.h"
-#include "testfw/argvmap.h"
-#include "testfw/testfw.h"
+// TODO: port to modern test framework (was testfw/unittest++)
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <list>
 #include <stdio.h>
 #include <stdlib.h>

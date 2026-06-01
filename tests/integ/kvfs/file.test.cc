@@ -1,8 +1,8 @@
 #include "kvfs.fixture.h"
 #include "kvfs/client/client.h"
 #include "kvfs/client/libfs.h"
-#include "testfw/integrationtest.h"
-#include "testfw/testfw.h"
+// TODO: port to modern test framework (was testfw/unittest++)
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <map>
 #include <stdio.h>
 #include <stdlib.h>

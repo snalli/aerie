@@ -1,6 +1,6 @@
 #include "osd/main/common/gtque.h"
 #include "osd/main/common/lock_protocol.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <pthread.h>
 
 class MemberRecord

@@ -1,5 +1,5 @@
 #include "common/interval_tree.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 
 class SimpleInterval : public Interval
 {

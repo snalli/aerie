@@ -8,7 +8,7 @@
 #include "pxfs/client/fsomgr.h"
 #include "pxfs/mfs/client/mfs.h"
 #include "test/integration/bcs/ipc.fixture.h"
-#include "testfw/integrationtest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <fcntl.h>
 #include <pthread.h>
 #include <sstream>

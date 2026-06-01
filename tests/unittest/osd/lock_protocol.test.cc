@@ -1,5 +1,5 @@
 #include "osd/main/common/lock_protocol.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <set>
 
 SUITE(LockProtocolMode)

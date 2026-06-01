@@ -10,8 +10,8 @@
 #include "pxfs/common/publisher.h"
 #include "pxfs/mfs/client/file_inode.h"
 #include "test/integration/osd/osd.fixture.h"
-#include "testfw/integrationtest.h"
-#include "testfw/testfw.h"
+// TODO: port to modern test framework (was testfw/unittest++)
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>

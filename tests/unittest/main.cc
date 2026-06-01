@@ -1,4 +1,4 @@
-#include "testfw/testfw.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <iostream>
 #include <string.h>
 

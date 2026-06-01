@@ -4,7 +4,7 @@
 #include "osd/main/common/obj.h"
 #include "pxfs/client/inode.h"
 #include "pxfs/client/sb.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include "unit/fixture/client.fixture.h"
 #include <google/dense_hash_map>
 #include <stdio.h>

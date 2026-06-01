@@ -1,7 +1,7 @@
 #include "osd/main/client/stm.h"
 #include "common/errno.h"
 #include "common/types.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include "unit/fixture/client.fixture.h"
 #include <stdio.h>
 #include <stdlib.h>

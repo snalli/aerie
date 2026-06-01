@@ -1,6 +1,6 @@
 #include "common/errno.h"
 #include "scm/scm/scm.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include <stdlib.h>
 
 SUITE(SCM)

@@ -1,6 +1,6 @@
 #include "osd/containers/map/hashtable.h"
 #include "common/errno.h"
-#include "testfw/unittest.h"
+// TODO: port to modern test framework (was testfw/unittest++)
 #include "unit/fixture/session.fixture.h"
 #include <map>
 #include <stdio.h>
