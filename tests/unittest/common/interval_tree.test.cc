@@ -1,5 +1,5 @@
 #include "common/interval_tree.h"
-// TODO: port to modern test framework (was testfw/unittest++)
+#include <gtest/gtest.h>
 
 class SimpleInterval : public Interval
 {
@@ -31,9 +31,8 @@ class SimpleInterval : public Interval
     IntervalTreeNode* node_;
 };
 
-SUITE(SuiteIntervalTree)
-{
-    TEST(TestInsert1)
+// Suite: SuiteIntervalTree
+    TEST(SuiteIntervalTree, TestInsert1)
     {
         IntervalTree* tree = new IntervalTree;
         SimpleInterval* result_interval;
@@ -43,11 +42,11 @@ SUITE(SuiteIntervalTree)
         tree->Insert(interval);
 
         result_interval = static_cast<SimpleInterval*>(tree->LeftmostOverlap(10, 10));
-        CHECK(result_interval->GetLowPoint() == 10);
-        CHECK(result_interval->GetHighPoint() == 20);
+        EXPECT_TRUE(result_interval->GetLowPoint() == 10);
+        EXPECT_TRUE(result_interval->GetHighPoint() == 20);
     }
 
-    TEST(TestInsert2)
+    TEST(SuiteIntervalTree, TestInsert2)
     {
         IntervalTree* tree = new IntervalTree;
         SimpleInterval* result_interval;
@@ -63,15 +62,15 @@ SUITE(SuiteIntervalTree)
         tree->Insert(interval);
 
         result_interval = static_cast<SimpleInterval*>(tree->LeftmostOverlap(10, 10));
-        CHECK(result_interval->GetLowPoint() == 10);
-        CHECK(result_interval->GetHighPoint() == 30);
+        EXPECT_TRUE(result_interval->GetLowPoint() == 10);
+        EXPECT_TRUE(result_interval->GetHighPoint() == 30);
 
         result_interval = static_cast<SimpleInterval*>(tree->LeftmostOverlap(40, 90));
-        CHECK(result_interval->GetLowPoint() == 50);
-        CHECK(result_interval->GetHighPoint() == 100);
+        EXPECT_TRUE(result_interval->GetLowPoint() == 50);
+        EXPECT_TRUE(result_interval->GetHighPoint() == 100);
     }
 
-    TEST(TestInsert3)
+    TEST(SuiteIntervalTree, TestInsert3)
     {
         IntervalTree* tree = new IntervalTree;
         SimpleInterval* result_interval;
@@ -89,15 +88,14 @@ SUITE(SuiteIntervalTree)
         tree->Insert(interval);
 
         result_interval = static_cast<SimpleInterval*>(tree->LeftmostOverlap(20, 90));
-        CHECK(result_interval->GetLowPoint() == 10);
-        CHECK(result_interval->GetHighPoint() == 30);
+        EXPECT_TRUE(result_interval->GetLowPoint() == 10);
+        EXPECT_TRUE(result_interval->GetHighPoint() == 30);
 
         result_interval = static_cast<SimpleInterval*>(tree->LeftmostOverlap(31, 90));
-        CHECK(result_interval->GetLowPoint() == 50);
-        CHECK(result_interval->GetHighPoint() == 80);
+        EXPECT_TRUE(result_interval->GetLowPoint() == 50);
+        EXPECT_TRUE(result_interval->GetHighPoint() == 80);
 
         result_interval = static_cast<SimpleInterval*>(tree->LeftmostOverlap(81, 90));
-        CHECK(result_interval->GetLowPoint() == 85);
-        CHECK(result_interval->GetHighPoint() == 95);
+        EXPECT_TRUE(result_interval->GetLowPoint() == 85);
+        EXPECT_TRUE(result_interval->GetHighPoint() == 95);
     }
-}

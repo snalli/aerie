@@ -1,6 +1,8 @@
 #ifndef __STAMNOS_TEST_SESSION_FIXTURE_H
 #define __STAMNOS_TEST_SESSION_FIXTURE_H
 
+#include <gtest/gtest.h>
+
 #include "osd/main/common/obj.h"
 #include "osd/main/common/publisher.h"
 
@@ -91,7 +93,7 @@ class Session
     PseudoJournal* journal_;
 };
 
-struct SessionFixture
+struct SessionFixture : public ::testing::Test
 {
     SessionFixture() : session(NULL)
     {

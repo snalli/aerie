@@ -1,6 +1,7 @@
 #ifndef __STAMNOS_TEST_CLIENT_FIXTURE_H
 #define __STAMNOS_TEST_CLIENT_FIXTURE_H
 
+#include <gtest/gtest.h>
 #include "pxfs/client/session.h"
 
 namespace osd
@@ -43,7 +44,7 @@ class PseudoStorageSystem : public osd::client::StorageSystem
     }
 };
 
-struct ClientFixture
+struct ClientFixture : public ::testing::Test
 {
     ClientFixture() : session(NULL)
     {

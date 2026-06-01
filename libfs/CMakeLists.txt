@@ -105,3 +105,9 @@ if(BUILD_BENCH)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../tests/benchmark
                      ${CMAKE_CURRENT_BINARY_DIR}/tests/benchmark)
 endif()
+
+option(BUILD_TESTS "Build unit tests (requires libgtest-dev)" OFF)
+if(BUILD_TESTS)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../tests/unittest
+                     ${CMAKE_CURRENT_BINARY_DIR}/tests/unittest)
+endif()

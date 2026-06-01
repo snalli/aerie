@@ -1,75 +1,73 @@
 #include "scm/pheap/pheap.h"
 #include "common/errno.h"
-// TODO: port to modern test framework (was testfw/unittest++)
+#include <gtest/gtest.h>
 
 #include <stdio.h>
 
-SUITE(SCM)
-{
-    TEST(TestPersistentHeap1)
+// Suite: SCM
+    TEST(SCM, TestPersistentHeap1)
     {
         PersistentHeap* pheap;
         int* ptr1;
 
-        CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL,
+        EXPECT_TRUE(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL,
                                    PersistentHeap::kReset, &pheap) == E_SUCCESS);
 
-        CHECK(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
+        EXPECT_TRUE(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
         *ptr1 = 0xc0ffee;
-        CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
+        EXPECT_TRUE(PersistentHeap::Close(pheap) == E_SUCCESS);
 
         // reincarnate the heap
-        CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL, 0, &pheap) ==
+        EXPECT_TRUE(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL, 0, &pheap) ==
               E_SUCCESS);
 
-        CHECK(*ptr1 == 0xc0ffee);
-        CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
+        EXPECT_TRUE(*ptr1 == 0xc0ffee);
+        EXPECT_TRUE(PersistentHeap::Close(pheap) == E_SUCCESS);
     }
 
-    TEST(TestPersistentHeap2)
+    TEST(SCM, TestPersistentHeap2)
     {
         PersistentHeap* pheap;
         int* ptr1;
         int* ptr2;
 
-        CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL,
+        EXPECT_TRUE(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL,
                                    PersistentHeap::kReset, &pheap) == E_SUCCESS);
 
-        CHECK(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
+        EXPECT_TRUE(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
         *ptr1 = 0xc0ffee;
-        CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
+        EXPECT_TRUE(PersistentHeap::Close(pheap) == E_SUCCESS);
 
         // reincarnate the heap
-        CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL, 0, &pheap) ==
+        EXPECT_TRUE(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL, 0, &pheap) ==
               E_SUCCESS);
 
-        CHECK(*ptr1 == 0xc0ffee);
+        EXPECT_TRUE(*ptr1 == 0xc0ffee);
 
-        CHECK(pheap->Alloc(512, (void**) &ptr2) == E_SUCCESS);
+        EXPECT_TRUE(pheap->Alloc(512, (void**) &ptr2) == E_SUCCESS);
         *ptr2 = 0xbeef;
-        CHECK(*ptr1 == 0xc0ffee);
-        CHECK(*ptr2 == 0xbeef);
-        CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
+        EXPECT_TRUE(*ptr1 == 0xc0ffee);
+        EXPECT_TRUE(*ptr2 == 0xbeef);
+        EXPECT_TRUE(PersistentHeap::Close(pheap) == E_SUCCESS);
     }
 
-    TEST(TestPersistentHeapRoot)
+    TEST(SCM, TestPersistentHeapRoot)
     {
         PersistentHeap* pheap;
         int* ptr1;
         int* ptr2;
 
-        CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL,
+        EXPECT_TRUE(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL,
                                    PersistentHeap::kReset, &pheap) == E_SUCCESS);
 
-        CHECK(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
+        EXPECT_TRUE(pheap->Alloc(512, (void**) &ptr1) == E_SUCCESS);
         *ptr1 = 0xc0ffee;
         pheap->set_root((void*) ptr1);
-        CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
+        EXPECT_TRUE(PersistentHeap::Close(pheap) == E_SUCCESS);
 
         // reincarnate the heap
-        CHECK(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL, 0, &pheap) ==
+        EXPECT_TRUE(PersistentHeap::Open("/tmp/persistent_heap1", 1024 * 1024, NULL, 0, &pheap) ==
               E_SUCCESS);
-        CHECK(pheap->root() == (void*) ptr1);
-        CHECK(PersistentHeap::Close(pheap) == E_SUCCESS);
+        EXPECT_TRUE(pheap->root() == (void*) ptr1);
+        EXPECT_TRUE(PersistentHeap::Close(pheap) == E_SUCCESS);
     }
-}

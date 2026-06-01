@@ -1,4 +1,4 @@
-add_subdirectory(ubench)
+add_subdirectory(micro_benchmarks)
 
 # sharing bench (VFS-only, no libfs dependency)
 add_executable(sharing_vfs

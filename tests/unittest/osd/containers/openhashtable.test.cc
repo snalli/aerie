@@ -1,7 +1,7 @@
 #include "osd/containers/map/openhashtable.h"
 #include "common/errno.h"
-// TODO: port to modern test framework (was testfw/unittest++)
-#include "unit/fixture/session.fixture.h"
+#include <gtest/gtest.h>
+#include "fixture/session.fixture.h"
 #include <map>
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,9 +77,8 @@ static std::string gen_rand_str(const int minlen, const int maxlen)
 
 typedef OpenHashTable<Session, Key, uint64_t, Traits> OpenHT;
 
-SUITE(ContainersOpenHashTable)
-{
-    TEST_FIXTURE(SessionFixture, TestInsert)
+// Suite: ContainersOpenHashTable
+    TEST_F(SessionFixture, TestInsert)
     {
         int i;
         OpenHT ht(0.8);
@@ -102,13 +101,13 @@ SUITE(ContainersOpenHashTable)
         {
             key = Key(((*it).first).c_str());
             val = (*it).second;
-            CHECK(ht.Insert(session, key, val) == 0);
+            EXPECT_TRUE(ht.Insert(session, key, val) == 0);
         }
         for (it = kvmap.begin(); it != kvmap.end(); it++)
         {
             key = Key(((*it).first).c_str());
-            CHECK(ht.Lookup(session, key, &val) == 0);
-            CHECK(val == (*it).second);
+            EXPECT_TRUE(ht.Lookup(session, key, &val) == 0);
+            EXPECT_TRUE(val == (*it).second);
         }
     }
 
@@ -123,7 +122,7 @@ SUITE(ContainersOpenHashTable)
         bool exists_;
     };
 
-    TEST_FIXTURE(SessionFixture, TestDelete)
+    TEST_F(SessionFixture, TestDelete)
     {
         int i;
         OpenHT ht(0.8);
@@ -150,7 +149,7 @@ SUITE(ContainersOpenHashTable)
             {
                 key = Key(((*it).key_).c_str());
                 val = (*it).val_;
-                CHECK(ht.Insert(session, key, val) == 0);
+                EXPECT_TRUE(ht.Insert(session, key, val) == 0);
             }
         }
 
@@ -163,18 +162,17 @@ SUITE(ContainersOpenHashTable)
 		for (it_vecint=kvvec_todel.begin(); it_vecint != kvvec_todel.end(); it_vecint++) {
 			key = Key(kvvec[(*it_vecint)].key_.c_str());
 			kvvec[(*it_vecint)].exists_ = false;
-			CHECK(ht.Remove(session, key) == 0);
+			EXPECT_TRUE(ht.Remove(session, key) == 0);
 		}
 
 		for (it=kvvec.begin(); it != kvvec.end(); it++) {
 			key = Key(((*it).key_).c_str());
 			if ((*it).exists_) {
-				CHECK(ht.Lookup(session, key, &val) == 0);
-				CHECK(val == (*it).val_);
+				EXPECT_TRUE(ht.Lookup(session, key, &val) == 0);
+				EXPECT_TRUE(val == (*it).val_);
 			} else {
-				CHECK(ht.Lookup(session, key, &val) != 0);
+				EXPECT_TRUE(ht.Lookup(session, key, &val) != 0);
 			}
 		}
 #endif
     }
-}

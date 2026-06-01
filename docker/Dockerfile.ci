@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y \
     libconfig++-dev \
     libboost-dev \
     libsparsehash-dev \
+    libgtest-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install clang-format 22 from LLVM repositories

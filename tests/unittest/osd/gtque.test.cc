@@ -1,6 +1,6 @@
 #include "osd/main/common/gtque.h"
 #include "osd/main/common/lock_protocol.h"
-// TODO: port to modern test framework (was testfw/unittest++)
+#include <gtest/gtest.h>
 #include <pthread.h>
 
 class MemberRecord
@@ -35,8 +35,7 @@ class MemberRecord
     Mode mode_;
 };
 
-SUITE(GrantQueue)
-{
+// Suite: GrantQueue
     struct CreateQueueFixture
     {
         CreateQueueFixture() : gtque(lock_protocol::Mode::CARDINALITY, lock_protocol::Mode::NL)
@@ -46,46 +45,46 @@ SUITE(GrantQueue)
         GrantQueue<MemberRecord> gtque;
     };
 
-    TEST_FIXTURE(CreateQueueFixture, AddRemove)
+    TEST_F(CreateQueueFixture, AddRemove)
     {
         MemberRecord mr(1, lock_protocol::Mode::XL);
 
         gtque.Add(mr);
-        CHECK(gtque.Exists(1) == true);
-        CHECK(gtque.Remove(1) == 0);
-        CHECK(gtque.Exists(1) == false);
+        EXPECT_TRUE(gtque.Exists(1) == true);
+        EXPECT_TRUE(gtque.Remove(1) == 0);
+        EXPECT_TRUE(gtque.Exists(1) == false);
     }
 
-    TEST_FIXTURE(CreateQueueFixture, CanGrant1)
+    TEST_F(CreateQueueFixture, CanGrant1)
     {
         MemberRecord mr1(1, lock_protocol::Mode::XL);
         MemberRecord mr2(2, lock_protocol::Mode::XL);
 
         gtque.Add(mr1);
-        CHECK(gtque.CanGrant(mr2.mode()) == false);
+        EXPECT_TRUE(gtque.CanGrant(mr2.mode()) == false);
     }
 
-    TEST_FIXTURE(CreateQueueFixture, CanGrant2)
+    TEST_F(CreateQueueFixture, CanGrant2)
     {
         MemberRecord mr1(1, lock_protocol::Mode::XL);
         MemberRecord mr2(2, lock_protocol::Mode::XL);
         MemberRecord mr3(3, lock_protocol::Mode::SL);
         MemberRecord mr4(4, lock_protocol::Mode::SL);
 
-        CHECK(gtque.Grant(mr1) == 0);
-        CHECK(gtque.CanGrant(mr2.mode()) == false);
-        CHECK(gtque.Remove(mr1.id()) == 0);
-        CHECK(gtque.Grant(mr3) == 0);
-        CHECK(gtque.Grant(mr4) == 0);
-        CHECK(gtque.Remove(mr3.id()) == 0);
-        CHECK(gtque.Grant(mr2) < 0);
-        CHECK(gtque.Remove(mr4.id()) == 0);
-        CHECK(gtque.Grant(mr2) == 0);
-        CHECK(gtque.Exists(2) == true);
-        CHECK(gtque.Grant(mr1) < 0);
+        EXPECT_TRUE(gtque.Grant(mr1) == 0);
+        EXPECT_TRUE(gtque.CanGrant(mr2.mode()) == false);
+        EXPECT_TRUE(gtque.Remove(mr1.id()) == 0);
+        EXPECT_TRUE(gtque.Grant(mr3) == 0);
+        EXPECT_TRUE(gtque.Grant(mr4) == 0);
+        EXPECT_TRUE(gtque.Remove(mr3.id()) == 0);
+        EXPECT_TRUE(gtque.Grant(mr2) < 0);
+        EXPECT_TRUE(gtque.Remove(mr4.id()) == 0);
+        EXPECT_TRUE(gtque.Grant(mr2) == 0);
+        EXPECT_TRUE(gtque.Exists(2) == true);
+        EXPECT_TRUE(gtque.Grant(mr1) < 0);
     }
 
-    TEST_FIXTURE(CreateQueueFixture, CanGrant3)
+    TEST_F(CreateQueueFixture, CanGrant3)
     {
         MemberRecord mr1(1, lock_protocol::Mode::IX);
         MemberRecord mr2(2, lock_protocol::Mode::XL);
@@ -95,39 +94,39 @@ SUITE(GrantQueue)
         MemberRecord mr6(6, lock_protocol::Mode::SR);
         MemberRecord mr7(7, lock_protocol::Mode::IXSL);
 
-        CHECK(gtque.Grant(mr1) == 0);
-        CHECK(gtque.Grant(mr3) == 0);
-        CHECK(gtque.Grant(mr4) == 0);
-        CHECK(gtque.Grant(mr2) < 0);
-        CHECK(gtque.Grant(mr5) == 0);
-        CHECK(gtque.Grant(mr6) < 0);
-        CHECK(gtque.Grant(mr7) == 0);
+        EXPECT_TRUE(gtque.Grant(mr1) == 0);
+        EXPECT_TRUE(gtque.Grant(mr3) == 0);
+        EXPECT_TRUE(gtque.Grant(mr4) == 0);
+        EXPECT_TRUE(gtque.Grant(mr2) < 0);
+        EXPECT_TRUE(gtque.Grant(mr5) == 0);
+        EXPECT_TRUE(gtque.Grant(mr6) < 0);
+        EXPECT_TRUE(gtque.Grant(mr7) == 0);
 
-        CHECK(gtque.Remove(1) == 0);
-        CHECK(gtque.Remove(7) == 0);
-        CHECK(gtque.Grant(mr6) == 0);
+        EXPECT_TRUE(gtque.Remove(1) == 0);
+        EXPECT_TRUE(gtque.Remove(7) == 0);
+        EXPECT_TRUE(gtque.Grant(mr6) == 0);
 
-        CHECK(gtque.Remove(3) == 0);
-        CHECK(gtque.Remove(4) == 0);
+        EXPECT_TRUE(gtque.Remove(3) == 0);
+        EXPECT_TRUE(gtque.Remove(4) == 0);
 
-        CHECK(gtque.Exists(1) == false);
-        CHECK(gtque.Exists(2) == false);
-        CHECK(gtque.Exists(3) == false);
-        CHECK(gtque.Exists(4) == false);
-        CHECK(gtque.Exists(5) == true);
-        CHECK(gtque.Exists(6) == true);
-        CHECK(gtque.Exists(7) == false);
+        EXPECT_TRUE(gtque.Exists(1) == false);
+        EXPECT_TRUE(gtque.Exists(2) == false);
+        EXPECT_TRUE(gtque.Exists(3) == false);
+        EXPECT_TRUE(gtque.Exists(4) == false);
+        EXPECT_TRUE(gtque.Exists(5) == true);
+        EXPECT_TRUE(gtque.Exists(6) == true);
+        EXPECT_TRUE(gtque.Exists(7) == false);
 
-        CHECK(gtque.Remove(5) == 0);
-        CHECK(gtque.Remove(6) == 0);
-        CHECK(gtque.Exists(5) == false);
-        CHECK(gtque.Exists(6) == false);
+        EXPECT_TRUE(gtque.Remove(5) == 0);
+        EXPECT_TRUE(gtque.Remove(6) == 0);
+        EXPECT_TRUE(gtque.Exists(5) == false);
+        EXPECT_TRUE(gtque.Exists(6) == false);
 
-        CHECK(gtque.Grant(mr2) == 0);
-        CHECK(gtque.Grant(mr3) < 0);
+        EXPECT_TRUE(gtque.Grant(mr2) == 0);
+        EXPECT_TRUE(gtque.Grant(mr3) < 0);
     }
 
-    TEST_FIXTURE(CreateQueueFixture, ConvertInPlace)
+    TEST_F(CreateQueueFixture, ConvertInPlace)
     {
         MemberRecord mr1(1, lock_protocol::Mode::IX);
         MemberRecord mr2(2, lock_protocol::Mode::XL);
@@ -137,13 +136,13 @@ SUITE(GrantQueue)
         MemberRecord mr6(6, lock_protocol::Mode::SR);
         MemberRecord mr7(7, lock_protocol::Mode::IXSL);
 
-        CHECK(gtque.Grant(mr1) == 0);
-        CHECK(gtque.Grant(mr3) == 0);
-        CHECK(gtque.ConvertInPlace(1, lock_protocol::Mode::IXSL) == 0);
-        CHECK(gtque.ConvertInPlace(3, lock_protocol::Mode::XR) < 0);
+        EXPECT_TRUE(gtque.Grant(mr1) == 0);
+        EXPECT_TRUE(gtque.Grant(mr3) == 0);
+        EXPECT_TRUE(gtque.ConvertInPlace(1, lock_protocol::Mode::IXSL) == 0);
+        EXPECT_TRUE(gtque.ConvertInPlace(3, lock_protocol::Mode::XR) < 0);
     }
 
-    TEST_FIXTURE(CreateQueueFixture, PartialOrder)
+    TEST_F(CreateQueueFixture, PartialOrder)
     {
         MemberRecord mr1(1, lock_protocol::Mode::IS);
         MemberRecord mr2(2, lock_protocol::Mode::SL);
@@ -153,11 +152,10 @@ SUITE(GrantQueue)
         MemberRecord mr6(6, lock_protocol::Mode::XR);
         MemberRecord mr7(7, lock_protocol::Mode::IXSL);
 
-        CHECK(gtque.Grant(mr1) == 0);
-        CHECK(gtque.Grant(mr3) == 0);
-        CHECK(gtque.PartialOrder(lock_protocol::Mode::SL) == 0);
-        CHECK(gtque.PartialOrder(lock_protocol::Mode::NL) < 0);
-        CHECK(gtque.PartialOrder(lock_protocol::Mode::XR) > 0);
-        CHECK(gtque.PartialOrder(lock_protocol::Mode::IX) == 0);
+        EXPECT_TRUE(gtque.Grant(mr1) == 0);
+        EXPECT_TRUE(gtque.Grant(mr3) == 0);
+        EXPECT_TRUE(gtque.PartialOrder(lock_protocol::Mode::SL) == 0);
+        EXPECT_TRUE(gtque.PartialOrder(lock_protocol::Mode::NL) < 0);
+        EXPECT_TRUE(gtque.PartialOrder(lock_protocol::Mode::XR) > 0);
+        EXPECT_TRUE(gtque.PartialOrder(lock_protocol::Mode::IX) == 0);
     }
-}

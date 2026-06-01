@@ -4,8 +4,8 @@
 #include "osd/main/common/obj.h"
 #include "pxfs/client/inode.h"
 #include "pxfs/client/sb.h"
-// TODO: port to modern test framework (was testfw/unittest++)
-#include "unit/fixture/client.fixture.h"
+#include <gtest/gtest.h>
+#include "fixture/client.fixture.h"
 #include <google/dense_hash_map>
 #include <stdio.h>
 #include <stdlib.h>
@@ -150,32 +150,31 @@ class PseudoSuperBlock : public client::SuperBlock
     client::Inode* root_;
 };
 
-SUITE(ClientNamespace)
-{
+// Suite: ClientNamespace
 
-    TEST_FIXTURE(ClientFixture, TestMount)
+    TEST_F(ClientFixture, TestMount)
     {
         client::NameSpace* test_namespace = new client::NameSpace("TEST");
         client::SuperBlock* sb = new PseudoSuperBlock();
         client::Inode* dirinode = new PseudoDirInode();
         test_namespace->Init(session);
 
-        CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
+        EXPECT_TRUE(test_namespace->Mount(session, "/A/B", sb) == 0);
     }
 
-    TEST_FIXTURE(ClientFixture, TestMultipleMount)
+    TEST_F(ClientFixture, TestMultipleMount)
     {
         client::NameSpace* test_namespace = new client::NameSpace("TEST");
         client::SuperBlock* sb1 = new PseudoSuperBlock();
         client::SuperBlock* sb2 = new PseudoSuperBlock();
         test_namespace->Init(session);
 
-        CHECK(test_namespace->Mount(session, "/A/B", sb1) == 0);
-        CHECK(test_namespace->Mount(session, "/A/B/C", sb2) != 0);
-        CHECK(test_namespace->Mount(session, "/A/C/D", sb2) == 0);
+        EXPECT_TRUE(test_namespace->Mount(session, "/A/B", sb1) == 0);
+        EXPECT_TRUE(test_namespace->Mount(session, "/A/B/C", sb2) != 0);
+        EXPECT_TRUE(test_namespace->Mount(session, "/A/C/D", sb2) == 0);
     }
 
-    TEST_FIXTURE(ClientFixture, TestNameiparent)
+    TEST_F(ClientFixture, TestNameiparent)
     {
         char tmpname[128];
         client::Inode* inode;
@@ -183,44 +182,44 @@ SUITE(ClientNamespace)
         client::SuperBlock* sb = new PseudoSuperBlock();
         test_namespace->Init(session);
 
-        CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
+        EXPECT_TRUE(test_namespace->Mount(session, "/A/B", sb) == 0);
 
-        CHECK(test_namespace->Nameiparent(session, "/A/B/../B/C", lock_protocol::Mode::NL, tmpname,
+        EXPECT_TRUE(test_namespace->Nameiparent(session, "/A/B/../B/C", lock_protocol::Mode::NL, tmpname,
                                           &inode) == 0);
-        CHECK(strcmp(tmpname, "C") == 0);
-        CHECK(inode == sb->RootInode());
+        EXPECT_TRUE(strcmp(tmpname, "C") == 0);
+        EXPECT_TRUE(inode == sb->RootInode());
         inode->Put();
 
-        CHECK(test_namespace->Nameiparent(session, "/A/../A/B/C", lock_protocol::Mode::NL, tmpname,
+        EXPECT_TRUE(test_namespace->Nameiparent(session, "/A/../A/B/C", lock_protocol::Mode::NL, tmpname,
                                           &inode) == 0);
-        CHECK(strcmp(tmpname, "C") == 0);
-        CHECK(inode == sb->RootInode());
+        EXPECT_TRUE(strcmp(tmpname, "C") == 0);
+        EXPECT_TRUE(inode == sb->RootInode());
         inode->Put();
 
-        CHECK(test_namespace->Nameiparent(session, "/A/./B/C", lock_protocol::Mode::NL, tmpname,
+        EXPECT_TRUE(test_namespace->Nameiparent(session, "/A/./B/C", lock_protocol::Mode::NL, tmpname,
                                           &inode) == 0);
-        CHECK(strcmp(tmpname, "C") == 0);
-        CHECK(inode == sb->RootInode());
+        EXPECT_TRUE(strcmp(tmpname, "C") == 0);
+        EXPECT_TRUE(inode == sb->RootInode());
         inode->Put();
 
-        CHECK(test_namespace->Nameiparent(session, "/A/B/C", lock_protocol::Mode::NL, tmpname,
+        EXPECT_TRUE(test_namespace->Nameiparent(session, "/A/B/C", lock_protocol::Mode::NL, tmpname,
                                           &inode) == 0);
-        CHECK(strcmp(tmpname, "C") == 0);
-        CHECK(inode == sb->RootInode());
+        EXPECT_TRUE(strcmp(tmpname, "C") == 0);
+        EXPECT_TRUE(inode == sb->RootInode());
         inode->Put();
 
         // link /A/B/C to an inode
         client::Inode* dirinode1 = new PseudoDirInode();
-        CHECK(inode->Link(session, "C", dirinode1, false) == 0);
+        EXPECT_TRUE(inode->Link(session, "C", dirinode1, false) == 0);
 
-        CHECK(test_namespace->Nameiparent(session, "/A/B/C/D", lock_protocol::Mode::NL, tmpname,
+        EXPECT_TRUE(test_namespace->Nameiparent(session, "/A/B/C/D", lock_protocol::Mode::NL, tmpname,
                                           &inode) == 0);
-        CHECK(strcmp(tmpname, "D") == 0);
-        CHECK(inode == dirinode1);
+        EXPECT_TRUE(strcmp(tmpname, "D") == 0);
+        EXPECT_TRUE(inode == dirinode1);
         inode->Put();
     }
 
-    TEST_FIXTURE(ClientFixture, TestNamei)
+    TEST_F(ClientFixture, TestNamei)
     {
         char tmpname[128];
         client::Inode* inode;
@@ -228,33 +227,33 @@ SUITE(ClientNamespace)
         client::SuperBlock* sb = new PseudoSuperBlock();
         client::Inode* dirinode1 = new PseudoDirInode();
         inode = sb->RootInode();
-        CHECK(inode->Link(session, "C", dirinode1, false) == 0);
+        EXPECT_TRUE(inode->Link(session, "C", dirinode1, false) == 0);
         test_namespace->Init(session);
 
-        CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
+        EXPECT_TRUE(test_namespace->Mount(session, "/A/B", sb) == 0);
 
-        CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) == 0);
-        CHECK(inode == dirinode1);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) == 0);
+        EXPECT_TRUE(inode == dirinode1);
         inode->Put();
 
-        CHECK(test_namespace->Namei(session, "/A/../A/B/C", lock_protocol::Mode::NL, &inode) == 0);
-        CHECK(inode == dirinode1);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/../A/B/C", lock_protocol::Mode::NL, &inode) == 0);
+        EXPECT_TRUE(inode == dirinode1);
         inode->Put();
 
-        CHECK(test_namespace->Namei(session, "/A/./B/C", lock_protocol::Mode::NL, &inode) == 0);
-        CHECK(inode == dirinode1);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/./B/C", lock_protocol::Mode::NL, &inode) == 0);
+        EXPECT_TRUE(inode == dirinode1);
         inode->Put();
 
-        CHECK(test_namespace->Namei(session, "/A/B/C", lock_protocol::Mode::NL, &inode) == 0);
-        CHECK(inode == dirinode1);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/B/C", lock_protocol::Mode::NL, &inode) == 0);
+        EXPECT_TRUE(inode == dirinode1);
         inode->Put();
 
-        CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) == 0);
-        CHECK(inode == dirinode1);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) == 0);
+        EXPECT_TRUE(inode == dirinode1);
         inode->Put();
     }
 
-    TEST_FIXTURE(ClientFixture, TestNameiNotExists)
+    TEST_F(ClientFixture, TestNameiNotExists)
     {
         char tmpname[128];
         client::Inode* inode;
@@ -264,16 +263,15 @@ SUITE(ClientNamespace)
         inode = sb->RootInode();
         test_namespace->Init(session);
 
-        CHECK(test_namespace->Mount(session, "/A/B", sb) == 0);
+        EXPECT_TRUE(test_namespace->Mount(session, "/A/B", sb) == 0);
 
-        CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) != 0);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) != 0);
 
-        CHECK(test_namespace->Namei(session, "/A/../A/B/C", lock_protocol::Mode::NL, &inode) != 0);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/../A/B/C", lock_protocol::Mode::NL, &inode) != 0);
 
-        CHECK(test_namespace->Namei(session, "/A/./B/C", lock_protocol::Mode::NL, &inode) != 0);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/./B/C", lock_protocol::Mode::NL, &inode) != 0);
 
-        CHECK(test_namespace->Namei(session, "/A/B/C", lock_protocol::Mode::NL, &inode) != 0);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/B/C", lock_protocol::Mode::NL, &inode) != 0);
 
-        CHECK(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) != 0);
+        EXPECT_TRUE(test_namespace->Namei(session, "/A/B/../B/C", lock_protocol::Mode::NL, &inode) != 0);
     }
-}

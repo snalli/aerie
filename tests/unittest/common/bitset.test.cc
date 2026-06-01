@@ -1,5 +1,5 @@
 #include "common/bitset.h"
-// TODO: port to modern test framework (was testfw/unittest++)
+#include <gtest/gtest.h>
 
 // bitpos contains the positions of the bits that are set
 bool CompareBitSet(DynamicBitSet* bset, std::set<int> bitpos)
@@ -20,9 +20,8 @@ bool CompareBitSet(DynamicBitSet* bset, std::set<int> bitpos)
     return bitpos.size() == 0;
 }
 
-SUITE(BitSet)
-{
-    TEST(TestSet)
+// Suite: BitSet
+    TEST(BitSet, TestSet)
     {
         char buf[512];
         std::set<int> bitpos;
@@ -31,7 +30,7 @@ SUITE(BitSet)
         bset->Set(1);
         bitpos.clear();
         bitpos.insert(1);
-        CHECK(CompareBitSet(bset, bitpos) == true);
+        EXPECT_TRUE(CompareBitSet(bset, bitpos) == true);
 
         bset->Reset();
         bset->Set(0);
@@ -39,7 +38,7 @@ SUITE(BitSet)
         bitpos.clear();
         bitpos.insert(0);
         bitpos.insert(63);
-        CHECK(CompareBitSet(bset, bitpos) == true);
+        EXPECT_TRUE(CompareBitSet(bset, bitpos) == true);
 
         bset->Reset();
         bset->Set(0);
@@ -49,21 +48,20 @@ SUITE(BitSet)
         bitpos.insert(0);
         bitpos.insert(7);
         bitpos.insert(63);
-        CHECK(CompareBitSet(bset, bitpos) == true);
+        EXPECT_TRUE(CompareBitSet(bset, bitpos) == true);
     }
 
-    TEST(TestOperatorIndex)
+    TEST(BitSet, TestOperatorIndex)
     {
         char buf[512];
         std::set<int> bitpos;
         DynamicBitSet* bset = DynamicBitSet::Make(buf, 64);
 
         (*bset)[4] = true;
-        CHECK(bset->IsSet(4) == true);
-        CHECK((*bset)[4] == true);
+        EXPECT_TRUE(bset->IsSet(4) == true);
+        EXPECT_TRUE((*bset)[4] == true);
 
         bitpos.clear();
         bitpos.insert(4);
-        CHECK(CompareBitSet(bset, bitpos) == true);
+        EXPECT_TRUE(CompareBitSet(bset, bitpos) == true);
     }
-}

@@ -1,10 +1,9 @@
 #include "osd/main/common/lock_protocol.h"
-// TODO: port to modern test framework (was testfw/unittest++)
+#include <gtest/gtest.h>
 #include <set>
 
-SUITE(LockProtocolMode)
-{
-    TEST(TestAssignment)
+// Suite: LockProtocolMode
+    TEST(LockProtocolMode, TestAssignment)
     {
         lock_protocol::Mode mode0 = lock_protocol::Mode::NL;
         lock_protocol::Mode mode1 = lock_protocol::Mode::XL;
@@ -14,78 +13,78 @@ SUITE(LockProtocolMode)
         mode2 = mode0;
         mode3 = mode1;
 
-        CHECK(mode0 == mode2);
-        CHECK(mode1 == mode3);
+        EXPECT_TRUE(mode0 == mode2);
+        EXPECT_TRUE(mode1 == mode3);
     }
 
-    TEST(TestEquality1)
+    TEST(LockProtocolMode, TestEquality1)
     {
         lock_protocol::Mode mode0 = lock_protocol::Mode::NL;
         lock_protocol::Mode mode1 = lock_protocol::Mode::SL;
         lock_protocol::Mode mode2 = lock_protocol::Mode::SL;
         lock_protocol::Mode mode3 = lock_protocol::Mode::XL;
 
-        CHECK(mode0 != mode1);
-        CHECK(mode1 == mode2);
-        CHECK(mode2 != mode3);
-        CHECK(mode3 == mode3);
+        EXPECT_TRUE(mode0 != mode1);
+        EXPECT_TRUE(mode1 == mode2);
+        EXPECT_TRUE(mode2 != mode3);
+        EXPECT_TRUE(mode3 == mode3);
     }
 
-    TEST(TestSuccessor1)
+    TEST(LockProtocolMode, TestSuccessor1)
     {
-        CHECK(lock_protocol::Mode(lock_protocol::Mode::XR) ==
+        EXPECT_TRUE(lock_protocol::Mode(lock_protocol::Mode::XR) ==
               lock_protocol::Mode(lock_protocol::Mode::XL).Successor());
-        CHECK(lock_protocol::Mode(lock_protocol::Mode::XR) ==
+        EXPECT_TRUE(lock_protocol::Mode(lock_protocol::Mode::XR) ==
               lock_protocol::Mode::Successor(lock_protocol::Mode::XL));
     }
 
-    TEST(TestPartialOrder1)
+    TEST(LockProtocolMode, TestPartialOrder1)
     {
-        CHECK(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::XR, lock_protocol::Mode::XL) >
+        EXPECT_TRUE(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::XR, lock_protocol::Mode::XL) >
               0);
-        CHECK(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::IS, lock_protocol::Mode::XL) <
+        EXPECT_TRUE(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::IS, lock_protocol::Mode::XL) <
               0);
-        CHECK(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::IXSL,
+        EXPECT_TRUE(lock_protocol::Mode::PartialOrder(lock_protocol::Mode::IXSL,
                                                 lock_protocol::Mode::XL) < 0);
 
-        CHECK(lock_protocol::Mode(lock_protocol::Mode::IXSL) <
+        EXPECT_TRUE(lock_protocol::Mode(lock_protocol::Mode::IXSL) <
               lock_protocol::Mode(lock_protocol::Mode::XR));
-        CHECK(lock_protocol::Mode(lock_protocol::Mode::IX) <
+        EXPECT_TRUE(lock_protocol::Mode(lock_protocol::Mode::IX) <
               lock_protocol::Mode(lock_protocol::Mode::IXSL));
-        CHECK(lock_protocol::Mode(lock_protocol::Mode::XL) >
+        EXPECT_TRUE(lock_protocol::Mode(lock_protocol::Mode::XL) >
               lock_protocol::Mode(lock_protocol::Mode::SL));
     }
 
-    TEST(TestSupremum1)
+    TEST(LockProtocolMode, TestSupremum1)
     {
-        CHECK(lock_protocol::Mode::Supremum(lock_protocol::Mode(lock_protocol::Mode::IXSL),
+        EXPECT_TRUE(lock_protocol::Mode::Supremum(lock_protocol::Mode(lock_protocol::Mode::IXSL),
                                             lock_protocol::Mode(lock_protocol::Mode::XL)) ==
               lock_protocol::Mode::XL);
     }
 
-    TEST(TestSupremum2)
+    TEST(LockProtocolMode, TestSupremum2)
     {
-        CHECK(lock_protocol::Mode::Supremum(lock_protocol::Mode(lock_protocol::Mode::IXSL),
+        EXPECT_TRUE(lock_protocol::Mode::Supremum(lock_protocol::Mode(lock_protocol::Mode::IXSL),
                                             lock_protocol::Mode(lock_protocol::Mode::SL)) ==
               lock_protocol::Mode::IXSL);
     }
 
-    TEST(TestSet)
+    TEST(LockProtocolMode, TestSet)
     {
-        CHECK(lock_protocol::Mode::Set::NL ==
+        EXPECT_TRUE(lock_protocol::Mode::Set::NL ==
               lock_protocol::Mode::Set(lock_protocol::Mode::NL).value());
-        CHECK(lock_protocol::Mode::Set::SL !=
+        EXPECT_TRUE(lock_protocol::Mode::Set::SL !=
               lock_protocol::Mode::Set(lock_protocol::Mode::NL).value());
-        CHECK(lock_protocol::Mode::Set::XL ==
+        EXPECT_TRUE(lock_protocol::Mode::Set::XL ==
               lock_protocol::Mode::Set(lock_protocol::Mode::XL).value());
-        CHECK((lock_protocol::Mode::XL | lock_protocol::Mode::SL) ==
+        EXPECT_TRUE((lock_protocol::Mode::XL | lock_protocol::Mode::SL) ==
               (lock_protocol::Mode::Set::XL | lock_protocol::Mode::Set::SL));
-        CHECK((lock_protocol::Mode::Set(lock_protocol::Mode::XL) |
+        EXPECT_TRUE((lock_protocol::Mode::Set(lock_protocol::Mode::XL) |
                lock_protocol::Mode::Set(lock_protocol::Mode::SL))
                   .value() == (lock_protocol::Mode::Set::XL | lock_protocol::Mode::Set::SL));
     }
 
-    TEST(TestSetIterator1)
+    TEST(LockProtocolMode, TestSetIterator1)
     {
         lock_protocol::Mode::Set mode_set;
         lock_protocol::Mode::Set::Iterator itr;
@@ -93,7 +92,7 @@ SUITE(LockProtocolMode)
 
         for (itr = mode_set.begin(); itr != mode_set.end(); itr++)
         {
-            CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+            EXPECT_TRUE(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
         }
 
         mode_set.Insert(lock_protocol::Mode::NL);
@@ -103,12 +102,12 @@ SUITE(LockProtocolMode)
 
         for (itr = mode_set.begin(); itr != mode_set.end(); itr++)
         {
-            CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+            EXPECT_TRUE(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
         }
-        CHECK(stl_set.size() == 0); // for-loop removed all entries
+        EXPECT_TRUE(stl_set.size() == 0); // for-loop removed all entries
     }
 
-    TEST(TestSetIterator2)
+    TEST(LockProtocolMode, TestSetIterator2)
     {
         lock_protocol::Mode::Set mode_set;
         lock_protocol::Mode::Set::Iterator itr;
@@ -121,12 +120,12 @@ SUITE(LockProtocolMode)
 
         for (itr = mode_set.begin(); itr != mode_set.end(); itr++)
         {
-            CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+            EXPECT_TRUE(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
         }
-        CHECK(stl_set.size() == 0); // for-loop removed all entries
+        EXPECT_TRUE(stl_set.size() == 0); // for-loop removed all entries
     }
 
-    TEST(TestSetIterator3)
+    TEST(LockProtocolMode, TestSetIterator3)
     {
         lock_protocol::Mode::Set mode_set;
         lock_protocol::Mode::Set::Iterator itr;
@@ -137,48 +136,47 @@ SUITE(LockProtocolMode)
 
         for (itr = mode_set.begin(); itr != mode_set.end(); itr++)
         {
-            CHECK(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
+            EXPECT_TRUE(stl_set.erase(static_cast<lock_protocol::Mode::Enum>((*itr).value())) == 1);
         }
-        CHECK(stl_set.size() == 0); // for-loop removed all entries
+        EXPECT_TRUE(stl_set.size() == 0); // for-loop removed all entries
     }
 
-    TEST(TestMostSevere)
+    TEST(LockProtocolMode, TestMostSevere)
     {
         lock_protocol::Mode::Set mode_set;
 
         mode_set.Insert(lock_protocol::Mode::IXSL);
-        CHECK(mode_set.Exists(lock_protocol::Mode::IXSL));
+        EXPECT_TRUE(mode_set.Exists(lock_protocol::Mode::IXSL));
         mode_set.Insert(lock_protocol::Mode::XR);
-        CHECK(mode_set.Exists(lock_protocol::Mode::XR));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) ==
+        EXPECT_TRUE(mode_set.Exists(lock_protocol::Mode::XR));
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::NL) ==
               lock_protocol::Mode(lock_protocol::Mode::XR));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::IX) ==
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::IX) ==
               lock_protocol::Mode(lock_protocol::Mode::IXSL));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::SR) ==
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::SR) ==
               lock_protocol::Mode(lock_protocol::Mode::NL));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::SL) ==
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::SL) ==
               lock_protocol::Mode(lock_protocol::Mode::IXSL));
 
         mode_set.Clear();
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) ==
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::NL) ==
               lock_protocol::Mode(lock_protocol::Mode::NL));
         mode_set.Insert(lock_protocol::Mode::XR);
-        CHECK(mode_set.Exists(lock_protocol::Mode::XR));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) ==
+        EXPECT_TRUE(mode_set.Exists(lock_protocol::Mode::XR));
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::NL) ==
               lock_protocol::Mode(lock_protocol::Mode::XR));
 
         mode_set.Clear();
         mode_set.Insert(lock_protocol::Mode::SL);
-        CHECK(mode_set.Exists(lock_protocol::Mode::SL));
+        EXPECT_TRUE(mode_set.Exists(lock_protocol::Mode::SL));
         mode_set.Insert(lock_protocol::Mode::IX);
-        CHECK(mode_set.Exists(lock_protocol::Mode::IX));
+        EXPECT_TRUE(mode_set.Exists(lock_protocol::Mode::IX));
         mode_set.Insert(lock_protocol::Mode::XR);
-        CHECK(mode_set.Exists(lock_protocol::Mode::XR));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::NL) ==
+        EXPECT_TRUE(mode_set.Exists(lock_protocol::Mode::XR));
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::NL) ==
               lock_protocol::Mode(lock_protocol::Mode::XR));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::SL) ==
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::SL) ==
               lock_protocol::Mode(lock_protocol::Mode::SL));
-        CHECK(mode_set.MostSevere(lock_protocol::Mode::SR) ==
+        EXPECT_TRUE(mode_set.MostSevere(lock_protocol::Mode::SR) ==
               lock_protocol::Mode(lock_protocol::Mode::SL));
     }
-}
