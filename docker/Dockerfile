@@ -19,8 +19,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /aerie
 
-# Copy only what the build needs (see .dockerignore for exclusions)
+# Copy source (libfs + tests/benchmark which is outside libfs/)
 COPY libfs/ libfs/
+COPY tests/benchmark/ tests/benchmark/
 
 RUN cmake -S libfs -B libfs/build \
         -DCMAKE_BUILD_TYPE=Release \
@@ -40,16 +41,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Binaries
-COPY --from=builder /aerie/libfs/build/src/scm/pool_tool            /usr/local/bin/pool_tool
-COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_server          /usr/local/bin/pxfs_server
-COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_mkfs            /usr/local/bin/pxfs_mkfs
-COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_client          /usr/local/bin/pxfs_client
-COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_server          /usr/local/bin/kvfs_server
-COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_mkfs            /usr/local/bin/kvfs_mkfs
-COPY --from=builder /aerie/libfs/build/src/cfs/cfs_server            /usr/local/bin/cfs_server
-COPY --from=builder /aerie/libfs/build/src/cfs/cfs_mkfs              /usr/local/bin/cfs_mkfs
-COPY --from=builder /aerie/libfs/build/bench/ubench/ubench_pxfs      /usr/local/bin/ubench_pxfs
-COPY --from=builder /aerie/libfs/build/bench/ubench/ubench_vfs       /usr/local/bin/ubench_vfs
+COPY --from=builder /aerie/libfs/build/src/scm/pool_tool                        /usr/local/bin/pool_tool
+COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_server                     /usr/local/bin/pxfs_server
+COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_mkfs                       /usr/local/bin/pxfs_mkfs
+COPY --from=builder /aerie/libfs/build/src/pxfs/pxfs_client                     /usr/local/bin/pxfs_client
+COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_server                     /usr/local/bin/kvfs_server
+COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_mkfs                       /usr/local/bin/kvfs_mkfs
+COPY --from=builder /aerie/libfs/build/src/cfs/cfs_server                       /usr/local/bin/cfs_server
+COPY --from=builder /aerie/libfs/build/src/cfs/cfs_mkfs                         /usr/local/bin/cfs_mkfs
+COPY --from=builder /aerie/libfs/build/tests/benchmark/ubench/ubench_pxfs       /usr/local/bin/ubench_pxfs
+COPY --from=builder /aerie/libfs/build/tests/benchmark/ubench/ubench_vfs        /usr/local/bin/ubench_vfs
 
 # Shared libraries
 COPY --from=builder /aerie/libfs/build/ /aerie/build/
@@ -62,7 +63,9 @@ ENV LIBFS_CONF=/etc/libfs.ini
 # Pool lives on a named volume so it survives container restarts
 VOLUME ["/data"]
 
-COPY libfs/scripts/ /usr/local/bin/
+# Scripts (moved from libfs/scripts/ to tests/)
+COPY tests/aerie-server.sh /usr/local/bin/aerie-server.sh
+COPY tests/aerie-bench.sh  /usr/local/bin/aerie-bench.sh
 RUN chmod +x /usr/local/bin/aerie-*.sh
 
 EXPOSE 10000
