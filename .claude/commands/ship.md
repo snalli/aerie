@@ -82,7 +82,7 @@ docker run --platform linux/amd64 --rm -v "$(pwd):/workspace" \
 
     echo '--- vfs ---'
     mkdir -p /tmp/vfsbench
-    \$BUILD/bench/ubench/ubench_vfs \
+    \$BUILD/tests/benchmark/micro_benchmarks/ubench_vfs \
       +fs_create -n 1 -p /tmp/vfsbench \
       +fs_open   -n 1 -p /tmp/vfsbench \
       +fs_read   -n 1 -p /tmp/vfsbench
