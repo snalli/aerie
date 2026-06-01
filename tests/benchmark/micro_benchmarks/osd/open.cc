@@ -1,5 +1,5 @@
-#include "ubench/osd/osd.h"
-#include "ubench/time.h"
+#include "micro_benchmarks/osd/osd.h"
+#include "micro_benchmarks/time.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>

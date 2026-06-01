@@ -4,8 +4,8 @@
 #include "bcs/bcs.h"
 #include "common/util.h"
 #include "osd/main/client/osd-opaque.h"
-#include "ubench/fs/fs.h"
-#include "ubench/main.h"
+#include "micro_benchmarks/fs/fs.h"
+#include "micro_benchmarks/main.h"
 
 namespace client
 {

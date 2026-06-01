@@ -1,5 +1,5 @@
-#include "ubench/fs/fs.h"
-#include "ubench/main.h"
+#include "micro_benchmarks/fs/fs.h"
+#include "micro_benchmarks/main.h"
 #include <stdio.h>
 
 int RegisterUbench()

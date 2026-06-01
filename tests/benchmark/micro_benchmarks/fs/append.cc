@@ -1,5 +1,5 @@
-#include "ubench/fs/fs.h"
-#include "ubench/time.h"
+#include "micro_benchmarks/fs/fs.h"
+#include "micro_benchmarks/time.h"
 #include <assert.h>
 #include <errno.h>
 #include <getopt.h>

@@ -14,7 +14,7 @@
 #include "osd/main/client/salloc.h"
 #include "osd/main/client/session.h"
 #include "osd/main/client/stsystem.h"
-#include "ubench/main.h"
+#include "micro_benchmarks/main.h"
 
 namespace client
 {
