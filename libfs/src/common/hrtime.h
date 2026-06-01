@@ -1,7 +1,7 @@
 /*
  * \file
  *
- * \brief Interface to x86/64's high resolution time counter.
+ * \brief High-resolution cycle counter — x86/64, AArch64, and portable fallback.
  *
  */
 
@@ -18,11 +18,23 @@
 
 typedef unsigned long long hrtime_t;
 
+// ---------------------------------------------------------------------------
+// Serialising barrier before cycle read
+// ---------------------------------------------------------------------------
 static inline void hrtime_barrier()
 {
+#if defined(__x86_64__) || defined(__i386__)
     asm volatile("cpuid" ::: "rax", "rbx", "rcx", "rdx");
+#elif defined(__aarch64__)
+    asm volatile("isb" ::: "memory");
+#else
+    __sync_synchronize();
+#endif
 }
 
+// ---------------------------------------------------------------------------
+// Cycle counter
+// ---------------------------------------------------------------------------
 #if defined(__i386__)
 
 static inline unsigned long long hrtime_cycles(void)
@@ -41,8 +53,25 @@ static inline unsigned long long hrtime_cycles(void)
     return ((unsigned long long) lo) | (((unsigned long long) hi) << 32);
 }
 
+#elif defined(__aarch64__)
+
+static inline unsigned long long hrtime_cycles(void)
+{
+    unsigned long long val;
+    asm volatile("mrs %0, cntvct_el0" : "=r"(val));
+    return val;
+}
+
 #else
-#error "What architecture is this???"
+
+#include <time.h>
+static inline unsigned long long hrtime_cycles(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (unsigned long long) ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+}
+
 #endif
 
 #define HRTIME_DEFINITIONS                                                                         \
