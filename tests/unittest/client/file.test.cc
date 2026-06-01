@@ -9,7 +9,7 @@ using namespace client;
 // Suite: File
     TEST(File, Alloc1)
     {
-        File* fp;
+        File* fp = nullptr;
         FileManager* my_fmgr = new FileManager(1000, 2000);
 
         my_fmgr->Init();
@@ -21,7 +21,7 @@ using namespace client;
 
     TEST(File, Alloc2)
     {
-        File* fp;
+        File* fp = nullptr;
         FileManager* my_fmgr = new FileManager(1000, 2000);
 
         my_fmgr->Init();
@@ -31,12 +31,11 @@ using namespace client;
         EXPECT_TRUE(my_fmgr->Put(1000) == 0);
         EXPECT_TRUE(my_fmgr->Put(1001) == 0);
     }
-}
 
 // Suite: FileDescriptor
     TEST(FileDescriptor, AllocSingle)
     {
-        File* fp;
+        File* fp = nullptr;
         FileManager* my_fmgr = new FileManager(1000, 2000);
 
         my_fmgr->Init();
@@ -45,7 +44,7 @@ using namespace client;
 
     TEST(FileDescriptor, AllocMultiple1)
     {
-        File* fp;
+        File* fp = nullptr;
         FileManager* my_fmgr = new FileManager(1000, 1004);
 
         my_fmgr->Init();
@@ -60,7 +59,7 @@ using namespace client;
 
     TEST(FileDescriptor, AllocMultiple2)
     {
-        File* fp;
+        File* fp = nullptr;
         FileManager* my_fmgr = new FileManager(1000, 1004);
 
         my_fmgr->Init();

@@ -84,7 +84,11 @@ class PseudoDirInode : public client::Inode
         assert(0);
     }
 
-    int ioctl(::client::Session* session, int request, void* info)
+    int return_dentry(::client::Session*, void*)
+    {
+        return 0;
+    }
+    int ioctl(::client::Session*, int, void*)
     {
         return 0;
     }

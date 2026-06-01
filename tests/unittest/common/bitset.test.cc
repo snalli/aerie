@@ -6,7 +6,7 @@ bool CompareBitSet(DynamicBitSet* bset, std::set<int> bitpos)
 {
     std::vector<int>::iterator iter;
 
-    for (int i = 0; i < bset->Size(); i++)
+    for (size_t i = 0; i < (size_t)bset->Size(); i++)
     {
         if (bset->IsSet(i) && bitpos.find(i) == bitpos.end())
         {

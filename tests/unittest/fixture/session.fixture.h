@@ -29,8 +29,9 @@ class StorageAllocator
         return E_SUCCESS;
     }
 
-    int AllocateContainer(Session* session, int type, osd::common::ObjectId* oid)
+    int AllocateContainer(Session*, int, osd::common::ObjectId*)
     {
+        return E_SUCCESS;
     }
 };
 

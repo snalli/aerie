@@ -15,20 +15,21 @@ namespace client
 class StorageAllocator
 {
   public:
-    int Alloc(::client::Session* session, size_t nbytes, std::type_info const& typid, void** ptr)
+    int Alloc(::client::Session*, size_t nbytes, std::type_info const&, void** ptr)
     {
         *ptr = malloc(nbytes);
         return E_SUCCESS;
     }
 
-    int AllocateExtent(::client::Session* session, size_t nbytes, void** ptr)
+    int AllocateExtent(::client::Session*, size_t nbytes, void** ptr)
     {
         *ptr = malloc(nbytes);
         return E_SUCCESS;
     }
 
-    int AllocateContainer(::client::Session* session, int type, osd::common::ObjectId* oid)
+    int AllocateContainer(::client::Session*, int, osd::common::ObjectId*)
     {
+        return E_SUCCESS;
     }
 };
 

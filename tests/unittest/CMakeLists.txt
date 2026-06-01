@@ -38,3 +38,5 @@ set(unittest_srcs
 add_executable(aerie_unittests ${unittest_srcs})
 target_include_directories(aerie_unittests PRIVATE ${unittest_incdirs})
 target_link_libraries(aerie_unittests PRIVATE ${unittest_libs})
+# Test mocks have many stub methods with intentionally unused parameters
+target_compile_options(aerie_unittests PRIVATE -Wno-unused-parameter -Wno-unused-variable)
