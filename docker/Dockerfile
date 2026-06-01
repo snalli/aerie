@@ -49,8 +49,8 @@ COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_server                     
 COPY --from=builder /aerie/libfs/build/src/kvfs/kvfs_mkfs                       /usr/local/bin/kvfs_mkfs
 COPY --from=builder /aerie/libfs/build/src/cfs/cfs_server                       /usr/local/bin/cfs_server
 COPY --from=builder /aerie/libfs/build/src/cfs/cfs_mkfs                         /usr/local/bin/cfs_mkfs
-COPY --from=builder /aerie/libfs/build/tests/benchmark/ubench/ubench_pxfs       /usr/local/bin/ubench_pxfs
-COPY --from=builder /aerie/libfs/build/tests/benchmark/ubench/ubench_vfs        /usr/local/bin/ubench_vfs
+COPY --from=builder /aerie/libfs/build/tests/benchmark/micro_benchmarks/ubench_pxfs       /usr/local/bin/ubench_pxfs
+COPY --from=builder /aerie/libfs/build/tests/benchmark/micro_benchmarks/ubench_vfs        /usr/local/bin/ubench_vfs
 
 # Shared libraries
 COPY --from=builder /aerie/libfs/build/ /aerie/build/
